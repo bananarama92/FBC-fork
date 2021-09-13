@@ -661,6 +661,7 @@
     _CustomArousalTimer = setInterval(_CustomArousalExpression, 250);
   }
 
+  // https://gist.github.com/nylen/6234717
   function inject(src, callback) {
     if (typeof callback != "function") callback = function () {};
 
