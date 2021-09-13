@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name		 Bondage Club Enhancements
 // @namespace	https://www.bondageprojects.com/
-// @version	  0.8
+// @version	  0.9
 // @description  try to take over the world!
 // @author	   You
 // @match		https://www.bondageprojects.elementfx.com/*
@@ -613,7 +613,7 @@
           }
         }
       }
-      if ((direction !== directions.None && !isEvent) || expiredEvent) {
+      if ((direction !== ArousalMeterDirection.None && !isEvent) || expiredEvent) {
         // handle arousal-based expressions
         outer: for (const t of Object.keys(faces)) {
           const [exp, permanent] = expression(t);
@@ -621,7 +621,7 @@
           if (exp === _CustomLastExpression[t]) {
             if (exp !== _ManualLastExpression[t]) {
               for (const face of faces[t]) {
-                let limit = face.Limit - (direction === directions.Up ? 0 : 3);
+                let limit = face.Limit - (direction === ArousalMeterDirection.Up ? 0 : 3);
                 if (arousal >= limit) {
                   if (face.Expression !== exp) {
                     desired[t] = face.Expression;
