@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name		 Bondage Club Enhancements
 // @namespace	https://www.bondageprojects.com/
-// @version	  0.6
+// @version	  0.7
 // @description  try to take over the world!
 // @author	   You
 // @match		https://www.bondageprojects.elementfx.com/*
@@ -19,7 +19,8 @@
   function automaticReconnect() {
     const _localStoragePasswordsKey = 'bce.passwords';
     _updatePasswordForReconnect = (pass) => {
-      const passwords = JSON.parse(localStorage.getItem(_localStoragePasswordsKey));
+      let passwords = JSON.parse(localStorage.getItem(_localStoragePasswordsKey));
+      if (!passwords) passwords = {};
       passwords[Player.AccountName] = pass;
       localStorage.setItem(_localStoragePasswordsKey, JSON.stringify(passwords));
     }
