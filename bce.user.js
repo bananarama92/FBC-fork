@@ -433,60 +433,62 @@
       setExpression(t, _CustomLastExpression[t]);
     }
 
+    const ArousalMeterDirection = {
+      None: 0,
+      Down: 1,
+      Up: 2,
+    };
+
+    const ArousalExpressionStages = {
+      Blush: [
+        { Expression: "Extreme", Limit: 100 },
+        { Expression: "VeryHigh", Limit: 90 },
+        { Expression: "High", Limit: 60 },
+        { Expression: "Medium", Limit: 40 },
+        { Expression: "Low", Limit: 20 },
+        { Expression: null, Limit: 0 },
+      ],
+      Eyebrows: [
+        { Expression: "Soft", Limit: 80 },
+        { Expression: "Lowered", Limit: 50 },
+        { Expression: "Raised", Limit: 20 },
+        { Expression: null, Limit: 0 },
+      ],
+      Fluids: [
+        { Expression: "DroolMessy", Limit: 99 },
+        { Expression: "DroolMedium", Limit: 80 },
+        { Expression: "DroolSides", Limit: 50 },
+        { Expression: "DroolLow", Limit: 30 },
+        { Expression: null, Limit: 0 },
+      ],
+      Eyes: [
+        { Expression: "VeryLewd", Limit: 100 },
+        { Expression: "Lewd", Limit: 95 },
+        { Expression: "Horny", Limit: 70 },
+        { Expression: null, Limit: 0 },
+      ],
+      Eyes2: [
+        { Expression: "VeryLewd", Limit: 100 },
+        { Expression: "Lewd", Limit: 95 },
+        { Expression: "Horny", Limit: 70 },
+        { Expression: null, Limit: 0 },
+      ],
+      Mouth: [
+        { Expression: "Ahegao", Limit: 100 },
+        { Expression: "Moan", Limit: 95 },
+        { Expression: "HalfOpen", Limit: 90 },
+        { Expression: "LipBite", Limit: 80 },
+        { Expression: "HalfOpen", Limit: 40 },
+        { Expression: null, Limit: 0 },
+      ],
+    };
+
     // this is called once per interval to check for expression changes
     _CustomArousalExpression = () => {
-      const directions = {
-        None: 0,
-        Down: 1,
-        Up: 2,
-      };
-      const faces = {
-        Blush: [
-          { Expression: "Extreme", Limit: 100 },
-          { Expression: "VeryHigh", Limit: 90 },
-          { Expression: "High", Limit: 60 },
-          { Expression: "Medium", Limit: 20 },
-          { Expression: "Low", Limit: 5 },
-          { Expression: null, Limit: 0 },
-        ],
-        Eyebrows: [
-          { Expression: "Soft", Limit: 80 },
-          { Expression: "Lowered", Limit: 50 },
-          { Expression: "Raised", Limit: 20 },
-          { Expression: null, Limit: 0 },
-        ],
-        Fluids: [
-          { Expression: "DroolMessy", Limit: 99 },
-          { Expression: "DroolMedium", Limit: 80 },
-          { Expression: "DroolSides", Limit: 50 },
-          { Expression: "DroolLow", Limit: 30 },
-          { Expression: null, Limit: 0 },
-        ],
-        Eyes: [
-          { Expression: "VeryLewd", Limit: 100 },
-          { Expression: "Lewd", Limit: 95 },
-          { Expression: "Horny", Limit: 70 },
-          { Expression: null, Limit: 0 },
-        ],
-        Eyes2: [
-          { Expression: "VeryLewd", Limit: 100 },
-          { Expression: "Lewd", Limit: 95 },
-          { Expression: "Horny", Limit: 70 },
-          { Expression: null, Limit: 0 },
-        ],
-        Mouth: [
-          { Expression: "Ahegao", Limit: 100 },
-          { Expression: "Moan", Limit: 95 },
-          { Expression: "HalfOpen", Limit: 90 },
-          { Expression: "LipBite", Limit: 80 },
-          { Expression: "HalfOpen", Limit: 40 },
-          { Expression: null, Limit: 0 },
-        ],
-      };
 
       // Reset everything when face is fully default
       let isDefault = true;
-      for (const t of Object.keys(faces)) {
+      for (const t of Object.keys(ArousalExpressionStages)) {
         if (expression(t)[0]) {
           isDefault = false;
         }
@@ -506,11 +508,11 @@
 
       // detect arousal movement
       let arousal = Player.ArousalSettings.Progress;
-      let direction = directions.None;
+      let direction = ArousalMeterDirection.None;
       if (arousal < _PreviousArousal.Progress) {
-        direction = directions.Down;
+        direction = ArousalMeterDirection.Down;
       } else if (arousal > _PreviousArousal.Progress) {
-        direction = directions.Up;
+        direction = ArousalMeterDirection.Up;
       }
 
       // handle events
