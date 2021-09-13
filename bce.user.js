@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name		 Bondage Club Enhancements
 // @namespace	https://www.bondageprojects.com/
-// @version	  0.7
+// @version	  0.8
 // @description  try to take over the world!
 // @author	   You
 // @match		https://www.bondageprojects.elementfx.com/*
