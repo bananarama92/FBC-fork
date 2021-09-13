@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name		 Bondage Club Enhancements
 // @namespace	https://www.bondageprojects.com/
-// @version	  0.5
+// @version	  0.6
 // @description  try to take over the world!
 // @author	   You
 // @match		https://www.bondageprojects.elementfx.com/*
@@ -19,16 +19,16 @@
   function automaticReconnect() {
     const _localStoragePasswordsKey = 'bce.passwords';
     _updatePasswordForReconnect = (pass) => {
-      const passwords = JSON.parse(localStorage.get(_localStoragePasswordsKey));
+      const passwords = JSON.parse(localStorage.getItem(_localStoragePasswordsKey));
       passwords[Player.AccountName] = pass;
-      localStorage.set(_localStoragePasswordsKey, JSON.stringify(passwords));
+      localStorage.setItem(_localStoragePasswordsKey, JSON.stringify(passwords));
     }
 
     let _breakCircuit = false;
     function reconCheck() {
       if (_breakCircuit) return;
       if (CurrentScreen === "Relog" && ServerIsConnected && !LoginSubmitted) {
-        const passwords = JSON.parse(localStorage.get(_localStoragePasswordsKey));
+        const passwords = JSON.parse(localStorage.getItem(_localStoragePasswordsKey));
         console.log("Attempting to log in again as", Player.AccountName);
         if (!passwords[Player.AccountName]) {
           alert("Automatic reconnect failed!");
@@ -555,7 +555,6 @@
                       let idx =
                         _ExpressionModifierMap[t].indexOf(current) +
                         exp.ExpressionModifier;
-                      console.log(t, idx, _ExpressionModifierMap[t]);
                       if (idx >= _ExpressionModifierMap[t].length) {
                         idx = _ExpressionModifierMap[t].length - 1;
                       } else if (idx < 0) {
