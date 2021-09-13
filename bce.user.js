@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name		 Bondage Club Enhancements
 // @namespace	https://www.bondageprojects.com/
-// @version	  0.9
+// @version	  0.10
 // @description  try to take over the world!
 // @author	   You
 // @match		https://www.bondageprojects.elementfx.com/*
@@ -57,7 +57,7 @@
       return;
     }
 
-    console.log("Started arousal faces");
+    console.log("Started arousal ArousalExpressionStages");
 
     _CustomLastExpression = {
       Blush: null,
@@ -615,12 +615,12 @@
       }
       if ((direction !== ArousalMeterDirection.None && !isEvent) || expiredEvent) {
         // handle arousal-based expressions
-        outer: for (const t of Object.keys(faces)) {
+        outer: for (const t of Object.keys(ArousalExpressionStages)) {
           const [exp, permanent] = expression(t);
           // only proceed if matches without overriding manual expressions
           if (exp === _CustomLastExpression[t]) {
             if (exp !== _ManualLastExpression[t]) {
-              for (const face of faces[t]) {
+              for (const face of ArousalExpressionStages[t]) {
                 let limit = face.Limit - (direction === ArousalMeterDirection.Up ? 0 : 3);
                 if (arousal >= limit) {
                   if (face.Expression !== exp) {
