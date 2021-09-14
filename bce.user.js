@@ -241,24 +241,44 @@
           Eyebrows: [{ Expression: "Soft", Duration: 5000 }],
         },
       },
+      StimulatedLong: {
+        Type: "StimulatedLong",
+        Duration: 15000,
+        Priority: 400,
+        Expression: {
+          Blush: [
+            { ExpressionModifier: 2, Duration: 10000 },
+            { ExpressionModifier: 1, Duration: 5000 },
+          ],
+          Eyes: [
+            { Expression: "VeryLewd", Duration: 14000 },
+            { Expression: "Sad", Duration: 1000 },
+          ],
+          Eyes2: [
+            { Expression: "VeryLewd", Duration: 14000 },
+            { Expression: "Sad", Duration: 1000 },
+          ],
+          Eyebrows: [{ Expression: "Soft", Duration: 15000 }],
+        },
+      },
       Shock: {
         Type: "Shock",
-        Duration: 10000,
+        Duration: 15000,
         Priority: 1000,
         Expression: {
-          Blush: [{ ExpressionModifier: 5, Duration: 10000 }],
+          Blush: [{ ExpressionModifier: 5, Duration: 15000 }],
           Eyes: [
             { Expression: "Dizzy", Duration: 1000 },
-            { Expression: "Scared", Duration: 5000 },
-            { Expression: "Surprised", Duration: 4000 },
+            { Expression: "Scared", Duration: 8000 },
+            { Expression: "Surprised", Duration: 7000 },
           ],
           Eyes2: [
             { Expression: "Dizzy", Duration: 1000 },
-            { Expression: "Scared", Duration: 5000 },
-            { Expression: "Surprised", Duration: 4000 },
+            { Expression: "Scared", Duration: 8000 },
+            { Expression: "Surprised", Duration: 7000 },
           ],
-          Eyebrows: [{ Expression: "Soft", Duration: 10000 }],
-          Mouth: [{ Expression: "Pained", Duration: 10000 }],
+          Eyebrows: [{ Expression: "Soft", Duration: 15000 }],
+          Mouth: [{ Expression: "Pained", Duration: 15000 }],
         },
       },
       Hit: {
@@ -319,6 +339,19 @@
           ],
         },
       },
+      Disoriented: {
+        Type: "Disoriented",
+        Duration: 8000,
+        Priority: 250,
+        Expression: {
+          Eyes: [{ Expression: "Dizzy", Duration: 8000 }],
+          Eyes2: [{ Expression: "Dizzy", Duration: 8000 }],
+          Eyebrows: [{ Expression: "Raised", Duration: 8000 }],
+          Blush: [
+            { ExpressionModifier: 2, Duration: 8000 },
+          ],
+        },
+      }
     };
 
     _ChatTriggers = [
@@ -405,6 +438,14 @@
           `^\\((.*?shares a long French kiss with ${Player.Name}|${Player.Name} shares a long French kiss with )`
         ),
         Event: "LongKiss",
+      },
+      {
+        Trigger: new RegExp(`^\\(${Player.Name}.*?loses her balance`),
+        Event: "Disoriented",
+      },
+      {
+        Trigger: new RegExp(`^\\(.*?masturbates ${Player.Name}'s`),
+        Event: "StimulatedLong",
       },
     ];
 
