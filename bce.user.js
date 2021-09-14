@@ -7,6 +7,7 @@
 // @match		https://www.bondageprojects.elementfx.com/*
 // @match		https://www.bondageprojects.com/*
 // @match   https://bondage-europe.com/*
+// @match   http://localhost:3000/*
 // @icon		 data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==
 // @grant		none
 // ==/UserScript==
@@ -18,19 +19,26 @@
   inject(automaticExpressions);
 
   function automaticReconnect() {
-    const _localStoragePasswordsKey = 'bce.passwords';
+    const _localStoragePasswordsKey = "bce.passwords";
     _updatePasswordForReconnect = (pass) => {
-      let passwords = JSON.parse(localStorage.getItem(_localStoragePasswordsKey));
+      let passwords = JSON.parse(
+        localStorage.getItem(_localStoragePasswordsKey)
+      );
       if (!passwords) passwords = {};
       passwords[Player.AccountName] = pass;
-      localStorage.setItem(_localStoragePasswordsKey, JSON.stringify(passwords));
-    }
+      localStorage.setItem(
+        _localStoragePasswordsKey,
+        JSON.stringify(passwords)
+      );
+    };
 
     let _breakCircuit = false;
     function reconCheck() {
       if (_breakCircuit) return;
       if (CurrentScreen === "Relog" && ServerIsConnected && !LoginSubmitted) {
-        const passwords = JSON.parse(localStorage.getItem(_localStoragePasswordsKey));
+        const passwords = JSON.parse(
+          localStorage.getItem(_localStoragePasswordsKey)
+        );
         console.log("Attempting to log in again as", Player.AccountName);
         if (!passwords[Player.AccountName]) {
           alert("Automatic reconnect failed!");
@@ -185,7 +193,7 @@
         Type: "Blink",
         Duration: 200,
         Expression: {
-          Eyes:  [{ Expression: "Closed", Duration: 200 }],
+          Eyes: [{ Expression: "Closed", Duration: 200 }],
           Eyes2: [{ Expression: "Closed", Duration: 200 }],
         },
       },
@@ -347,11 +355,9 @@
           Eyes: [{ Expression: "Dizzy", Duration: 8000 }],
           Eyes2: [{ Expression: "Dizzy", Duration: 8000 }],
           Eyebrows: [{ Expression: "Raised", Duration: 8000 }],
-          Blush: [
-            { ExpressionModifier: 2, Duration: 8000 },
-          ],
+          Blush: [{ ExpressionModifier: 2, Duration: 8000 }],
         },
-      }
+      },
     };
 
     _ChatTriggers = [
@@ -527,7 +533,6 @@
 
     // this is called once per interval to check for expression changes
     _CustomArousalExpression = () => {
-
       // Reset everything when face is fully default
       let isDefault = true;
       for (const t of Object.keys(ArousalExpressionStages)) {
@@ -655,7 +660,10 @@
           }
         }
       }
-      if ((direction !== ArousalMeterDirection.None && !isEvent) || expiredEvent) {
+      if (
+        (direction !== ArousalMeterDirection.None && !isEvent) ||
+        expiredEvent
+      ) {
         // handle arousal-based expressions
         outer: for (const t of Object.keys(ArousalExpressionStages)) {
           const [exp, permanent] = expression(t);
@@ -663,7 +671,8 @@
           if (exp === _CustomLastExpression[t]) {
             if (exp !== _ManualLastExpression[t]) {
               for (const face of ArousalExpressionStages[t]) {
-                let limit = face.Limit - (direction === ArousalMeterDirection.Up ? 0 : 3);
+                let limit =
+                  face.Limit - (direction === ArousalMeterDirection.Up ? 0 : 3);
                 if (arousal >= limit) {
                   if (face.Expression !== exp) {
                     desired[t] = face.Expression;
