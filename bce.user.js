@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Bondage Club Enhancements
 // @namespace https://www.bondageprojects.com/
-// @version 0.22
+// @version 0.23
 // @description enhancements for the bondage club
 // @author Sidious
 // @match https://www.bondageprojects.elementfx.com/*
@@ -158,9 +158,8 @@
     };
 
     let loginCheckDone = false;
+    let lastClick = Date.now();
     function resetLoginCheck() {
-      LoginRun = _LoginRun;
-      LoginClick = _LoginClick;
       loginCheckDone = false;
     }
     function loginCheck() {
@@ -172,36 +171,41 @@
         if (!passwords) {
           passwords = {};
         }
-        let y = 60;
         const posMaps = {};
-        let modifiedLoginRun = `if (${
-          Object.keys(passwords).length > 0
-        }) DrawText("Saved Logins (BCE)", 170, 35, "White", "Black");DrawButton(1250, 385, 180, 60, "Save (BCE)", "White");`;
-        for (const user in passwords) {
-          posMaps[y] = user;
-          modifiedLoginRun += `DrawButton(10, ${y}, 350, 60, "${user}", "White"); DrawButton(355, ${y}, 60, 60, "X", "White");`;
-          y += 70;
+        if (typeof _LoginRun === "undefined") {
+          _LoginRun = LoginRun;
         }
-        _LoginRun = LoginRun;
         LoginRun = function () {
-          eval(
-            _LoginRun.toString().substring(21, _LoginRun.toString().length - 1)
-          );
-          eval(modifiedLoginRun);
+          _LoginRun();
+          if (Object.keys(passwords).length > 0) {
+            DrawText("Saved Logins (BCE)", 170, 35, "White", "Black");
+          }
+          DrawButton(1250, 385, 180, 60, "Save (BCE)", "White");
+
+          let y = 60;
+          for (const user in passwords) {
+            posMaps[y] = user;
+            DrawButton(10, y, 350, 60, user, "White");
+            DrawButton(355, y, 60, 60, "X", "White");
+            y += 70;
+          }
         };
-        _LoginClick = LoginClick;
+        if (typeof _LoginClick === "undefined") {
+          _LoginClick = LoginClick;
+        }
         LoginClick = function () {
-          eval(
-            _LoginClick
-              .toString()
-              .substring(23, _LoginClick.toString().length - 1)
-          );
+          _LoginClick();
           if (MouseIn(1250, 385, 180, 60)) {
             bce_updatePasswordForReconnect();
             resetLoginCheck();
           }
+          const now = Date.now();
+          if (now - lastClick < 150) {
+            return;
+          }
+          lastClick = now;
           for (let pos in posMaps) {
-            if (MouseIn(10, pos, 200, 60)) {
+            if (MouseIn(10, pos, 350, 60)) {
               ElementValue("InputName", posMaps[pos]);
               ElementValue("InputPassword", passwords[posMaps[pos]]);
             } else if (MouseIn(355, pos, 60, 60)) {
