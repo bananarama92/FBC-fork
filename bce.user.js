@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Bondage Club Enhancements
 // @namespace https://www.bondageprojects.com/
-// @version 0.18
+// @version 0.19
 // @description enhancements for the bondage club
 // @author Sidious
 // @match https://www.bondageprojects.elementfx.com/*
@@ -97,7 +97,6 @@
             if (MouseIn(10, pos, 200, 60)) {
               ElementValue("InputName", posMaps[pos]);
               ElementValue("InputPassword", passwords[posMaps[pos]]);
-              LoginDoLogin();
             } else if (MouseIn(355, pos, 60, 60)) {
               bce_clearPassword(posMaps[pos]);
               resetLoginCheck();
