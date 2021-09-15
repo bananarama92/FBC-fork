@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Bondage Club Enhancements
 // @namespace https://www.bondageprojects.com/
-// @version 0.12
+// @version 0.13
 // @description enhancements for the bondage club
 // @author Sidious
 // @match https://www.bondageprojects.elementfx.com/*
@@ -146,26 +146,26 @@
       },
       Pout: {
         Type: "Pout",
-        Duration: 5000,
+        Duration: 8000,
         Expression: {
-          Mouth: [{ Expression: "Pout", Duration: 5000 }],
-          Eyes: [{ Expression: "Dazed", Duration: 5000 }],
-          Eyes2: [{ Expression: "Dazed", Duration: 5000 }],
-          Eyebrows: [{ Expression: "Harsh", Duration: 5000 }],
+          Mouth: [{ Expression: "Pout", Duration: 8000 }],
+          Eyes: [{ Expression: "Dazed", Duration: 8000 }],
+          Eyes2: [{ Expression: "Dazed", Duration: 8000 }],
+          Eyebrows: [{ Expression: "Harsh", Duration: 8000 }],
         },
       },
       Confused: {
         Type: "Confused",
-        Duration: 5000,
+        Duration: 8000,
         Expression: {
-          Eyebrows: [{ Expression: "OneRaised", Duration: 5000 }],
+          Eyebrows: [{ Expression: "OneRaised", Duration: 8000 }],
         },
       },
       Smirk: {
         Type: "Smirk",
-        Duration: 5000,
+        Duration: 8000,
         Expression: {
-          Mouth: [{ Expression: "Smirk", Duration: 5000 }],
+          Mouth: [{ Expression: "Smirk", Duration: 8000 }],
         },
       },
       Wink: {
@@ -177,16 +177,16 @@
       },
       Laugh: {
         Type: "Laugh",
-        Duration: 5000,
+        Duration: 8000,
         Expression: {
-          Mouth: [{ Expression: "Laughing", Duration: 5000 }],
+          Mouth: [{ Expression: "Laughing", Duration: 8000 }],
         },
       },
       Smile: {
         Type: "Smile",
-        Duration: 5000,
+        Duration: 8000,
         Expression: {
-          Mouth: [{ Expression: "Grin", Duration: 5000 }],
+          Mouth: [{ Expression: "Grin", Duration: 8000 }],
         },
       },
       Blink: {
@@ -210,9 +210,9 @@
       },
       Blush: {
         Type: "Blush",
-        Duration: 5000,
+        Duration: 10000,
         Expression: {
-          Blush: [{ ExpressionModifier: 2, Duration: 5000 }],
+          Blush: [{ ExpressionModifier: 2, Duration: 10000 }],
         },
       },
       Choke: {
@@ -251,22 +251,13 @@
       },
       StimulatedLong: {
         Type: "StimulatedLong",
-        Duration: 15000,
+        Duration: 20000,
         Priority: 400,
         Expression: {
           Blush: [
-            { ExpressionModifier: 2, Duration: 10000 },
-            { ExpressionModifier: 1, Duration: 5000 },
+            { ExpressionModifier: 1, Duration: 10000 },
+            { ExpressionModifier: 1, Duration: 10000 },
           ],
-          Eyes: [
-            { Expression: "VeryLewd", Duration: 14000 },
-            { Expression: "Sad", Duration: 1000 },
-          ],
-          Eyes2: [
-            { Expression: "VeryLewd", Duration: 14000 },
-            { Expression: "Sad", Duration: 1000 },
-          ],
-          Eyebrows: [{ Expression: "Soft", Duration: 15000 }],
         },
       },
       Shock: {
@@ -356,6 +347,14 @@
           Eyes2: [{ Expression: "Dizzy", Duration: 8000 }],
           Eyebrows: [{ Expression: "Raised", Duration: 8000 }],
           Blush: [{ ExpressionModifier: 2, Duration: 8000 }],
+        },
+      },
+      LipBite: {
+        Type: "LipBite",
+        Duration: 8000,
+        Priority: 200,
+        Expression: {
+          Mouth: [{ Expression: "LipBite", Duration: 8000 }],
         },
       },
     };
@@ -453,6 +452,10 @@
         Trigger: new RegExp(`^\\(.*?masturbates ${Player.Name}'s`),
         Event: "StimulatedLong",
       },
+      {
+        Trigger: new RegExp(`^.${Player.Name} bites her lips`),
+        Event: "LipBite",
+      },
     ];
 
     function expression(t) {
@@ -491,8 +494,8 @@
       Blush: [
         { Expression: "Extreme", Limit: 100 },
         { Expression: "VeryHigh", Limit: 90 },
-        { Expression: "High", Limit: 60 },
-        { Expression: "Medium", Limit: 40 },
+        { Expression: "High", Limit: 70 },
+        { Expression: "Medium", Limit: 50 },
         { Expression: "Low", Limit: 20 },
         { Expression: null, Limit: 0 },
       ],
@@ -504,9 +507,9 @@
       ],
       Fluids: [
         { Expression: "DroolMessy", Limit: 99 },
-        { Expression: "DroolMedium", Limit: 80 },
-        { Expression: "DroolSides", Limit: 50 },
-        { Expression: "DroolLow", Limit: 30 },
+        { Expression: "DroolMedium", Limit: 90 },
+        { Expression: "DroolSides", Limit: 80 },
+        { Expression: "DroolLow", Limit: 50 },
         { Expression: null, Limit: 0 },
       ],
       Eyes: [
@@ -595,11 +598,9 @@
 
       // keep track of desired changes
       let desired = {};
-      let expiredEvent = false;
-      let isEvent = false;
+      let eventHandled = [];
 
       if (_ExpressionsQueue.length > 0) {
-        isEvent = true;
         // handle event-based expressions
         let next = _ExpressionsQueue[0];
         if (next.Until > Date.now()) {
@@ -610,6 +611,7 @@
               const exp = next.Expression[t][i];
               durationNow -= exp.Duration;
               if (durationNow < 0) {
+                eventHandled.push(t);
                 if (!exp.Skip) {
                   if (exp.ExpressionModifier && t in _ExpressionModifierMap) {
                     if (!exp.Applied) {
@@ -651,7 +653,6 @@
         } else {
           _ExpressionsQueue.shift();
           if (_ExpressionsQueue.length === 0) {
-            expiredEvent = true;
             for (const t of Object.keys(next.Expression)) {
               if (_ManualLastExpression[t]) {
                 setExpression(t, _ManualLastExpression[t], false);
@@ -660,12 +661,12 @@
           }
         }
       }
-      if (
-        (direction !== ArousalMeterDirection.None && !isEvent) ||
-        expiredEvent
-      ) {
+      if (direction !== ArousalMeterDirection.None) {
         // handle arousal-based expressions
         outer: for (const t of Object.keys(ArousalExpressionStages)) {
+          if (eventHandled.includes(t)) {
+            continue;
+          }
           const [exp, permanent] = expression(t);
           // only proceed if matches without overriding manual expressions
           if (exp === _CustomLastExpression[t]) {
