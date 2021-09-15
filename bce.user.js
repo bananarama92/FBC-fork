@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Bondage Club Enhancements
 // @namespace https://www.bondageprojects.com/
-// @version 0.15
+// @version 0.16
 // @description enhancements for the bondage club
 // @author Sidious
 // @match https://www.bondageprojects.elementfx.com/*
@@ -47,7 +47,7 @@
         let modifiedLoginRun = `DrawText("Saved Logins (BCE)", 170, 35, "White", "Black");`;
         for (const user in passwords) {
           posMaps[y] = user;
-          modifiedLoginRun += `DrawButton(100, ${y}, 110, 60, "${user}", "White");`;
+          modifiedLoginRun += `DrawButton(10, ${y}, 350, 60, "${user}", "White");`;
           y += 70;
         }
         _LoginRun = LoginRun;
