@@ -498,6 +498,15 @@
           Eyes2: [{ Expression: "Closed", Duration: 200 }],
         },
       },
+      Grin: {
+        Type: "Grin",
+        Duration: 4000,
+        Expression: {
+          Eyes: [{ Expression: "Horny", Duration: 4000 }],
+          Eyes2: [{ Expression: "Horny", Duration: 4000 }],
+          Mouth: [{ Expression: "Grin", Duration: 3500 }],
+        },
+      },
       Cuddle: {
         Type: "Cuddle",
         Duration: 10000,
@@ -709,6 +718,10 @@
       {
         Trigger: new RegExp(`${Player.Name} blinks`),
         Event: "Blink",
+      },
+      {
+        Trigger: new RegExp(`(${Player.Name} (grins|is grinning))`),
+        Event: "Grin",
       },
       {
         Trigger: new RegExp(
