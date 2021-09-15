@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Bondage Club Enhancements
 // @namespace https://www.bondageprojects.com/
-// @version 0.13
+// @version 0.14
 // @description enhancements for the bondage club
 // @author Sidious
 // @match https://www.bondageprojects.elementfx.com/*
@@ -599,6 +599,7 @@
       // keep track of desired changes
       let desired = {};
       let eventHandled = [];
+      let eventEnded = false;
 
       if (_ExpressionsQueue.length > 0) {
         // handle event-based expressions
@@ -652,6 +653,7 @@
           }
         } else {
           _ExpressionsQueue.shift();
+          eventEnded = true;
           if (_ExpressionsQueue.length === 0) {
             for (const t of Object.keys(next.Expression)) {
               if (_ManualLastExpression[t]) {
@@ -661,10 +663,10 @@
           }
         }
       }
-      if (direction !== ArousalMeterDirection.None) {
+      if (direction !== ArousalMeterDirection.None || eventEnded) {
         // handle arousal-based expressions
         outer: for (const t of Object.keys(ArousalExpressionStages)) {
-          if (eventHandled.includes(t)) {
+          if (!eventEnded && eventHandled.includes(t)) {
             continue;
           }
           const [exp, permanent] = expression(t);
