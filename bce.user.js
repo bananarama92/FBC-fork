@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Bondage Club Enhancements
 // @namespace https://www.bondageprojects.com/
-// @version 0.21
+// @version 0.22
 // @description enhancements for the bondage club
 // @author Sidious
 // @match https://www.bondageprojects.elementfx.com/*
@@ -26,14 +26,14 @@
       return;
     }
 
-    bce_settingskey = "bce.settings";
+    bce_settingskey = () => `bce.settings.${Player?.AccountName}`;
     bce_loadSettings = function () {
       const defaultSettings = {
         relogin: true,
         gagspeak: false,
         expressions: false,
       };
-      let settings = JSON.parse(localStorage.getItem(bce_settingskey));
+      let settings = JSON.parse(localStorage.getItem(bce_settingskey()));
       if (!settings) {
         settings = defaultSettings;
       } else {
@@ -46,7 +46,7 @@
       return settings;
     };
     bce_saveSettings = function (settings) {
-      localStorage.setItem(bce_settingskey, JSON.stringify(settings));
+      localStorage.setItem(bce_settingskey(), JSON.stringify(settings));
     };
 
     PreferenceSubscreenBCESettingsLoad = function () {};
