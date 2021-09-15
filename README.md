@@ -4,9 +4,9 @@ This script offers better automatic face expression changes based on events in t
 
 ## How to install
 
-1. Disable "Items can affect your facial expression" in General settings and "Affect your facial expressions" in Arousal settings
-2. Install Tampermonkey (Chrome) or Greasemonkey (Firefox)
-3. Navigate to https://gitlab.com/Sidiousious/bce/-/raw/main/bce.user.js and install via the respective extension from step 2.
+1. Install Tampermonkey.
+1. Navigate to https://gitlab.com/Sidiousious/bce/-/raw/main/bce.user.js and install via the respective extension from step 2.
+1. Go to preferences and into BCE Settings to enable components you wish to use.
 
 ## Automatic relogin
 
