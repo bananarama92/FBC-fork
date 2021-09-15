@@ -10,7 +10,7 @@ This script offers better automatic face expression changes based on events in t
 
 ## Automatic relogin
 
-BCE can automatically enter your password, when you lose connection to the game. After login, open the browser console (usually F12) and enter `_updatePasswordForReconnect('ReplaceThisWithYourPassword')` to save it. This only needs to be done once, unless you delete your browser data. **Warning**: this does store your password in plaintext in your local storage, where malicious scripts could theoretically read it.
+BCE can automatically enter your password, when you lose connection to the game. You can enable this by choosing to save your login after entering your details, but before clicking login, by clicking on the "Save (BCE)" button. You can then populate the login by pressing the name on the left for future logins, and remove it there, also disabling the auto-relogin. **Warning**: this does store your password in plaintext in your local storage, where malicious scripts could theoretically read it.
 
 ## Customizing expressions
 
