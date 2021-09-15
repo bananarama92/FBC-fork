@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Bondage Club Enhancements
 // @namespace https://www.bondageprojects.com/
-// @version 0.19
+// @version 0.20
 // @description enhancements for the bondage club
 // @author Sidious
 // @match https://www.bondageprojects.elementfx.com/*
@@ -15,8 +15,92 @@
 (function () {
   "use strict";
 
+  inject(initSettings);
+  inject(gagspeak);
   inject(automaticReconnect);
   inject(automaticExpressions);
+
+  function initSettings() {
+    if (!PreferenceSubscreenList) {
+      setTimeout(initSettings, 1000);
+      return;
+    }
+
+    bce_settingskey = "bce.settings";
+    bce_loadSettings = function () {
+      let settings = JSON.parse(localStorage.getItem(bce_settingskey));
+      if (!settings) {
+        settings = {
+          relogin: true,
+          gagspeak: false,
+        };
+      }
+      return settings;
+    };
+    bce_saveSettings = function (settings) {
+      localStorage.setItem(bce_settingskey, JSON.stringify(settings));
+    };
+
+    PreferenceSubscreenBCESettingsLoad = function () {};
+    PreferenceSubscreenBCESettingsExit = function () {
+      PreferenceSubscreen = "";
+      PreferenceMessage = "";
+    };
+    PreferenceSubscreenBCESettingsRun = function () {
+      const settings = bce_loadSettings();
+      MainCanvas.textAlign = "left";
+      DrawText("Bondage Club Enhancements Settings", 500, 125, "Black", "Gray");
+      DrawCheckbox(
+        500,
+        225,
+        64,
+        64,
+        "Automatic Relogin on Disconnect",
+        settings.relogin
+      );
+      DrawCheckbox(500, 295, 64, 64, "Understand gagspeak", settings.gagspeak);
+      DrawButton(1815, 75, 90, 90, "", "White", "Icons/Exit.png");
+    };
+    PreferenceSubscreenBCESettingsClick = function () {
+      const settings = bce_loadSettings();
+      if (MouseIn(1815, 75, 90, 90)) {
+        PreferenceSubscreenBCESettingsExit();
+      } else if (MouseIn(500, 225, 64, 64)) {
+        settings.relogin = !settings.relogin;
+      } else if (MouseIn(500, 295, 64, 64)) {
+        settings.gagspeak = !settings.gagspeak;
+      }
+
+      bce_saveSettings(settings);
+    };
+
+    _TextGet = TextGet;
+    TextGet = function (id) {
+      switch (id) {
+        case "HomepageBCESettings":
+          return "BCE Settings";
+        default:
+          return _TextGet(id);
+      }
+    };
+    PreferenceSubscreenList.push("BCESettings");
+  }
+
+  function gagspeak() {
+    if (!SpeechGarbleByGagLevel) {
+      setTimeout(gagspeak, 1000);
+      return;
+    }
+
+    bc_SpeechGarbleByGagLevel = SpeechGarbleByGagLevel;
+    SpeechGarbleByGagLevel = function (GagEffect, CD, IgnoreOOC) {
+      const settings = bce_loadSettings();
+      let garbled = bc_SpeechGarbleByGagLevel(GagEffect, CD, IgnoreOOC);
+      return !settings.gagspeak || garbled === CD
+        ? garbled
+        : `${garbled} (${CD})`;
+    };
+  }
 
   function automaticReconnect() {
     const _localStoragePasswordsKey = "bce.passwords";
@@ -111,7 +195,8 @@
 
     let _breakCircuit = false;
     function reconCheck() {
-      if (_breakCircuit) return;
+      const settings = bce_loadSettings();
+      if (_breakCircuit || !settings.relogin) return;
       if (CurrentScreen === "Relog" && ServerIsConnected && !LoginSubmitted) {
         const passwords = JSON.parse(
           localStorage.getItem(_localStoragePasswordsKey)
