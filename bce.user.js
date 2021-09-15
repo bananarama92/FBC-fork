@@ -316,7 +316,7 @@
       return;
     }
 
-    console.log("Started arousal ArousalExpressionStages");
+    console.log("Started arousal faces");
 
     const ArousalExpressionStages = {
       Blush: [

@@ -14,7 +14,7 @@ BCE can automatically enter your password, when you lose connection to the game.
 
 ## Customizing expressions
 
-Arousal-based expressions are stored in the `faces` map, where you can customize the limit above which the specific variant of the expression will apply. The list of components here is `Blush`, `Eyebrows`, `Fluids` for drool and tears, `Eyes` and `Eyes2` for left and right eye respectively, and `Mouth`.
+Arousal-based expressions are stored in the `ArousalExpressionStages` map, where you can customize the limit above which the specific variant of the expression will apply. The list of components here is `Blush`, `Eyebrows`, `Fluids` for drool and tears, `Eyes` and `Eyes2` for left and right eye respectively, and `Mouth`.
 
 Event-based animations are stored in `_EventExpressions` and keyed by type. Here...
 
