@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Bondage Club Enhancements
 // @namespace https://www.bondageprojects.com/
-// @version 0.20
+// @version 0.21
 // @description enhancements for the bondage club
 // @author Sidious
 // @match https://www.bondageprojects.elementfx.com/*
@@ -28,12 +28,20 @@
 
     bce_settingskey = "bce.settings";
     bce_loadSettings = function () {
+      const defaultSettings = {
+        relogin: true,
+        gagspeak: false,
+        expressions: false,
+      };
       let settings = JSON.parse(localStorage.getItem(bce_settingskey));
       if (!settings) {
-        settings = {
-          relogin: true,
-          gagspeak: false,
-        };
+        settings = defaultSettings;
+      } else {
+        for (const setting in defaultSettings) {
+          if (!(setting in settings)) {
+            settings[setting] = defaultSettings[setting];
+          }
+        }
       }
       return settings;
     };
@@ -59,6 +67,14 @@
         settings.relogin
       );
       DrawCheckbox(500, 295, 64, 64, "Understand gagspeak", settings.gagspeak);
+      DrawCheckbox(
+        500,
+        365,
+        64,
+        64,
+        "Affect facial expressions automatically",
+        settings.expressions
+      );
       DrawButton(1815, 75, 90, 90, "", "White", "Icons/Exit.png");
     };
     PreferenceSubscreenBCESettingsClick = function () {
@@ -69,6 +85,13 @@
         settings.relogin = !settings.relogin;
       } else if (MouseIn(500, 295, 64, 64)) {
         settings.gagspeak = !settings.gagspeak;
+      } else if (MouseIn(500, 365, 64, 64)) {
+        settings.expressions = !settings.expressions;
+        if (settings.expressions) {
+          // disable conflicting settings
+          Player.OnlineSharedSettings.ItemsAffectExpressions = false;
+          Player.ArousalSettings.AffectExpression = false;
+        }
       }
 
       bce_saveSettings(settings);
@@ -225,8 +248,16 @@
 
   function automaticExpressions() {
     if (CurrentScreen !== "ChatRoom") {
-      setTimeout(automaticExpressions, 1000);
+      setTimeout(automaticExpressions, 100);
       return;
+    }
+
+    const settings = bce_loadSettings();
+    if (!settings.expressions) {
+      return;
+    } else {
+      Player.OnlineSharedSettings.ItemsAffectExpressions = false;
+      Player.ArousalSettings.AffectExpression = false;
     }
 
     console.log("Started arousal ArousalExpressionStages");
