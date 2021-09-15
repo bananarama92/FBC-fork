@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Bondage Club Enhancements
 // @namespace https://www.bondageprojects.com/
-// @version 0.14
+// @version 0.15
 // @description enhancements for the bondage club
 // @author Sidious
 // @match https://www.bondageprojects.elementfx.com/*
@@ -31,6 +31,52 @@
         JSON.stringify(passwords)
       );
     };
+
+    let loginCheckDone = false;
+    function loginCheck() {
+      if (CurrentScreen === "Login" && !loginCheckDone) {
+        loginCheckDone = true;
+        const passwords = JSON.parse(
+          localStorage.getItem(_localStoragePasswordsKey)
+        );
+        if (!passwords) {
+          return;
+        }
+        let y = 60;
+        const posMaps = {};
+        let modifiedLoginRun = `DrawText("Saved Logins (BCE)", 170, 35, "White", "Black");`;
+        for (const user in passwords) {
+          posMaps[y] = user;
+          modifiedLoginRun += `DrawButton(100, ${y}, 110, 60, "${user}", "White");`;
+          y += 70;
+        }
+        _LoginRun = LoginRun;
+        LoginRun = function () {
+          eval(
+            _LoginRun.toString().substring(21, _LoginRun.toString().length - 1)
+          );
+          eval(modifiedLoginRun);
+        };
+        _LoginClick = LoginClick;
+        LoginClick = function () {
+          eval(
+            _LoginClick
+              .toString()
+              .substring(23, _LoginClick.toString().length - 1)
+          );
+          for (let pos in posMaps) {
+            if (MouseIn(10, pos, 200, 60)) {
+              ElementValue("InputName", posMaps[pos]);
+              ElementValue("InputPassword", passwords[posMaps[pos]]);
+              LoginDoLogin();
+            }
+          }
+        };
+        CurrentScreenFunctions.Run = LoginRun;
+        CurrentScreenFunctions.Click = LoginClick;
+      }
+    }
+    setInterval(loginCheck, 100);
 
     let _breakCircuit = false;
     function reconCheck() {
