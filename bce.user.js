@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Bondage Club Enhancements
 // @namespace https://www.bondageprojects.com/
-// @version 0.16
+// @version 0.17
 // @description enhancements for the bondage club
 // @author Sidious
 // @match https://www.bondageprojects.elementfx.com/*
@@ -20,12 +20,30 @@
 
   function automaticReconnect() {
     const _localStoragePasswordsKey = "bce.passwords";
-    _updatePasswordForReconnect = (pass) => {
+    bce_updatePasswordForReconnect = () => {
+      let name = "";
+      if (CurrentScreen === "Login") {
+        name = ElementValue("InputName");
+      } else if (CurrentScreen === "Relog") {
+        name = Player.AccountName;
+      }
       let passwords = JSON.parse(
         localStorage.getItem(_localStoragePasswordsKey)
       );
       if (!passwords) passwords = {};
-      passwords[Player.AccountName] = pass;
+      passwords[name] = ElementValue("InputPassword");
+      localStorage.setItem(
+        _localStoragePasswordsKey,
+        JSON.stringify(passwords)
+      );
+    };
+
+    bce_clearPassword = (accountname) => {
+      let passwords = JSON.parse(
+        localStorage.getItem(_localStoragePasswordsKey)
+      );
+      if (!passwords || !(accountname in passwords)) return;
+      delete passwords[accountname];
       localStorage.setItem(
         _localStoragePasswordsKey,
         JSON.stringify(passwords)
@@ -33,6 +51,11 @@
     };
 
     let loginCheckDone = false;
+    function resetLoginCheck() {
+      LoginRun = _LoginRun;
+      LoginClick = _LoginClick;
+      loginCheckDone = false;
+    }
     function loginCheck() {
       if (CurrentScreen === "Login" && !loginCheckDone) {
         loginCheckDone = true;
@@ -44,10 +67,10 @@
         }
         let y = 60;
         const posMaps = {};
-        let modifiedLoginRun = `DrawText("Saved Logins (BCE)", 170, 35, "White", "Black");`;
+        let modifiedLoginRun = `DrawText("Saved Logins (BCE)", 170, 35, "White", "Black");DrawButton(1250, 385, 180, 60, "Save (BCE)", "White");`;
         for (const user in passwords) {
           posMaps[y] = user;
-          modifiedLoginRun += `DrawButton(10, ${y}, 350, 60, "${user}", "White");`;
+          modifiedLoginRun += `DrawButton(10, ${y}, 350, 60, "${user}", "White"); DrawButton(355, ${y}, 60, 60, "X", "White");`;
           y += 70;
         }
         _LoginRun = LoginRun;
@@ -64,11 +87,18 @@
               .toString()
               .substring(23, _LoginClick.toString().length - 1)
           );
+          if (MouseIn(1250, 385, 180, 60)) {
+            bce_updatePasswordForReconnect();
+            resetLoginCheck();
+          }
           for (let pos in posMaps) {
             if (MouseIn(10, pos, 200, 60)) {
               ElementValue("InputName", posMaps[pos]);
               ElementValue("InputPassword", passwords[posMaps[pos]]);
               LoginDoLogin();
+            } else if (MouseIn(355, pos, 60, 60)) {
+              bce_clearPassword(posMaps[pos]);
+              resetLoginCheck();
             }
           }
         };
@@ -86,6 +116,7 @@
           localStorage.getItem(_localStoragePasswordsKey)
         );
         console.log("Attempting to log in again as", Player.AccountName);
+        if (!passwords) passwords = {};
         if (!passwords[Player.AccountName]) {
           alert("Automatic reconnect failed!");
           _breakCircuit = true;
