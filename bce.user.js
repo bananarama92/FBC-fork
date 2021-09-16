@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Bondage Club Enhancements
 // @namespace https://www.bondageprojects.com/
-// @version 0.24
+// @version 0.25
 // @description enhancements for the bondage club
 // @author Sidious
 // @match https://www.bondageprojects.elementfx.com/*
@@ -165,7 +165,7 @@
     function loginCheck() {
       if (CurrentScreen === "Login" && !loginCheckDone) {
         loginCheckDone = true;
-        const passwords = JSON.parse(
+        let passwords = JSON.parse(
           localStorage.getItem(_localStoragePasswordsKey)
         );
         if (!passwords) {
@@ -225,7 +225,7 @@
       const settings = bce_loadSettings();
       if (_breakCircuit || !settings.relogin) return;
       if (CurrentScreen === "Relog" && ServerIsConnected && !LoginSubmitted) {
-        const passwords = JSON.parse(
+        let passwords = JSON.parse(
           localStorage.getItem(_localStoragePasswordsKey)
         );
         console.log("Attempting to log in again as", Player.AccountName);
@@ -555,6 +555,15 @@
           Mouth: [{ Expression: "LipBite", Duration: 8000 }],
         },
       },
+      Lick: {
+        Type: "Lick",
+        Duration: 4000,
+        Priority: 200,
+        Expression: {
+          Mouth: [{ Expression: "Ahegao", Duration: 4000 }],
+          Blush: [{ ExpressionModifier: 1, Duration: 4000 }],
+        },
+      },
     };
 
     _ChatTriggers = [
@@ -653,6 +662,10 @@
       {
         Trigger: new RegExp(`^.${Player.Name} bites her lips`),
         Event: "LipBite",
+      },
+      {
+        Trigger: new RegExp(`^.${Player.Name} licks `),
+        Event: "Lick",
       },
     ];
 
