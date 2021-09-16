@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Bondage Club Enhancements
 // @namespace https://www.bondageprojects.com/
-// @version 0.23
+// @version 0.24
 // @description enhancements for the bondage club
 // @author Sidious
 // @match https://www.bondageprojects.elementfx.com/*
@@ -839,7 +839,7 @@
             const [exp, permanent] = expression(t);
             const nextExp = nextExpression[t];
             if (nextExp !== exp) {
-              desired[t] = nextExp;
+              desired[t] = { Expression: nextExp, Automatic: true };
             }
             if (exp !== _CustomLastExpression[t] && permanent) {
               if (!exp) {
@@ -850,12 +850,15 @@
             }
           }
         } else {
-          _ExpressionsQueue.shift();
+          let prev = _ExpressionsQueue.shift();
           eventEnded = true;
           if (_ExpressionsQueue.length === 0) {
-            for (const t of Object.keys(next.Expression)) {
+            for (const t of Object.keys(prev.Expression)) {
               if (_ManualLastExpression[t]) {
-                setExpression(t, _ManualLastExpression[t], false);
+                desired[t] = {
+                  Expression: _ManualLastExpression[t],
+                  Automatic: false,
+                };
               }
             }
           }
@@ -864,7 +867,7 @@
       if (direction !== ArousalMeterDirection.None || eventEnded) {
         // handle arousal-based expressions
         outer: for (const t of Object.keys(ArousalExpressionStages)) {
-          if (!eventEnded && eventHandled.includes(t)) {
+          if ((!eventEnded && eventHandled.includes(t)) || t in desired) {
             continue;
           }
           const [exp, permanent] = expression(t);
@@ -876,7 +879,10 @@
                   face.Limit - (direction === ArousalMeterDirection.Up ? 0 : 3);
                 if (arousal >= limit) {
                   if (face.Expression !== exp) {
-                    desired[t] = face.Expression;
+                    desired[t] = {
+                      Expression: face.Expression,
+                      Automatic: true,
+                    };
                     break;
                   } else {
                     continue outer;
@@ -896,10 +902,10 @@
 
       if (Object.keys(desired).length > 0) {
         for (const t of Object.keys(desired)) {
-          setExpression(t, desired[t]);
+          setExpression(t, desired[t].Expression, desired[t].Automatic);
         }
 
-        CharacterRefresh(Player, true);
+        CharacterRefresh(Player, true, false);
         console.log(arousal, "Changed", desired);
       }
 
