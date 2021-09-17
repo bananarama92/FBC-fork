@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Bondage Club Enhancements
 // @namespace https://www.bondageprojects.com/
-// @version 0.28
+// @version 0.29
 // @description enhancements for the bondage club
 // @author Sidious
 // @match https://www.bondageprojects.elementfx.com/*
@@ -754,6 +754,7 @@
         { Expression: "VeryLewd", Limit: 100 },
         { Expression: "Lewd", Limit: 95 },
         { Expression: "Horny", Limit: 70 },
+        { Expression: "Sad", Limit: 20 },
         { Expression: null, Limit: 0 },
       ],
       Mouth: [
