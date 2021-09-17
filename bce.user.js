@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Bondage Club Enhancements
 // @namespace https://www.bondageprojects.com/
-// @version 0.29
+// @version 0.30
 // @description enhancements for the bondage club
 // @author Sidious
 // @match https://www.bondageprojects.elementfx.com/*
@@ -224,9 +224,11 @@
     setInterval(loginCheck, 100);
 
     let _breakCircuit = false;
+    let lastRecon = Date.now();
     function reconCheck() {
       const settings = bce_loadSettings();
       if (_breakCircuit || !settings.relogin) return;
+      if (Date.now() - lastRecon < 5000) return; // max 1 sent attempt per 5 seconds
       if (CurrentScreen === "Relog" && ServerIsConnected && !LoginSubmitted) {
         let passwords = JSON.parse(
           localStorage.getItem(_localStoragePasswordsKey)
@@ -239,6 +241,7 @@
           return;
         }
         ElementValue("InputPassword", passwords[Player.AccountName]);
+        lastRecon = Date.now();
         RelogSend();
         ServerAccountBeep({
           MemberNumber: Player.MemberNumber,
@@ -251,6 +254,31 @@
       }
     }
     setInterval(reconCheck, 100);
+
+    if (typeof bc_ServerDisconnect === "undefined") {
+      bc_ServerDisconnect = ServerDisconnect;
+    }
+
+    ServerDisconnect = (data, close = false) => {
+      const settings = bce_loadSettings();
+      if (
+        !_breakCircuit &&
+        settings.relogin &&
+        data === "ErrorDuplicatedLogin"
+      ) {
+        ServerAccountBeep({
+          MemberNumber: Player.MemberNumber,
+          MemberName: Player.Name,
+          ChatRoomName: "ERROR",
+          Private: true,
+          Message:
+            "Signed in from a different location! Refresh the page to re-enable relogin in this tab.",
+          ChatRoomSpace: "",
+        });
+        _breakCircuit = true;
+      }
+      bc_ServerDisconnect(data, close);
+    };
   }
 
   function automaticExpressions() {
@@ -455,10 +483,7 @@
         Duration: 20000,
         Priority: 400,
         Expression: {
-          Blush: [
-            { ExpressionModifier: 1, Duration: 10000 },
-            { ExpressionModifier: 1, Duration: 10000 },
-          ],
+          Blush: [{ ExpressionModifier: 1, Duration: 20000 }],
         },
       },
       Shock: {
