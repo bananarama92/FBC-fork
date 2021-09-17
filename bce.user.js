@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Bondage Club Enhancements
 // @namespace https://www.bondageprojects.com/
-// @version 0.25
+// @version 0.26
 // @description enhancements for the bondage club
 // @author Sidious
 // @match https://www.bondageprojects.elementfx.com/*
@@ -130,7 +130,7 @@
     bce_updatePasswordForReconnect = () => {
       let name = "";
       if (CurrentScreen === "Login") {
-        name = ElementValue("InputName");
+        name = ElementValue("InputName").toUpperCase();
       } else if (CurrentScreen === "Relog") {
         name = Player.AccountName;
       }
