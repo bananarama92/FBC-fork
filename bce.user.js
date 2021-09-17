@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Bondage Club Enhancements
 // @namespace https://www.bondageprojects.com/
-// @version 0.30
+// @version 0.31
 // @description enhancements for the bondage club
 // @author Sidious
 // @match https://www.bondageprojects.elementfx.com/*
@@ -285,14 +285,6 @@
     if (CurrentScreen !== "ChatRoom") {
       setTimeout(automaticExpressions, 100);
       return;
-    }
-
-    const settings = bce_loadSettings();
-    if (!settings.expressions) {
-      return;
-    } else {
-      Player.OnlineSharedSettings.ItemsAffectExpressions = false;
-      Player.ArousalSettings.AffectExpression = false;
     }
 
     console.log("Started arousal ArousalExpressionStages");
@@ -794,6 +786,14 @@
 
     // this is called once per interval to check for expression changes
     _CustomArousalExpression = () => {
+      const settings = bce_loadSettings();
+      if (!settings.expressions) {
+        return;
+      } else {
+        Player.OnlineSharedSettings.ItemsAffectExpressions = false;
+        Player.ArousalSettings.AffectExpression = false;
+      }
+
       // Reset everything when face is fully default
       let isDefault = true;
       for (const t of Object.keys(ArousalExpressionStages)) {
