@@ -730,6 +730,22 @@
           ],
         },
       },
+      Iced: {
+        Type: "Iced",
+        Duration: 4000,
+        Priority: 500,
+        Expression: {
+          Eyes: [
+            { Expression: "Surprised", Duration: 3000 },
+            { Expression: null, Duration: 1000 },
+          ],
+          Eyes2: [
+            { Expression: "Surprised", Duration: 3000 },
+            { Expression: null, Duration: 1000 },
+          ],
+          Mouth: [{ Expression: "Angry", Duration: 4000 }],
+        },
+      },
     };
 
     bce_ChatTriggers = [
@@ -848,6 +864,12 @@
       {
         Trigger: new RegExp(`^\\(${Player.Name}'s gag (in|de)flates`),
         Event: "GagInflate",
+      },
+      {
+        Trigger: new RegExp(
+          `^\\(.*? rubs ${Player.Name}'s .*? with a ice cube`
+        ),
+        Event: "Iced",
       },
     ];
 
