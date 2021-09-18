@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Bondage Club Enhancements
 // @namespace https://www.bondageprojects.com/
-// @version 0.31
+// @version 0.32
 // @description enhancements for the bondage club
 // @author Sidious
 // @match https://www.bondageprojects.elementfx.com/*
@@ -96,6 +96,35 @@
       }
 
       bce_saveSettings(settings);
+    };
+
+    bc_DrawButton = DrawButton;
+    DrawButton = function (
+      Left,
+      Top,
+      Width,
+      Height,
+      Label,
+      Color,
+      Image,
+      HoveringText,
+      Disabled
+    ) {
+      // avoid image load errors
+      if (/\bBCE/.test(Image)) {
+        Image = null;
+      }
+      bc_DrawButton(
+        Left,
+        Top,
+        Width,
+        Height,
+        Label,
+        Color,
+        Image,
+        HoveringText,
+        Disabled
+      );
     };
 
     bc_TextGet = TextGet;
@@ -289,14 +318,65 @@
 
     console.log("Started arousal ArousalExpressionStages");
 
-    bce_CustomLastExpression = {
-      Blush: null,
-      Eyebrows: null,
-      Fluids: null,
-      Eyes: null,
-      Eyes2: null,
-      Mouth: null,
+    const ArousalExpressionStages = {
+      Blush: [
+        { Expression: "Extreme", Limit: 100 },
+        { Expression: "VeryHigh", Limit: 90 },
+        { Expression: "High", Limit: 70 },
+        { Expression: "Medium", Limit: 50 },
+        { Expression: "Low", Limit: 20 },
+        { Expression: null, Limit: 0 },
+      ],
+      Eyebrows: [
+        { Expression: "Soft", Limit: 80 },
+        { Expression: "Lowered", Limit: 50 },
+        { Expression: "Raised", Limit: 20 },
+        { Expression: null, Limit: 0 },
+      ],
+      Fluids: [
+        { Expression: "DroolMessy", Limit: 99 },
+        { Expression: "DroolMedium", Limit: 90 },
+        { Expression: "DroolSides", Limit: 80 },
+        { Expression: "DroolLow", Limit: 50 },
+        { Expression: null, Limit: 0 },
+      ],
+      Eyes: [
+        { Expression: "VeryLewd", Limit: 100 },
+        { Expression: "Lewd", Limit: 95 },
+        { Expression: "Horny", Limit: 70 },
+        { Expression: "Sad", Limit: 20 },
+        { Expression: null, Limit: 0 },
+      ],
+      Eyes2: [
+        { Expression: "VeryLewd", Limit: 100 },
+        { Expression: "Lewd", Limit: 95 },
+        { Expression: "Horny", Limit: 70 },
+        { Expression: "Sad", Limit: 20 },
+        { Expression: null, Limit: 0 },
+      ],
+      Mouth: [
+        { Expression: "Ahegao", Limit: 100 },
+        { Expression: "Moan", Limit: 95 },
+        { Expression: "HalfOpen", Limit: 90 },
+        { Expression: "LipBite", Limit: 80 },
+        { Expression: "HalfOpen", Limit: 40 },
+        { Expression: null, Limit: 0 },
+      ],
     };
+
+    const ArousalExpressionOverrides = JSON.parse(
+      localStorage.getItem(`bce.expression.overrides.${Player.AccountName}`)
+    );
+    for (const t of Object.keys(ArousalExpressionOverrides)) {
+      ArousalExpressionStages[t] = ArousalExpressionOverrides[t];
+    }
+
+    bce_DefaultExpression = {};
+    for (const t of Object.keys(ArousalExpressionStages)) {
+      bce_DefaultExpression[t] = ArousalExpressionStages[t].at(-1).Expression;
+    }
+
+    bce_CustomLastExpression = { ...bce_DefaultExpression };
 
     bce_ManualLastExpression = {};
 
@@ -737,52 +817,7 @@
       Down: 1,
       Up: 2,
     };
-
-    const ArousalExpressionStages = {
-      Blush: [
-        { Expression: "Extreme", Limit: 100 },
-        { Expression: "VeryHigh", Limit: 90 },
-        { Expression: "High", Limit: 70 },
-        { Expression: "Medium", Limit: 50 },
-        { Expression: "Low", Limit: 20 },
-        { Expression: null, Limit: 0 },
-      ],
-      Eyebrows: [
-        { Expression: "Soft", Limit: 80 },
-        { Expression: "Lowered", Limit: 50 },
-        { Expression: "Raised", Limit: 20 },
-        { Expression: null, Limit: 0 },
-      ],
-      Fluids: [
-        { Expression: "DroolMessy", Limit: 99 },
-        { Expression: "DroolMedium", Limit: 90 },
-        { Expression: "DroolSides", Limit: 80 },
-        { Expression: "DroolLow", Limit: 50 },
-        { Expression: null, Limit: 0 },
-      ],
-      Eyes: [
-        { Expression: "VeryLewd", Limit: 100 },
-        { Expression: "Lewd", Limit: 95 },
-        { Expression: "Horny", Limit: 70 },
-        { Expression: "Sad", Limit: 20 },
-        { Expression: null, Limit: 0 },
-      ],
-      Eyes2: [
-        { Expression: "VeryLewd", Limit: 100 },
-        { Expression: "Lewd", Limit: 95 },
-        { Expression: "Horny", Limit: 70 },
-        { Expression: "Sad", Limit: 20 },
-        { Expression: null, Limit: 0 },
-      ],
-      Mouth: [
-        { Expression: "Ahegao", Limit: 100 },
-        { Expression: "Moan", Limit: 95 },
-        { Expression: "HalfOpen", Limit: 90 },
-        { Expression: "LipBite", Limit: 80 },
-        { Expression: "HalfOpen", Limit: 40 },
-        { Expression: null, Limit: 0 },
-      ],
-    };
+    let _PreviousDirection = ArousalMeterDirection.Up;
 
     // this is called once per interval to check for expression changes
     _CustomArousalExpression = () => {
@@ -812,16 +847,18 @@
           Mouth: null,
         };
         _PreviousArousal.Progress = 0;
+        _PreviousDirection = ArousalMeterDirection.Up;
       }
 
       // detect arousal movement
       let arousal = Player.ArousalSettings.Progress;
-      let direction = ArousalMeterDirection.None;
+      let direction = _PreviousDirection;
       if (arousal < _PreviousArousal.Progress) {
         direction = ArousalMeterDirection.Down;
       } else if (arousal > _PreviousArousal.Progress) {
         direction = ArousalMeterDirection.Up;
       }
+      _PreviousDirection = direction;
 
       // handle events
       const OrgasmRecoveryStage = 2;
@@ -927,38 +964,36 @@
           }
         }
       }
-      if (direction !== ArousalMeterDirection.None || eventEnded) {
-        // handle arousal-based expressions
-        outer: for (const t of Object.keys(ArousalExpressionStages)) {
-          if ((!eventEnded && eventHandled.includes(t)) || t in desired) {
-            continue;
-          }
-          const [exp, permanent] = expression(t);
-          // only proceed if matches without overriding manual expressions
-          if (exp === bce_CustomLastExpression[t]) {
-            if (exp !== bce_ManualLastExpression[t]) {
-              for (const face of ArousalExpressionStages[t]) {
-                let limit =
-                  face.Limit - (direction === ArousalMeterDirection.Up ? 0 : 3);
-                if (arousal >= limit) {
-                  if (face.Expression !== exp) {
-                    desired[t] = {
-                      Expression: face.Expression,
-                      Automatic: true,
-                    };
-                    break;
-                  } else {
-                    continue outer;
-                  }
+      // handle arousal-based expressions
+      outer: for (const t of Object.keys(ArousalExpressionStages)) {
+        if ((!eventEnded && eventHandled.includes(t)) || t in desired) {
+          continue;
+        }
+        const [exp, permanent] = expression(t);
+        // only proceed if matches without overriding manual expressions
+        if (exp === bce_CustomLastExpression[t] || isDefault) {
+          if (exp !== bce_ManualLastExpression[t]) {
+            for (const face of ArousalExpressionStages[t]) {
+              let limit =
+                face.Limit - (direction === ArousalMeterDirection.Up ? 0 : 3);
+              if (arousal >= limit) {
+                if (face.Expression !== exp) {
+                  desired[t] = {
+                    Expression: face.Expression,
+                    Automatic: true,
+                  };
+                  break;
+                } else {
+                  continue outer;
                 }
               }
             }
-          } else if (permanent) {
-            if (!exp) {
-              delete bce_ManualLastExpression[t];
-            } else {
-              bce_ManualLastExpression[t] = exp;
-            }
+          }
+        } else if (permanent) {
+          if (!exp) {
+            delete bce_ManualLastExpression[t];
+          } else {
+            bce_ManualLastExpression[t] = exp;
           }
         }
       }
