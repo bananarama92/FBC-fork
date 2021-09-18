@@ -651,6 +651,14 @@
           Eyebrows: [{ Expression: "Soft", Duration: 3000 }],
         },
       },
+      Kiss: {
+        Type: "Kiss",
+        Duration: 2000,
+        Priority: 200,
+        Expression: {
+          Mouth: [{ Expression: "HalfOpen", Duration: 2000 }],
+        },
+      },
       KissOnLips: {
         Type: "KissOnLips",
         Duration: 2000,
@@ -815,6 +823,12 @@
           `^\\((.*?shares a long French kiss with ${Player.Name}|${Player.Name} shares a long French kiss with )`
         ),
         Event: "LongKiss",
+      },
+      {
+        Trigger: new RegExp(
+          `^\\((${Player.Name} kisses .*?'s .*?)`
+        ),
+        Event: "Kiss",
       },
       {
         Trigger: new RegExp(`^\\(${Player.Name}.*?loses her balance`),
