@@ -29,3 +29,15 @@ Inside the `Expression` map above each of the components has an array of what we
 - `{ Skip: true, Duration: 1000 }`: don't do anything with this component for 1 second. This is useful for delaying changes, for example blushing only one second after a kiss.
 
 Triggers for these animations are stored in `_ChatTriggers`, where `Trigger` is a regular expression matching the visible text in chat and `Event` is the key of the animation in the `_EventExpressions` map.
+
+## Expression cheatsheet
+
+{
+  Eyes: ["Closed", "Dazed", "Shy", "Sad", "Horny", "Lewd", "VeryLewd", "Heart", "HeartPink", "LewdHeart", "LewdHeartPink", "Dizzy", "Daydream", "ShylyHappy", "Angry", "Surprised", "Scared"],
+  Eyes2: ["Closed", "Dazed", "Shy", "Sad", "Horny", "Lewd", "VeryLewd", "Heart", "HeartPink", "LewdHeart", "LewdHeartPink", "Dizzy", "Daydream", "ShylyHappy", "Angry", "Surprised", "Scared"],
+  Mouth: ["Frown", "Sad", "Pained", "Angry", "HalfOpen", "Open", "Ahegao", "Moan", "TonguePinch", "LipBite", "Happy", "Devious", "Laughing", "Grin", "Smirk", "Pout"],
+  Blush: ["Low", "Medium", "High", "VeryHigh", "Extreme", "ShortBreath"],
+  Fluids: ["DroolLow", "DroolMedium", "DroolHigh", "DroolSides", "DroolMessy", "DroolTearsLow", "DroolTearsMedium", "DroolTearsHigh", "DroolTearsMessy", "DroolTearsSides", "TearsHigh", "TearsMedium", "TearsLow"],
+  Emoticon: ["Afk", "Whisper", "Sleep", "Hearts", "Tear", "Hearing", "Confusion", "Exclamation", "Annoyed", "Read", "RaisedHand", "Spectator", "ThumbsDown", "ThumbsUp", "LoveRope", "LoveGag", "LoveLock", "Wardrobe", "Gaming"],
+  Eyebrows: ["Raised", "Lowered", "OneRaised", "Harsh", "Angry", "Soft"]
+}
