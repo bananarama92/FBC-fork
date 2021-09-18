@@ -743,7 +743,7 @@
         Event: "Giggle",
       },
       {
-        Trigger: new RegExp(`${Player.Name} smirks`),
+        Trigger: new RegExp(`${Player.Name} (smirk(s|ing)|.*with a smirk)`),
         Event: "Smirk",
       },
       {
