@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Bondage Club Enhancements
 // @namespace https://www.bondageprojects.com/
-// @version 0.32
+// @version 0.33
 // @description enhancements for the bondage club
 // @author Sidious
 // @match https://www.bondageprojects.elementfx.com/*
@@ -718,7 +718,7 @@
       },
       {
         Trigger: new RegExp(
-          `^\\((${Player.Name}'s.*?(gives? her.*?shock|shocks her(self)?\\b)|.*?(shocks ${Player.Name}('s)?.*? with a ))`
+          `^\\((${Player.Name}'s.*?(lets out a sharp jolt|delivers an intense shock|gives her a light shock|gives? her.*?shock|shocks her(self)?\\b)|.*?(shocks ${Player.Name}('s)?.*? with a ))`
         ),
         Event: "Shock",
       },
@@ -781,7 +781,7 @@
         Event: "Lick",
       },
       {
-        Trigger: new RegExp(`\\(${Player.Name}'s gag (in|de)flates'`),
+        Trigger: new RegExp(`^\\(${Player.Name}'s gag (in|de)flates`),
         Event: "GagInflate",
       },
     ];
