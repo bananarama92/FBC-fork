@@ -480,7 +480,42 @@
         Type: "Laugh",
         Duration: 8000,
         Expression: {
-          Mouth: [{ Expression: "Laughing", Duration: 8000 }],
+          Mouth: [
+            { Expression: "Laughing", Duration: 1000 },
+            { Expression: "Grin", Duration: 200 },
+            { Expression: "Laughing", Duration: 1000 },
+            { Expression: "Happy", Duration: 200 },
+            { Expression: "Laughing", Duration: 800 },
+            { Expression: "Grin", Duration: 400 },
+            { Expression: "Laughing", Duration: 800 },
+            { Expression: "Happy", Duration: 400 },
+            { Expression: "Laughing", Duration: 600 },
+            { Expression: "Grin", Duration: 600 },
+            { Expression: "Laughing", Duration: 600 },
+            { Expression: "Happy", Duration: 600 },
+            { Expression: "Laughing", Duration: 200 },
+            { Expression: "Grin", Duration: 200 },
+            { Expression: "Laughing", Duration: 200 },
+            { Expression: "Happy", Duration: 200 },
+          ],
+        },
+      },
+      Giggle: {
+        Type: "Giggle",
+        Duration: 4000,
+        Expression: {
+          Mouth: [
+            { Expression: "Laughing", Duration: 800 },
+            { Expression: "Grin", Duration: 200 },
+            { Expression: "Laughing", Duration: 700 },
+            { Expression: "Happy", Duration: 200 },
+            { Expression: "Laughing", Duration: 600 },
+            { Expression: "Grin", Duration: 200 },
+            { Expression: "Laughing", Duration: 500 },
+            { Expression: "Grin", Duration: 200 },
+            { Expression: "Laughing", Duration: 400 },
+            { Expression: "Happy", Duration: 200 },
+          ],
         },
       },
       Smile: {
@@ -700,8 +735,12 @@
         Event: "Smile",
       },
       {
-        Trigger: new RegExp(`${Player.Name} (laughs|giggles)`),
+        Trigger: new RegExp(`${Player.Name} laughs`),
         Event: "Laugh",
+      },
+      {
+        Trigger: new RegExp(`${Player.Name} giggles`),
+        Event: "Giggle",
       },
       {
         Trigger: new RegExp(`${Player.Name} smirks`),
