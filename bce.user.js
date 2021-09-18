@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Bondage Club Enhancements
 // @namespace https://www.bondageprojects.com/
-// @version 0.34
+// @version 0.35
 // @description enhancements for the bondage club
 // @author Sidious
 // @match https://www.bondageprojects.elementfx.com/*
@@ -364,9 +364,10 @@
       ],
     };
 
-    const ArousalExpressionOverrides = JSON.parse(
-      localStorage.getItem(`bce.expression.overrides.${Player.AccountName}`)
-    );
+    const ArousalExpressionOverrides =
+      JSON.parse(
+        localStorage.getItem(`bce.expression.overrides.${Player.AccountName}`)
+      ) || {};
     for (const t of Object.keys(ArousalExpressionOverrides)) {
       ArousalExpressionStages[t] = ArousalExpressionOverrides[t];
     }
@@ -825,9 +826,7 @@
         Event: "LongKiss",
       },
       {
-        Trigger: new RegExp(
-          `^\\((${Player.Name} kisses .*?'s .*?)`
-        ),
+        Trigger: new RegExp(`^\\((${Player.Name} kisses .*?'s .*?)`),
         Event: "Kiss",
       },
       {
