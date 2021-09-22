@@ -1131,6 +1131,17 @@
     let lastItem = null;
     const layerPriority = "bce_LayerPriority";
 
+    function updateItemPriorityFromLayerPriorityInput(item) {
+      if (item) {
+        let priority = parseInt(ElementValue(layerPriority));
+        if (!item.Property) {
+          item.Property = { OverridePriority: priority };
+        } else {
+          item.Property.OverridePriority = priority;
+        }
+      }
+    }
+
     bc_AppearanceExit = AppearanceExit;
     AppearanceExit = function () {
       ElementRemove(layerPriority);
@@ -1185,17 +1196,94 @@
         const C = CharacterAppearanceSelection;
         if (MouseIn(110, 70, 90, 90) && CharacterAppearanceMode == "Cloth") {
           let item = C.Appearance.find((a) => a.Asset.Group == C.FocusGroup);
-          if (item) {
-            let priority = parseInt(ElementValue(layerPriority));
-            if (!item.Property) {
-              item.Property = { OverridePriority: priority };
-            } else {
-              item.Property.OverridePriority = priority;
-            }
-          }
+          updateItemPriorityFromLayerPriorityInput(item);
         }
       }
       bc_AppearanceClick();
+    };
+
+    let prioritySubscreen = false;
+    function prioritySubscreenEnter(C, FocusItem) {
+      prioritySubscreen = true;
+      ElementCreateInput(
+        layerPriority,
+        "number",
+        C.AppearanceLayers.find((a) => a.Asset == FocusItem.Asset).Priority,
+        20
+      );
+    }
+    function prioritySubscreenExit() {
+      prioritySubscreen = false;
+      ElementRemove(layerPriority);
+    }
+    bc_DialogDrawItemMenu = DialogDrawItemMenu;
+    DialogDrawItemMenu = function (C) {
+      const settings = bce_loadSettings();
+      if (settings.layeringMenu) {
+        const FocusItem = InventoryGet(C, C.FocusGroup?.Name);
+        if (FocusItem) {
+          DrawButton(
+            10,
+            950,
+            50,
+            50,
+            "",
+            "White",
+            "Icon/Empty.png",
+            "Modify priority"
+          );
+        }
+      }
+      bc_DialogDrawItemMenu(C);
+    };
+
+    bc_DialogDraw = DialogDraw;
+    DialogDraw = function () {
+      const settings = bce_loadSettings();
+      if (settings.layeringMenu && prioritySubscreen) {
+        DrawText("Set priority", 950, 150, "White", "Black");
+        DrawButton(1815, 75, 90, 90, "", "White", "Icons/Exit.png");
+        ElementPosition(layerPriority, 950, 210, 100);
+        DrawButton(
+          900,
+          280,
+          90,
+          90,
+          "",
+          "White",
+          "Icons/Accept.png",
+          "Set Priority"
+        );
+      } else {
+        bc_DialogDraw();
+      }
+    };
+    bc_DialogClick = DialogClick;
+    DialogClick = function () {
+      const settings = bce_loadSettings();
+      if (!settings.layeringMenu) {
+        bc_DialogClick();
+        return;
+      }
+      let C = CharacterGetCurrent();
+      const FocusItem = InventoryGet(C, C.FocusGroup?.Name);
+      console.log(FocusItem);
+      if (prioritySubscreen) {
+        if (MouseIn(1815, 75, 90, 90)) {
+          prioritySubscreenExit();
+        } else if (MouseIn(900, 280, 90, 90)) {
+          updateItemPriorityFromLayerPriorityInput(FocusItem);
+          CharacterRefresh(C);
+          ChatRoomCharacterUpdate(C);
+          prioritySubscreenExit();
+        }
+      } else {
+        if (FocusItem && MouseIn(10, 950, 50, 50)) {
+          prioritySubscreenEnter(C, FocusItem);
+          return;
+        }
+        bc_DialogClick();
+      }
     };
   }
 
