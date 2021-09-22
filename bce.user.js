@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Bondage Club Enhancements
 // @namespace https://www.bondageprojects.com/
-// @version 0.37
+// @version 0.38
 // @description enhancements for the bondage club
 // @author Sidious
 // @match https://www.bondageprojects.elementfx.com/*
@@ -19,6 +19,7 @@
   inject(gagspeak);
   inject(automaticReconnect);
   inject(automaticExpressions);
+  inject(layeringMenu);
 
   function initSettings() {
     if (!PreferenceSubscreenList) {
@@ -32,6 +33,7 @@
         relogin: true,
         gagspeak: false,
         expressions: false,
+        layeringMenu: false,
       };
       let settings = JSON.parse(localStorage.getItem(bce_settingskey()));
       if (!settings) {
@@ -76,6 +78,14 @@
         "Affect facial expressions automatically",
         settings.expressions
       );
+      DrawCheckbox(
+        500,
+        435,
+        64,
+        64,
+        "Enable layering menu",
+        settings.layeringMenu
+      );
       DrawButton(1815, 75, 90, 90, "", "White", "Icons/Exit.png");
     };
     PreferenceSubscreenBCESettingsClick = function () {
@@ -93,6 +103,8 @@
           Player.OnlineSharedSettings.ItemsAffectExpressions = false;
           Player.ArousalSettings.AffectExpression = false;
         }
+      } else if (MouseIn(500, 435, 64, 64)) {
+        settings.layeringMenu = !settings.layeringMenu;
       }
 
       bce_saveSettings(settings);
@@ -1108,6 +1120,83 @@
       clearInterval(bce_CustomArousalTimer);
     }
     bce_CustomArousalTimer = setInterval(_CustomArousalExpression, 250);
+  }
+
+  function layeringMenu() {
+    if (!Player?.AppearanceLayers) {
+      setTimeout(layeringMenu, 1000);
+      return;
+    }
+
+    let lastItem = null;
+    const layerPriority = "bce_LayerPriority";
+
+    bc_AppearanceExit = AppearanceExit;
+    AppearanceExit = function () {
+      ElementRemove(layerPriority);
+      bc_AppearanceExit();
+    };
+    bc_AppearanceLoad = AppearanceLoad;
+    AppearanceLoad = function () {
+      bc_AppearanceLoad();
+      ElementCreateInput(layerPriority, "number", "", "20");
+      ElementPosition(layerPriority, -1000, -1000, 0);
+    };
+    bc_AppearanceRun = AppearanceRun;
+    AppearanceRun = function () {
+      const settings = bce_loadSettings();
+      bc_AppearanceRun();
+      if (settings.layeringMenu) {
+        const C = CharacterAppearanceSelection;
+        if (CharacterAppearanceMode == "Cloth") {
+          DrawText("Priority", 70, 35, "White", "Black");
+          ElementPosition(layerPriority, 60, 105, 100);
+          DrawButton(
+            110,
+            70,
+            90,
+            90,
+            "",
+            "White",
+            "Icons/Accept.png",
+            "Set Priority"
+          );
+          let item = C.Appearance.find((a) => a.Asset.Group == C.FocusGroup);
+          if (!lastItem || lastItem != item) {
+            if (!item) {
+              ElementValue(layerPriority, "");
+            } else {
+              ElementValue(
+                layerPriority,
+                C.AppearanceLayers.find((a) => a.Asset == item.Asset).Priority
+              );
+            }
+          }
+          lastItem = item;
+        } else {
+          ElementPosition(layerPriority, -1000, -1000, 0);
+        }
+      }
+    };
+    bc_AppearanceClick = AppearanceClick;
+    AppearanceClick = function () {
+      const settings = bce_loadSettings();
+      if (settings.layeringMenu) {
+        const C = CharacterAppearanceSelection;
+        if (MouseIn(110, 70, 90, 90) && CharacterAppearanceMode == "Cloth") {
+          let item = C.Appearance.find((a) => a.Asset.Group == C.FocusGroup);
+          if (item) {
+            let priority = parseInt(ElementValue(layerPriority));
+            if (!item.Property) {
+              item.Property = { OverridePriority: priority };
+            } else {
+              item.Property.OverridePriority = priority;
+            }
+          }
+        }
+      }
+      bc_AppearanceClick();
+    };
   }
 
   // https://gist.github.com/nylen/6234717
