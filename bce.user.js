@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Bondage Club Enhancements
 // @namespace https://www.bondageprojects.com/
-// @version 0.39
+// @version 0.40
 // @description enhancements for the bondage club
 // @author Sidious
 // @match https://www.bondageprojects.elementfx.com/*
@@ -1199,8 +1199,6 @@
         if (MouseIn(110, 70, 90, 90) && CharacterAppearanceMode == "Cloth") {
           let item = C.Appearance.find((a) => a.Asset.Group == C.FocusGroup);
           updateItemPriorityFromLayerPriorityInput(item);
-          CharacterRefresh(C);
-          ChatRoomCharacterUpdate(C);
         }
       }
       bc_AppearanceClick();
