@@ -1,12 +1,13 @@
 // ==UserScript==
 // @name Bondage Club Enhancements
 // @namespace https://www.bondageprojects.com/
-// @version 0.40
+// @version 0.41
 // @description enhancements for the bondage club
 // @author Sidious
 // @match https://www.bondageprojects.elementfx.com/*
 // @match https://www.bondageprojects.com/*
 // @match https://bondage-europe.com/*
+// @match https://www.bondage-europe.com/*
 // @match http://localhost:3000/*
 // @icon data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==
 // @grant none
@@ -1269,7 +1270,6 @@
       }
       let C = CharacterGetCurrent();
       const FocusItem = InventoryGet(C, C.FocusGroup?.Name);
-      console.log(FocusItem);
       if (prioritySubscreen) {
         if (MouseIn(1815, 75, 90, 90)) {
           prioritySubscreenExit();
