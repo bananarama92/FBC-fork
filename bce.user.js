@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Bondage Club Enhancements
 // @namespace https://www.bondageprojects.com/
-// @version 0.41
+// @version 0.42
 // @description enhancements for the bondage club
 // @author Sidious
 // @match https://www.bondageprojects.elementfx.com/*
@@ -1182,7 +1182,8 @@
             } else {
               ElementValue(
                 layerPriority,
-                C.AppearanceLayers.find((a) => a.Asset == item.Asset).Priority
+                C.AppearanceLayers.find((a) => a.Asset == item.Asset)
+                  ?.Priority || 0
               );
             }
           }
