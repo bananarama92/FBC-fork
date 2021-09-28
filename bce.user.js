@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Bondage Club Enhancements
 // @namespace https://www.bondageprojects.com/
-// @version 0.42
+// @version 0.43
 // @description enhancements for the bondage club
 // @author Sidious
 // @match https://www.bondageprojects.elementfx.com/*
@@ -21,6 +21,7 @@
   inject(automaticReconnect);
   inject(automaticExpressions);
   inject(layeringMenu);
+  inject(cacheClearer);
 
   function initSettings() {
     if (!PreferenceSubscreenList) {
@@ -35,6 +36,7 @@
         gagspeak: false,
         expressions: false,
         layeringMenu: false,
+        automateCacheClear: false,
       };
       let settings = JSON.parse(localStorage.getItem(bce_settingskey()));
       if (!settings) {
@@ -87,6 +89,14 @@
         "Enable layering menu",
         settings.layeringMenu
       );
+      DrawCheckbox(
+        500,
+        535,
+        64,
+        64,
+        "Clear drawing caches every hour",
+        settings.automateCacheClear
+      );
       DrawButton(1815, 75, 90, 90, "", "White", "Icons/Exit.png");
     };
     PreferenceSubscreenBCESettingsClick = function () {
@@ -106,6 +116,8 @@
         }
       } else if (MouseIn(500, 435, 64, 64)) {
         settings.layeringMenu = !settings.layeringMenu;
+      } else if (MouseIn(500, 535, 64, 64)) {
+        settings.automateCacheClear = !settings.automateCacheClear;
       }
 
       bce_saveSettings(settings);
@@ -1288,6 +1300,30 @@
         bc_DialogClick();
       }
     };
+  }
+
+  function cacheClearer() {
+      let automatedCacheClearer = null;
+      const settings = bce_loadSettings();
+
+      bce_clearCaches = function() {
+        const settings = bce_loadSettings();
+        if (!settings.automateCacheClear) {
+          console.log('Cache clearing disabled');
+          clearInterval(automatedCacheClearer);
+          return;
+        }
+
+        console.log('Clearing caches');
+        if (GLDrawCanvas.GL.textureCache) {
+          GLDrawCanvas.GL.textureCache.clear();
+        }
+        GLDrawResetCanvas();
+      }
+
+      if (!automatedCacheClearer && settings.automateCacheClear) {
+          automatedCacheClearer = setInterval(bce_clearCaches, 1 * 60 * 60 * 1000);
+      }
   }
 
   // https://gist.github.com/nylen/6234717
