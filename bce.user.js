@@ -29,15 +29,50 @@
       return;
     }
 
+    const defaultSettings = {
+      relogin: {
+        label: "Automatic Relogin on Disconnect",
+        value: true,
+        sideEffects: (newValue) => {
+          console.log(newValue);
+        },
+      },
+      gagspeak: {
+        label: "(Cheat) Understand All Gagged and when Deafened",
+        value: false,
+        sideEffects: (newValue) => {
+          console.log(newValue);
+        },
+      },
+      expressions: {
+        label: "Automatic Facial Expressions (Replaces Vanilla)",
+        value: false,
+        sideEffects: (newValue) => {
+          if (newValue) {
+            // disable conflicting settings
+            Player.OnlineSharedSettings.ItemsAffectExpressions = false;
+            Player.ArousalSettings.AffectExpression = false;
+          }
+        },
+      },
+      layeringMenu: {
+        label: "Enable Layering Menus",
+        value: false,
+        sideEffects: (newValue) => {
+          console.log(newValue);
+        },
+      },
+      automateCacheClear: {
+        label: "Clear Drawing Cache Hourly",
+        value: false,
+        sideEffects: (newValue) => {
+          console.log(newValue);
+        },
+      },
+    };
+
     bce_settingskey = () => `bce.settings.${Player?.AccountName}`;
     bce_loadSettings = function () {
-      const defaultSettings = {
-        relogin: true,
-        gagspeak: false,
-        expressions: false,
-        layeringMenu: false,
-        automateCacheClear: false,
-      };
       let settings = JSON.parse(localStorage.getItem(bce_settingskey()));
       if (!settings) {
         settings = defaultSettings;
@@ -45,7 +80,7 @@
         for (const setting in defaultSettings) {
           if (!defaultSettings.hasOwnProperty(setting)) continue;
           if (!(setting in settings)) {
-            settings[setting] = defaultSettings[setting];
+            settings[setting] = defaultSettings[setting].value;
           }
         }
       }
@@ -54,6 +89,9 @@
     bce_saveSettings = function (settings) {
       localStorage.setItem(bce_settingskey(), JSON.stringify(settings));
     };
+
+    const settingsYStart = 225;
+    const settingsYIncrement = 70;
 
     PreferenceSubscreenBCESettingsLoad = function () {};
     PreferenceSubscreenBCESettingsExit = function () {
@@ -64,60 +102,33 @@
       const settings = bce_loadSettings();
       MainCanvas.textAlign = "left";
       DrawText("Bondage Club Enhancements Settings", 500, 125, "Black", "Gray");
-      DrawCheckbox(
-        500,
-        225,
-        64,
-        64,
-        "Automatic Relogin on Disconnect",
-        settings.relogin
-      );
-      DrawCheckbox(500, 295, 64, 64, "Understand gagspeak", settings.gagspeak);
-      DrawCheckbox(
-        500,
-        365,
-        64,
-        64,
-        "Affect facial expressions automatically",
-        settings.expressions
-      );
-      DrawCheckbox(
-        500,
-        435,
-        64,
-        64,
-        "Enable layering menu",
-        settings.layeringMenu
-      );
-      DrawCheckbox(
-        500,
-        535,
-        64,
-        64,
-        "Clear drawing caches every hour",
-        settings.automateCacheClear
-      );
+      let y = settingsYStart;
+      for (const setting in defaultSettings) {
+        DrawCheckbox(
+          500,
+          y,
+          64,
+          64,
+          defaultSettings[setting].label,
+          settings[setting]
+        );
+        y += settingsYIncrement;
+      }
       DrawButton(1815, 75, 90, 90, "", "White", "Icons/Exit.png");
     };
     PreferenceSubscreenBCESettingsClick = function () {
       const settings = bce_loadSettings();
+      let y = settingsYStart;
       if (MouseIn(1815, 75, 90, 90)) {
         PreferenceSubscreenBCESettingsExit();
-      } else if (MouseIn(500, 225, 64, 64)) {
-        settings.relogin = !settings.relogin;
-      } else if (MouseIn(500, 295, 64, 64)) {
-        settings.gagspeak = !settings.gagspeak;
-      } else if (MouseIn(500, 365, 64, 64)) {
-        settings.expressions = !settings.expressions;
-        if (settings.expressions) {
-          // disable conflicting settings
-          Player.OnlineSharedSettings.ItemsAffectExpressions = false;
-          Player.ArousalSettings.AffectExpression = false;
+      } else {
+        for (const setting in defaultSettings) {
+          if (MouseIn(500, y, 64, 64)) {
+            settings[setting] = !settings[setting];
+            defaultSettings[setting].sideEffects(settings[setting]);
+          }
+          y += settingsYIncrement;
         }
-      } else if (MouseIn(500, 435, 64, 64)) {
-        settings.layeringMenu = !settings.layeringMenu;
-      } else if (MouseIn(500, 535, 64, 64)) {
-        settings.automateCacheClear = !settings.automateCacheClear;
       }
 
       bce_saveSettings(settings);
@@ -1303,27 +1314,27 @@
   }
 
   function cacheClearer() {
-      let automatedCacheClearer = null;
+    let automatedCacheClearer = null;
+    const settings = bce_loadSettings();
+
+    bce_clearCaches = function () {
       const settings = bce_loadSettings();
-
-      bce_clearCaches = function() {
-        const settings = bce_loadSettings();
-        if (!settings.automateCacheClear) {
-          console.log('Cache clearing disabled');
-          clearInterval(automatedCacheClearer);
-          return;
-        }
-
-        console.log('Clearing caches');
-        if (GLDrawCanvas.GL.textureCache) {
-          GLDrawCanvas.GL.textureCache.clear();
-        }
-        GLDrawResetCanvas();
+      if (!settings.automateCacheClear) {
+        console.log("Cache clearing disabled");
+        clearInterval(automatedCacheClearer);
+        return;
       }
 
-      if (!automatedCacheClearer && settings.automateCacheClear) {
-          automatedCacheClearer = setInterval(bce_clearCaches, 1 * 60 * 60 * 1000);
+      console.log("Clearing caches");
+      if (GLDrawCanvas.GL.textureCache) {
+        GLDrawCanvas.GL.textureCache.clear();
       }
+      GLDrawResetCanvas();
+    };
+
+    if (!automatedCacheClearer && settings.automateCacheClear) {
+      automatedCacheClearer = setInterval(bce_clearCaches, 1 * 60 * 60 * 1000);
+    }
   }
 
   // https://gist.github.com/nylen/6234717
