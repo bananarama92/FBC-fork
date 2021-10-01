@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Bondage Club Enhancements
 // @namespace https://www.bondageprojects.com/
-// @version 0.43
+// @version 0.44
 // @description enhancements for the bondage club
 // @author Sidious
 // @match https://www.bondageprojects.elementfx.com/*
@@ -20,6 +20,7 @@
   inject(gagspeak);
   inject(automaticReconnect);
   inject(automaticExpressions);
+  inject(extendedWardrobe);
   inject(layeringMenu);
   inject(cacheClearer);
 
@@ -37,13 +38,6 @@
           console.log(newValue);
         },
       },
-      gagspeak: {
-        label: "(Cheat) Understand All Gagged and when Deafened",
-        value: false,
-        sideEffects: (newValue) => {
-          console.log(newValue);
-        },
-      },
       expressions: {
         label: "Automatic Facial Expressions (Replaces Vanilla)",
         value: false,
@@ -55,6 +49,15 @@
           }
         },
       },
+      extendedWardrobe: {
+        label: "Extend wardrobe slots (double)",
+        value: false,
+        sideEffects: (newValue) => {
+          const defaultSize = 24;
+          WardrobeSize = newValue ? defaultSize * 2 : defaultSize;
+          bc_WardrobeFixLength();
+        },
+      },
       layeringMenu: {
         label: "Enable Layering Menus",
         value: false,
@@ -64,6 +67,13 @@
       },
       automateCacheClear: {
         label: "Clear Drawing Cache Hourly",
+        value: false,
+        sideEffects: (newValue) => {
+          console.log(newValue);
+        },
+      },
+      gagspeak: {
+        label: "(Cheat) Understand All Gagged and when Deafened",
         value: false,
         sideEffects: (newValue) => {
           console.log(newValue);
@@ -1335,6 +1345,16 @@
     if (!automatedCacheClearer && settings.automateCacheClear) {
       automatedCacheClearer = setInterval(bce_clearCaches, 1 * 60 * 60 * 1000);
     }
+  }
+
+  function extendedWardrobe() {
+    bc_WardrobeFixLength = WardrobeFixLength;
+    WardrobeFixLength = () => {
+      const settings = bce_loadSettings();
+      const defaultSize = 24;
+      WardrobeSize = settings.extendedWardrobe ? defaultSize * 2 : defaultSize;
+      bc_WardrobeFixLength();
+    };
   }
 
   // https://gist.github.com/nylen/6234717
