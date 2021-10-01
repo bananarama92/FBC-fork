@@ -8,7 +8,7 @@ This script offers better automatic face expression changes based on events in t
 1. Open Tampermonkey's options screen, and go to the Utilities on the right.
 1. Paste `https://gitlab.com/Sidiousious/bce/-/raw/main/bce.user.js` into the "Install from URL" field, and click "Install". Tampermonkey should ask for a confirmation, and then the script will show up in its main view.
 1. Reload your BC tab (F5, Ctrl-R), as changes to the script are only picked up on a page refresh.
-Then go to the preferences screen and click onto "BCE Settings" to enable (or disable) components you wish to use.
+   Then go to the preferences screen and click onto "BCE Settings" to enable (or disable) components you wish to use.
 
 ## Features
 
@@ -24,6 +24,10 @@ BCE allows manual editing of an asset's priority — the value the game uses to 
 - a white box at bottom-left for restraints, which when clicked will open up the same UI.
 
 This allow manually overriding the assets' relative positioning, giving better flexibility when doing outfits, or slapping restraints. Note that there's no way to reset the priority to its default value, so you have to take it off and apply the asset again to revert a change.
+
+### Expanded wardrobe slots
+
+Double your wardrobe size to 48 slots at the press of a button. **Warning**: you will lose outfits 25-48, if you ever log in without the setting enabled.
 
 ### Customizing expressions
 
@@ -55,12 +59,99 @@ Inside the `Expression` map above each of the components has an array of what we
 
 #### Expression cheatsheet
 
-{
-  Eyes: ["Closed", "Dazed", "Shy", "Sad", "Horny", "Lewd", "VeryLewd", "Heart", "HeartPink", "LewdHeart", "LewdHeartPink", "Dizzy", "Daydream", "ShylyHappy", "Angry", "Surprised", "Scared"],
-  Eyes2: ["Closed", "Dazed", "Shy", "Sad", "Horny", "Lewd", "VeryLewd", "Heart", "HeartPink", "LewdHeart", "LewdHeartPink", "Dizzy", "Daydream", "ShylyHappy", "Angry", "Surprised", "Scared"],
-  Mouth: ["Frown", "Sad", "Pained", "Angry", "HalfOpen", "Open", "Ahegao", "Moan", "TonguePinch", "LipBite", "Happy", "Devious", "Laughing", "Grin", "Smirk", "Pout"],
+```js
+  Eyes: [
+    "Closed",
+    "Dazed",
+    "Shy",
+    "Sad",
+    "Horny",
+    "Lewd",
+    "VeryLewd",
+    "Heart",
+    "HeartPink",
+    "LewdHeart",
+    "LewdHeartPink",
+    "Dizzy",
+    "Daydream",
+    "ShylyHappy",
+    "Angry",
+    "Surprised",
+    "Scared",
+  ],
+  Eyes2: [
+    "Closed",
+    "Dazed",
+    "Shy",
+    "Sad",
+    "Horny",
+    "Lewd",
+    "VeryLewd",
+    "Heart",
+    "HeartPink",
+    "LewdHeart",
+    "LewdHeartPink",
+    "Dizzy",
+    "Daydream",
+    "ShylyHappy",
+    "Angry",
+    "Surprised",
+    "Scared",
+  ],
+  Mouth: [
+    "Frown",
+    "Sad",
+    "Pained",
+    "Angry",
+    "HalfOpen",
+    "Open",
+    "Ahegao",
+    "Moan",
+    "TonguePinch",
+    "LipBite",
+    "Happy",
+    "Devious",
+    "Laughing",
+    "Grin",
+    "Smirk",
+    "Pout",
+  ],
   Blush: ["Low", "Medium", "High", "VeryHigh", "Extreme", "ShortBreath"],
-  Fluids: ["DroolLow", "DroolMedium", "DroolHigh", "DroolSides", "DroolMessy", "DroolTearsLow", "DroolTearsMedium", "DroolTearsHigh", "DroolTearsMessy", "DroolTearsSides", "TearsHigh", "TearsMedium", "TearsLow"],
-  Emoticon: ["Afk", "Whisper", "Sleep", "Hearts", "Tear", "Hearing", "Confusion", "Exclamation", "Annoyed", "Read", "RaisedHand", "Spectator", "ThumbsDown", "ThumbsUp", "LoveRope", "LoveGag", "LoveLock", "Wardrobe", "Gaming"],
-  Eyebrows: ["Raised", "Lowered", "OneRaised", "Harsh", "Angry", "Soft"]
-}
+  Fluids: [
+    "DroolLow",
+    "DroolMedium",
+    "DroolHigh",
+    "DroolSides",
+    "DroolMessy",
+    "DroolTearsLow",
+    "DroolTearsMedium",
+    "DroolTearsHigh",
+    "DroolTearsMessy",
+    "DroolTearsSides",
+    "TearsHigh",
+    "TearsMedium",
+    "TearsLow",
+  ],
+  Emoticon: [
+    "Afk",
+    "Whisper",
+    "Sleep",
+    "Hearts",
+    "Tear",
+    "Hearing",
+    "Confusion",
+    "Exclamation",
+    "Annoyed",
+    "Read",
+    "RaisedHand",
+    "Spectator",
+    "ThumbsDown",
+    "ThumbsUp",
+    "LoveRope",
+    "LoveGag",
+    "LoveLock",
+    "Wardrobe",
+    "Gaming",
+  ],
+  Eyebrows: ["Raised", "Lowered", "OneRaised", "Harsh", "Angry", "Soft"],
+```
