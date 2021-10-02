@@ -5,7 +5,7 @@ This script offers better automatic face expression changes based on events in t
 ## How to install
 
 1. Install Tampermonkey.
-1. Open Tampermonkey's options screen, and go to the Utilities on the right.
+1. Open Tampermonkey's dashboard from its button top-right, and go to the Utilities on the right.
 1. Paste `https://gitlab.com/Sidiousious/bce/-/raw/main/bce.user.js` into the "Install from URL" field, and click "Install". Tampermonkey should ask for a confirmation, and then the script will show up in its main view.
 1. Reload your BC tab (F5, Ctrl-R), as changes to the script are only picked up on a page refresh.
    Then go to the preferences screen and click onto "BCE Settings" to enable (or disable) components you wish to use.
