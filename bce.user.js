@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Bondage Club Enhancements
 // @namespace https://www.bondageprojects.com/
-// @version 0.44
+// @version 0.45
 // @description enhancements for the bondage club
 // @author Sidious
 // @match https://www.bondageprojects.elementfx.com/*
@@ -299,11 +299,9 @@
     setInterval(loginCheck, 100);
 
     let _breakCircuit = false;
-    let lastRecon = Date.now();
     function reconCheck() {
       const settings = bce_loadSettings();
       if (_breakCircuit || !settings.relogin) return;
-      if (Date.now() - lastRecon < 5000) return; // max 1 sent attempt per 5 seconds
       if (CurrentScreen === "Relog" && ServerIsConnected && !LoginSubmitted) {
         let passwords = JSON.parse(
           localStorage.getItem(_localStoragePasswordsKey)
@@ -328,7 +326,14 @@
         });
       }
     }
-    setInterval(reconCheck, 100);
+
+    if (typeof bc_ServerConnect === "undefined") {
+      bc_ServerConnect = ServerConnect;
+    }
+    ServerConnect = () => {
+      bc_ServerConnect();
+      reconCheck();
+    };
 
     if (typeof bc_ServerDisconnect === "undefined") {
       bc_ServerDisconnect = ServerDisconnect;
