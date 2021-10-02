@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Bondage Club Enhancements
 // @namespace https://www.bondageprojects.com/
-// @version 0.45
+// @version 0.46
 // @description enhancements for the bondage club
 // @author Sidious
 // @match https://www.bondageprojects.elementfx.com/*
@@ -1263,7 +1263,10 @@
       const settings = bce_loadSettings();
       if (settings.layeringMenu) {
         const FocusItem = InventoryGet(C, C.FocusGroup?.Name);
-        if (FocusItem) {
+        if (
+          FocusItem &&
+          C.AppearanceLayers.find((a) => a.Asset == FocusItem.Asset)
+        ) {
           DrawButton(
             10,
             950,
