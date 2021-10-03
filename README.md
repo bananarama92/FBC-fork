@@ -47,7 +47,7 @@ Triggers for these animations are stored in `bce_ChatTriggers`, where `Trigger` 
 
 Event-based animations are stored in `bce_EventExpressions` and keyed by type. Here...
 
-- `Duration` is the overall duration of the total duration of the animation, after which it ends. The summed durations inside each expression component should total this amount. Given in milliseconds.
+- `Duration` is the overall duration of the total duration of the animation, after which it ends. The summed durations inside each expression component should total this amount. Given in milliseconds. A negative duration persists until reset, or overwrite by a higher priority negative duration expression.
 - `Priority` is the priority of this animation. Lower priority animations get cancelled by higher priority ones.
 - `Expression` is the map of components that take part in this expression.
 

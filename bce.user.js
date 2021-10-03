@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Bondage Club Enhancements
 // @namespace https://www.bondageprojects.com/
-// @version 0.46
+// @version 0.47
 // @description enhancements for the bondage club
 // @author Sidious
 // @match https://www.bondageprojects.elementfx.com/*
@@ -487,26 +487,26 @@
       },
       Pout: {
         Type: "Pout",
-        Duration: 8000,
+        Duration: -1,
         Expression: {
-          Mouth: [{ Expression: "Pout", Duration: 8000 }],
-          Eyes: [{ Expression: "Dazed", Duration: 8000 }],
-          Eyes2: [{ Expression: "Dazed", Duration: 8000 }],
-          Eyebrows: [{ Expression: "Harsh", Duration: 8000 }],
+          Mouth: [{ Expression: "Pout", Duration: -1 }],
+          Eyes: [{ Expression: "Dazed", Duration: -1 }],
+          Eyes2: [{ Expression: "Dazed", Duration: -1 }],
+          Eyebrows: [{ Expression: "Harsh", Duration: -1 }],
         },
       },
       Confused: {
         Type: "Confused",
-        Duration: 8000,
+        Duration: -1,
         Expression: {
-          Eyebrows: [{ Expression: "OneRaised", Duration: 8000 }],
+          Eyebrows: [{ Expression: "OneRaised", Duration: -1 }],
         },
       },
       Smirk: {
         Type: "Smirk",
-        Duration: 8000,
+        Duration: -1,
         Expression: {
-          Mouth: [{ Expression: "Smirk", Duration: 8000 }],
+          Mouth: [{ Expression: "Smirk", Duration: -1 }],
         },
       },
       Wink: {
@@ -560,9 +560,9 @@
       },
       Smile: {
         Type: "Smile",
-        Duration: 8000,
+        Duration: -1,
         Expression: {
-          Mouth: [{ Expression: "Grin", Duration: 8000 }],
+          Mouth: [{ Expression: "Grin", Duration: -1 }],
         },
       },
       Blink: {
@@ -575,11 +575,11 @@
       },
       Grin: {
         Type: "Grin",
-        Duration: 4000,
+        Duration: -1,
         Expression: {
-          Eyes: [{ Expression: "Horny", Duration: 4000 }],
-          Eyes2: [{ Expression: "Horny", Duration: 4000 }],
-          Mouth: [{ Expression: "Grin", Duration: 3500 }],
+          Eyes: [{ Expression: "Horny", Duration: -1 }],
+          Eyes2: [{ Expression: "Horny", Duration: -1 }],
+          Mouth: [{ Expression: "Grin", Duration: -1 }],
         },
       },
       Cuddle: {
@@ -739,12 +739,91 @@
           Blush: [{ ExpressionModifier: 2, Duration: 8000 }],
         },
       },
+      Sad: {
+        Type: "Sad",
+        Duration: -1,
+        Expression: {
+          Mouth: [{ Expression: "Frown", Duration: -1 }],
+          Eyes: [{ Expression: "Shy", Duration: -1 }],
+          Eyes2: [{ Expression: "Shy", Duration: -1 }],
+          Eyebrows: [{ Expression: "Soft", Duration: -1 }],
+        },
+      },
+      Worried: {
+        Type: "Worried",
+        Duration: -1,
+        Expression: {
+          Eyes: [{ Expression: "Surprised", Duration: -1 }],
+          Eyes2: [{ Expression: "Surprised", Duration: -1 }],
+          Eyebrows: [{ Expression: "Soft", Duration: -1 }],
+        },
+      },
+      Distressed: {
+        Type: "Distressed",
+        Duration: -1,
+        Expression: {
+          Eyes: [{ Expression: "Scared", Duration: -1 }],
+          Eyes2: [{ Expression: "Scared", Duration: -1 }],
+          Eyebrows: [{ Expression: "Soft", Duration: -1 }],
+        },
+      },
+      Happy: {
+        Type: "Happy",
+        Duration: -1,
+        Expression: {
+          Mouth: [{ Expression: "Happy", Duration: -1 }],
+        },
+      },
+      Frown: {
+        Type: "Frown",
+        Duration: -1,
+        Expression: {
+          Mouth: [{ Expression: "Frown", Duration: -1 }],
+        },
+      },
+      NarrowEyes: {
+        Type: "NarrowEyes",
+        Duration: -1,
+        Expression: {
+          Eyes: [{ Expression: "Horny", Duration: -1 }],
+          Eyes2: [{ Expression: "Horny", Duration: -1 }],
+        },
+      },
+      OpenEyes: {
+        Type: "OpenEyes",
+        Duration: -1,
+        Expression: {
+          Eyes: [{ Expression: null, Duration: -1 }],
+          Eyes2: [{ Expression: null, Duration: -1 }],
+        },
+      },
+      CloseEyes: {
+        Type: "CloseEyes",
+        Duration: -1,
+        Expression: {
+          Eyes: [{ Expression: "Closed", Duration: -1 }],
+          Eyes2: [{ Expression: "Closed", Duration: -1 }],
+        },
+      },
+      CloseMouth: {
+        Type: "CloseMouth",
+        Duration: -1,
+        Expression: {
+          Mouth: [{ Expression: null, Duration: -1 }],
+        },
+      },
+      OpenMouth: {
+        Type: "OpenMouth",
+        Duration: -1,
+        Expression: {
+          Mouth: [{ Expression: "Moan", Duration: -1 }],
+        },
+      },
       LipBite: {
         Type: "LipBite",
-        Duration: 8000,
-        Priority: 200,
+        Duration: -1,
         Expression: {
-          Mouth: [{ Expression: "LipBite", Duration: 8000 }],
+          Mouth: [{ Expression: "LipBite", Duration: -1 }],
         },
       },
       Lick: {
@@ -828,7 +907,7 @@
       },
       {
         Trigger: new RegExp(
-          `${Player.Name} (seems confused|looks curious|looks suspicious)`
+          `${Player.Name} ((seems|looks) (confused|curious|suspicious)|raises an eyebrow)`
         ),
         Event: "Confused",
       },
@@ -893,12 +972,50 @@
         Event: "StimulatedLong",
       },
       {
-        Trigger: new RegExp(`^.${Player.Name} bites her lips`),
+        Trigger: new RegExp(`^.${Player.Name} bites her( lower)? lip`),
         Event: "LipBite",
       },
       {
-        Trigger: new RegExp(`^.${Player.Name} licks `),
+        Trigger: new RegExp(`^.${Player.Name} licks (?!her lips)`),
         Event: "Lick",
+      },
+      {
+        Trigger: new RegExp(`^.${Player.Name} frowns`),
+        Event: "Frown",
+      },
+      {
+        Trigger: new RegExp(`^.${Player.Name} closes her mouth`),
+        Event: "CloseMouth",
+      },
+      {
+        Trigger: new RegExp(`^.${Player.Name} opens her mouth`),
+        Event: "OpenMouth",
+      },
+      {
+        Trigger: new RegExp(`^.${Player.Name} (looks|seems) happy`),
+        Event: "Happy",
+      },
+      {
+        Trigger: new RegExp(`^.${Player.Name} (looks|seems) distressed`),
+        Event: "Distressed",
+      },
+      {
+        Trigger: new RegExp(`^.${Player.Name} (looks|seems) worried`),
+        Event: "Worried",
+      },
+      {
+        Trigger: new RegExp(`^.${Player.Name} opens her eyes`),
+        Event: "OpenEyes",
+      },
+      {
+        Trigger: new RegExp(
+          `^.${Player.Name} ((squints|narrows) her eyes|narrowly opens her eyes)`
+        ),
+        Event: "NarrowEyes",
+      },
+      {
+        Trigger: new RegExp(`^.${Player.Name} closes her eyes`),
+        Event: "CloseEyes",
       },
       {
         Trigger: new RegExp(`^\\(${Player.Name}'s gag (in|de)flates`),
@@ -974,6 +1091,7 @@
         };
         _PreviousArousal.Progress = 0;
         _PreviousDirection = ArousalMeterDirection.Up;
+        bce_ExpressionsQueue.splice(0, bce_ExpressionsQueue.length); // clear ongoing expressions
       }
 
       // detect arousal movement
@@ -1026,13 +1144,13 @@
       for (let j = 0; j < bce_ExpressionsQueue.length; j++) {
         // handle event-based expressions
         let next = bce_ExpressionsQueue[j];
-        if (next.Until > Date.now()) {
+        if (next.Until > Date.now() || next.Until - next.At < 0) {
           for (const t of Object.keys(next.Expression)) {
             let durationNow = Date.now() - next.At;
             for (let i = 0; i < next.Expression[t].length; i++) {
               const exp = next.Expression[t][i];
               durationNow -= exp.Duration;
-              if (durationNow < 0) {
+              if (durationNow < 0 || exp.Duration < 0) {
                 eventHandled.push(t);
                 if (!exp.Skip) {
                   const priority = exp.Priority || next.Priority || 0;
@@ -1052,7 +1170,7 @@
                       }
                       if (
                         !nextExpression[t] ||
-                        nextExpression[t].Priority < priority
+                        nextExpression[t].Priority <= priority
                       ) {
                         nextExpression[t] = {
                           Expression: bce_ExpressionModifierMap[t][idx],
@@ -1064,7 +1182,7 @@
                   } else {
                     if (
                       !nextExpression[t] ||
-                      nextExpression[t].Priority < priority
+                      nextExpression[t].Priority <= priority
                     ) {
                       nextExpression[t] = {
                         Expression: exp.Expression,
