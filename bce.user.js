@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Bondage Club Enhancements
 // @namespace https://www.bondageprojects.com/
-// @version 0.50
+// @version 0.51
 // @description enhancements for the bondage club
 // @author Sidious
 // @match https://www.bondageprojects.elementfx.com/*
@@ -829,7 +829,7 @@
         Type: "BareTeeth",
         Duration: -1,
         Expression: {
-          Fluids: [{ Expression: "Angry", Duration: -1 }],
+          Mouth: [{ Expression: "Angry", Duration: -1 }],
         },
       },
       Happy: {
