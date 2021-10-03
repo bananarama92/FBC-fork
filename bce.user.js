@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Bondage Club Enhancements
 // @namespace https://www.bondageprojects.com/
-// @version 0.49
+// @version 0.50
 // @description enhancements for the bondage club
 // @author Sidious
 // @match https://www.bondageprojects.elementfx.com/*
@@ -1394,9 +1394,14 @@
       if (Object.keys(desired).length > 0) {
         for (const t of Object.keys(desired)) {
           setExpression(t, desired[t].Expression, desired[t].Automatic);
+          ServerSend("ChatRoomCharacterExpressionUpdate", {
+            Name: desired[t].Expression,
+            Group: t,
+            Appearance: ServerAppearanceBundle(Player.Appearance),
+          });
         }
 
-        CharacterRefresh(Player, true, false);
+        CharacterRefresh(Player, false, false);
         console.log(arousal, "Changed", desired);
       }
 
