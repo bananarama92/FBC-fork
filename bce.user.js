@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Bondage Club Enhancements
 // @namespace https://www.bondageprojects.com/
-// @version 0.48
+// @version 0.49
 // @description enhancements for the bondage club
 // @author Sidious
 // @match https://www.bondageprojects.elementfx.com/*
@@ -846,6 +846,15 @@
           Mouth: [{ Expression: "Frown", Duration: -1 }],
         },
       },
+      Glare: {
+        Type: "Glare",
+        Duration: -1,
+        Expression: {
+          Eyes: [{ Expression: "Angry", Duration: -1 }],
+          Eyes2: [{ Expression: "Angry", Duration: -1 }],
+          Eyebrows: [{ Expression: "Harsh", Duration: -1 }],
+        },
+      },
       NarrowEyes: {
         Type: "NarrowEyes",
         Duration: -1,
@@ -1057,28 +1066,42 @@
         Event: "OpenMouth",
       },
       {
-        Trigger: new RegExp(`^.${Player.Name} (looks|seems) happy`),
+        Trigger: new RegExp(`^.${Player.Name} (looks|seems|is|gets) happy`),
         Event: "Happy",
       },
       {
-        Trigger: new RegExp(`^.${Player.Name} (looks|seems) distressed`),
+        Trigger: new RegExp(
+          `^.${Player.Name} (looks|seems|is|gets) distressed`
+        ),
         Event: "Distressed",
       },
       {
-        Trigger: new RegExp(`^.${Player.Name} (looks|seems) sad`),
+        Trigger: new RegExp(`^.${Player.Name} (looks|seems|is|gets) sad`),
         Event: "Sad",
       },
       {
-        Trigger: new RegExp(`^.${Player.Name} (looks|seems) worried`),
+        Trigger: new RegExp(`^.${Player.Name} (looks|seems|is|gets) surprised`),
         Event: "Worried",
       },
       {
-        Trigger: new RegExp(`^.${Player.Name} bares her teeth`),
+        Trigger: new RegExp(`^.${Player.Name} (looks|seems|is|gets) worried`),
+        Event: "Worried",
+      },
+      {
+        Trigger: new RegExp(`^.${Player.Name} (bares her teeth|snarls)`),
         Event: "BareTeeth",
       },
       {
-        Trigger: new RegExp(`^.${Player.Name} (looks angr(il)?y|seems angry)`),
+        Trigger: new RegExp(
+          `^.${Player.Name} (looks angr(il)?y|(gets|is|seems) angry)`
+        ),
         Event: "Angry",
+      },
+      {
+        Trigger: new RegExp(
+          `^.${Player.Name} (glares|looks harshly|gives a (glare|harsh look))`
+        ),
+        Event: "Glare",
       },
       {
         Trigger: new RegExp(`^.${Player.Name} opens her eyes`),
