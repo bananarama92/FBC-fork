@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Bondage Club Enhancements
 // @namespace https://www.bondageprojects.com/
-// @version 0.47
+// @version 0.48
 // @description enhancements for the bondage club
 // @author Sidious
 // @match https://www.bondageprojects.elementfx.com/*
@@ -495,6 +495,20 @@
           Eyebrows: [{ Expression: "Harsh", Duration: -1 }],
         },
       },
+      ResetBrows: {
+        Type: "ResetBrows",
+        Duration: -1,
+        Expression: {
+          Eyebrows: [{ Expression: null, Duration: -1 }],
+        },
+      },
+      RaiseBrows: {
+        Type: "RaiseBrows",
+        Duration: -1,
+        Expression: {
+          Eyebrows: [{ Expression: "Raised", Duration: -1 }],
+        },
+      },
       Confused: {
         Type: "Confused",
         Duration: -1,
@@ -739,6 +753,16 @@
           Blush: [{ ExpressionModifier: 2, Duration: 8000 }],
         },
       },
+      Angry: {
+        Type: "Angry",
+        Duration: -1,
+        Expression: {
+          Mouth: [{ Expression: "Angry", Duration: -1 }],
+          Eyes: [{ Expression: "Angry", Duration: -1 }],
+          Eyes2: [{ Expression: "Angry", Duration: -1 }],
+          Eyebrows: [{ Expression: "Angry", Duration: -1 }],
+        },
+      },
       Sad: {
         Type: "Sad",
         Duration: -1,
@@ -765,6 +789,47 @@
           Eyes: [{ Expression: "Scared", Duration: -1 }],
           Eyes2: [{ Expression: "Scared", Duration: -1 }],
           Eyebrows: [{ Expression: "Soft", Duration: -1 }],
+          Mouth: [{ Expression: "Angry", Duration: -1 }],
+        },
+      },
+      Reset: {
+        Type: "Reset",
+        Duration: -1,
+        Expression: {
+          Mouth: [{ Expression: null, Duration: -1 }],
+          Eyes: [{ Expression: null, Duration: -1 }],
+          Eyes2: [{ Expression: null, Duration: -1 }],
+          Eyebrows: [{ Expression: null, Duration: -1 }],
+          Blush: [{ Expression: null, Duration: -1 }],
+          Fluids: [{ Expression: null, Duration: -1 }],
+        },
+      },
+      Cry: {
+        Type: "Cry",
+        Duration: -1,
+        Expression: {
+          Drool: [{ Expression: "TearsMedium", Duration: -1 }],
+        },
+      },
+      DroolReset: {
+        Type: "DroolReset",
+        Duration: -1,
+        Expression: {
+          Fluids: [{ Expression: null, Duration: -1 }],
+        },
+      },
+      DroolSides: {
+        Type: "DroolSides",
+        Duration: -1,
+        Expression: {
+          Fluids: [{ Expression: "DroolSides", Duration: -1 }],
+        },
+      },
+      BareTeeth: {
+        Type: "BareTeeth",
+        Duration: -1,
+        Expression: {
+          Fluids: [{ Expression: "Angry", Duration: -1 }],
         },
       },
       Happy: {
@@ -1000,8 +1065,20 @@
         Event: "Distressed",
       },
       {
+        Trigger: new RegExp(`^.${Player.Name} (looks|seems) sad`),
+        Event: "Sad",
+      },
+      {
         Trigger: new RegExp(`^.${Player.Name} (looks|seems) worried`),
         Event: "Worried",
+      },
+      {
+        Trigger: new RegExp(`^.${Player.Name} bares her teeth`),
+        Event: "BareTeeth",
+      },
+      {
+        Trigger: new RegExp(`^.${Player.Name} (looks angr(il)?y|seems angry)`),
+        Event: "Angry",
       },
       {
         Trigger: new RegExp(`^.${Player.Name} opens her eyes`),
@@ -1018,6 +1095,14 @@
         Event: "CloseEyes",
       },
       {
+        Trigger: new RegExp(`^.${Player.Name} lowers her eyebrows`),
+        Event: "ResetBrows",
+      },
+      {
+        Trigger: new RegExp(`^.${Player.Name} raises her eyebrows`),
+        Event: "RaiseBrows",
+      },
+      {
         Trigger: new RegExp(`^\\(${Player.Name}'s gag (in|de)flates`),
         Event: "GagInflate",
       },
@@ -1026,6 +1111,28 @@
           `^\\(.*? rubs ${Player.Name}'s .*? with a ice cube`
         ),
         Event: "Iced",
+      },
+      {
+        Trigger: new RegExp(`^.${Player.Name} drools`),
+        Event: "DroolSides",
+      },
+      {
+        Trigger: new RegExp(
+          `((${Player.Name} rubs her|rubs ${Player.Name}'s) (head|nose|mouth) with a towel|cleans ${Player.Name}'s mouth|${Player.Name} (licks her lips|caresses and wipes her mouth clean))`
+        ),
+        Event: "DroolReset",
+      },
+      {
+        Trigger: new RegExp(
+          `^.${Player.Name} (starts to cry|sheds .* tears|eyes( start)? leak)`
+        ),
+        Event: "Cry",
+      },
+      {
+        Trigger: new RegExp(
+          `^.${Player.Name}'s (expression|face) returns to normal`
+        ),
+        Event: "Reset",
       },
     ];
 
