@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Bondage Club Enhancements
 // @namespace https://www.bondageprojects.com/
-// @version 0.52
+// @version 0.53
 // @description enhancements for the bondage club
 // @author Sidious
 // @match https://www.bondageprojects.elementfx.com/*
@@ -299,12 +299,9 @@
     setInterval(loginCheck, 100);
 
     let _breakCircuit = false;
-    if (typeof bc_ServerConnect === "undefined") {
-      bc_ServerConnect = ServerConnect;
-    }
-    ServerConnect = () => {
-      bc_ServerConnect();
+    let relogCheck;
 
+    function relog() {
       const settings = bce_loadSettings();
       console.log(
         settings,
@@ -315,6 +312,9 @@
       );
       if (_breakCircuit || !settings.relogin) return;
       if (Player.AccountName && ServerIsConnected && !LoginSubmitted) {
+        if (relogCheck) {
+          clearInterval(relogCheck);
+        }
         let passwords = JSON.parse(
           localStorage.getItem(_localStoragePasswordsKey)
         );
@@ -339,6 +339,14 @@
           ChatRoomSpace: "",
         });
       }
+    }
+
+    if (typeof bc_ServerConnect === "undefined") {
+      bc_ServerConnect = ServerConnect;
+    }
+    ServerConnect = () => {
+      bc_ServerConnect();
+      relog();
     };
 
     if (typeof bc_ServerDisconnect === "undefined") {
@@ -347,21 +355,21 @@
 
     ServerDisconnect = (data, close = false) => {
       const settings = bce_loadSettings();
-      if (
-        !_breakCircuit &&
-        settings.relogin &&
-        data === "ErrorDuplicatedLogin"
-      ) {
-        ServerAccountBeep({
-          MemberNumber: Player.MemberNumber,
-          MemberName: Player.Name,
-          ChatRoomName: "ERROR",
-          Private: true,
-          Message:
-            "Signed in from a different location! Refresh the page to re-enable relogin in this tab.",
-          ChatRoomSpace: "",
-        });
-        _breakCircuit = true;
+      if (!_breakCircuit && settings.relogin) {
+        if (data === "ErrorDuplicatedLogin") {
+          ServerAccountBeep({
+            MemberNumber: Player.MemberNumber,
+            MemberName: Player.Name,
+            ChatRoomName: "ERROR",
+            Private: true,
+            Message:
+              "Signed in from a different location! Refresh the page to re-enable relogin in this tab.",
+            ChatRoomSpace: "",
+          });
+          _breakCircuit = true;
+        } else {
+          relogCheck = setInterval(relog, 100);
+        }
       }
       bc_ServerDisconnect(data, close);
     };
