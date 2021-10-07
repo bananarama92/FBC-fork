@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Bondage Club Enhancements
 // @namespace https://www.bondageprojects.com/
-// @version 0.51
+// @version 0.52
 // @description enhancements for the bondage club
 // @author Sidious
 // @match https://www.bondageprojects.elementfx.com/*
@@ -299,10 +299,22 @@
     setInterval(loginCheck, 100);
 
     let _breakCircuit = false;
-    function reconCheck() {
+    if (typeof bc_ServerConnect === "undefined") {
+      bc_ServerConnect = ServerConnect;
+    }
+    ServerConnect = () => {
+      bc_ServerConnect();
+
       const settings = bce_loadSettings();
+      console.log(
+        settings,
+        _breakCircuit,
+        CurrentScreen,
+        ServerIsConnected,
+        LoginSubmitted
+      );
       if (_breakCircuit || !settings.relogin) return;
-      if (CurrentScreen === "Relog" && ServerIsConnected && !LoginSubmitted) {
+      if (Player.AccountName && ServerIsConnected && !LoginSubmitted) {
         let passwords = JSON.parse(
           localStorage.getItem(_localStoragePasswordsKey)
         );
@@ -313,9 +325,11 @@
           _breakCircuit = true;
           return;
         }
-        ElementValue("InputPassword", passwords[Player.AccountName]);
-        lastRecon = Date.now();
-        RelogSend();
+        LoginSetSubmitted();
+        ServerSend("AccountLogin", {
+          AccountName: Player.AccountName,
+          Password: passwords[Player.AccountName],
+        });
         ServerAccountBeep({
           MemberNumber: Player.MemberNumber,
           MemberName: Player.Name,
@@ -325,14 +339,6 @@
           ChatRoomSpace: "",
         });
       }
-    }
-
-    if (typeof bc_ServerConnect === "undefined") {
-      bc_ServerConnect = ServerConnect;
-    }
-    ServerConnect = () => {
-      bc_ServerConnect();
-      reconCheck();
     };
 
     if (typeof bc_ServerDisconnect === "undefined") {
@@ -570,6 +576,13 @@
             { Expression: "Laughing", Duration: 400 },
             { Expression: "Happy", Duration: 200 },
           ],
+        },
+      },
+      Chuckle: {
+        Type: "Chuckle",
+        Duration: 4000,
+        Expression: {
+          Mouth: [{ Expression: "Grin", Duration: 4000 }],
         },
       },
       Smile: {
@@ -948,7 +961,11 @@
         Event: "Blush",
       },
       {
-        Trigger: new RegExp(`${Player.Name} (smiles|chuckles)`),
+        Trigger: new RegExp(`${Player.Name} chuckles`),
+        Event: "Chuckle",
+      },
+      {
+        Trigger: new RegExp(`${Player.Name} smiles`),
         Event: "Smile",
       },
       {
@@ -1114,7 +1131,7 @@
         Event: "NarrowEyes",
       },
       {
-        Trigger: new RegExp(`^.${Player.Name} closes her eyes`),
+        Trigger: new RegExp(`^\\*${Player.Name} closes her eyes`),
         Event: "CloseEyes",
       },
       {
