@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Bondage Club Enhancements
 // @namespace https://www.bondageprojects.com/
-// @version 0.53
+// @version 0.54
 // @description enhancements for the bondage club
 // @author Sidious
 // @match https://www.bondageprojects.elementfx.com/*
@@ -1374,11 +1374,13 @@
           desired[t] = { ...nextExp, Automatic: true };
         }
         if (exp !== bce_CustomLastExpression[t] && permanent) {
-          if (!exp) {
-            delete bce_ManualLastExpression[t];
-          } else {
-            bce_ManualLastExpression[t] = exp;
-          }
+          const e = Object.create(null);
+          e[t] = [{ Expression: exp, Duration: -1 }];
+          pushEvent({
+            Type: "ManualOverride",
+            Duration: -1,
+            Expression: e,
+          });
         }
       }
 
@@ -1391,28 +1393,30 @@
         // only proceed if matches without overriding manual expressions
         if (exp === bce_CustomLastExpression[t] || isDefault) {
           if (exp !== bce_ManualLastExpression[t]) {
-            for (const face of ArousalExpressionStages[t]) {
-              let limit =
-                face.Limit - (direction === ArousalMeterDirection.Up ? 0 : 3);
-              if (arousal >= limit) {
-                if (face.Expression !== exp) {
-                  desired[t] = {
-                    Expression: face.Expression,
-                    Automatic: true,
-                  };
-                  break;
-                } else {
-                  continue outer;
+          for (const face of ArousalExpressionStages[t]) {
+            let limit =
+              face.Limit - (direction === ArousalMeterDirection.Up ? 0 : 3);
+            if (arousal >= limit) {
+              if (face.Expression !== exp) {
+                desired[t] = {
+                  Expression: face.Expression,
+                  Automatic: true,
+                };
+                break;
+              } else {
+                continue outer;
                 }
               }
             }
           }
         } else if (permanent) {
-          if (!exp) {
-            delete bce_ManualLastExpression[t];
-          } else {
-            bce_ManualLastExpression[t] = exp;
-          }
+          const e = Object.create(null);
+          e[t] = [{ Expression: exp, Duration: -1 }];
+          pushEvent({
+            Type: "ManualOverride",
+            Duration: -1,
+            Expression: e,
+          });
         }
       }
 
