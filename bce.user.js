@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Bondage Club Enhancements
 // @namespace https://www.bondageprojects.com/
-// @version 0.54
+// @version 0.55
 // @description enhancements for the bondage club
 // @author Sidious
 // @match https://www.bondageprojects.elementfx.com/*
@@ -444,19 +444,27 @@
 
     bce_CustomLastExpression = { ...bce_DefaultExpression };
 
-    bce_ManualLastExpression = {};
-
     bce_ExpressionModifierMap = {
       Blush: [null, "Low", "Medium", "High", "VeryHigh", "Extreme"],
     };
 
     bce_ExpressionsQueue = [];
+    let lastUniqueId = 0;
+    function newUniqueId() {
+      lastUniqueId = (lastUniqueId + 1) % (Number.MAX_SAFE_INTEGER - 1);
+      return lastUniqueId;
+    }
     function pushEvent(evt) {
-      console.log("Event detected", evt.Type);
-      const t = Date.now();
+      const time = Date.now();
       let event = JSON.parse(JSON.stringify(evt)); // deep copy
-      event.At = t;
-      event.Until = t + event.Duration;
+      event.At = time;
+      event.Until = time + event.Duration;
+      event.Id = newUniqueId();
+      for (const t of Object.values(event.Expression)) {
+        for (const exp of t) {
+          exp.Id = newUniqueId();
+        }
+      }
       bce_ExpressionsQueue.push(event);
     }
 
@@ -1235,7 +1243,6 @@
         }
       }
       if (isDefault) {
-        bce_ManualLastExpression = {};
         bce_CustomLastExpression = {
           Blush: null,
           Eyebrows: null,
@@ -1299,16 +1306,58 @@
       for (let j = 0; j < bce_ExpressionsQueue.length; j++) {
         // handle event-based expressions
         let next = bce_ExpressionsQueue[j];
-        if (next.Until > Date.now() || next.Until - next.At < 0) {
+        let active = false;
+        if (
+          (next.Until > Date.now() || next.Until - next.At < 0) &&
+          Object.keys(next.Expression).length > 0
+        ) {
           for (const t of Object.keys(next.Expression)) {
             let durationNow = Date.now() - next.At;
             for (let i = 0; i < next.Expression[t].length; i++) {
               const exp = next.Expression[t][i];
               durationNow -= exp.Duration;
               if (durationNow < 0 || exp.Duration < 0) {
-                eventHandled.push(t);
+                active = true;
                 if (!exp.Skip) {
-                  const priority = exp.Priority || next.Priority || 0;
+                  eventHandled.push(t);
+
+                  let trySetNextExpression = (e) => {
+                    const priority = exp.Priority || next.Priority || 0;
+                    if (
+                      !nextExpression[t] ||
+                      nextExpression[t].Priority <= priority
+                    ) {
+                      const nexp = {
+                        ...(nextExpression[t] || { Duration: 1 }),
+                      };
+                      nextExpression[t] = {
+                        Id: exp.Id,
+                        Expression: e,
+                        Duration: exp.Duration,
+                        Priority: priority,
+                        Automatic: true,
+                      };
+                      if (nexp?.Duration < 0 && exp.Duration < 0) {
+                        for (let k = 0; k < j; k++) {
+                          let delIdx = bce_ExpressionsQueue[k].Expression[
+                            t
+                          ]?.findIndex((a) => a.Id === nexp.Id);
+                          if (Number.isInteger(delIdx) && delIdx >= 0) {
+                            let old = bce_ExpressionsQueue[k].Expression[
+                              t
+                            ].splice(delIdx, 1);
+                            if (
+                              bce_ExpressionsQueue[k].Expression[t].length === 0
+                            ) {
+                              delete bce_ExpressionsQueue[k].Expression[t];
+                            }
+                            break;
+                          }
+                        }
+                      }
+                    }
+                  };
+
                   if (
                     exp.ExpressionModifier &&
                     t in bce_ExpressionModifierMap
@@ -1323,46 +1372,23 @@
                       } else if (idx < 0) {
                         idx = 0;
                       }
-                      if (
-                        !nextExpression[t] ||
-                        nextExpression[t].Priority <= priority
-                      ) {
-                        nextExpression[t] = {
-                          Expression: bce_ExpressionModifierMap[t][idx],
-                          Priority: priority,
-                        };
-                      }
+                      trySetNextExpression(bce_ExpressionModifierMap[t][idx]);
                       bce_ExpressionsQueue[j].Expression[t][i].Applied = true;
                     }
                   } else {
-                    if (
-                      !nextExpression[t] ||
-                      nextExpression[t].Priority <= priority
-                    ) {
-                      nextExpression[t] = {
-                        Expression: exp.Expression,
-                        Priority: priority,
-                      };
-                    }
+                    trySetNextExpression(exp.Expression);
                   }
                 }
                 break;
               }
             }
           }
-        } else {
-          let prev = bce_ExpressionsQueue.splice(j, 1)[0];
+        }
+        if (!active) {
+          bce_ExpressionsQueue.splice(j, 1);
           j--;
           if (bce_ExpressionsQueue.length === 0) {
             eventEnded = true;
-            for (const t of Object.keys(prev.Expression)) {
-              if (bce_ManualLastExpression[t]) {
-                desired[t] = {
-                  Expression: bce_ManualLastExpression[t],
-                  Automatic: false,
-                };
-              }
-            }
           }
         }
       }
@@ -1371,7 +1397,7 @@
         const [exp, permanent] = expression(t);
         const nextExp = nextExpression[t];
         if (nextExp.Expression !== exp) {
-          desired[t] = { ...nextExp, Automatic: true };
+          desired[t] = { ...nextExp };
         }
         if (exp !== bce_CustomLastExpression[t] && permanent) {
           const e = Object.create(null);
@@ -1392,7 +1418,6 @@
         const [exp, permanent] = expression(t);
         // only proceed if matches without overriding manual expressions
         if (exp === bce_CustomLastExpression[t] || isDefault) {
-          if (exp !== bce_ManualLastExpression[t]) {
           for (const face of ArousalExpressionStages[t]) {
             let limit =
               face.Limit - (direction === ArousalMeterDirection.Up ? 0 : 3);
@@ -1405,7 +1430,6 @@
                 break;
               } else {
                 continue outer;
-                }
               }
             }
           }
