@@ -503,7 +503,6 @@
             }
             newChildren.push(document.createTextNode(text));
           }
-          console.log(newChildren);
           while (chatMessageElement.firstChild)
             chatMessageElement.removeChild(chatMessageElement.firstChild);
           for (const child of newChildren) {
