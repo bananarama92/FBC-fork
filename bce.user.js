@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Bondage Club Enhancements
 // @namespace https://www.bondageprojects.com/
-// @version 0.55
+// @version 0.56
 // @description enhancements for the bondage club
 // @author Sidious
 // @match https://www.bondageprojects.elementfx.com/*
@@ -19,6 +19,7 @@
   inject(initSettings);
   inject(gagspeak);
   inject(automaticReconnect);
+  inject(chatAugments);
   inject(automaticExpressions);
   inject(extendedWardrobe);
   inject(layeringMenu);
@@ -67,6 +68,13 @@
       },
       automateCacheClear: {
         label: "Clear Drawing Cache Hourly",
+        value: false,
+        sideEffects: (newValue) => {
+          console.log(newValue);
+        },
+      },
+      augmentChat: {
+        label: "Chat Links and Embeds",
         value: false,
         sideEffects: (newValue) => {
           console.log(newValue);
@@ -373,6 +381,108 @@
       }
       bc_ServerDisconnect(data, close);
     };
+  }
+
+  function chatAugments() {
+    // inject styles
+    const css = `
+    .bce-img {max-height:5rem;display:block;border:1px solid red; padding: 0.1rem;}
+    `;
+    const head = document.head || document.getElementsByTagName("head")[0];
+    const style = document.createElement("style");
+    style.appendChild(document.createTextNode(css));
+    head.appendChild(style);
+
+    function bce_parseUrl(word) {
+      try {
+        const url = new URL(word);
+        if (!["http:", "https:"].includes(url.protocol)) {
+          return false;
+        }
+        return url;
+      } catch {
+        return false;
+      }
+    }
+
+    const EMBED_TYPE = Object.freeze({
+      Image: "img",
+      None: "",
+    });
+
+    function bce_allowedToEmbed(url) {
+      if (
+        ["cdn.discordapp.com", "i.imgur.com"].includes(url.host) &&
+        /\/[^\/]+\.(png|jpe?g|gif)$/.test(url.pathname)
+      ) {
+        return EMBED_TYPE.Image;
+      }
+      return EMBED_TYPE.None;
+    }
+
+    function bce_chatAugments() {
+      const settings = bce_loadSettings();
+      if (CurrentScreen !== "ChatRoom" || !settings.augmentChat) {
+        return;
+      }
+      // handle chat events
+      const handledAttributeName = "data-bce-handled";
+      const unhandledChat = document.querySelectorAll(
+        `.ChatMessage:not([${handledAttributeName}=true])`
+      );
+      for (const chatMessageElement of unhandledChat) {
+        chatMessageElement.setAttribute(handledAttributeName, "true");
+        if (
+          chatMessageElement.classList.contains("ChatMessageChat") ||
+          chatMessageElement.classList.contains("ChatMessageWhisper")
+        ) {
+          const newChildren = [];
+          for (const node of chatMessageElement.childNodes) {
+            if (node.nodeType !== Node.TEXT_NODE) {
+              newChildren.push(node);
+              continue;
+            }
+            const contents = node.textContent.trim();
+            const words = contents.split(" ");
+            let text = " ";
+            for (const word of words) {
+              // handle url linking
+              const url = bce_parseUrl(word);
+              if (url) {
+                newChildren.push(document.createTextNode(text));
+                text = " ";
+
+                // embed or link
+                switch (bce_allowedToEmbed(url)) {
+                  case EMBED_TYPE.Image:
+                    const imgNode = document.createElement("img");
+                    imgNode.src = url.href;
+                    imgNode.alt = url.href;
+                    imgNode.classList.add("bce-img");
+                    newChildren.push(imgNode);
+                    break;
+                  default:
+                    const linkNode = document.createElement("a");
+                    linkNode.href = url.href;
+                    linkNode.textContent = url.href;
+                    newChildren.push(linkNode);
+                    break;
+                }
+              } else {
+                text += word + " ";
+              }
+            }
+          }
+          console.log(newChildren);
+          while (chatMessageElement.firstChild)
+            chatMessageElement.removeChild(chatMessageElement.firstChild);
+          for (const child of newChildren) {
+            chatMessageElement.appendChild(child);
+          }
+        }
+      }
+    }
+    setInterval(bce_chatAugments, 500);
   }
 
   function automaticExpressions() {
