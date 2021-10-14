@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Bondage Club Enhancements
 // @namespace https://www.bondageprojects.com/
-// @version 0.57
+// @version 0.58
 // @description enhancements for the bondage club
 // @author Sidious
 // @match https://www.bondageprojects.elementfx.com/*
@@ -386,7 +386,13 @@
   function chatAugments() {
     // inject styles
     const css = `
-    .bce-img {max-height:5rem;display:block;border:1px solid red; padding: 0.1rem;}
+    .bce-img {
+      max-height:25rem;
+      max-width:90%;
+      display:block;
+      border:1px solid red;
+      padding: 0.1rem;
+    }
     `;
     const head = document.head || document.getElementsByTagName("head")[0];
     const style = document.createElement("style");
@@ -412,7 +418,7 @@
 
     function bce_allowedToEmbed(url) {
       if (
-        ["cdn.discordapp.com", "i.imgur.com"].includes(url.host) &&
+        ["cdn.discordapp.com", "i.imgur.com", "tenor.com"].includes(url.host) &&
         /\/[^\/]+\.(png|jpe?g|gif)$/.test(url.pathname)
       ) {
         return EMBED_TYPE.Image;
@@ -453,21 +459,25 @@
                 text = " ";
 
                 // embed or link
+                let node;
                 switch (bce_allowedToEmbed(url)) {
                   case EMBED_TYPE.Image:
                     const imgNode = document.createElement("img");
                     imgNode.src = url.href;
                     imgNode.alt = url.href;
                     imgNode.classList.add("bce-img");
-                    newChildren.push(imgNode);
+                    node = imgNode;
                     break;
                   default:
-                    const linkNode = document.createElement("a");
-                    linkNode.href = url.href;
-                    linkNode.textContent = url.href;
-                    newChildren.push(linkNode);
+                    node = document.createTextNode(url.href);
                     break;
                 }
+                const linkNode = document.createElement("a");
+                linkNode.href = url.href;
+                linkNode.title = url.href;
+                linkNode.target = "_blank";
+                linkNode.appendChild(node);
+                newChildren.push(linkNode);
               } else {
                 text += word + " ";
               }
