@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Bondage Club Enhancements
 // @namespace https://www.bondageprojects.com/
-// @version 0.59
+// @version 0.60
 // @description enhancements for the bondage club
 // @author Sidious
 // @match https://www.bondageprojects.elementfx.com/*
@@ -392,6 +392,20 @@
       display:block;
       border:1px solid red;
       padding: 0.1rem;
+    }
+    #TextAreaChatLog a {
+      color: #003f91;
+    }
+    #TextAreaChatLog a:visited {
+      color: #380091;
+    }
+    #TextAreaChatLog[data-colortheme="dark"] a,
+    #TextAreaChatLog[data-colortheme="dark2"] a {
+      color: #3d91ff;
+    }
+    #TextAreaChatLog[data-colortheme="dark"] a:visited,
+    #TextAreaChatLog[data-colortheme="dark2"] a:visited {
+      color: #6a3dff;
     }
     `;
     const head = document.head || document.getElementsByTagName("head")[0];
