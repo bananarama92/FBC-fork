@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Bondage Club Enhancements
 // @namespace https://www.bondageprojects.com/
-// @version 0.61
+// @version 0.62
 // @description enhancements for the bondage club
 // @author Sidious
 // @match https://www.bondageprojects.elementfx.com/*
@@ -465,32 +465,29 @@
           for (const node of chatMessageElement.childNodes) {
             if (node.nodeType !== Node.TEXT_NODE) {
               newChildren.push(node);
+              if (node.classList.contains("ChatMessageName")) {
+                newChildren.push(document.createTextNode(" "));
+              }
               continue;
             }
             const contents = node.textContent.trim();
-            const words = contents.split(" ");
-            let text = " ";
+            const words = [contents];
             for (let i = 0; i < words.length; i++) {
-              let word = words[i];
               // handle other whitespace
-              console.log("Before", word, words);
-              let whitespaceIdx = word.search(/[\s\r\n]/);
+              let whitespaceIdx = words[i].search(/[\s\r\n]/);
               if (whitespaceIdx >= 1) {
-                words.splice(i + 1, 0, word.substring(whitespaceIdx));
-                word = word.substring(0, whitespaceIdx);
+                words.splice(i + 1, 0, words[i].substring(whitespaceIdx));
+                words[i] = words[i].substring(0, whitespaceIdx);
               } else if (whitespaceIdx === 0) {
-                words.splice(i + 1, 0, word.substring(1));
-                newChildren.push(document.createTextNode(word[0]));
+                words.splice(i + 1, 0, words[i].substring(1));
+                words[i] = words[i][0];
+                newChildren.push(document.createTextNode(words[i]));
                 continue;
               }
-              console.log("After", word, words);
 
               // handle url linking
-              const url = bce_parseUrl(word);
+              const url = bce_parseUrl(words[i]);
               if (url) {
-                newChildren.push(document.createTextNode(text));
-                text = " ";
-
                 // embed or link
                 let node;
                 switch (bce_allowedToEmbed(url)) {
@@ -512,10 +509,9 @@
                 linkNode.appendChild(node);
                 newChildren.push(linkNode);
               } else {
-                text += word + " ";
+                newChildren.push(document.createTextNode(words[i]));
               }
             }
-            newChildren.push(document.createTextNode(text));
           }
           while (chatMessageElement.firstChild)
             chatMessageElement.removeChild(chatMessageElement.firstChild);
