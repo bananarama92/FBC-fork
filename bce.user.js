@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Bondage Club Enhancements
 // @namespace https://www.bondageprojects.com/
-// @version 0.58
+// @version 0.59
 // @description enhancements for the bondage club
 // @author Sidious
 // @match https://www.bondageprojects.elementfx.com/*
@@ -418,7 +418,12 @@
 
     function bce_allowedToEmbed(url) {
       if (
-        ["cdn.discordapp.com", "i.imgur.com", "tenor.com"].includes(url.host) &&
+        [
+          "cdn.discordapp.com",
+          "i.imgur.com",
+          "tenor.com",
+          "i.redd.it",
+        ].includes(url.host) &&
         /\/[^\/]+\.(png|jpe?g|gif)$/.test(url.pathname)
       ) {
         return EMBED_TYPE.Image;
