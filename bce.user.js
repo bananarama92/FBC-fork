@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Bondage Club Enhancements
 // @namespace https://www.bondageprojects.com/
-// @version 0.60
+// @version 0.61
 // @description enhancements for the bondage club
 // @author Sidious
 // @match https://www.bondageprojects.elementfx.com/*
@@ -470,7 +470,21 @@
             const contents = node.textContent.trim();
             const words = contents.split(" ");
             let text = " ";
-            for (const word of words) {
+            for (let i = 0; i < words.length; i++) {
+              let word = words[i];
+              // handle other whitespace
+              console.log("Before", word, words);
+              let whitespaceIdx = word.search(/[\s\r\n]/);
+              if (whitespaceIdx >= 1) {
+                words.splice(i + 1, 0, word.substring(whitespaceIdx));
+                word = word.substring(0, whitespaceIdx);
+              } else if (whitespaceIdx === 0) {
+                words.splice(i + 1, 0, word.substring(1));
+                newChildren.push(document.createTextNode(word[0]));
+                continue;
+              }
+              console.log("After", word, words);
+
               // handle url linking
               const url = bce_parseUrl(word);
               if (url) {
