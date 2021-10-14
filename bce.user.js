@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Bondage Club Enhancements
 // @namespace https://www.bondageprojects.com/
-// @version 0.56
+// @version 0.57
 // @description enhancements for the bondage club
 // @author Sidious
 // @match https://www.bondageprojects.elementfx.com/*
@@ -472,6 +472,7 @@
                 text += word + " ";
               }
             }
+            newChildren.push(document.createTextNode(text));
           }
           console.log(newChildren);
           while (chatMessageElement.firstChild)
