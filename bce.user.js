@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Bondage Club Enhancements
 // @namespace https://www.bondageprojects.com/
-// @version 0.64
+// @version 0.65
 // @description enhancements for the bondage club
 // @author Sidious
 // @match https://www.bondageprojects.elementfx.com/*
@@ -32,7 +32,7 @@
   );
 
   function loadBCX() {
-    if (!Player.AccountName) {
+    if (!Player?.AccountName) {
       setTimeout(loadBCX, 1000);
       return;
     }
