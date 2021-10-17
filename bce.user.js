@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Bondage Club Enhancements
 // @namespace https://www.bondageprojects.com/
-// @version 0.63
+// @version 0.64
 // @description enhancements for the bondage club
 // @author Sidious
 // @match https://www.bondageprojects.elementfx.com/*
@@ -16,6 +16,9 @@
 (function () {
   "use strict";
 
+  const BCX_SOURCE =
+    "https://raw.githubusercontent.com/Jomshir98/bondage-club-extended/8461bcf4d35b0b342135b0b782b35efd6784efc5/bcx.js";
+
   inject(initSettings);
   inject(gagspeak);
   inject(automaticReconnect);
@@ -24,12 +27,35 @@
   inject(extendedWardrobe);
   inject(layeringMenu);
   inject(cacheClearer);
+  inject(loadBCX, null, (s) =>
+    s.replace(/\bBCE_VAR_BCX_SOURCE\b/g, BCX_SOURCE)
+  );
+
+  function loadBCX() {
+    if (!Player.AccountName) {
+      setTimeout(loadBCX, 1000);
+      return;
+    }
+    const settings = bce_loadSettings();
+    if (!settings.bcx) {
+      return;
+    }
+    console.log("Loading BCX from BCE_VAR_BCX_SOURCE");
+    fetch("BCE_VAR_BCX_SOURCE")
+      .then((resp) => resp.text())
+      .then((resp) => {
+        console.log(resp);
+        eval(resp);
+      });
+  }
 
   function initSettings() {
     if (!PreferenceSubscreenList) {
       setTimeout(initSettings, 1000);
       return;
     }
+
+    console.log("BCE BCE_VAR_VERSION");
 
     const defaultSettings = {
       relogin: {
@@ -87,19 +113,26 @@
           console.log(newValue);
         },
       },
+      bcx: {
+        label: "Load BCX by Jomshir98 (requires refresh)",
+        value: false,
+        sideEffects: (newValue) => {
+          console.log(newValue);
+        },
+      },
     };
 
     bce_settingskey = () => `bce.settings.${Player?.AccountName}`;
     bce_loadSettings = function () {
       let settings = JSON.parse(localStorage.getItem(bce_settingskey()));
       if (!settings) {
-        settings = defaultSettings;
-      } else {
-        for (const setting in defaultSettings) {
-          if (!defaultSettings.hasOwnProperty(setting)) continue;
-          if (!(setting in settings)) {
-            settings[setting] = defaultSettings[setting].value;
-          }
+        settings = {};
+      }
+
+      for (const setting in defaultSettings) {
+        if (!defaultSettings.hasOwnProperty(setting)) continue;
+        if (!(setting in settings)) {
+          settings[setting] = defaultSettings[setting].value;
         }
       }
       return settings;
@@ -1834,9 +1867,10 @@
     };
   }
 
-  // https://gist.github.com/nylen/6234717
-  function inject(src, callback) {
+  // adapted from https://gist.github.com/nylen/6234717
+  function inject(src, callback, replacer) {
     if (typeof callback != "function") callback = function () {};
+    if (typeof replacer != "function") replacer = (s) => s;
 
     var el;
 
@@ -1853,7 +1887,17 @@
     el.class = "injected";
 
     if (typeof src == "function") {
-      el.appendChild(document.createTextNode("(" + src + ")();"));
+      el.appendChild(
+        document.createTextNode(
+          "(" +
+            replacer(
+              src
+                .toString()
+                .replace(/\bBCE_VAR_VERSION\b/g, GM_info.script.version)
+            ) +
+            ")();"
+        )
+      );
       callback();
     } else {
       el.src = src;
