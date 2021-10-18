@@ -491,6 +491,7 @@
       if (CurrentScreen !== "ChatRoom" || !settings.augmentChat) {
         return;
       }
+      const chatLogContainerId = "TextAreaChatLog";
       // handle chat events
       const handledAttributeName = "data-bce-handled";
       const unhandledChat = document.querySelectorAll(
@@ -560,10 +561,14 @@
               }
             }
           }
+          const scrolledToEnd = ElementIsScrolledToEnd(chatLogContainerId);
           while (chatMessageElement.firstChild)
             chatMessageElement.removeChild(chatMessageElement.firstChild);
           for (const child of newChildren) {
             chatMessageElement.appendChild(child);
+          }
+          if (scrolledToEnd) {
+            ElementScrollToEnd(chatLogContainerId);
           }
         }
       }
