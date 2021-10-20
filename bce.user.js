@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Bondage Club Enhancements
 // @namespace https://www.bondageprojects.com/
-// @version 0.65
+// @version 0.66
 // @description enhancements for the bondage club
 // @author Sidious
 // @match https://www.bondageprojects.elementfx.com/*
@@ -27,6 +27,7 @@
   inject(extendedWardrobe);
   inject(layeringMenu);
   inject(cacheClearer);
+  inject(lockpickHelp);
   inject(loadBCX, null, (s) =>
     s.replace(/\bBCE_VAR_BCX_SOURCE\b/g, BCX_SOURCE)
   );
@@ -108,6 +109,13 @@
       },
       gagspeak: {
         label: "(Cheat) Understand All Gagged and when Deafened",
+        value: false,
+        sideEffects: (newValue) => {
+          console.log(newValue);
+        },
+      },
+      lockpick: {
+        label: "(Cheat) Reveal Lockpicking Order Based on Skill",
         value: false,
         sideEffects: (newValue) => {
           console.log(newValue);
@@ -224,6 +232,47 @@
       }
     };
     PreferenceSubscreenList.push("BCESettings");
+  }
+
+  function lockpickHelp() {
+    if (!StruggleDrawLockpickProgress) {
+      setTimeout(lockpickHelp, 1000);
+      return;
+    }
+
+    const newRand = (s) => {
+      return function () {
+        s = Math.sin(s) * 10000;
+        return s - Math.floor(s);
+      };
+    };
+
+    const x = 1475;
+    const y = 300;
+    const pinSpacing = 100;
+    const pinWidth = 200;
+    const pinHeight = 200;
+    bc_StruggleDrawLockpickProgress = StruggleDrawLockpickProgress;
+    StruggleDrawLockpickProgress = (C) => {
+      const settings = bce_loadSettings();
+      if (settings.lockpick) {
+        const seed = parseInt(StruggleLockPickOrder.join(""));
+        const rand = newRand(seed);
+        const threshold = SkillGetWithRatio("LockPicking") / 20;
+        const hints = StruggleLockPickOrder.map((a) => {
+          const r = rand();
+          return r < threshold ? a + 1 : false;
+        });
+        for (let p = 0; p < hints.length; p++) {
+          // replicates pin rendering in the game Struggle.js
+          let xx = x - pinWidth / 2 + (0.5 - hints.length / 2 + p) * pinSpacing;
+          if (hints[p]) {
+            DrawText(hints[p], xx, y);
+          }
+        }
+      }
+      bc_StruggleDrawLockpickProgress(C);
+    };
   }
 
   function gagspeak() {
