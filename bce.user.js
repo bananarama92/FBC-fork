@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Bondage Club Enhancements
 // @namespace https://www.bondageprojects.com/
-// @version 0.66
+// @version 0.67
 // @description enhancements for the bondage club
 // @author Sidious
 // @match https://www.bondageprojects.elementfx.com/*
@@ -247,11 +247,10 @@
       };
     };
 
-    const x = 1475;
+    const x = 1575;
     const y = 300;
     const pinSpacing = 100;
     const pinWidth = 200;
-    const pinHeight = 200;
     bc_StruggleDrawLockpickProgress = StruggleDrawLockpickProgress;
     StruggleDrawLockpickProgress = (C) => {
       const settings = bce_loadSettings();
@@ -261,13 +260,13 @@
         const threshold = SkillGetWithRatio("LockPicking") / 20;
         const hints = StruggleLockPickOrder.map((a) => {
           const r = rand();
-          return r < threshold ? a + 1 : false;
+          return r < threshold ? a : false;
         });
         for (let p = 0; p < hints.length; p++) {
           // replicates pin rendering in the game Struggle.js
           let xx = x - pinWidth / 2 + (0.5 - hints.length / 2 + p) * pinSpacing;
           if (hints[p]) {
-            DrawText(hints[p], xx, y);
+            DrawText(StruggleLockPickOrder.indexOf(p) + 1, xx, y, "blue");
           }
         }
       }
