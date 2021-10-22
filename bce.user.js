@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Bondage Club Enhancements
 // @namespace https://www.bondageprojects.com/
-// @version 0.67
+// @version 0.68
 // @description enhancements for the bondage club
 // @author Sidious
 // @match https://www.bondageprojects.elementfx.com/*
@@ -1800,14 +1800,34 @@
     };
 
     let prioritySubscreen = false;
-    function prioritySubscreenEnter(C, FocusItem) {
+    let priorityField;
+    const FIELDS = Object.freeze({
+      Priority: "Priority",
+      Difficulty: "Difficulty",
+    });
+    function prioritySubscreenEnter(C, FocusItem, field) {
       prioritySubscreen = true;
-      ElementCreateInput(
-        layerPriority,
-        "number",
-        C.AppearanceLayers.find((a) => a.Asset == FocusItem.Asset).Priority,
-        20
+      priorityField = field;
+      let initialValue;
+      switch (field) {
+        case FIELDS.Priority:
+          initialValue = C.AppearanceLayers.find(
+            (a) => a.Asset == FocusItem.Asset
+          ).Priority;
+          break;
+        case FIELDS.Difficulty:
+          initialValue = C.Appearance.find(
+            (a) => a.Asset == FocusItem.Asset
+          ).Difficulty;
+          break;
+      }
+      console.log(
+        initialValue,
+        priorityField,
+        C.AppearanceLayers.find((a) => a.Asset == FocusItem.Asset),
+        C.Appearance.find((a) => a.Asset == FocusItem.Asset)
       );
+      ElementCreateInput(layerPriority, "number", initialValue, 20);
     }
     function prioritySubscreenExit() {
       prioritySubscreen = false;
@@ -1824,13 +1844,23 @@
         ) {
           DrawButton(
             10,
+            890,
+            50,
+            50,
+            "",
+            "White",
+            "Icon/Empty.png",
+            "Loosen or tighten"
+          );
+          DrawButton(
+            10,
             950,
             50,
             50,
             "",
             "White",
             "Icon/Empty.png",
-            "Modify priority"
+            "Modify layering priority"
           );
         }
       }
@@ -1841,7 +1871,7 @@
     DialogDraw = function () {
       const settings = bce_loadSettings();
       if (settings.layeringMenu && prioritySubscreen) {
-        DrawText("Set priority", 950, 150, "White", "Black");
+        DrawText(`Set item ${priorityField}`, 950, 150, "White", "Black");
         DrawButton(1815, 75, 90, 90, "", "White", "Icons/Exit.png");
         ElementPosition(layerPriority, 950, 210, 100);
         DrawButton(
@@ -1852,7 +1882,7 @@
           "",
           "White",
           "Icons/Accept.png",
-          "Set Priority"
+          `Set ${priorityField}`
         );
       } else {
         bc_DialogDraw();
@@ -1871,14 +1901,25 @@
         if (MouseIn(1815, 75, 90, 90)) {
           prioritySubscreenExit();
         } else if (MouseIn(900, 280, 90, 90)) {
-          updateItemPriorityFromLayerPriorityInput(FocusItem);
-          CharacterRefresh(C);
-          ChatRoomCharacterUpdate(C);
+          switch (priorityField) {
+            case FIELDS.Priority:
+              updateItemPriorityFromLayerPriorityInput(FocusItem);
+              break;
+            case FIELDS.Difficulty:
+              FocusItem.Difficulty = parseInt(ElementValue(layerPriority));
+              break;
+          }
+          console.log("updated item", FocusItem);
+          CharacterRefresh(C, false, false);
+          ChatRoomCharacterItemUpdate(C, C.FocusGroup?.Name);
           prioritySubscreenExit();
         }
       } else {
-        if (FocusItem && MouseIn(10, 950, 50, 50)) {
-          prioritySubscreenEnter(C, FocusItem);
+        if (FocusItem && MouseIn(10, 890, 50, 50)) {
+          prioritySubscreenEnter(C, FocusItem, FIELDS.Difficulty);
+          return;
+        } else if (FocusItem && MouseIn(10, 950, 50, 50)) {
+          prioritySubscreenEnter(C, FocusItem, FIELDS.Priority);
           return;
         }
         bc_DialogClick();
