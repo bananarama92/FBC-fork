@@ -1844,7 +1844,7 @@
             "",
             "White",
             "Icon/Empty.png",
-            "Loosen or tighten"
+            "Loosen or tighten (Cheat)"
           );
           DrawButton(
             10,
