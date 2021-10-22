@@ -1821,12 +1821,6 @@
           ).Difficulty;
           break;
       }
-      console.log(
-        initialValue,
-        priorityField,
-        C.AppearanceLayers.find((a) => a.Asset == FocusItem.Asset),
-        C.Appearance.find((a) => a.Asset == FocusItem.Asset)
-      );
       ElementCreateInput(layerPriority, "number", initialValue, 20);
     }
     function prioritySubscreenExit() {
