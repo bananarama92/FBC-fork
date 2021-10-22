@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Bondage Club Enhancements
 // @namespace https://www.bondageprojects.com/
-// @version 0.68
+// @version 0.69
 // @description enhancements for the bondage club
 // @author Sidious
 // @match https://www.bondageprojects.elementfx.com/*
@@ -232,6 +232,17 @@
       }
     };
     PreferenceSubscreenList.push("BCESettings");
+
+    bce_sendAction = (text) => {
+      ServerSend("ChatRoomChat", {
+        Content: "Beep",
+        Type: "Action",
+        Dictionary: [
+          { Tag: "Beep", Text: "msg" },
+          { Tag: "msg", Text: text },
+        ],
+      });
+    };
   }
 
   function lockpickHelp() {
@@ -1799,6 +1810,14 @@
       bc_AppearanceClick();
     };
 
+    function assetVisible(C, item) {
+      return item && C.AppearanceLayers.find((a) => a.Asset == item.Asset);
+    }
+
+    function assetWorn(C, item) {
+      return item && C.Appearance.find((a) => a.Asset == item.Asset);
+    }
+
     let prioritySubscreen = false;
     let priorityField;
     const FIELDS = Object.freeze({
@@ -1831,11 +1850,8 @@
     DialogDrawItemMenu = function (C) {
       const settings = bce_loadSettings();
       if (settings.layeringMenu) {
-        const FocusItem = InventoryGet(C, C.FocusGroup?.Name);
-        if (
-          FocusItem &&
-          C.AppearanceLayers.find((a) => a.Asset == FocusItem.Asset)
-        ) {
+        const focusItem = InventoryGet(C, C.FocusGroup?.Name);
+        if (assetWorn(C, focusItem)) {
           DrawButton(
             10,
             890,
@@ -1846,6 +1862,8 @@
             "Icon/Empty.png",
             "Loosen or tighten (Cheat)"
           );
+        }
+        if (assetVisible(C, focusItem)) {
           DrawButton(
             10,
             950,
@@ -1890,30 +1908,42 @@
         return;
       }
       let C = CharacterGetCurrent();
-      const FocusItem = InventoryGet(C, C.FocusGroup?.Name);
+      const focusItem = InventoryGet(C, C.FocusGroup?.Name);
       if (prioritySubscreen) {
         if (MouseIn(1815, 75, 90, 90)) {
           prioritySubscreenExit();
         } else if (MouseIn(900, 280, 90, 90)) {
           switch (priorityField) {
             case FIELDS.Priority:
-              updateItemPriorityFromLayerPriorityInput(FocusItem);
+              updateItemPriorityFromLayerPriorityInput(focusItem);
               break;
             case FIELDS.Difficulty:
-              FocusItem.Difficulty = parseInt(ElementValue(layerPriority));
+              const newDifficulty = parseInt(ElementValue(layerPriority));
+              let action = null;
+              if (focusItem.Difficulty > newDifficulty) {
+                action = "loosens";
+              } else if (focusItem.Difficulty < newDifficulty) {
+                action = "tightens";
+              }
+              focusItem.Difficulty = newDifficulty;
+              if (action !== null) {
+                bce_sendAction(
+                  `${Player.Name} ${action} ${CurrentCharacter.Name}'s ${focusItem.Asset.Description}.`
+                );
+              }
               break;
           }
-          console.log("updated item", FocusItem);
+          console.log("updated item", focusItem);
           CharacterRefresh(C, false, false);
           ChatRoomCharacterItemUpdate(C, C.FocusGroup?.Name);
           prioritySubscreenExit();
         }
       } else {
-        if (FocusItem && MouseIn(10, 890, 50, 50)) {
-          prioritySubscreenEnter(C, FocusItem, FIELDS.Difficulty);
+        if (assetWorn(C, focusItem) && MouseIn(10, 890, 50, 50)) {
+          prioritySubscreenEnter(C, focusItem, FIELDS.Difficulty);
           return;
-        } else if (FocusItem && MouseIn(10, 950, 50, 50)) {
-          prioritySubscreenEnter(C, FocusItem, FIELDS.Priority);
+        } else if (assetVisible(C, focusItem) && MouseIn(10, 950, 50, 50)) {
+          prioritySubscreenEnter(C, focusItem, FIELDS.Priority);
           return;
         }
         bc_DialogClick();
