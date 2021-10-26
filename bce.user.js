@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Bondage Club Enhancements
 // @namespace https://www.bondageprojects.com/
-// @version 0.69
+// @version 0.70
 // @description enhancements for the bondage club
 // @author Sidious
 // @match https://www.bondageprojects.elementfx.com/*
@@ -11,129 +11,116 @@
 // @match http://localhost:*/*
 // @icon data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==
 // @grant none
+// @run-at document-end
 // ==/UserScript==
 
-(function () {
+(async function () {
   "use strict";
 
   const BCX_SOURCE =
     "https://raw.githubusercontent.com/Jomshir98/bondage-club-extended/8461bcf4d35b0b342135b0b782b35efd6784efc5/bcx.js";
+  const BCX_DEVEL_SOURCE =
+    "https://jomshir98.github.io/bondage-club-extended/devel/bcx.js";
 
-  inject(initSettings);
-  inject(gagspeak);
-  inject(automaticReconnect);
-  inject(chatAugments);
-  inject(automaticExpressions);
-  inject(extendedWardrobe);
-  inject(layeringMenu);
-  inject(cacheClearer);
-  inject(lockpickHelp);
-  inject(loadBCX, null, (s) =>
-    s.replace(/\bBCE_VAR_BCX_SOURCE\b/g, BCX_SOURCE)
-  );
+  /// SETTINGS LOADING
+  let bce_settings = {};
+  const defaultSettings = {
+    relogin: {
+      label: "Automatic Relogin on Disconnect",
+      value: true,
+      sideEffects: (newValue) => {
+        bce_log(newValue);
+      },
+    },
+    expressions: {
+      label: "Automatic Facial Expressions (Replaces Vanilla)",
+      value: false,
+      sideEffects: (newValue) => {
+        if (newValue) {
+          // disable conflicting settings
+          Player.OnlineSharedSettings.ItemsAffectExpressions = false;
+          Player.ArousalSettings.AffectExpression = false;
+        }
+      },
+    },
+    extendedWardrobe: {
+      label: "Extend wardrobe slots (double)",
+      value: false,
+      sideEffects: (newValue) => {
+        const defaultSize = 24;
+        WardrobeSize = newValue ? defaultSize * 2 : defaultSize;
+        bc_WardrobeFixLength();
+      },
+    },
+    layeringMenu: {
+      label: "Enable Layering Menus",
+      value: false,
+      sideEffects: (newValue) => {
+        bce_log(newValue);
+      },
+    },
+    automateCacheClear: {
+      label: "Clear Drawing Cache Hourly",
+      value: false,
+      sideEffects: (newValue) => {
+        bce_log(newValue);
+      },
+    },
+    augmentChat: {
+      label: "Chat Links and Embeds",
+      value: false,
+      sideEffects: (newValue) => {
+        bce_log(newValue);
+      },
+    },
+    gagspeak: {
+      label: "(Cheat) Understand All Gagged and when Deafened",
+      value: false,
+      sideEffects: (newValue) => {
+        bce_log(newValue);
+      },
+    },
+    lockpick: {
+      label: "(Cheat) Reveal Lockpicking Order Based on Skill",
+      value: false,
+      sideEffects: (newValue) => {
+        bce_log(newValue);
+      },
+    },
+    bcx: {
+      label: "Load BCX by Jomshir98 (requires refresh)",
+      value: false,
+      sideEffects: (newValue) => {
+        if (newValue) {
+          bce_settings.bcxDevel = false;
+        }
+      },
+    },
+    bcxDevel: {
+      label:
+        "Load BCX beta by Jomshir98 (requires refresh - not pinned by BCE)",
+      value: false,
+      sideEffects: (newValue) => {
+        if (newValue) {
+          bce_settings.bcx = false;
+        }
+      },
+    },
+  };
 
-  function loadBCX() {
-    if (!Player?.AccountName) {
-      setTimeout(loadBCX, 1000);
-      return;
-    }
-    const settings = bce_loadSettings();
-    if (!settings.bcx) {
-      return;
-    }
-    console.log("Loading BCX from BCE_VAR_BCX_SOURCE");
-    fetch("BCE_VAR_BCX_SOURCE")
-      .then((resp) => resp.text())
-      .then((resp) => {
-        console.log(resp);
-        eval(resp);
-      });
+  function settingsLoaded() {
+    return Object.keys(bce_settings).length > 0;
   }
 
-  function initSettings() {
-    if (!PreferenceSubscreenList) {
-      setTimeout(initSettings, 1000);
-      return;
-    }
-
-    console.log("BCE BCE_VAR_VERSION");
-
-    const defaultSettings = {
-      relogin: {
-        label: "Automatic Relogin on Disconnect",
-        value: true,
-        sideEffects: (newValue) => {
-          console.log(newValue);
-        },
-      },
-      expressions: {
-        label: "Automatic Facial Expressions (Replaces Vanilla)",
-        value: false,
-        sideEffects: (newValue) => {
-          if (newValue) {
-            // disable conflicting settings
-            Player.OnlineSharedSettings.ItemsAffectExpressions = false;
-            Player.ArousalSettings.AffectExpression = false;
-          }
-        },
-      },
-      extendedWardrobe: {
-        label: "Extend wardrobe slots (double)",
-        value: false,
-        sideEffects: (newValue) => {
-          const defaultSize = 24;
-          WardrobeSize = newValue ? defaultSize * 2 : defaultSize;
-          bc_WardrobeFixLength();
-        },
-      },
-      layeringMenu: {
-        label: "Enable Layering Menus",
-        value: false,
-        sideEffects: (newValue) => {
-          console.log(newValue);
-        },
-      },
-      automateCacheClear: {
-        label: "Clear Drawing Cache Hourly",
-        value: false,
-        sideEffects: (newValue) => {
-          console.log(newValue);
-        },
-      },
-      augmentChat: {
-        label: "Chat Links and Embeds",
-        value: false,
-        sideEffects: (newValue) => {
-          console.log(newValue);
-        },
-      },
-      gagspeak: {
-        label: "(Cheat) Understand All Gagged and when Deafened",
-        value: false,
-        sideEffects: (newValue) => {
-          console.log(newValue);
-        },
-      },
-      lockpick: {
-        label: "(Cheat) Reveal Lockpicking Order Based on Skill",
-        value: false,
-        sideEffects: (newValue) => {
-          console.log(newValue);
-        },
-      },
-      bcx: {
-        label: "Load BCX by Jomshir98 (requires refresh)",
-        value: false,
-        sideEffects: (newValue) => {
-          console.log(newValue);
-        },
-      },
-    };
-
-    bce_settingskey = () => `bce.settings.${Player?.AccountName}`;
-    bce_loadSettings = function () {
-      let settings = JSON.parse(localStorage.getItem(bce_settingskey()));
+  const bce_settingskey = () => `bce.settings.${Player?.AccountName}`;
+  const bce_loadSettings = async function () {
+    await waitFor(() => !!Player?.AccountName);
+    const key = bce_settingskey();
+    bce_log("loading settings", key);
+    if (!settingsLoaded()) {
+      let settings = JSON.parse(localStorage.getItem(key));
       if (!settings) {
+        bce_log("no settings", key);
         settings = {};
       }
 
@@ -143,22 +130,88 @@
           settings[setting] = defaultSettings[setting].value;
         }
       }
+      bce_settings = settings;
       return settings;
-    };
-    bce_saveSettings = function (settings) {
-      localStorage.setItem(bce_settingskey(), JSON.stringify(settings));
-    };
+    }
+    return bce_settings;
+  };
+  const bce_saveSettings = function () {
+    localStorage.setItem(bce_settingskey(), JSON.stringify(bce_settings));
+  };
+
+  /// CONVENIENCE METHODS
+  const bce_log = (...args) => {
+    console.log("BCE", GM_info.script.version, ...args);
+  };
+
+  window.bce_sendAction = (text) => {
+    ServerSend("ChatRoomChat", {
+      Content: "Beep",
+      Type: "Action",
+      Dictionary: [
+        { Tag: "Beep", Text: "msg" },
+        { Tag: "msg", Text: text },
+      ],
+    });
+  };
+
+  /// Init calls
+  automaticReconnect();
+  await bce_loadSettings();
+  bce_log(bce_settings);
+  await loadBCX();
+  settingsPage();
+  gagspeak();
+  chatAugments();
+  automaticExpressions();
+  extendedWardrobe();
+  layeringMenu();
+  cacheClearer();
+  lockpickHelp();
+
+  async function waitFor(func) {
+    while (!func()) {
+      bce_log(func, !func());
+      await sleep(1000);
+    }
+  }
+
+  // Load BCX
+  async function loadBCX() {
+    await waitFor(settingsLoaded);
+
+    let source = null;
+    if (bce_settings.bcx) {
+      source = BCX_SOURCE;
+    } else if (bce_settings.bcxDevel) {
+      source = BCX_DEVEL_SOURCE;
+    } else {
+      return;
+    }
+    bce_log("Loading BCX from", source);
+    await fetch(source)
+      .then((resp) => resp.text())
+      .then((resp) => {
+        bce_log(resp);
+        eval(resp);
+      });
+    bce_log("Loaded BCX");
+  }
+
+  async function settingsPage() {
+    await waitFor(() => !!PreferenceSubscreenList);
+
+    bce_log("initializing");
 
     const settingsYStart = 225;
     const settingsYIncrement = 70;
 
-    PreferenceSubscreenBCESettingsLoad = function () {};
-    PreferenceSubscreenBCESettingsExit = function () {
+    window.PreferenceSubscreenBCESettingsLoad = function () {};
+    window.PreferenceSubscreenBCESettingsExit = function () {
       PreferenceSubscreen = "";
       PreferenceMessage = "";
     };
-    PreferenceSubscreenBCESettingsRun = function () {
-      const settings = bce_loadSettings();
+    window.PreferenceSubscreenBCESettingsRun = function () {
       MainCanvas.textAlign = "left";
       DrawText("Bondage Club Enhancements Settings", 500, 125, "Black", "Gray");
       let y = settingsYStart;
@@ -169,31 +222,30 @@
           64,
           64,
           defaultSettings[setting].label,
-          settings[setting]
+          bce_settings[setting]
         );
         y += settingsYIncrement;
       }
       DrawButton(1815, 75, 90, 90, "", "White", "Icons/Exit.png");
     };
-    PreferenceSubscreenBCESettingsClick = function () {
-      const settings = bce_loadSettings();
+    window.PreferenceSubscreenBCESettingsClick = function () {
       let y = settingsYStart;
       if (MouseIn(1815, 75, 90, 90)) {
         PreferenceSubscreenBCESettingsExit();
       } else {
         for (const setting in defaultSettings) {
           if (MouseIn(500, y, 64, 64)) {
-            settings[setting] = !settings[setting];
-            defaultSettings[setting].sideEffects(settings[setting]);
+            bce_settings[setting] = !bce_settings[setting];
+            defaultSettings[setting].sideEffects(bce_settings[setting]);
           }
           y += settingsYIncrement;
         }
       }
 
-      bce_saveSettings(settings);
+      bce_saveSettings();
     };
 
-    bc_DrawButton = DrawButton;
+    window.bc_DrawButton = DrawButton;
     DrawButton = function (
       Left,
       Top,
@@ -222,7 +274,7 @@
       );
     };
 
-    bc_TextGet = TextGet;
+    window.bc_TextGet = TextGet;
     TextGet = function (id) {
       switch (id) {
         case "HomepageBCESettings":
@@ -232,24 +284,10 @@
       }
     };
     PreferenceSubscreenList.push("BCESettings");
-
-    bce_sendAction = (text) => {
-      ServerSend("ChatRoomChat", {
-        Content: "Beep",
-        Type: "Action",
-        Dictionary: [
-          { Tag: "Beep", Text: "msg" },
-          { Tag: "msg", Text: text },
-        ],
-      });
-    };
   }
 
-  function lockpickHelp() {
-    if (!StruggleDrawLockpickProgress) {
-      setTimeout(lockpickHelp, 1000);
-      return;
-    }
+  async function lockpickHelp() {
+    await waitFor(() => !!StruggleDrawLockpickProgress);
 
     const newRand = (s) => {
       return function () {
@@ -262,10 +300,9 @@
     const y = 300;
     const pinSpacing = 100;
     const pinWidth = 200;
-    bc_StruggleDrawLockpickProgress = StruggleDrawLockpickProgress;
+    window.bc_StruggleDrawLockpickProgress = StruggleDrawLockpickProgress;
     StruggleDrawLockpickProgress = (C) => {
-      const settings = bce_loadSettings();
-      if (settings.lockpick) {
+      if (bce_settings.lockpick) {
         const seed = parseInt(StruggleLockPickOrder.join(""));
         const rand = newRand(seed);
         const threshold = SkillGetWithRatio("LockPicking") / 20;
@@ -285,17 +322,13 @@
     };
   }
 
-  function gagspeak() {
-    if (!SpeechGarbleByGagLevel) {
-      setTimeout(gagspeak, 1000);
-      return;
-    }
+  async function gagspeak() {
+    await waitFor(() => !!SpeechGarbleByGagLevel);
 
-    bc_SpeechGarbleByGagLevel = SpeechGarbleByGagLevel;
+    window.bc_SpeechGarbleByGagLevel = SpeechGarbleByGagLevel;
     SpeechGarbleByGagLevel = function (GagEffect, CD, IgnoreOOC) {
-      const settings = bce_loadSettings();
       let garbled = bc_SpeechGarbleByGagLevel(GagEffect, CD, IgnoreOOC);
-      return !settings.gagspeak || garbled === CD
+      return !bce_settings.gagspeak || garbled === CD
         ? garbled
         : `${garbled} (${CD})`;
     };
@@ -303,7 +336,7 @@
 
   function automaticReconnect() {
     const _localStoragePasswordsKey = "bce.passwords";
-    bce_updatePasswordForReconnect = () => {
+    window.bce_updatePasswordForReconnect = () => {
       let name = "";
       if (CurrentScreen === "Login") {
         name = ElementValue("InputName").toUpperCase();
@@ -321,7 +354,7 @@
       );
     };
 
-    bce_clearPassword = (accountname) => {
+    window.bce_clearPassword = (accountname) => {
       let passwords = JSON.parse(
         localStorage.getItem(_localStoragePasswordsKey)
       );
@@ -348,8 +381,8 @@
           passwords = {};
         }
         const posMaps = {};
-        if (typeof bc_LoginRun === "undefined") {
-          bc_LoginRun = LoginRun;
+        if (typeof window.bc_LoginRun === "undefined") {
+          window.bc_LoginRun = LoginRun;
         }
         LoginRun = function () {
           bc_LoginRun();
@@ -367,8 +400,8 @@
             y += 70;
           }
         };
-        if (typeof bc_LoginClick === "undefined") {
-          bc_LoginClick = LoginClick;
+        if (typeof window.bc_LoginClick === "undefined") {
+          window.bc_LoginClick = LoginClick;
         }
         LoginClick = function () {
           bc_LoginClick();
@@ -402,15 +435,14 @@
     let relogCheck;
 
     function relog() {
-      const settings = bce_loadSettings();
-      console.log(
-        settings,
+      bce_log(
+        bce_settings,
         _breakCircuit,
         CurrentScreen,
         ServerIsConnected,
         LoginSubmitted
       );
-      if (_breakCircuit || !settings.relogin) return;
+      if (_breakCircuit || !bce_settings.relogin) return;
       if (Player.AccountName && ServerIsConnected && !LoginSubmitted) {
         if (relogCheck) {
           clearInterval(relogCheck);
@@ -418,7 +450,7 @@
         let passwords = JSON.parse(
           localStorage.getItem(_localStoragePasswordsKey)
         );
-        console.log("Attempting to log in again as", Player.AccountName);
+        bce_log("Attempting to log in again as", Player.AccountName);
         if (!passwords) passwords = {};
         if (!passwords[Player.AccountName]) {
           alert("Automatic reconnect failed!");
@@ -441,21 +473,20 @@
       }
     }
 
-    if (typeof bc_ServerConnect === "undefined") {
-      bc_ServerConnect = ServerConnect;
+    if (typeof window.bc_ServerConnect === "undefined") {
+      window.bc_ServerConnect = ServerConnect;
     }
     ServerConnect = () => {
       bc_ServerConnect();
       relog();
     };
 
-    if (typeof bc_ServerDisconnect === "undefined") {
-      bc_ServerDisconnect = ServerDisconnect;
+    if (typeof window.bc_ServerDisconnect === "undefined") {
+      window.bc_ServerDisconnect = ServerDisconnect;
     }
 
     ServerDisconnect = (data, close = false) => {
-      const settings = bce_loadSettings();
-      if (!_breakCircuit && settings.relogin) {
+      if (!_breakCircuit && bce_settings.relogin) {
         if (data === "ErrorDuplicatedLogin") {
           ServerAccountBeep({
             MemberNumber: Player.MemberNumber,
@@ -546,8 +577,7 @@
     }
 
     function bce_chatAugments() {
-      const settings = bce_loadSettings();
-      if (CurrentScreen !== "ChatRoom" || !settings.augmentChat) {
+      if (CurrentScreen !== "ChatRoom" || !bce_settings.augmentChat) {
         return;
       }
       const chatLogContainerId = "TextAreaChatLog";
@@ -635,13 +665,10 @@
     setInterval(bce_chatAugments, 500);
   }
 
-  function automaticExpressions() {
-    if (CurrentScreen !== "ChatRoom") {
-      setTimeout(automaticExpressions, 100);
-      return;
-    }
+  async function automaticExpressions() {
+    await waitFor(() => CurrentScreen === "ChatRoom");
 
-    console.log("Started arousal faces");
+    bce_log("Started arousal faces");
 
     const ArousalExpressionStages = {
       Blush: [
@@ -697,18 +724,18 @@
       ArousalExpressionStages[t] = ArousalExpressionOverrides[t];
     }
 
-    bce_DefaultExpression = {};
+    const bce_DefaultExpression = {};
     for (const t of Object.keys(ArousalExpressionStages)) {
       bce_DefaultExpression[t] = ArousalExpressionStages[t].at(-1).Expression;
     }
 
-    bce_CustomLastExpression = { ...bce_DefaultExpression };
+    let bce_CustomLastExpression = { ...bce_DefaultExpression };
 
-    bce_ExpressionModifierMap = {
+    const bce_ExpressionModifierMap = Object.freeze({
       Blush: [null, "Low", "Medium", "High", "VeryHigh", "Extreme"],
-    };
+    });
 
-    bce_ExpressionsQueue = [];
+    const bce_ExpressionsQueue = [];
     let lastUniqueId = 0;
     function newUniqueId() {
       lastUniqueId = (lastUniqueId + 1) % (Number.MAX_SAFE_INTEGER - 1);
@@ -728,7 +755,7 @@
       bce_ExpressionsQueue.push(event);
     }
 
-    bce_EventExpressions = {
+    window.bce_EventExpressions = {
       PostOrgasm: {
         Type: "PostOrgasm",
         Duration: 20000,
@@ -1229,7 +1256,7 @@
       },
     };
 
-    bce_ChatTriggers = [
+    window.bce_ChatTriggers = [
       {
         Trigger: new RegExp(
           `(${Player.Name} blushes|^\\(.*?gives a friendly kiss on ${Player.Name}'s cheek')`
@@ -1486,9 +1513,8 @@
     let _PreviousDirection = ArousalMeterDirection.Up;
 
     // this is called once per interval to check for expression changes
-    _CustomArousalExpression = () => {
-      const settings = bce_loadSettings();
-      if (!settings.expressions) {
+    const _CustomArousalExpression = () => {
+      if (!bce_settings.expressions) {
         return;
       } else {
         Player.OnlineSharedSettings.ItemsAffectExpressions = false;
@@ -1715,23 +1741,20 @@
         }
 
         CharacterRefresh(Player, false, false);
-        console.log(arousal, "Changed", desired);
+        bce_log(arousal, "Changed", desired);
       }
 
       _PreviousArousal = { ...Player.ArousalSettings };
     };
 
-    if (typeof bce_CustomArousalTimer !== "undefined") {
+    if (typeof window.bce_CustomArousalTimer !== "undefined") {
       clearInterval(bce_CustomArousalTimer);
     }
-    bce_CustomArousalTimer = setInterval(_CustomArousalExpression, 250);
+    window.bce_CustomArousalTimer = setInterval(_CustomArousalExpression, 250);
   }
 
-  function layeringMenu() {
-    if (!Player?.AppearanceLayers) {
-      setTimeout(layeringMenu, 1000);
-      return;
-    }
+  async function layeringMenu() {
+    await waitFor(() => !!Player?.AppearanceLayers);
 
     let lastItem = null;
     const layerPriority = "bce_LayerPriority";
@@ -1747,24 +1770,23 @@
       }
     }
 
-    bc_AppearanceExit = AppearanceExit;
+    window.bc_AppearanceExit = AppearanceExit;
     AppearanceExit = function () {
       if (CharacterAppearanceMode == "") {
         ElementRemove(layerPriority);
       }
       bc_AppearanceExit();
     };
-    bc_AppearanceLoad = AppearanceLoad;
+    window.bc_AppearanceLoad = AppearanceLoad;
     AppearanceLoad = function () {
       bc_AppearanceLoad();
       ElementCreateInput(layerPriority, "number", "", "20");
       ElementPosition(layerPriority, -1000, -1000, 0);
     };
-    bc_AppearanceRun = AppearanceRun;
+    window.bc_AppearanceRun = AppearanceRun;
     AppearanceRun = function () {
-      const settings = bce_loadSettings();
       bc_AppearanceRun();
-      if (settings.layeringMenu) {
+      if (bce_settings.layeringMenu) {
         const C = CharacterAppearanceSelection;
         if (CharacterAppearanceMode == "Cloth") {
           DrawText("Priority", 70, 35, "White", "Black");
@@ -1797,10 +1819,9 @@
         }
       }
     };
-    bc_AppearanceClick = AppearanceClick;
+    window.bc_AppearanceClick = AppearanceClick;
     AppearanceClick = function () {
-      const settings = bce_loadSettings();
-      if (settings.layeringMenu) {
+      if (bce_settings.layeringMenu) {
         const C = CharacterAppearanceSelection;
         if (MouseIn(110, 70, 90, 90) && CharacterAppearanceMode == "Cloth") {
           let item = C.Appearance.find((a) => a.Asset.Group == C.FocusGroup);
@@ -1846,10 +1867,9 @@
       prioritySubscreen = false;
       ElementRemove(layerPriority);
     }
-    bc_DialogDrawItemMenu = DialogDrawItemMenu;
+    window.bc_DialogDrawItemMenu = DialogDrawItemMenu;
     DialogDrawItemMenu = function (C) {
-      const settings = bce_loadSettings();
-      if (settings.layeringMenu) {
+      if (bce_settings.layeringMenu) {
         const focusItem = InventoryGet(C, C.FocusGroup?.Name);
         if (assetWorn(C, focusItem)) {
           DrawButton(
@@ -1879,10 +1899,9 @@
       bc_DialogDrawItemMenu(C);
     };
 
-    bc_DialogDraw = DialogDraw;
+    window.bc_DialogDraw = DialogDraw;
     DialogDraw = function () {
-      const settings = bce_loadSettings();
-      if (settings.layeringMenu && prioritySubscreen) {
+      if (bce_settings.layeringMenu && prioritySubscreen) {
         DrawText(`Set item ${priorityField}`, 950, 150, "White", "Black");
         DrawButton(1815, 75, 90, 90, "", "White", "Icons/Exit.png");
         ElementPosition(layerPriority, 950, 210, 100);
@@ -1900,10 +1919,9 @@
         bc_DialogDraw();
       }
     };
-    bc_DialogClick = DialogClick;
+    window.bc_DialogClick = DialogClick;
     DialogClick = function () {
-      const settings = bce_loadSettings();
-      if (!settings.layeringMenu) {
+      if (!bce_settings.layeringMenu) {
         bc_DialogClick();
         return;
       }
@@ -1933,7 +1951,7 @@
               }
               break;
           }
-          console.log("updated item", focusItem);
+          bce_log("updated item", focusItem);
           CharacterRefresh(C, false, false);
           ChatRoomCharacterItemUpdate(C, C.FocusGroup?.Name);
           prioritySubscreenExit();
@@ -1953,83 +1971,38 @@
 
   function cacheClearer() {
     let automatedCacheClearer = null;
-    const settings = bce_loadSettings();
 
-    bce_clearCaches = function () {
-      const settings = bce_loadSettings();
-      if (!settings.automateCacheClear) {
-        console.log("Cache clearing disabled");
+    window.bce_clearCaches = function () {
+      if (!bce_settings.automateCacheClear) {
+        bce_log("Cache clearing disabled");
         clearInterval(automatedCacheClearer);
         return;
       }
 
-      console.log("Clearing caches");
+      bce_log("Clearing caches");
       if (GLDrawCanvas.GL.textureCache) {
         GLDrawCanvas.GL.textureCache.clear();
       }
       GLDrawResetCanvas();
     };
 
-    if (!automatedCacheClearer && settings.automateCacheClear) {
+    if (!automatedCacheClearer && bce_settings.automateCacheClear) {
       automatedCacheClearer = setInterval(bce_clearCaches, 1 * 60 * 60 * 1000);
     }
   }
 
   function extendedWardrobe() {
-    bc_WardrobeFixLength = WardrobeFixLength;
+    window.bc_WardrobeFixLength = WardrobeFixLength;
     WardrobeFixLength = () => {
-      const settings = bce_loadSettings();
       const defaultSize = 24;
-      WardrobeSize = settings.extendedWardrobe ? defaultSize * 2 : defaultSize;
+      WardrobeSize = bce_settings.extendedWardrobe
+        ? defaultSize * 2
+        : defaultSize;
       bc_WardrobeFixLength();
     };
   }
 
-  // adapted from https://gist.github.com/nylen/6234717
-  function inject(src, callback, replacer) {
-    if (typeof callback != "function") callback = function () {};
-    if (typeof replacer != "function") replacer = (s) => s;
-
-    var el;
-
-    if (typeof src != "function" && /\.css[^\.]*$/.test(src)) {
-      el = document.createElement("link");
-      el.type = "text/css";
-      el.rel = "stylesheet";
-      el.href = src;
-    } else {
-      el = document.createElement("script");
-      el.type = "text/javascript";
-    }
-
-    el.class = "injected";
-
-    if (typeof src == "function") {
-      el.appendChild(
-        document.createTextNode(
-          "(" +
-            replacer(
-              src
-                .toString()
-                .replace(/\bBCE_VAR_VERSION\b/g, GM_info.script.version)
-            ) +
-            ")();"
-        )
-      );
-      callback();
-    } else {
-      el.src = src;
-      el.async = false;
-      el.onreadystatechange = el.onload = function () {
-        var state = el.readyState;
-        if (!callback.done && (!state || /loaded|complete/.test(state))) {
-          callback.done = true;
-          callback();
-        }
-      };
-    }
-
-    var head = document.head || document.getElementsByTagName("head")[0];
-    head.insertBefore(el, head.lastChild);
+  function sleep(ms) {
+    return new Promise((resolve) => setTimeout(resolve, ms));
   }
 })();
