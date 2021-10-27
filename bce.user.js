@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Bondage Club Enhancements
 // @namespace https://www.bondageprojects.com/
-// @version 0.70
+// @version 0.71
 // @description enhancements for the bondage club
 // @author Sidious
 // @match https://www.bondageprojects.elementfx.com/*
@@ -13,6 +13,8 @@
 // @grant none
 // @run-at document-end
 // ==/UserScript==
+
+window.BCE_VERSION = "0.71";
 
 (async function () {
   "use strict";
@@ -141,7 +143,7 @@
 
   /// CONVENIENCE METHODS
   const bce_log = (...args) => {
-    console.log("BCE", GM_info.script.version, ...args);
+    console.log("BCE", BCE_VERSION, ...args);
   };
 
   window.bce_sendAction = (text) => {
@@ -416,6 +418,7 @@
           lastClick = now;
           for (let pos in posMaps) {
             if (!posMaps.hasOwnProperty(pos)) continue;
+            pos = parseInt(pos);
             if (MouseIn(10, pos, 350, 60)) {
               ElementValue("InputName", posMaps[pos]);
               ElementValue("InputPassword", passwords[posMaps[pos]]);
