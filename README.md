@@ -2,13 +2,26 @@
 
 This script offers better automatic face expression changes based on events in the club, such as arousal level and activities that show up in chat, both automatic and manual. Manual overrides are respected and retained, unless the manual override corresponds to the blank face.
 
-## How to install
+## How to install and use
+
+With Tampermonkey you can control when and if you want to update BCE, but Tampermonkey is only available for desktop browsers. The manual bookmark will always load the latest version. You can use different methods on different devices, but be mindful of using wildly different versions of BCE: some settings may reset.
+
+### Autoload with Tampermonkey
 
 1. Install Tampermonkey.
 1. Open Tampermonkey's dashboard from its button top-right, and go to the Utilities on the right.
-1. Paste `https://gitlab.com/Sidiousious/bce/-/raw/main/bce.user.js` into the "Install from URL" field, and click "Install". Tampermonkey should ask for a confirmation, and then the script will show up in its main view.
+1. Paste `https://sidiousious.gitlab.io/bce/bce.user.js` into the "Install from URL" field, and click "Install". Tampermonkey should ask for a confirmation, and then the script will show up in its main view.
 1. Reload your BC tab (F5, Ctrl-R), as changes to the script are only picked up on a page refresh.
    Then go to the preferences screen and click onto "BCE Settings" to enable (or disable) components you wish to use.
+
+### Manual bookmark
+
+1. Save `javascript:(() => { fetch('https://sidiousious.gitlab.io/bce/bce.user.js').then(r=>r.text()).then(r=>eval(r)); })();` as a bookmark on your devices.
+1. Use the bookmark:
+
+- Desktop: use from your bookmarks menu
+- Android (Chrome): search for your bookmark in the navigation bar, _not in the bookmarks menu_!
+- Others: this should work in any browser that supports the club and [bookmarklets](https://en.wikipedia.org/wiki/Bookmarklet).
 
 ## Features
 
