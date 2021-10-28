@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Bondage Club Enhancements
 // @namespace https://www.bondageprojects.com/
-// @version 0.71
+// @version 0.72
 // @description enhancements for the bondage club
 // @author Sidious
 // @match https://www.bondageprojects.elementfx.com/*
@@ -14,7 +14,7 @@
 // @run-at document-end
 // ==/UserScript==
 
-window.BCE_VERSION = "0.71";
+window.BCE_VERSION = "0.72";
 
 (async function () {
   "use strict";
@@ -26,6 +26,7 @@ window.BCE_VERSION = "0.71";
 
   /// SETTINGS LOADING
   let bce_settings = {};
+  const settingsVersion = 1;
   const defaultSettings = {
     relogin: {
       label: "Automatic Relogin on Disconnect",
@@ -121,6 +122,16 @@ window.BCE_VERSION = "0.71";
     bce_log("loading settings", key);
     if (!settingsLoaded()) {
       let settings = JSON.parse(localStorage.getItem(key));
+      let onlineSettings = JSON.parse(
+        LZString.decompressFromBase64(Player.OnlineSettings.BCE) || null
+      );
+      if (
+        onlineSettings?.version > settings?.version ||
+        (typeof settings?.version === "undefined" &&
+          typeof onlineSettings?.version !== "undefined")
+      ) {
+        settings = onlineSettings;
+      }
       if (!settings) {
         bce_log("no settings", key);
         settings = {};
@@ -132,6 +143,7 @@ window.BCE_VERSION = "0.71";
           settings[setting] = defaultSettings[setting].value;
         }
       }
+      settings.version = settingsVersion;
       bce_settings = settings;
       return settings;
     }
@@ -139,6 +151,10 @@ window.BCE_VERSION = "0.71";
   };
   const bce_saveSettings = function () {
     localStorage.setItem(bce_settingskey(), JSON.stringify(bce_settings));
+    Player.OnlineSettings.BCE = LZString.compressToBase64(
+      JSON.stringify(bce_settings)
+    );
+    ServerAccountUpdate.QueueData({ OnlineSettings: Player.OnlineSettings });
   };
 
   /// CONVENIENCE METHODS
