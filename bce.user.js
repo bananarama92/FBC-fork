@@ -745,7 +745,10 @@ window.BCE_VERSION = "0.73";
 
     const bce_DefaultExpression = {};
     for (const t of Object.keys(ArousalExpressionStages)) {
-      bce_DefaultExpression[t] = ArousalExpressionStages[t].at(-1).Expression;
+      bce_DefaultExpression[t] =
+        ArousalExpressionStages[t][
+          ArousalExpressionStages[t].length - 1
+        ].Expression;
     }
 
     let bce_CustomLastExpression = { ...bce_DefaultExpression };
