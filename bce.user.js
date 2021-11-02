@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Bondage Club Enhancements
 // @namespace https://www.bondageprojects.com/
-// @version 0.75
+// @version 0.76
 // @description enhancements for the bondage club
 // @author Sidious
 // @match https://www.bondageprojects.elementfx.com/*
@@ -14,7 +14,7 @@
 // @run-at document-end
 // ==/UserScript==
 
-window.BCE_VERSION = "0.74";
+window.BCE_VERSION = "0.76";
 
 (async function () {
   "use strict";
@@ -162,6 +162,24 @@ window.BCE_VERSION = "0.74";
     console.log("BCE", BCE_VERSION, ...args);
   };
 
+  const bce_chatNotify = (node) => {
+    const div = document.createElement("div");
+    div.setAttribute("class", "ChatMessage bce-notification");
+    div.setAttribute("data-time", ChatRoomCurrentTime());
+    div.setAttribute("data-sender", Player.MemberNumber.toString());
+    if (typeof node === "string") {
+      div.appendChild(document.createTextNode(node));
+    } else {
+      div.appendChild(node);
+    }
+
+    const ShouldScrollDown = ElementIsScrolledToEnd("TextAreaChatLog");
+    if (document.getElementById("TextAreaChatLog") != null) {
+      document.getElementById("TextAreaChatLog").appendChild(div);
+      if (ShouldScrollDown) ElementScrollToEnd("TextAreaChatLog");
+    }
+  };
+
   window.bce_sendAction = (text) => {
     ServerSend("ChatRoomChat", {
       Content: "Beep",
@@ -174,6 +192,7 @@ window.BCE_VERSION = "0.74";
   };
 
   /// Init calls
+  bceStyles();
   automaticReconnect();
   await bce_loadSettings();
   bce_log(bce_settings);
@@ -188,10 +207,18 @@ window.BCE_VERSION = "0.74";
   lockpickHelp();
   commands();
 
+  // Post ready when in a chat room
+  await waitFor(
+    () => !!Player && new Date(ServerBeep?.Timer || 0) < new Date()
+  );
+  ServerBeep = {
+    Timer: Date.now() + 5000,
+    Message: `Bondage Club Enhancements v${BCE_VERSION} Loaded`,
+  };
+
   async function waitFor(func) {
     while (!func()) {
-      bce_log(func, !func());
-      await sleep(1000);
+      await sleep(100);
     }
   }
 
@@ -230,17 +257,26 @@ window.BCE_VERSION = "0.74";
           const [target, ...message] = args.split(" ");
           const msg = message.join(" ");
           bce_log(target, msg);
-          const targetMemberNumber = ChatRoomCharacter.find(
+          const targetMembers = ChatRoomCharacter.filter(
             (c) => c.Name.split(" ")[0].toLowerCase() === target.toLowerCase()
-          ).MemberNumber;
-          if (!targetMemberNumber) {
-            bce_log("no target found");
-            return;
+          );
+          if (targetMembers.length === 0) {
+            bce_chatNotify("Whisper target not found: " + target);
+          } else if (targetMembers.length > 1) {
+            bce_chatNotify(
+              "Multiple whisper targets found: " +
+                targetMembers
+                  .map((c) => `${c.Name} (${c.MemberNumber})`)
+                  .join(", ") +
+                ". You can still whisper the player by clicking their name."
+            );
+          } else {
+            const targetMemberNumber = targetMembers[0].MemberNumber;
+            const originalTarget = ChatRoomTargetMemberNumber;
+            ChatRoomTargetMemberNumber = targetMemberNumber;
+            CommandParse(`\u200b${msg}`);
+            ChatRoomTargetMemberNumber = originalTarget;
           }
-          const originalTarget = ChatRoomTargetMemberNumber;
-          ChatRoomTargetMemberNumber = targetMemberNumber;
-          CommandParse(`\u200b${msg}`);
-          ChatRoomTargetMemberNumber = originalTarget;
         },
       },
     ];
@@ -564,9 +600,12 @@ window.BCE_VERSION = "0.74";
     };
   }
 
-  function chatAugments() {
-    // inject styles
+  function bceStyles() {
     const css = `
+    .bce-notification {
+      background-color: #481D64;
+      color: white;
+    }
     .bce-img {
       max-height:25rem;
       max-width:90%;
@@ -601,7 +640,9 @@ window.BCE_VERSION = "0.74";
     const style = document.createElement("style");
     style.appendChild(document.createTextNode(css));
     head.appendChild(style);
+  }
 
+  function chatAugments() {
     function bce_parseUrl(word) {
       try {
         const url = new URL(word);
@@ -1580,6 +1621,7 @@ window.BCE_VERSION = "0.74";
       Action: (args) => {
         if (args.length === 0 || args === "all") {
           bce_ExpressionsQueue.splice(0, bce_ExpressionsQueue.length);
+          bce_chatNotify("Reset all expressions");
         } else {
           const component = `${args[0].toUpperCase()}${args.substr(1)}`;
           for (const e of bce_ExpressionsQueue) {
@@ -1590,6 +1632,7 @@ window.BCE_VERSION = "0.74";
               delete e.Expression[component];
             }
           }
+          bce_chatNotify(`Reset expression on ${component}`);
         }
       },
     });
