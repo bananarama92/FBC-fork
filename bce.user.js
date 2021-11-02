@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Bondage Club Enhancements
 // @namespace https://www.bondageprojects.com/
-// @version 0.74
+// @version 0.75
 // @description enhancements for the bondage club
 // @author Sidious
 // @match https://www.bondageprojects.elementfx.com/*
@@ -186,6 +186,7 @@ window.BCE_VERSION = "0.74";
   layeringMenu();
   cacheClearer();
   lockpickHelp();
+  commands();
 
   async function waitFor(func) {
     while (!func()) {
@@ -216,6 +217,44 @@ window.BCE_VERSION = "0.74";
     bce_log("Loaded BCX");
   }
 
+  async function commands() {
+    await waitFor(() => !!window.Commands);
+    bce_log("registering additional commands");
+
+    const commands = [
+      {
+        Tag: "w",
+        Description:
+          "[target name] [message]: whisper the target player. Use first name only. Finds the first person in the room with a matching name, left-to-right, top-to-bottom.",
+        Action: (args) => {
+          const [target, ...message] = args.split(" ");
+          const msg = message.join(" ");
+          bce_log(target, msg);
+          const targetMemberNumber = ChatRoomCharacter.find(
+            (c) => c.Name.split(" ")[0].toLowerCase() === target.toLowerCase()
+          ).MemberNumber;
+          if (!targetMemberNumber) {
+            bce_log("no target found");
+            return;
+          }
+          const originalTarget = ChatRoomTargetMemberNumber;
+          ChatRoomTargetMemberNumber = targetMemberNumber;
+          CommandParse(`\u200b${msg}`);
+          ChatRoomTargetMemberNumber = originalTarget;
+        },
+      },
+    ];
+
+    for (const c of commands) {
+      if (window.Commands.some((a) => a.Tag === c.Tag)) {
+        bce_log("already registered", c);
+        continue;
+      }
+      window.Commands.push(c);
+    }
+  }
+
+  // Create settings page
   async function settingsPage() {
     await waitFor(() => !!PreferenceSubscreenList);
 
@@ -1533,6 +1572,27 @@ window.BCE_VERSION = "0.74";
       Up: 2,
     };
     let _PreviousDirection = ArousalMeterDirection.Up;
+
+    window.Commands.push({
+      Tag: "r",
+      Description:
+        "[part of face or 'all']: resets expression overrides on part of or all of face",
+      Action: (args) => {
+        if (args.length === 0 || args === "all") {
+          bce_ExpressionsQueue.splice(0, bce_ExpressionsQueue.length);
+        } else {
+          const component = `${args[0].toUpperCase()}${args.substr(1)}`;
+          for (const e of bce_ExpressionsQueue) {
+            if (component === "Eyes" && "Eyes2" in e.Expression) {
+              delete e.Expression.Eyes2;
+            }
+            if (component in e.Expression) {
+              delete e.Expression[component];
+            }
+          }
+        }
+      },
+    });
 
     // this is called once per interval to check for expression changes
     const _CustomArousalExpression = () => {
