@@ -17,7 +17,7 @@ With Tampermonkey you can control when and if you want to update BCE, but Tamper
 ### Manual bookmark
 
 1. Save `javascript:(() => { fetch('https://sidiousious.gitlab.io/bce/bce.user.js').then(r=>r.text()).then(r=>eval(r)); })();` as a bookmark on your devices.
-1. Use the bookmark:
+1. Use the bookmark with the club open, if used on the login page you should see the "SAVE (BCE)" button appear:
 
 - Desktop: use from your bookmarks menu
 - Android (Chrome): search for your bookmark in the navigation bar, _not in the bookmarks menu_!
