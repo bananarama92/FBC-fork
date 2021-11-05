@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Bondage Club Enhancements
 // @namespace https://www.bondageprojects.com/
-// @version 0.79
+// @version 0.80
 // @description enhancements for the bondage club
 // @author Sidious
 // @match https://www.bondageprojects.elementfx.com/*
@@ -14,7 +14,7 @@
 // @run-at document-end
 // ==/UserScript==
 
-window.BCE_VERSION = "0.79";
+window.BCE_VERSION = "0.80";
 
 (async function () {
   "use strict";
@@ -207,6 +207,7 @@ window.BCE_VERSION = "0.79";
   /// Init calls
   bceStyles();
   automaticReconnect();
+  hiddenMessageHandler();
   await bce_loadSettings();
   bce_log(bce_settings);
   await loadBCX();
@@ -219,11 +220,13 @@ window.BCE_VERSION = "0.79";
   cacheClearer();
   lockpickHelp();
   commands();
+  chatRoomOverlay();
 
   // Post ready when in a chat room
   await waitFor(
     () => !!Player && new Date(ServerBeep?.Timer || 0) < new Date()
   );
+  Player.BCE = BCE_VERSION;
   ServerBeep = {
     Timer: Date.now() + 5000,
     Message: `Bondage Club Enhancements v${BCE_VERSION} Loaded`,
@@ -2142,6 +2145,70 @@ window.BCE_VERSION = "0.79";
         ? defaultSize * 2
         : defaultSize;
       bc_WardrobeFixLength();
+    };
+  }
+
+  async function chatRoomOverlay() {
+    window.bc_ChatRoomDrawCharacterOverlay = ChatRoomDrawCharacterOverlay;
+    ChatRoomDrawCharacterOverlay = function (C, CharX, CharY, Zoom, Pos) {
+      bc_ChatRoomDrawCharacterOverlay(C, CharX, CharY, Zoom, Pos);
+      if (C.BCE && ChatRoomHideIconState == 0) {
+        DrawText(
+          "ᵇᶜᵉ",
+          CharX + 400 * Zoom,
+          CharY + 50 * Zoom,
+          "Purple",
+          "Black"
+        );
+      }
+    };
+  }
+
+  async function hiddenMessageHandler() {
+    await waitFor(() => ServerSocket && ServerIsConnected);
+
+    const MESSAGE_TYPES = {
+      Hello: "Hello",
+    };
+
+    const HIDDEN = "Hidden";
+    const BCE_MSG = "BCEMsg";
+
+    ServerSocket.on("ChatRoomMessage", (data) => {
+      if (data.Type !== HIDDEN) return;
+      if (data.Content === "BCEMsg") {
+        const sender = Character.find((a) => a.MemberNumber == data.Sender);
+        const { message } = data.Dictionary;
+        switch (message.type) {
+          case MESSAGE_TYPES.Hello:
+            bce_log("Received hello message", message);
+            if (sender) {
+              sender.BCE = message.version;
+            }
+            break;
+        }
+      }
+    });
+
+    window.bc_CharacterLoadOnline = CharacterLoadOnline;
+    CharacterLoadOnline = (data, sourceMemberNumber) => {
+      const char = bc_CharacterLoadOnline(data, sourceMemberNumber);
+      bce_log("CharacterLoadOnline", char);
+      if (!char.IsPlayer()) {
+        bce_log("HELLO", char.MemberNumber);
+        ServerSend("ChatRoomChat", {
+          Type: HIDDEN,
+          Content: BCE_MSG,
+          Dictionary: {
+            message: {
+              type: MESSAGE_TYPES.Hello,
+              version: BCE_VERSION,
+            },
+          },
+          Target: char.MemberNumber,
+        });
+      }
+      return char;
     };
   }
 
