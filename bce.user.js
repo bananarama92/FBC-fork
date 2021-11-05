@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Bondage Club Enhancements
 // @namespace https://www.bondageprojects.com/
-// @version 0.78
+// @version 0.79
 // @description enhancements for the bondage club
 // @author Sidious
 // @match https://www.bondageprojects.elementfx.com/*
@@ -14,7 +14,7 @@
 // @run-at document-end
 // ==/UserScript==
 
-window.BCE_VERSION = "0.78";
+window.BCE_VERSION = "0.79";
 
 (async function () {
   "use strict";
@@ -1788,8 +1788,8 @@ window.BCE_VERSION = "0.78";
                     exp.ExpressionModifier &&
                     t in bce_ExpressionModifierMap
                   ) {
+                    const [current] = expression(t);
                     if (!exp.Applied) {
-                      const [current] = expression(t);
                       let idx =
                         bce_ExpressionModifierMap[t].indexOf(current) +
                         exp.ExpressionModifier;
@@ -1800,6 +1800,9 @@ window.BCE_VERSION = "0.78";
                       }
                       trySetNextExpression(bce_ExpressionModifierMap[t][idx]);
                       bce_ExpressionsQueue[j].Expression[t][i].Applied = true;
+                    } else {
+                      // prevent being overridden by other expressions while also not applying a change
+                      trySetNextExpression(current);
                     }
                   } else {
                     trySetNextExpression(exp.Expression);
