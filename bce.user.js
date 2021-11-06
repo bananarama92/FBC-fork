@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Bondage Club Enhancements
 // @namespace https://www.bondageprojects.com/
-// @version 0.80
+// @version 0.81
 // @description enhancements for the bondage club
 // @author Sidious
 // @match https://www.bondageprojects.elementfx.com/*
@@ -14,7 +14,7 @@
 // @run-at document-end
 // ==/UserScript==
 
-window.BCE_VERSION = "0.80";
+window.BCE_VERSION = "0.81";
 
 (async function () {
   "use strict";
@@ -2194,6 +2194,10 @@ window.BCE_VERSION = "0.80";
     CharacterLoadOnline = (data, sourceMemberNumber) => {
       const char = bc_CharacterLoadOnline(data, sourceMemberNumber);
       bce_log("CharacterLoadOnline", char);
+      // Temporary polyfill
+      if (typeof char.IsPlayer !== "function") {
+        char.IsPlayer = () => char.MemberNumber == Player.MemberNumber;
+      }
       if (!char.IsPlayer()) {
         bce_log("HELLO", char.MemberNumber);
         ServerSend("ChatRoomChat", {
