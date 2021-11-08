@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Bondage Club Enhancements
 // @namespace https://www.bondageprojects.com/
-// @version 0.81
+// @version 0.82
 // @description enhancements for the bondage club
 // @author Sidious
 // @match https://www.bondageprojects.elementfx.com/*
@@ -14,7 +14,7 @@
 // @run-at document-end
 // ==/UserScript==
 
-window.BCE_VERSION = "0.81";
+window.BCE_VERSION = "0.82";
 
 (async function () {
   "use strict";
@@ -1639,9 +1639,19 @@ window.BCE_VERSION = "0.81";
       Action: (args) => {
         if (args.length === 0 || args === "all") {
           bce_ExpressionsQueue.splice(0, bce_ExpressionsQueue.length);
+          for (const t of Object.keys(bce_CustomLastExpression)) {
+            const e = expression(t)?.[0];
+            bce_CustomLastExpression[t] = e;
+          }
           bce_chatNotify("Reset all expressions");
         } else {
-          const component = `${args[0].toUpperCase()}${args.substr(1)}`;
+          const component = `${args[0].toUpperCase()}${args
+            .substr(1)
+            .toLowerCase()}`;
+          bce_CustomLastExpression[component] = expression(component)?.[0];
+          if (component === "Eyes") {
+            bce_CustomLastExpression["Eyes2"] = expression("Eyes2")?.[0];
+          }
           for (const e of bce_ExpressionsQueue) {
             if (component === "Eyes" && "Eyes2" in e.Expression) {
               delete e.Expression.Eyes2;
