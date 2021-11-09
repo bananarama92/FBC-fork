@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Bondage Club Enhancements
 // @namespace https://www.bondageprojects.com/
-// @version 0.82
+// @version 0.83
 // @description enhancements for the bondage club
 // @author Sidious
 // @match https://www.bondageprojects.elementfx.com/*
@@ -14,7 +14,7 @@
 // @run-at document-end
 // ==/UserScript==
 
-window.BCE_VERSION = "0.82";
+window.BCE_VERSION = "0.83";
 
 (async function () {
   "use strict";
@@ -26,7 +26,7 @@ window.BCE_VERSION = "0.82";
 
   /// SETTINGS LOADING
   let bce_settings = {};
-  const settingsVersion = 1;
+  const settingsVersion = 2;
   const defaultSettings = {
     relogin: {
       label: "Automatic Relogin on Disconnect",
@@ -44,6 +44,13 @@ window.BCE_VERSION = "0.82";
           Player.OnlineSharedSettings.ItemsAffectExpressions = false;
           Player.ArousalSettings.AffectExpression = false;
         }
+      },
+    },
+    privateWardrobe: {
+      label: "Use full wardrobe in clothing menu",
+      value: false,
+      sideEffects: (newValue) => {
+        bce_log(newValue);
       },
     },
     extendedWardrobe: {
@@ -221,6 +228,7 @@ window.BCE_VERSION = "0.82";
   lockpickHelp();
   commands();
   chatRoomOverlay();
+  privateWardrobe();
 
   // Post ready when in a chat room
   await waitFor(
@@ -314,8 +322,15 @@ window.BCE_VERSION = "0.82";
 
     const settingsYStart = 225;
     const settingsYIncrement = 70;
+    const settingsPerPage = 9;
+    const settingsPageCount = Math.ceil(
+      Object.keys(defaultSettings).length / settingsPerPage
+    );
+    let settingsPage = 0;
 
-    window.PreferenceSubscreenBCESettingsLoad = function () {};
+    window.PreferenceSubscreenBCESettingsLoad = function () {
+      settingsPage = 0;
+    };
     window.PreferenceSubscreenBCESettingsExit = function () {
       PreferenceSubscreen = "";
       PreferenceMessage = "";
@@ -324,7 +339,10 @@ window.BCE_VERSION = "0.82";
       MainCanvas.textAlign = "left";
       DrawText("Bondage Club Enhancements Settings", 500, 125, "Black", "Gray");
       let y = settingsYStart;
-      for (const setting in defaultSettings) {
+      for (const setting of Object.keys(defaultSettings).slice(
+        settingsPage * settingsPerPage,
+        settingsPage * settingsPerPage + settingsPerPage
+      )) {
         DrawCheckbox(
           500,
           y,
@@ -336,13 +354,27 @@ window.BCE_VERSION = "0.82";
         y += settingsYIncrement;
       }
       DrawButton(1815, 75, 90, 90, "", "White", "Icons/Exit.png");
+      DrawText(
+        `${settingsPage + 1} / ${settingsPageCount}`,
+        1700,
+        230,
+        "Black",
+        "Gray"
+      );
+      DrawButton(1815, 180, 90, 90, "", "White", "Icons/Next.png");
     };
     window.PreferenceSubscreenBCESettingsClick = function () {
       let y = settingsYStart;
       if (MouseIn(1815, 75, 90, 90)) {
         PreferenceSubscreenBCESettingsExit();
+      } else if (MouseIn(1815, 180, 90, 90)) {
+        settingsPage++;
+        settingsPage %= settingsPageCount;
       } else {
-        for (const setting in defaultSettings) {
+        for (const setting of Object.keys(defaultSettings).slice(
+          settingsPage * settingsPerPage,
+          settingsPage * settingsPerPage + settingsPerPage
+        )) {
           if (MouseIn(500, y, 64, 64)) {
             bce_settings[setting] = !bce_settings[setting];
             defaultSettings[setting].sideEffects(bce_settings[setting]);
@@ -354,7 +386,7 @@ window.BCE_VERSION = "0.82";
       bce_saveSettings();
     };
 
-    window.bc_DrawButton = DrawButton;
+    const bc_DrawButton = DrawButton;
     DrawButton = function (
       Left,
       Top,
@@ -383,7 +415,7 @@ window.BCE_VERSION = "0.82";
       );
     };
 
-    window.bc_TextGet = TextGet;
+    const bc_TextGet = TextGet;
     TextGet = function (id) {
       switch (id) {
         case "HomepageBCESettings":
@@ -409,7 +441,7 @@ window.BCE_VERSION = "0.82";
     const y = 300;
     const pinSpacing = 100;
     const pinWidth = 200;
-    window.bc_StruggleDrawLockpickProgress = StruggleDrawLockpickProgress;
+    const bc_StruggleDrawLockpickProgress = StruggleDrawLockpickProgress;
     StruggleDrawLockpickProgress = (C) => {
       if (bce_settings.lockpick) {
         const seed = parseInt(StruggleLockPickOrder.join(""));
@@ -434,7 +466,7 @@ window.BCE_VERSION = "0.82";
   async function gagspeak() {
     await waitFor(() => !!SpeechGarbleByGagLevel);
 
-    window.bc_SpeechGarbleByGagLevel = SpeechGarbleByGagLevel;
+    const bc_SpeechGarbleByGagLevel = SpeechGarbleByGagLevel;
     SpeechGarbleByGagLevel = function (GagEffect, CD, IgnoreOOC) {
       let garbled = bc_SpeechGarbleByGagLevel(GagEffect, CD, IgnoreOOC);
       return !bce_settings.gagspeak || garbled === CD
@@ -490,9 +522,7 @@ window.BCE_VERSION = "0.82";
           passwords = {};
         }
         const posMaps = {};
-        if (typeof window.bc_LoginRun === "undefined") {
-          window.bc_LoginRun = LoginRun;
-        }
+        const bc_LoginRun = LoginRun;
         LoginRun = function () {
           bc_LoginRun();
           if (Object.keys(passwords).length > 0) {
@@ -509,9 +539,7 @@ window.BCE_VERSION = "0.82";
             y += 70;
           }
         };
-        if (typeof window.bc_LoginClick === "undefined") {
-          window.bc_LoginClick = LoginClick;
-        }
+        const bc_LoginClick = LoginClick;
         LoginClick = function () {
           bc_LoginClick();
           if (MouseIn(1250, 385, 180, 60)) {
@@ -583,17 +611,13 @@ window.BCE_VERSION = "0.82";
       }
     }
 
-    if (typeof window.bc_ServerConnect === "undefined") {
-      window.bc_ServerConnect = ServerConnect;
-    }
+    const bc_ServerConnect = ServerConnect;
     ServerConnect = () => {
       bc_ServerConnect();
       relog();
     };
 
-    if (typeof window.bc_ServerDisconnect === "undefined") {
-      window.bc_ServerDisconnect = ServerDisconnect;
-    }
+    const bc_ServerDisconnect = ServerDisconnect;
 
     ServerDisconnect = (data, close = false) => {
       if (!_breakCircuit && bce_settings.relogin) {
@@ -1926,20 +1950,20 @@ window.BCE_VERSION = "0.82";
       }
     }
 
-    window.bc_AppearanceExit = AppearanceExit;
+    const bc_AppearanceExit = AppearanceExit;
     AppearanceExit = function () {
       if (CharacterAppearanceMode == "") {
         ElementRemove(layerPriority);
       }
       bc_AppearanceExit();
     };
-    window.bc_AppearanceLoad = AppearanceLoad;
+    const bc_AppearanceLoad = AppearanceLoad;
     AppearanceLoad = function () {
       bc_AppearanceLoad();
       ElementCreateInput(layerPriority, "number", "", "20");
       ElementPosition(layerPriority, -1000, -1000, 0);
     };
-    window.bc_AppearanceRun = AppearanceRun;
+    const bc_AppearanceRun = AppearanceRun;
     AppearanceRun = function () {
       bc_AppearanceRun();
       if (bce_settings.layeringMenu) {
@@ -1975,7 +1999,7 @@ window.BCE_VERSION = "0.82";
         }
       }
     };
-    window.bc_AppearanceClick = AppearanceClick;
+    const bc_AppearanceClick = AppearanceClick;
     AppearanceClick = function () {
       if (bce_settings.layeringMenu) {
         const C = CharacterAppearanceSelection;
@@ -2023,7 +2047,7 @@ window.BCE_VERSION = "0.82";
       prioritySubscreen = false;
       ElementRemove(layerPriority);
     }
-    window.bc_DialogDrawItemMenu = DialogDrawItemMenu;
+    const bc_DialogDrawItemMenu = DialogDrawItemMenu;
     DialogDrawItemMenu = function (C) {
       if (bce_settings.layeringMenu) {
         const focusItem = InventoryGet(C, C.FocusGroup?.Name);
@@ -2055,7 +2079,7 @@ window.BCE_VERSION = "0.82";
       bc_DialogDrawItemMenu(C);
     };
 
-    window.bc_DialogDraw = DialogDraw;
+    const bc_DialogDraw = DialogDraw;
     DialogDraw = function () {
       if (bce_settings.layeringMenu && prioritySubscreen) {
         DrawText(`Set item ${priorityField}`, 950, 150, "White", "Black");
@@ -2075,7 +2099,7 @@ window.BCE_VERSION = "0.82";
         bc_DialogDraw();
       }
     };
-    window.bc_DialogClick = DialogClick;
+    const bc_DialogClick = DialogClick;
     DialogClick = function () {
       if (!bce_settings.layeringMenu) {
         bc_DialogClick();
@@ -2148,7 +2172,7 @@ window.BCE_VERSION = "0.82";
   }
 
   function extendedWardrobe() {
-    window.bc_WardrobeFixLength = WardrobeFixLength;
+    const bc_WardrobeFixLength = WardrobeFixLength;
     WardrobeFixLength = () => {
       const defaultSize = 24;
       WardrobeSize = bce_settings.extendedWardrobe
@@ -2159,7 +2183,7 @@ window.BCE_VERSION = "0.82";
   }
 
   async function chatRoomOverlay() {
-    window.bc_ChatRoomDrawCharacterOverlay = ChatRoomDrawCharacterOverlay;
+    const bc_ChatRoomDrawCharacterOverlay = ChatRoomDrawCharacterOverlay;
     ChatRoomDrawCharacterOverlay = function (C, CharX, CharY, Zoom, Pos) {
       bc_ChatRoomDrawCharacterOverlay(C, CharX, CharY, Zoom, Pos);
       if (C.BCE && ChatRoomHideIconState == 0) {
@@ -2200,7 +2224,7 @@ window.BCE_VERSION = "0.82";
       }
     });
 
-    window.bc_CharacterLoadOnline = CharacterLoadOnline;
+    const bc_CharacterLoadOnline = CharacterLoadOnline;
     CharacterLoadOnline = (data, sourceMemberNumber) => {
       const char = bc_CharacterLoadOnline(data, sourceMemberNumber);
       bce_log("CharacterLoadOnline", char);
@@ -2223,6 +2247,72 @@ window.BCE_VERSION = "0.82";
         });
       }
       return char;
+    };
+  }
+
+  async function privateWardrobe() {
+    await waitFor(() => !!Player);
+
+    let inCustomWardrobe = false;
+    let targetCharacter;
+    const bc_CharacterAppearanceWardrobeLoad = CharacterAppearanceWardrobeLoad;
+    CharacterAppearanceWardrobeLoad = function (C) {
+      if (bce_settings.privateWardrobe && CurrentScreen === "Appearance") {
+        WardrobeBackground = ChatRoomData.Background;
+        inCustomWardrobe = true;
+        targetCharacter = C;
+        TextLoad("Wardrobe");
+        WardrobeLoad();
+      } else {
+        bc_CharacterAppearanceWardrobeLoad(C);
+      }
+    };
+
+    const bc_AppearanceRun = AppearanceRun;
+    AppearanceRun = function () {
+      if (inCustomWardrobe) {
+        WardrobeRun();
+      } else {
+        bc_AppearanceRun();
+      }
+    };
+
+    const bc_AppearanceClick = AppearanceClick;
+    AppearanceClick = function () {
+      if (inCustomWardrobe) {
+        WardrobeClick();
+      } else {
+        bc_AppearanceClick();
+      }
+    };
+
+    const bc_WardrobeExit = WardrobeExit;
+    WardrobeExit = function () {
+      if (!inCustomWardrobe) {
+        bc_WardrobeExit();
+      } else {
+        inCustomWardrobe = false;
+        WardrobeBackground = "Private";
+        TextLoad();
+      }
+    };
+
+    const bc_WardrobeFastLoad = WardrobeFastLoad;
+    WardrobeFastLoad = function (C, W, Update) {
+      if (inCustomWardrobe && C.ID === 0) {
+        bc_WardrobeFastLoad(targetCharacter, W, false);
+      } else {
+        bc_WardrobeFastLoad(C, W, Update);
+      }
+    };
+
+    const bc_WardrobeFastSave = WardrobeFastSave;
+    WardrobeFastSave = function (C, W, Push) {
+      if (inCustomWardrobe && C.ID === 0) {
+        bc_WardrobeFastSave(targetCharacter, W, Push);
+      } else {
+        bc_WardrobeFastSave(C, W, Update);
+      }
     };
   }
 
