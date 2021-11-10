@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Bondage Club Enhancements
 // @namespace https://www.bondageprojects.com/
-// @version 0.86
+// @version 0.87
 // @description enhancements for the bondage club
 // @author Sidious
 // @match https://www.bondageprojects.elementfx.com/*
@@ -14,7 +14,7 @@
 // @run-at document-end
 // ==/UserScript==
 
-window.BCE_VERSION = "0.86";
+window.BCE_VERSION = "0.87";
 
 (async function () {
   "use strict";
@@ -113,6 +113,24 @@ window.BCE_VERSION = "0.86";
       sideEffects: (newValue) => {
         if (newValue) {
           bce_settings.bcx = false;
+        }
+      },
+    },
+    antiAntiGarble: {
+      label: "Anti-Anti-Garble - no cheating your gag (limited)",
+      value: false,
+      sideEffects: (newValue) => {
+        if (newValue) {
+          bce_settings.antiAntiGarbleStrong = false;
+        }
+      },
+    },
+    antiAntiGarbleStrong: {
+      label: "Anti-Anti-Garble - no cheating your gag (full)",
+      value: false,
+      sideEffects: (newValue) => {
+        if (newValue) {
+          bce_settings.antiAntiGarble = false;
         }
       },
     },
@@ -219,7 +237,6 @@ window.BCE_VERSION = "0.86";
   bce_log(bce_settings);
   await loadBCX();
   settingsPage();
-  gagspeak();
   chatAugments();
   automaticExpressions();
   extendedWardrobe();
@@ -229,6 +246,7 @@ window.BCE_VERSION = "0.86";
   commands();
   chatRoomOverlay();
   privateWardrobe();
+  antiGarbling();
 
   // Post ready when in a chat room
   await waitFor(
@@ -460,18 +478,6 @@ window.BCE_VERSION = "0.86";
         }
       }
       bc_StruggleDrawLockpickProgress(C);
-    };
-  }
-
-  async function gagspeak() {
-    await waitFor(() => !!SpeechGarbleByGagLevel);
-
-    const bc_SpeechGarbleByGagLevel = SpeechGarbleByGagLevel;
-    SpeechGarbleByGagLevel = function (GagEffect, CD, IgnoreOOC) {
-      let garbled = bc_SpeechGarbleByGagLevel(GagEffect, CD, IgnoreOOC);
-      return !bce_settings.gagspeak || garbled === CD
-        ? garbled
-        : `${garbled} (${CD})`;
     };
   }
 
@@ -2325,6 +2331,37 @@ window.BCE_VERSION = "0.86";
       } else {
         bc_WardrobeFastSave(C, W, Update);
       }
+    };
+  }
+
+  async function antiGarbling() {
+    await waitFor(() => !!SpeechGarbleByGagLevel);
+
+    const bc_SpeechGarbleByGagLevel = SpeechGarbleByGagLevel;
+    SpeechGarbleByGagLevel = function (GagEffect, CD, IgnoreOOC) {
+      let garbled = bc_SpeechGarbleByGagLevel(GagEffect, CD, IgnoreOOC);
+      return !bce_settings.gagspeak || garbled === CD
+        ? garbled
+        : `${garbled} (${CD})`;
+    };
+
+    const bc_ServerSend = ServerSend;
+    ServerSend = function (message, data) {
+      if (message === "ChatRoomChat" && data.Type === "Chat") {
+        const gagLevel = SpeechGetTotalGagLevel(Player);
+        if (gagLevel > 0) {
+          if (bce_settings.antiAntiGarble) {
+            data.Content = bc_SpeechGarbleByGagLevel(2, data.Content);
+          } else if (bce_settings.antiAntiGarbleStrong) {
+            data.Content = bc_SpeechGarbleByGagLevel(
+              gagLevel,
+              data.Content,
+              true
+            );
+          }
+        }
+      }
+      bc_ServerSend(message, data);
     };
   }
 
