@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Bondage Club Enhancements
 // @namespace https://www.bondageprojects.com/
-// @version 0.85
+// @version 0.86
 // @description enhancements for the bondage club
 // @author Sidious
 // @match https://www.bondageprojects.elementfx.com/*
@@ -14,7 +14,7 @@
 // @run-at document-end
 // ==/UserScript==
 
-window.BCE_VERSION = "0.85";
+window.BCE_VERSION = "0.86";
 
 (async function () {
   "use strict";
@@ -2215,8 +2215,8 @@ window.BCE_VERSION = "0.85";
         const { message } = data.Dictionary;
         switch (message.type) {
           case MESSAGE_TYPES.Hello:
-            bce_log("Received hello message", message);
             if (sender) {
+              bce_log(`${sender.Name} uses version ${message.version}.`);
               sender.BCE = message.version;
             }
             break;
@@ -2224,16 +2224,10 @@ window.BCE_VERSION = "0.85";
       }
     });
 
-    const bc_CharacterLoadOnline = CharacterLoadOnline;
-    CharacterLoadOnline = (data, sourceMemberNumber) => {
-      const char = bc_CharacterLoadOnline(data, sourceMemberNumber);
-      bce_log("CharacterLoadOnline", char);
-      // Temporary polyfill
-      if (typeof char.IsPlayer !== "function") {
-        char.IsPlayer = () => char.MemberNumber == Player.MemberNumber;
-      }
-      if (!char.IsPlayer()) {
-        bce_log("HELLO", char.MemberNumber);
+    const bc_ChatRoomSyncMemberJoin = ChatRoomSyncMemberJoin;
+    ChatRoomSyncMemberJoin = (data) => {
+      bc_ChatRoomSyncMemberJoin(data);
+      if (data.MemberNumber !== Player.MemberNumber) {
         ServerSend("ChatRoomChat", {
           Type: HIDDEN,
           Content: BCE_MSG,
@@ -2243,10 +2237,24 @@ window.BCE_VERSION = "0.85";
               version: BCE_VERSION,
             },
           },
-          Target: char.MemberNumber,
+          Target: data.MemberNumber,
         });
       }
-      return char;
+    };
+
+    const bc_ChatRoomSync = ChatRoomSync;
+    ChatRoomSync = (data) => {
+      bc_ChatRoomSync(data);
+      ServerSend("ChatRoomChat", {
+        Type: HIDDEN,
+        Content: BCE_MSG,
+        Dictionary: {
+          message: {
+            type: MESSAGE_TYPES.Hello,
+            version: BCE_VERSION,
+          },
+        },
+      });
     };
   }
 
