@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Bondage Club Enhancements
 // @namespace https://www.bondageprojects.com/
-// @version 0.92
+// @version 0.93
 // @description enhancements for the bondage club
 // @author Sidious
 // @match https://www.bondageprojects.elementfx.com/*
@@ -14,7 +14,7 @@
 // @run-at document-end
 // ==/UserScript==
 
-window.BCE_VERSION = "0.92";
+window.BCE_VERSION = "0.93";
 
 (async function () {
   "use strict";
@@ -297,8 +297,9 @@ window.BCE_VERSION = "0.92";
         Tag: "w",
         Description:
           "[target name] [message]: whisper the target player. Use first name only. Finds the first person in the room with a matching name, left-to-right, top-to-bottom.",
-        Action: (args) => {
-          const [target, ...message] = args.split(" ");
+        Action: (_, command, args) => {
+          const target = args[0];
+          const [, , ...message] = command.split(" ");
           const msg = message.join(" ");
           bce_log(target, msg);
           const targetMembers = ChatRoomCharacter.filter(
