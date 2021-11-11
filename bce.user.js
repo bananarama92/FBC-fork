@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Bondage Club Enhancements
 // @namespace https://www.bondageprojects.com/
-// @version 0.89
+// @version 0.90
 // @description enhancements for the bondage club
 // @author Sidious
 // @match https://www.bondageprojects.elementfx.com/*
@@ -14,7 +14,7 @@
 // @run-at document-end
 // ==/UserScript==
 
-window.BCE_VERSION = "0.89";
+window.BCE_VERSION = "0.90";
 
 (async function () {
   "use strict";
@@ -23,6 +23,8 @@ window.BCE_VERSION = "0.89";
     "https://raw.githubusercontent.com/Jomshir98/bondage-club-extended/2b1306d130822de4b918ce2bf0169b291f7ba79c/bcx.js";
   const BCX_DEVEL_SOURCE =
     "https://jomshir98.github.io/bondage-club-extended/devel/bcx.js";
+
+  const GAGBYPASSINDICATOR = "\uf123";
 
   /// SETTINGS LOADING
   let bce_settings = {};
@@ -2339,8 +2341,13 @@ window.BCE_VERSION = "0.89";
 
     const bc_SpeechGarbleByGagLevel = SpeechGarbleByGagLevel;
     SpeechGarbleByGagLevel = function (GagEffect, CD, IgnoreOOC) {
-      let garbled = bc_SpeechGarbleByGagLevel(GagEffect, CD, IgnoreOOC);
-      return !bce_settings.gagspeak || garbled === CD
+      let garbled = bc_SpeechGarbleByGagLevel(GagEffect, CD, IgnoreOOC).replace(
+        GAGBYPASSINDICATOR,
+        ""
+      );
+      return !bce_settings.gagspeak ||
+        garbled === CD ||
+        CD.endsWith(GAGBYPASSINDICATOR)
         ? garbled
         : `${garbled} (${CD})`;
     };
@@ -2351,16 +2358,15 @@ window.BCE_VERSION = "0.89";
         const gagLevel = SpeechGetTotalGagLevel(Player);
         if (gagLevel > 0) {
           if (bce_settings.antiAntiGarble) {
-            data.Content = bc_SpeechGarbleByGagLevel(
-              Math.min(gagLevel, 6),
-              data.Content
-            );
+            data.Content =
+              bc_SpeechGarbleByGagLevel(
+                Math.min(gagLevel - 1, 4),
+                data.Content
+              ) + GAGBYPASSINDICATOR;
           } else if (bce_settings.antiAntiGarbleStrong) {
-            data.Content = bc_SpeechGarbleByGagLevel(
-              gagLevel,
-              data.Content,
-              true
-            );
+            data.Content =
+              bc_SpeechGarbleByGagLevel(gagLevel, data.Content, true) +
+              GAGBYPASSINDICATOR;
           }
         }
       }
