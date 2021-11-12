@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Bondage Club Enhancements
 // @namespace https://www.bondageprojects.com/
-// @version 0.93
+// @version 0.94
 // @description enhancements for the bondage club
 // @author Sidious
 // @match https://www.bondageprojects.elementfx.com/*
@@ -14,7 +14,7 @@
 // @run-at document-end
 // ==/UserScript==
 
-window.BCE_VERSION = "0.93";
+window.BCE_VERSION = "0.94";
 
 (async function () {
   "use strict";
@@ -186,7 +186,7 @@ window.BCE_VERSION = "0.93";
 
   /// CONVENIENCE METHODS
   const bce_log = (...args) => {
-    console.log("BCE", BCE_VERSION, ...args);
+    console.log("BCE", `${BCE_VERSION}:`, ...args);
   };
 
   const bce_chatNotify = (node) => {
@@ -892,9 +892,11 @@ window.BCE_VERSION = "0.93";
       event.At = time;
       event.Until = time + event.Duration;
       event.Id = newUniqueId();
+      if (typeof event.Priority !== "number") event.Priority = 1;
       for (const t of Object.values(event.Expression)) {
         for (const exp of t) {
           exp.Id = newUniqueId();
+          if (typeof exp.Priority !== "number") exp.Priority = 1;
         }
       }
       bce_ExpressionsQueue.push(event);
@@ -1639,13 +1641,13 @@ window.BCE_VERSION = "0.93";
       return [properties?.Expression, !properties?.RemoveTimer];
     }
 
-    function setExpression(t, n, overrideLastCustom = true) {
+    function setExpression(t, n) {
       for (let i = 0; i < Player.Appearance.length; i++) {
         if (Player.Appearance[i].Asset.Group.Name === t) {
           if (!Player.Appearance[i].Property)
             Player.Appearance[i].Property = {};
           Player.Appearance[i].Property.Expression = n;
-          if (overrideLastCustom) bce_CustomLastExpression[t] = n;
+          bce_CustomLastExpression[t] = n;
           break;
         }
       }
@@ -1698,6 +1700,8 @@ window.BCE_VERSION = "0.93";
       },
     });
 
+    let lastOrgasm = 0;
+
     // this is called once per interval to check for expression changes
     const _CustomArousalExpression = () => {
       if (!bce_settings.expressions) {
@@ -1725,7 +1729,6 @@ window.BCE_VERSION = "0.93";
         };
         _PreviousArousal.Progress = 0;
         _PreviousDirection = ArousalMeterDirection.Up;
-        bce_ExpressionsQueue.splice(0, bce_ExpressionsQueue.length); // clear ongoing expressions
       }
 
       // detect arousal movement
@@ -1738,6 +1741,21 @@ window.BCE_VERSION = "0.93";
       }
       _PreviousDirection = direction;
 
+      const lastOrgasmAdjustment = () => {
+        const lastOrgasmMaxBoost = 30;
+        const orgasms = Player.ArousalSettings.OrgasmCount || 0;
+        const lastOrgasmBoostDuration = Math.min(300, 60 + orgasms * 5);
+        const secondsSinceOrgasm = ((Date.now() - lastOrgasm) / 10000) | 0;
+        if (secondsSinceOrgasm > lastOrgasmBoostDuration) {
+          return 0;
+        }
+        return (
+          (lastOrgasmMaxBoost *
+            (lastOrgasmBoostDuration - secondsSinceOrgasm)) /
+          lastOrgasmBoostDuration
+        );
+      };
+
       // handle events
       const OrgasmRecoveryStage = 2;
       if (
@@ -1746,6 +1764,7 @@ window.BCE_VERSION = "0.93";
         bce_ExpressionsQueue.filter((a) => a.Type === "PostOrgasm").length === 0
       ) {
         pushEvent(bce_EventExpressions.PostOrgasm);
+        lastOrgasm = Date.now();
       }
 
       // handle chat events
@@ -1815,9 +1834,10 @@ window.BCE_VERSION = "0.93";
                             t
                           ]?.findIndex((a) => a.Id === nexp.Id);
                           if (Number.isInteger(delIdx) && delIdx >= 0) {
-                            let old = bce_ExpressionsQueue[k].Expression[
-                              t
-                            ].splice(delIdx, 1);
+                            bce_ExpressionsQueue[k].Expression[t].splice(
+                              delIdx,
+                              1
+                            );
                             if (
                               bce_ExpressionsQueue[k].Expression[t].length === 0
                             ) {
@@ -1887,26 +1907,33 @@ window.BCE_VERSION = "0.93";
 
       // handle arousal-based expressions
       outer: for (const t of Object.keys(bce_ArousalExpressionStages)) {
-        if ((!eventEnded && eventHandled.includes(t)) || t in desired) {
-          continue;
-        }
         const [exp, permanent] = expression(t);
         // only proceed if matches without overriding manual expressions
         if (exp === bce_CustomLastExpression[t] || isDefault) {
+          let desiredExpression = undefined;
           for (const face of bce_ArousalExpressionStages[t]) {
             let limit =
-              face.Limit - (direction === ArousalMeterDirection.Up ? 0 : 3);
-            if (arousal >= limit) {
+              face.Limit - (direction === ArousalMeterDirection.Up ? 0 : 1);
+            if (arousal + lastOrgasmAdjustment() >= limit) {
               if (face.Expression !== exp) {
-                desired[t] = {
-                  Expression: face.Expression,
-                  Automatic: true,
-                };
+                desiredExpression = face.Expression;
                 break;
               } else {
                 continue outer;
               }
             }
+          }
+          if (typeof desiredExpression !== "undefined") {
+            const e = Object.create(null);
+            e[t] = [
+              { Expression: desiredExpression, Duration: -1, Priority: 0 },
+            ];
+            pushEvent({
+              Type: "AutomatedByArousal",
+              Duration: -1,
+              Priority: 0,
+              Expression: e,
+            });
           }
         } else if (permanent) {
           const e = Object.create(null);
@@ -1921,7 +1948,7 @@ window.BCE_VERSION = "0.93";
 
       if (Object.keys(desired).length > 0) {
         for (const t of Object.keys(desired)) {
-          setExpression(t, desired[t].Expression, desired[t].Automatic);
+          setExpression(t, desired[t].Expression);
           ServerSend("ChatRoomCharacterExpressionUpdate", {
             Name: desired[t].Expression,
             Group: t,
@@ -2346,14 +2373,12 @@ window.BCE_VERSION = "0.93";
         GAGBYPASSINDICATOR,
         ""
       );
-      if (bce_settings.gagspeak) {
-        if (CD.endsWith(GAGBYPASSINDICATOR)) {
-          return CD.replace(/[\uE000-\uF8FF]/g, "");
-        } else {
-          return garbled.toLowerCase() === CD.toLowerCase()
-            ? garbled
-            : `${garbled} (${CD})`;
-        }
+      if (CD.trim().endsWith(GAGBYPASSINDICATOR)) {
+        return CD.replace(/[\uE000-\uF8FF]/g, "");
+      } else if (bce_settings.gagspeak) {
+        return garbled.toLowerCase() === CD.toLowerCase()
+          ? garbled
+          : `${garbled} (${CD})`;
       }
       return garbled;
     };
