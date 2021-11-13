@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Bondage Club Enhancements
 // @namespace https://www.bondageprojects.com/
-// @version 0.97
+// @version 0.98
 // @description enhancements for the bondage club
 // @author Sidious
 // @match https://www.bondageprojects.elementfx.com/*
@@ -14,7 +14,7 @@
 // @run-at document-end
 // ==/UserScript==
 
-window.BCE_VERSION = "0.97";
+window.BCE_VERSION = "0.98";
 
 (async function () {
   "use strict";
@@ -28,7 +28,7 @@ window.BCE_VERSION = "0.97";
 
   /// SETTINGS LOADING
   let bce_settings = {};
-  const settingsVersion = 3;
+  const settingsVersion = 4;
   const defaultSettings = {
     relogin: {
       label: "Automatic Relogin on Disconnect",
@@ -134,6 +134,13 @@ window.BCE_VERSION = "0.97";
         if (newValue) {
           bce_settings.antiAntiGarble = false;
         }
+      },
+    },
+    showQuickAntiGarble: {
+      label: "Show Quick Anti-Anti-Garble in Chat",
+      value: false,
+      sideEffects: (newValue) => {
+        bce_log(newValue);
       },
     },
   };
@@ -2416,7 +2423,9 @@ window.BCE_VERSION = "0.97";
     const bc_ChatRoomResize = ChatRoomResize;
     ChatRoomResize = function (load) {
       bc_ChatRoomResize(load);
-      ElementPosition("InputChat", 1356, 950, 700, 82);
+      if (bce_settings.showQuickAntiGarble) {
+        ElementPosition("InputChat", 1356, 950, 700, 82);
+      }
     };
 
     const gagAntiCheatMenuPosition = [1700, 908, 200, 90];
@@ -2424,6 +2433,7 @@ window.BCE_VERSION = "0.97";
     const bc_ChatRoomRun = ChatRoomRun;
     ChatRoomRun = function () {
       bc_ChatRoomRun();
+      if (!bce_settings.showQuickAntiGarble) return;
       const tooltip = "Gagging: ";
       let color = "white";
       let label = "None";
@@ -2461,7 +2471,10 @@ window.BCE_VERSION = "0.97";
 
     const bc_ChatRoomClick = ChatRoomClick;
     ChatRoomClick = function () {
-      if (MouseIn(...gagAntiCheatMenuPosition)) {
+      if (
+        bce_settings.showQuickAntiGarble &&
+        MouseIn(...gagAntiCheatMenuPosition)
+      ) {
         const disableBoth = () => {
           bce_settings.antiAntiGarble = false;
           bce_settings.antiAntiGarbleStrong = false;
