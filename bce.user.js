@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Bondage Club Enhancements
 // @namespace https://www.bondageprojects.com/
-// @version 0.95
+// @version 0.96
 // @description enhancements for the bondage club
 // @author Sidious
 // @match https://www.bondageprojects.elementfx.com/*
@@ -14,7 +14,7 @@
 // @run-at document-end
 // ==/UserScript==
 
-window.BCE_VERSION = "0.95";
+window.BCE_VERSION = "0.96";
 
 (async function () {
   "use strict";
@@ -2363,7 +2363,7 @@ window.BCE_VERSION = "0.95";
       if (inCustomWardrobe && C.ID === 0) {
         bc_WardrobeFastSave(targetCharacter, W, Push);
       } else {
-        bc_WardrobeFastSave(C, W, Update);
+        bc_WardrobeFastSave(C, W, Push);
       }
     };
   }
