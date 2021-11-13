@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Bondage Club Enhancements
 // @namespace https://www.bondageprojects.com/
-// @version 0.94
+// @version 0.95
 // @description enhancements for the bondage club
 // @author Sidious
 // @match https://www.bondageprojects.elementfx.com/*
@@ -14,7 +14,7 @@
 // @run-at document-end
 // ==/UserScript==
 
-window.BCE_VERSION = "0.94";
+window.BCE_VERSION = "0.95";
 
 (async function () {
   "use strict";
@@ -1638,10 +1638,11 @@ window.BCE_VERSION = "0.94";
       const properties = Player.Appearance.filter(
         (a) => a.Asset.Group.Name === t
       )[0].Property;
-      return [properties?.Expression, !properties?.RemoveTimer];
+      return [properties?.Expression || null, !properties?.RemoveTimer];
     }
 
     function setExpression(t, n) {
+      if (!n) n = null;
       for (let i = 0; i < Player.Appearance.length; i++) {
         if (Player.Appearance[i].Asset.Group.Name === t) {
           if (!Player.Appearance[i].Property)
@@ -1891,7 +1892,10 @@ window.BCE_VERSION = "0.94";
       for (const t of Object.keys(nextExpression)) {
         const [exp, permanent] = expression(t);
         const nextExp = nextExpression[t];
-        if (nextExp.Expression !== exp) {
+        if (
+          nextExp.Expression !== exp &&
+          typeof nextExp.Expression !== "undefined"
+        ) {
           desired[t] = { ...nextExp };
         }
         if (exp !== bce_CustomLastExpression[t] && permanent) {
