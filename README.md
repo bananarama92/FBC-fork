@@ -158,4 +158,4 @@ This is for the purposes of customizing [`bce-custom-expressions-example.user.js
 [Credits](https://gitlab.com/Sidiousious/bce/-/graphs/main)
 
 [custom]: https://sidiousious.gitlab.io/bce/bce-custom-expressions-example.user.js
-[bookmarklet]: javascript:(()=>{fetch('https://sidiousious.gitlab.io/bce/bce.user.js').then(r=>r.text()).then(r=>eval(r));})();
+[bookmarklet]: javascript:(()%3D%3E%7Bfetch('https%3A%2F%2Fsidiousious.gitlab.io%2Fbce%2Fbce.user.js').then(r%3D%3Er.text()).then(r%3D%3Eeval(r))%3B%7D)()%3B
