@@ -4,8 +4,8 @@
 // @version 0.1
 // @description Customize the expressions used by BCE
 // @author Sidious
+// @match https://bondageprojects.elementfx.com/*
 // @match https://www.bondageprojects.elementfx.com/*
-// @match https://www.bondageprojects.com/*
 // @match https://bondage-europe.com/*
 // @match https://www.bondage-europe.com/*
 // @match http://localhost:*/*
@@ -16,6 +16,13 @@
 
 (async function () {
   "use strict";
+
+  if (typeof ChatRoomCharacter === "undefined") {
+    console.warn(
+      "Bondage Club not detected. Skipping BCE customizer initialization."
+    );
+    return;
+  }
 
   await waitFor(() => !!Player?.Name && window.bce_initializeDefaultExpression);
 
@@ -90,6 +97,7 @@
    * - Duration: how long the expression lasts, in milliseconds, or -1 for indefinite
    * - Priority: how important the expression is, higher is more important. Expressions with the same or lower priority are cut short when another expression is triggered.
    * - ExpressionModifier: a number from -4 to +4 that modifies the intensity of the expression. This is only valid for Blush. Use only Expression or ExpressionModifier, not both.
+   * - Skip: if true, the expression will be skipped for the duration.
    */
   window.bce_EventExpressions = {
     PostOrgasm: {

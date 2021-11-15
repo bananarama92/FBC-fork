@@ -25,52 +25,54 @@ With Tampermonkey you can control when and if you want to update BCE, but Tamper
 
 ## Features
 
+At a glance:
+
+- Improved automatic facial expressions that play nice with manual control
+- Automatic relogin after disconnect
+- [BCX](https://github.com/Jomshir98/bondage-club-extended) loader for both stable and devel
+- Clickable links and embedded images from trusted websites in chat (e.g. imgur, Discord)
+- Lockpicking helper
+- Convenient chat commands, such as `/w <name> <message>` to whisper another player
+- Full wardrobe in chatrooms (preview before saving/loading).
+- Anti-garble for gagspeak and deafening
+- Anti-anti-garble for your own speech: prevent others from understanding you with anti-garbling solutions while gagged
+
 ### Automatic relogin
 
 BCE can automatically enter your password, when you lose connection to the game. You can enable this by choosing to save your login after entering your details, but before clicking login, by clicking on the "Save (BCE)" button. You can then populate the login by pressing the name on the left for future logins, and remove it there, also disabling the auto-relogin. **Warning**: this does store your password in plaintext in your local storage, where malicious scripts could theoretically read it.
 
-### Layer-priority editor
+### Layer-priority editor and ability to loosen/tighten restraints
 
-BCE allows manual editing of an asset's priority — the value the game uses to decide what item shows over others. When you select an item, you should see either:
+BCE allows manual editing of an asset's priority — the value the game uses to decide what item shows over others — as well as the difficulty to struggle out of a restraint. When you select an item, you should see either:
 
 - a number field and a validate button at the top-right for clothing,
-- a white box at bottom-left for restraints, which when clicked will open up the same UI.
+- two white boxes at bottom-left for restraints: one will open the option to modify layer priority while the other allows loosening/tightening restraints.
 
-This allow manually overriding the assets' relative positioning, giving better flexibility when doing outfits, or slapping restraints. Note that there's no way to reset the priority to its default value, so you have to take it off and apply the asset again to revert a change.
+This allow manually overriding the assets' relative positioning, giving better flexibility when doing outfits, or slapping restraints. Note that there's no way to reset the priority to its default value, so you have to take note of it or take it off and put it on again.
+
+**Note**: the difficulty modification is technically cheating and should be used for roleplay purposes only. This does also allow struggling out of items you are not supposed to remove, such as a slave collar. Both of these features can be used to break the game, so use them responsibly. The main intent here is along the lines of choosing whether a shirt goes on top of your pants or vice-versa, or modifying the tightness of a rope tie without having to remove it, modify your bondage skill, and re-apply.
 
 ### Expanded wardrobe slots
 
-Double your wardrobe size to 48 slots at the press of a button. **Warning**: you will lose outfits 25-48, if you ever log in without the setting enabled.
+Double your wardrobe size to 48 slots at the press of a button. **Warning**: this is currently not persistent and you will likely lose outfits 25-48 on next login.
 
-### Customizing expressions
+### Customizable automated expressions
 
-BCE has an expression animator that replaces the game's default animator. It uses both the arousal meter, and messages posted in chat.
+BCE has an expression animator that replaces the game's default animator. It uses both the arousal meter, and messages posted in chat, and respects manual changes you make to your face (not overriding them every 2 seconds like the game's own face animator).
+
+Yield control of manual expressions back to the automator by using the chat command `/r`, or you can choose which part of your face to give back e.g. `/r eyes`.
 
 #### Arousal expressions
 
-Arousal-based expressions are stored in the `ArousalExpressionStages` map, where you can customize the limit above which the specific variant of the expression will apply. The map is keyed by components name (so `Blush`, `Eyebrows`, `Fluids` for drool and tears, `Eyes` and `Eyes2` for left and right eye respectively, and `Mouth`), and have an array of (Expression, Limit) tuples. `Expression` is the expression to use for that component when arousal gets over `Limit`.
+Arousal-based expressions are just that: your facial expression will change depending on changes to your arousal. This is compatible with both manual and automatic arousal meter. For customization refer to the comments in the example script `bce-custom-expressions-example.user.js`, which you can separately install via Tampermonkey. Advanced users can host their own bookmarklet for it.
 
-Note that, contrary to the default animator, setting anything other than the default expression for a component will preserve it. Only the basic, "after reset" expressions, will be animated. You can use this to prevent a given component from changing depending on arousal.
+#### Event-driven expressions
 
-#### Chat expressions
-
-You can setup a trigger for a specific chat message (/me or /action, or the game's own messages) to fire an "Event", and cause the associated expression to start.
-
-Triggers for these animations are stored in `bce_ChatTriggers`, where `Trigger` is a regular expression matching the visible text in chat and `Event` is the key of the animation to run in the `bce_EventExpressions` map.
-
-Event-based animations are stored in `bce_EventExpressions` and keyed by type. Here...
-
-- `Duration` is the overall duration of the total duration of the animation, after which it ends. The summed durations inside each expression component should total this amount. Given in milliseconds. A negative duration persists until reset, or overwrite by a higher priority negative duration expression.
-- `Priority` is the priority of this animation. Lower priority animations get cancelled by higher priority ones.
-- `Expression` is the map of components that take part in this expression.
-
-Inside the `Expression` map above each of the components has an array of what we'll call 'steps'. Steps support three different formats and are applied in order:
-
-- `{ Expression: "HalfOpen", Duration: 1000 }`: set this component's expression to HalfOpen for 1 second
-- `{ ExpressionModifier: 2, Duration: 1500 }`: set this component's intensity up by 2 for 1.5 seconds (only works for Blush)
-- `{ Skip: true, Duration: 1000 }`: don't do anything with this component for 1 second. This is useful for delaying changes, for example blushing only one second after a kiss.
+Messages in chat can trigger animations on your face. These can vary from the (click actions) to \*roleplayed /me\* messages.
 
 #### Expression cheatsheet
+
+This is for the purposes of customizing `bce-custom-expressions-example.user.js`. The lists are in the same order as the menu in the game for the purposes of knowing which is which.
 
 ```js
   Eyes: [
@@ -92,25 +94,7 @@ Inside the `Expression` map above each of the components has an array of what we
     "Surprised",
     "Scared",
   ],
-  Eyes2: [
-    "Closed",
-    "Dazed",
-    "Shy",
-    "Sad",
-    "Horny",
-    "Lewd",
-    "VeryLewd",
-    "Heart",
-    "HeartPink",
-    "LewdHeart",
-    "LewdHeartPink",
-    "Dizzy",
-    "Daydream",
-    "ShylyHappy",
-    "Angry",
-    "Surprised",
-    "Scared",
-  ],
+  Eyes2: [], // Same as Eyes above
   Mouth: [
     "Frown",
     "Sad",
