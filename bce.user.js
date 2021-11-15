@@ -2218,8 +2218,18 @@ window.BCE_VERSION = "0.99";
 
   function cacheClearer() {
     let automatedCacheClearer = null;
+    const cacheClearInterval = 1 * 60 * 60 * 1000;
 
-    window.bce_clearCaches = function () {
+    window.bce_clearCaches = async function () {
+      const start = Date.now();
+      if (
+        !(await waitFor(
+          () => CurrentScreen == "ChatRoom" && !CurrentCharacter, // only clear when in chat room and not inspecting a character
+          () => Date.now() - start > cacheClearInterval
+        ))
+      ) {
+        return;
+      }
       if (!bce_settings.automateCacheClear) {
         bce_log("Cache clearing disabled");
         clearInterval(automatedCacheClearer);
@@ -2234,7 +2244,7 @@ window.BCE_VERSION = "0.99";
     };
 
     if (!automatedCacheClearer && bce_settings.automateCacheClear) {
-      automatedCacheClearer = setInterval(bce_clearCaches, 1 * 60 * 60 * 1000);
+      automatedCacheClearer = setInterval(bce_clearCaches, cacheClearInterval);
     }
   }
 
