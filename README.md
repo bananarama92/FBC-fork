@@ -1,6 +1,6 @@
-# BCE
+# BCE - Bondage Club Enhancements
 
-This script offers better automatic face expression changes based on events in the club, such as arousal level and activities that show up in chat, both automatic and manual. Manual overrides are respected and retained, unless the manual override corresponds to the blank face.
+This addon to [Bondage Club](https://www.bondageprojects.com/club_game/) offers various mostly small improvements to the game experience. See features below for more details.
 
 ## How to install and use
 

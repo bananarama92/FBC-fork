@@ -1,0 +1,9 @@
+<!DOCTYPE html>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/showdown/1.9.1/showdown.min.js"></script>
+<script>
+	const converter = new showdown.Converter();
+	const text = fetch('README.md').then(response => response.text()).then(text => {
+		document.getElementById('content').innerHTML = converter.makeHtml(text);
+	});
+</script>
+<div id="content"></div>

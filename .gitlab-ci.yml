@@ -3,7 +3,7 @@ pages:
   stage: deploy
   script:
     - mkdir public
-    - cp bce.user.js public/
+    - cp *.js *.html *.md public/
   artifacts:
     paths:
       - public
