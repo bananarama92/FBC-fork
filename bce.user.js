@@ -6,7 +6,6 @@
 // @author Sidious
 // @match https://bondageprojects.elementfx.com/*
 // @match https://www.bondageprojects.elementfx.com/*
-// @match https://www.bondageprojects.com/*
 // @match https://bondage-europe.com/*
 // @match https://www.bondage-europe.com/*
 // @match http://localhost:*/*
