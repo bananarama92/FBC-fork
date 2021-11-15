@@ -1,9 +1,10 @@
 // ==UserScript==
 // @name Bondage Club Enhancements
 // @namespace https://www.bondageprojects.com/
-// @version 0.98
+// @version 0.99
 // @description enhancements for the bondage club
 // @author Sidious
+// @match https://bondageprojects.elementfx.com/*
 // @match https://www.bondageprojects.elementfx.com/*
 // @match https://www.bondageprojects.com/*
 // @match https://bondage-europe.com/*
@@ -14,7 +15,7 @@
 // @run-at document-end
 // ==/UserScript==
 
-window.BCE_VERSION = "0.98";
+window.BCE_VERSION = "0.99";
 
 (async function () {
   "use strict";
@@ -25,6 +26,11 @@ window.BCE_VERSION = "0.98";
     "https://jomshir98.github.io/bondage-club-extended/devel/bcx.js";
 
   const GAGBYPASSINDICATOR = "\uf123";
+
+  if (typeof ChatRoomCharacter === "undefined") {
+    console.warn("Bondage Club not detected. Skipping BCE initialization.");
+    return;
+  }
 
   /// SETTINGS LOADING
   let bce_settings = {};
