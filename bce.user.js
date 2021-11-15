@@ -234,7 +234,7 @@ window.BCE_VERSION = "0.99";
   // Expressions init method for custom expressions
   window.bce_initializeDefaultExpression = () => {
     window.bce_DefaultExpression = {};
-    for (const t of Object.keys(bce_ArousalExpressionStages)) {
+    for (const t of Object.keys(window.bce_ArousalExpressionStages || {})) {
       bce_DefaultExpression[t] =
         bce_ArousalExpressionStages[t][
           bce_ArousalExpressionStages[t].length - 1
