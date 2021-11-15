@@ -1722,7 +1722,7 @@ window.BCE_VERSION = "0.99";
 
     // this is called once per interval to check for expression changes
     const _CustomArousalExpression = () => {
-      if (!bce_settings.expressions) {
+      if (!bce_settings.expressions || !Player?.AppearanceLayers) {
         return;
       } else {
         Player.OnlineSharedSettings.ItemsAffectExpressions = false;
