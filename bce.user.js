@@ -273,10 +273,12 @@ window.BCE_VERSION = "0.99";
     Message: `Bondage Club Enhancements v${BCE_VERSION} Loaded`,
   };
 
-  async function waitFor(func) {
+  async function waitFor(func, cancelFunc = () => false) {
     while (!func()) {
+      if (cancelFunc()) return false;
       await sleep(100);
     }
+    return true;
   }
 
   // Load BCX
