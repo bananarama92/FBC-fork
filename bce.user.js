@@ -2445,11 +2445,17 @@ window.BCE_VERSION = "0.99";
     const bc_ChatRoomResize = ChatRoomResize;
     ChatRoomResize = function (load) {
       bc_ChatRoomResize(load);
-      if (bce_settings.showQuickAntiGarble) {
+      if (
+        bce_settings.showQuickAntiGarble &&
+        CharacterGetCurrent() == null &&
+        CurrentScreen == "ChatRoom" &&
+        document.getElementById("InputChat")
+      ) {
         ElementPosition("InputChat", 1356, 950, 700, 82);
       }
     };
 
+    // X, Y, width, height. X and Y centered.
     const gagAntiCheatMenuPosition = [1700, 908, 200, 90];
 
     const bc_ChatRoomRun = ChatRoomRun;
