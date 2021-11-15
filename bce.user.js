@@ -1815,12 +1815,23 @@ window.BCE_VERSION = "0.99";
 
       // keep track of desired changes
       let desired = {};
-      let eventHandled = [];
-      let eventEnded = false;
 
       let nextExpression = {};
+      const trySetNextExpression = (e, exp, next, t) => {
+        const priority = exp.Priority || next.Priority || 0;
+        if (!nextExpression[t] || nextExpression[t].Priority <= priority) {
+          nextExpression[t] = {
+            Id: exp.Id,
+            Expression: e,
+            Duration: exp.Duration,
+            Priority: priority,
+            Automatic: true,
+          };
+        }
+      };
+
+      // calculate next expression
       for (let j = 0; j < bce_ExpressionsQueue.length; j++) {
-        // handle event-based expressions
         let next = bce_ExpressionsQueue[j];
         let active = false;
         if (
@@ -1835,46 +1846,6 @@ window.BCE_VERSION = "0.99";
               if (durationNow < 0 || exp.Duration < 0) {
                 active = true;
                 if (!exp.Skip) {
-                  eventHandled.push(t);
-
-                  let trySetNextExpression = (e) => {
-                    const priority = exp.Priority || next.Priority || 0;
-                    if (
-                      !nextExpression[t] ||
-                      nextExpression[t].Priority <= priority
-                    ) {
-                      const nexp = {
-                        ...(nextExpression[t] || { Duration: 1 }),
-                      };
-                      nextExpression[t] = {
-                        Id: exp.Id,
-                        Expression: e,
-                        Duration: exp.Duration,
-                        Priority: priority,
-                        Automatic: true,
-                      };
-                      if (nexp?.Duration < 0 && exp.Duration < 0) {
-                        for (let k = 0; k < j; k++) {
-                          let delIdx = bce_ExpressionsQueue[k].Expression[
-                            t
-                          ]?.findIndex((a) => a.Id === nexp.Id);
-                          if (Number.isInteger(delIdx) && delIdx >= 0) {
-                            bce_ExpressionsQueue[k].Expression[t].splice(
-                              delIdx,
-                              1
-                            );
-                            if (
-                              bce_ExpressionsQueue[k].Expression[t].length === 0
-                            ) {
-                              delete bce_ExpressionsQueue[k].Expression[t];
-                            }
-                            break;
-                          }
-                        }
-                      }
-                    }
-                  };
-
                   if (
                     exp.ExpressionModifier &&
                     t in bce_ExpressionModifierMap
@@ -1889,14 +1860,19 @@ window.BCE_VERSION = "0.99";
                       } else if (idx < 0) {
                         idx = 0;
                       }
-                      trySetNextExpression(bce_ExpressionModifierMap[t][idx]);
+                      trySetNextExpression(
+                        bce_ExpressionModifierMap[t][idx],
+                        exp,
+                        next,
+                        t
+                      );
                       bce_ExpressionsQueue[j].Expression[t][i].Applied = true;
                     } else {
                       // prevent being overridden by other expressions while also not applying a change
-                      trySetNextExpression(current);
+                      trySetNextExpression(current, exp, next, t);
                     }
                   } else {
-                    trySetNextExpression(exp.Expression);
+                    trySetNextExpression(exp.Expression, exp, next, t);
                   }
                 }
                 break;
@@ -1907,29 +1883,37 @@ window.BCE_VERSION = "0.99";
         if (!active) {
           bce_ExpressionsQueue.splice(j, 1);
           j--;
-          if (bce_ExpressionsQueue.length === 0) {
-            eventEnded = true;
-          }
         }
       }
 
-      for (const t of Object.keys(nextExpression)) {
-        const [exp, permanent] = expression(t);
-        const nextExp = nextExpression[t];
-        if (
-          nextExp.Expression !== exp &&
-          typeof nextExp.Expression !== "undefined"
-        ) {
-          desired[t] = { ...nextExp };
+      // garbage collect unused expressions - this should occur before manual expressions are detected
+      for (let j = 0; j < bce_ExpressionsQueue.length; j++) {
+        for (const t of Object.keys(bce_ExpressionsQueue[j].Expression)) {
+          if (!nextExpression[t] || nextExpression[t].Duration > 0) continue;
+          const nextId = nextExpression[t].Id;
+          const nextPriority = nextExpression[t].Priority;
+
+          for (
+            let i = 0;
+            i < bce_ExpressionsQueue[j].Expression[t].length;
+            i++
+          ) {
+            const exp = bce_ExpressionsQueue[j].Expression[t][i];
+            if (
+              exp.Duration < 0 &&
+              (exp.Id < nextId || exp.Priority < nextPriority)
+            ) {
+              bce_ExpressionsQueue[j].Expression[t].splice(i, 1);
+              i--;
+            }
+          }
+          if (bce_ExpressionsQueue[j].Expression[t].length === 0) {
+            delete bce_ExpressionsQueue[j].Expression[t];
+          }
         }
-        if (exp !== bce_CustomLastExpression[t] && permanent) {
-          const e = Object.create(null);
-          e[t] = [{ Expression: exp, Duration: -1 }];
-          pushEvent({
-            Type: "ManualOverride",
-            Duration: -1,
-            Expression: e,
-          });
+        if (Object.keys(bce_ExpressionsQueue[j].Expression).length === 0) {
+          bce_ExpressionsQueue.splice(j, 1);
+          j--;
         }
       }
 
@@ -1964,6 +1948,26 @@ window.BCE_VERSION = "0.99";
             });
           }
         } else if (permanent) {
+          const e = Object.create(null);
+          e[t] = [{ Expression: exp, Duration: -1 }];
+          pushEvent({
+            Type: "ManualOverride",
+            Duration: -1,
+            Expression: e,
+          });
+        }
+      }
+
+      for (const t of Object.keys(nextExpression)) {
+        const [exp, permanent] = expression(t);
+        const nextExp = nextExpression[t];
+        if (
+          nextExp.Expression !== exp &&
+          typeof nextExp.Expression !== "undefined"
+        ) {
+          desired[t] = { ...nextExp };
+        }
+        if (exp !== bce_CustomLastExpression[t] && permanent) {
           const e = Object.create(null);
           e[t] = [{ Expression: exp, Duration: -1 }];
           pushEvent({
