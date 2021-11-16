@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Bondage Club Enhancements
 // @namespace https://www.bondageprojects.com/
-// @version 0.102
+// @version 0.103
 // @description enhancements for the bondage club
 // @author Sidious
 // @match https://bondageprojects.elementfx.com/*
@@ -14,7 +14,7 @@
 // @run-at document-end
 // ==/UserScript==
 
-window.BCE_VERSION = "0.102";
+window.BCE_VERSION = "0.103";
 
 (async function () {
   "use strict";
@@ -38,7 +38,7 @@ window.BCE_VERSION = "0.102";
 
   /// SETTINGS LOADING
   let bce_settings = {};
-  const settingsVersion = 5;
+  const settingsVersion = 6;
   const defaultSettings = {
     relogin: {
       label: "Automatic Relogin on Disconnect",
@@ -2613,7 +2613,7 @@ window.BCE_VERSION = "0.102";
     let lastSync = 0;
 
     ServerSocket.on("ChatRoomSyncArousal", (data) => {
-      if (c.MemberNumber === Player.MemberNumber) return; // skip player's own sync messages since we're tracking locally
+      if (data.MemberNumber === Player.MemberNumber) return; // skip player's own sync messages since we're tracking locally
       let target = ChatRoomCharacter.find(
         (c) => c.MemberNumber === data.MemberNumber
       );
@@ -2746,6 +2746,8 @@ window.BCE_VERSION = "0.102";
           )
     );
   }
+
+  async function autoGhostBroadcast() {}
 
   function sleep(ms) {
     return new Promise((resolve) => setTimeout(resolve, ms));
