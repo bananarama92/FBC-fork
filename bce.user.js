@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Bondage Club Enhancements
 // @namespace https://www.bondageprojects.com/
-// @version 0.100
+// @version 0.101
 // @description enhancements for the bondage club
 // @author Sidious
 // @match https://bondageprojects.elementfx.com/*
@@ -14,7 +14,7 @@
 // @run-at document-end
 // ==/UserScript==
 
-window.BCE_VERSION = "0.100";
+window.BCE_VERSION = "0.101";
 
 (async function () {
   "use strict";
@@ -275,7 +275,7 @@ window.BCE_VERSION = "0.100";
   async function waitFor(func, cancelFunc = () => false) {
     while (!func()) {
       if (cancelFunc()) return false;
-      await sleep(100);
+      await sleep(10);
     }
     return true;
   }
@@ -333,7 +333,11 @@ window.BCE_VERSION = "0.100";
             const targetMemberNumber = targetMembers[0].MemberNumber;
             const originalTarget = ChatRoomTargetMemberNumber;
             ChatRoomTargetMemberNumber = targetMemberNumber;
-            CommandParse(`\u200b${msg}`);
+            CommandParse(
+              `${
+                msg.length > 0 && [".", "/"].includes(msg[0]) ? "\u200b" : ""
+              }${msg}`
+            );
             ChatRoomTargetMemberNumber = originalTarget;
           }
         },
