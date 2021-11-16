@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Bondage Club Enhancements
 // @namespace https://www.bondageprojects.com/
-// @version 0.99
+// @version 0.100
 // @description enhancements for the bondage club
 // @author Sidious
 // @match https://bondageprojects.elementfx.com/*
@@ -14,7 +14,7 @@
 // @run-at document-end
 // ==/UserScript==
 
-window.BCE_VERSION = "0.99";
+window.BCE_VERSION = "0.100";
 
 (async function () {
   "use strict";
@@ -706,6 +706,46 @@ window.BCE_VERSION = "0.99";
   }
 
   function chatAugments() {
+    const bc_ServerSend = ServerSend;
+    ServerSend = function (message, data) {
+      if (
+        (message === "ChatRoomChat" && data.Type === "Chat") ||
+        data.Type === "Whisper"
+      ) {
+        const words = [data.Content];
+        let inOOC = false;
+        const newWords = [];
+        for (let i = 0; i < words.length; i++) {
+          // handle other whitespace
+          let whitespaceIdx = words[i].search(/[\s\r\n]/);
+          if (whitespaceIdx >= 1) {
+            words.splice(i + 1, 0, words[i].substring(whitespaceIdx));
+            words[i] = words[i].substring(0, whitespaceIdx);
+          } else if (whitespaceIdx === 0) {
+            words.splice(i + 1, 0, words[i].substring(1));
+            words[i] = words[i][0];
+            newWords.push(words[i]);
+            continue;
+          }
+
+          for (const c of words[i]) {
+            if (c === "(") inOOC = true;
+            else if (c === ")") inOOC = false;
+          }
+
+          if (bce_parseUrl(words[i]) && !inOOC) {
+            newWords.push("( ");
+            newWords.push(words[i]);
+            newWords.push(" )");
+          } else {
+            newWords.push(words[i]);
+          }
+        }
+        data.Content = newWords.join("");
+      }
+      bc_ServerSend(message, data);
+    };
+
     function bce_parseUrl(word) {
       try {
         const url = new URL(word);
@@ -728,7 +768,7 @@ window.BCE_VERSION = "0.99";
         [
           "cdn.discordapp.com",
           "i.imgur.com",
-          "tenor.com",
+          "c.tenor.com",
           "i.redd.it",
         ].includes(url.host) &&
         /\/[^\/]+\.(png|jpe?g|gif)$/.test(url.pathname)
@@ -779,7 +819,7 @@ window.BCE_VERSION = "0.99";
               }
 
               // handle url linking
-              const url = bce_parseUrl(words[i]);
+              const url = bce_parseUrl(words[i].replace(/(^\(+|\)+$)/g, ""));
               if (url) {
                 // embed or link
                 let node;
