@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Bondage Club Enhancements
 // @namespace https://www.bondageprojects.com/
-// @version 0.101
+// @version 0.102
 // @description enhancements for the bondage club
 // @author Sidious
 // @match https://bondageprojects.elementfx.com/*
@@ -14,7 +14,7 @@
 // @run-at document-end
 // ==/UserScript==
 
-window.BCE_VERSION = "0.101";
+window.BCE_VERSION = "0.102";
 
 (async function () {
   "use strict";
@@ -25,6 +25,11 @@ window.BCE_VERSION = "0.101";
     "https://jomshir98.github.io/bondage-club-extended/devel/bcx.js";
 
   const GAGBYPASSINDICATOR = "\uf123";
+  const HIDDEN = "Hidden";
+  const BCE_MSG = "BCEMsg";
+  const MESSAGE_TYPES = {
+    Hello: "Hello",
+  };
 
   if (typeof ChatRoomCharacter === "undefined") {
     console.warn("Bondage Club not detected. Skipping BCE initialization.");
@@ -33,7 +38,7 @@ window.BCE_VERSION = "0.101";
 
   /// SETTINGS LOADING
   let bce_settings = {};
-  const settingsVersion = 4;
+  const settingsVersion = 5;
   const defaultSettings = {
     relogin: {
       label: "Automatic Relogin on Disconnect",
@@ -148,6 +153,16 @@ window.BCE_VERSION = "0.101";
         bce_log(newValue);
       },
     },
+    alternateArousal: {
+      label:
+        "Alternate Arousal (Replaces Vanilla, requires hybrid/locked arousal meter)",
+      value: false,
+      sideEffects: (newValue) => {
+        sendHello();
+        Player.BCEArousal = newValue;
+        Player.BCEArousalProgress = Player.ArousalSettings.Progress;
+      },
+    },
   };
 
   function settingsLoaded() {
@@ -251,6 +266,7 @@ window.BCE_VERSION = "0.101";
   bce_log(bce_settings);
   await loadBCX();
   settingsPage();
+  alternateArousal();
   chatAugments();
   automaticExpressions();
   extendedWardrobe();
@@ -1762,6 +1778,7 @@ window.BCE_VERSION = "0.101";
     });
 
     let lastOrgasm = 0;
+    let orgasmCount = 0;
 
     // this is called once per interval to check for expression changes
     const _CustomArousalExpression = () => {
@@ -1770,6 +1787,13 @@ window.BCE_VERSION = "0.101";
       } else {
         Player.OnlineSharedSettings.ItemsAffectExpressions = false;
         Player.ArousalSettings.AffectExpression = false;
+      }
+
+      if (orgasmCount < Player.ArousalSettings.OrgasmCount) {
+        orgasmCount = Player.ArousalSettings.OrgasmCount;
+      } else if (orgasmCount > Player.ArousalSettings.OrgasmCount) {
+        Player.ArousalSettings.OrgasmCount = orgasmCount;
+        ActivityChatRoomArousalSync(Player);
       }
 
       // Reset everything when face is fully default
@@ -1811,16 +1835,18 @@ window.BCE_VERSION = "0.101";
 
       const lastOrgasmAdjustment = () => {
         const lastOrgasmMaxBoost = 30;
+        const lastOrgasmMaxArousal = 90; // only boost up to the expression at arousal 90
         const orgasms = Player.ArousalSettings.OrgasmCount || 0;
         const lastOrgasmBoostDuration = Math.min(300, 60 + orgasms * 5);
         const secondsSinceOrgasm = ((Date.now() - lastOrgasm) / 10000) | 0;
         if (secondsSinceOrgasm > lastOrgasmBoostDuration) {
           return 0;
         }
-        return (
+        return Math.min(
+          lastOrgasmMaxArousal - arousal,
           (lastOrgasmMaxBoost *
             (lastOrgasmBoostDuration - secondsSinceOrgasm)) /
-          lastOrgasmBoostDuration
+            lastOrgasmBoostDuration
         );
       };
 
@@ -2318,15 +2344,26 @@ window.BCE_VERSION = "0.101";
     };
   }
 
+  function sendHello(target) {
+    const message = {
+      Type: HIDDEN,
+      Content: BCE_MSG,
+      Dictionary: {
+        message: {
+          type: MESSAGE_TYPES.Hello,
+          version: BCE_VERSION,
+          alternateArousal: bce_settings.alternateArousal,
+        },
+      },
+    };
+    if (target) {
+      message.Target = target;
+    }
+    ServerSend("ChatRoomChat", message);
+  }
+
   async function hiddenMessageHandler() {
     await waitFor(() => ServerSocket && ServerIsConnected);
-
-    const MESSAGE_TYPES = {
-      Hello: "Hello",
-    };
-
-    const HIDDEN = "Hidden";
-    const BCE_MSG = "BCEMsg";
 
     ServerSocket.on("ChatRoomMessage", (data) => {
       if (data.Type !== HIDDEN) return;
@@ -2338,6 +2375,7 @@ window.BCE_VERSION = "0.101";
             if (sender) {
               bce_log(`${sender.Name} uses version ${message.version}.`);
               sender.BCE = message.version;
+              sender.BCEArousal = message.alternateArousal || false;
             }
             break;
         }
@@ -2348,33 +2386,14 @@ window.BCE_VERSION = "0.101";
     ChatRoomSyncMemberJoin = (data) => {
       bc_ChatRoomSyncMemberJoin(data);
       if (data.MemberNumber !== Player.MemberNumber) {
-        ServerSend("ChatRoomChat", {
-          Type: HIDDEN,
-          Content: BCE_MSG,
-          Dictionary: {
-            message: {
-              type: MESSAGE_TYPES.Hello,
-              version: BCE_VERSION,
-            },
-          },
-          Target: data.MemberNumber,
-        });
+        sendHello(data.MemberNumber);
       }
     };
 
     const bc_ChatRoomSync = ChatRoomSync;
     ChatRoomSync = (data) => {
       bc_ChatRoomSync(data);
-      ServerSend("ChatRoomChat", {
-        Type: HIDDEN,
-        Content: BCE_MSG,
-        Dictionary: {
-          message: {
-            type: MESSAGE_TYPES.Hello,
-            version: BCE_VERSION,
-          },
-        },
-      });
+      sendHello();
     };
   }
 
@@ -2580,6 +2599,152 @@ window.BCE_VERSION = "0.101";
       }
       bc_ChatRoomClick();
     };
+  }
+
+  async function alternateArousal() {
+    await waitFor(() => !!ServerSocket && ServerIsConnected);
+    const Direction = {
+      Up: 1,
+      Down: 2,
+    };
+    Player.BCEArousalProgress = Player.ArousalSettings.Progress;
+    Player.BCEEnjoyment = 1;
+    Player.BCELastDirection = Direction.Up;
+    let lastSync = 0;
+
+    ServerSocket.on("ChatRoomSyncArousal", (data) => {
+      if (c.MemberNumber === Player.MemberNumber) return; // skip player's own sync messages since we're tracking locally
+      let target = ChatRoomCharacter.find(
+        (c) => c.MemberNumber === data.MemberNumber
+      );
+      if (!target) return;
+      target.BCEArousalProgress = data.Progress || 0;
+    });
+
+    const bc_ActivitySetArousal = ActivitySetArousal;
+    ActivitySetArousal = function (C, Progress) {
+      bc_ActivitySetArousal(C, Progress);
+      C.BCEArousalProgress = Progress;
+    };
+
+    const bc_ActivitySetArousalTimer = ActivitySetArousalTimer;
+    ActivitySetArousalTimer = function (C, A, Z, Factor) {
+      bc_ActivitySetArousalTimer(C, A, Z, Factor);
+      C.BCEEnjoyment = 1 + (Factor > 1 ? 2 * Math.round(Math.log(Factor)) : 0);
+    };
+
+    const bc_ActivityTimerProgress = ActivityTimerProgress;
+    ActivityTimerProgress = function (C, progress) {
+      if (progress < 0) {
+        if (C.BCELastDirection === Direction.Up) {
+          C.BCEEnjoyment = 1;
+        }
+        C.BCELastDirection = Direction.Down;
+      } else if (progress > 0) {
+        if (Player.BCELastDirection === Direction.Down) {
+          C.BCEEnjoyment = 1;
+        }
+        C.BCELastDirection = Direction.Up;
+      }
+      if (!C.BCEArousalProgress) C.BCEArousalProgress = 0;
+      C.BCEArousalProgress += progress * C.BCEEnjoyment * 0.25;
+      if (C.BCEArousal) {
+        C.ArousalSettings.Progress = Math.round(C.BCEArousalProgress);
+        bc_ActivityTimerProgress(C, 0);
+        if (C.ID === 0 && Date.now() - lastSync > 2100) {
+          lastSync = Date.now();
+          ActivityChatRoomArousalSync(C);
+        }
+      } else {
+        bc_ActivityTimerProgress(C, progress);
+      }
+    };
+
+    eval(
+      "TimerProcess = " +
+        TimerProcess.toString()
+          .replace(
+            "let Factor = -1;",
+            `
+    let Factor = -1;
+    if (Character[C].BCEArousal) {
+      let maxIntensity = 0;
+      let vibes = 0;
+      let noOrgasmVibes = 0;
+      for (let A = 0; A < Character[C].Appearance.length; A++) {
+        let Item = Character[C].Appearance[A];
+        let ZoneFactor = PreferenceGetZoneFactor(Character[C], Item.Asset.ArousalZone) - 2;
+        if (InventoryItemHasEffect(Item, "Egged", true) && typeof Item.Property?.Intensity === "number" && !isNaN(Item.Property.Intensity) && Item.Property.Intensity >= 0 && ZoneFactor >= 0) {
+          if (Item.Property.Intensity >= 0) {
+            vibes++;
+            if (!PreferenceGetZoneOrgasm(Character[C], Item.Asset.ArousalZone)) {
+              noOrgasmVibes++;
+            }
+            maxIntensity = Math.max(Item.Property.Intensity, maxIntensity);
+            Factor += Item.Property.Intensity + ZoneFactor + 1;
+          }
+        }
+      }
+      // Adds the fetish value to the factor
+      if (Factor >= 0) {
+        var Fetish = ActivityFetishFactor(Character[C]);
+        if (Fetish > 0) Factor = Factor + Math.ceil(Fetish / 3);
+        if (Fetish < 0) Factor = Factor + Math.floor(Fetish / 3);
+      }
+
+      let maxProgress = 100;
+      switch (maxIntensity) {
+        case 0:
+          maxProgress = 40 + vibes * 5;
+          break;
+        case 1:
+          maxProgress = 70 + vibes * 5;
+          break;
+        default:
+          maxProgress = vibes === 0 || vibes > noOrgasmVibes ? 100 : 95;
+          break;
+      }
+      let stepInterval = 1;
+      if (Factor < 0) {
+        ActivityVibratorLevel(Character[C], 0);
+      } else {
+        if (Factor < 1) {
+          ActivityVibratorLevel(Character[C], 1);
+          maxProgress = Math.min(maxProgress, 35);
+          stepInterval = 6;
+        } else if (Factor < 2) {
+          ActivityVibratorLevel(Character[C], 1);
+          maxProgress = Math.min(maxProgress, 65);
+          stepInterval = 4;
+        } else if (Factor < 3) {
+          maxProgress = Math.min(maxProgress, 95);
+          stepInterval = 2;
+          ActivityVibratorLevel(Character[C], 2);
+        } else {
+          ActivityVibratorLevel(Character[C], Math.min(4, Math.floor(Factor)));
+        }
+        let maxIncrease = maxProgress - Character[C].ArousalSettings.Progress;
+        if (TimerLastArousalProgressCount % stepInterval === 0 && maxIncrease > 0) {
+          if (stepInterval === 1) {
+            Character[C].BCEEnjoyment = 1 + (Factor > 1 ? 2*Math.round(Math.log(Factor)) : 0);
+          }
+          ActivityTimerProgress(Character[C], 1);
+        }
+      }
+    } else {
+    `
+          )
+          .replace(
+            /if\s*\(\(Factor\s*==\s*-1\)\)\s*{\s*ActivityVibratorLevel\(Character\[C\],\s*0\);\s*}\s*}/,
+            `if (Factor == -1) {
+        ActivityVibratorLevel(Character[C], 0);
+      }
+    }
+  } else {
+    ActivityVibratorLevel(Character[C], 0);
+  }`
+          )
+    );
   }
 
   function sleep(ms) {

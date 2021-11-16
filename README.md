@@ -36,6 +36,7 @@ At a glance:
 - Full wardrobe in chatrooms (preview before saving/loading).
 - Anti-garble for gagspeak and deafening
 - Anti-anti-garble for your own speech: prevent others from understanding you with anti-garbling solutions while gagged
+- Optional alternative arousal calculations
 
 ### Automatic relogin
 
@@ -70,7 +71,13 @@ Arousal-based expressions are just that: your facial expression will change depe
 
 Messages in chat can trigger animations on your face. These can vary from the (click actions) to \*roleplayed /me\* messages.
 
-#### Expression cheatsheet
+#### Alternative arousal calculations
+
+The arousal system in the game is very basic and regardless of the action your arousal will go up 1% per second. This alternate system changes it to be 0.25-2% per second depending on the activity, number and intensity of vibrators, how much you love the activity and the part of the body it's occurring in. Overall this should result in _slightly_ faster orgasms from loved activities and stacked maxed vibrators while significantly slowing down arousal increase from less loved activities. Your arousal settings are fully respected by these changes.
+
+**Note**: you may see some flickering on the arousal meter when one player is using this while the other one is not.
+
+### Expression cheatsheet
 
 This is for the purposes of customizing [`bce-custom-expressions-example.user.js`][custom]. The lists are in the same order as the menu in the game for the purposes of knowing which is which.
 
