@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Bondage Club Enhancements
 // @namespace https://www.bondageprojects.com/
-// @version 0.105
+// @version 0.106
 // @description enhancements for the bondage club
 // @author Sidious
 // @match https://bondageprojects.elementfx.com/*
@@ -14,7 +14,7 @@
 // @run-at document-end
 // ==/UserScript==
 
-window.BCE_VERSION = "0.105";
+window.BCE_VERSION = "0.106";
 
 (async function () {
   "use strict";
@@ -2024,14 +2024,6 @@ window.BCE_VERSION = "0.105";
               Expression: e,
             });
           }
-        } else if (permanent) {
-          const e = Object.create(null);
-          e[t] = [{ Expression: exp, Duration: -1 }];
-          pushEvent({
-            Type: "ManualOverride",
-            Duration: -1,
-            Expression: e,
-          });
         }
       }
 
@@ -2614,6 +2606,7 @@ window.BCE_VERSION = "0.105";
     Player.BCEArousalProgress = Player.ArousalSettings.Progress;
     Player.BCEEnjoyment = 1;
     let lastSync = 0;
+    const enjoymentMultiplier = 0.25;
 
     ServerSocket.on("ChatRoomSyncArousal", (data) => {
       if (data.MemberNumber === Player.MemberNumber) return; // skip player's own sync messages since we're tracking locally
@@ -2624,23 +2617,45 @@ window.BCE_VERSION = "0.105";
       target.BCEArousalProgress = data.Progress || 0;
     });
 
+    eval(
+      "ActivitySetArousalTimer = " +
+        ActivitySetArousalTimer.toString().replace(
+          "if ((Progress > 0) && (C.ArousalSettings.Progress + Progress > Max)) Progress = (Max - C.ArousalSettings.Progress >= 0) ? Max - C.ArousalSettings.Progress : 0;",
+          `
+      const fromMax = Max - (C.BCEArousal ? C.BCEArousalProgress : C.ArousalSettings.Progress);
+      if (Progress > 0 && fromMax < Progress) {
+        if (fromMax <= 0) {
+          Progress = 0;
+        } else if (C.BCEArousal) {
+          console.log("capped", fromMax, C.BCEEnjoyment);
+          Progress = Math.floor(fromMax / ${enjoymentMultiplier} / C.BCEEnjoyment);
+        } else {
+          Progress = fromMax;
+        }
+      }
+      `
+        )
+    );
+
     const bc_ActivitySetArousal = ActivitySetArousal;
     ActivitySetArousal = function (C, Progress) {
       bc_ActivitySetArousal(C, Progress);
-      C.BCEArousalProgress = Progress;
+      if (Math.abs(C.BCEArousalProgress - Progress) > 3) {
+        C.BCEArousalProgress = Progress;
+      }
     };
 
     const bc_ActivitySetArousalTimer = ActivitySetArousalTimer;
     ActivitySetArousalTimer = function (C, A, Z, Factor) {
-      bc_ActivitySetArousalTimer(C, A, Z, Factor);
       C.BCEEnjoyment = 1 + (Factor > 1 ? 2 * Math.round(Math.log(Factor)) : 0);
+      bc_ActivitySetArousalTimer(C, A, Z, Factor);
     };
 
     const bc_ActivityTimerProgress = ActivityTimerProgress;
     ActivityTimerProgress = function (C, progress) {
       if (!C.BCEArousalProgress) C.BCEArousalProgress = 0;
       C.BCEArousalProgress +=
-        progress * (progress > 0 ? C.BCEEnjoyment * 0.25 : 1);
+        progress * (progress > 0 ? C.BCEEnjoyment * enjoymentMultiplier : 1);
       if (C.BCEArousal) {
         C.ArousalSettings.Progress = Math.round(C.BCEArousalProgress);
         bc_ActivityTimerProgress(C, 0);
