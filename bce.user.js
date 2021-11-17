@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Bondage Club Enhancements
 // @namespace https://www.bondageprojects.com/
-// @version 0.103
+// @version 0.104
 // @description enhancements for the bondage club
 // @author Sidious
 // @match https://bondageprojects.elementfx.com/*
@@ -14,7 +14,7 @@
 // @run-at document-end
 // ==/UserScript==
 
-window.BCE_VERSION = "0.103";
+window.BCE_VERSION = "0.104";
 
 (async function () {
   "use strict";
@@ -1843,7 +1843,7 @@ window.BCE_VERSION = "0.103";
           return 0;
         }
         return Math.min(
-          lastOrgasmMaxArousal - arousal,
+          Math.max(0, lastOrgasmMaxArousal - arousal),
           (lastOrgasmMaxBoost *
             (lastOrgasmBoostDuration - secondsSinceOrgasm)) /
             lastOrgasmBoostDuration
