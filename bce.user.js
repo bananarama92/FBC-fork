@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Bondage Club Enhancements
 // @namespace https://www.bondageprojects.com/
-// @version 0.104
+// @version 0.105
 // @description enhancements for the bondage club
 // @author Sidious
 // @match https://bondageprojects.elementfx.com/*
@@ -14,7 +14,7 @@
 // @run-at document-end
 // ==/UserScript==
 
-window.BCE_VERSION = "0.104";
+window.BCE_VERSION = "0.105";
 
 (async function () {
   "use strict";
@@ -38,7 +38,7 @@ window.BCE_VERSION = "0.104";
 
   /// SETTINGS LOADING
   let bce_settings = {};
-  const settingsVersion = 6;
+  const settingsVersion = 7;
   const defaultSettings = {
     relogin: {
       label: "Automatic Relogin on Disconnect",
@@ -163,6 +163,13 @@ window.BCE_VERSION = "0.104";
         Player.BCEArousalProgress = Player.ArousalSettings.Progress;
       },
     },
+    ghostNewUsers: {
+      label: "Automatically ghost+blocklist unnaturally new users",
+      value: false,
+      sideEffects: (newValue) => {
+        bce_log(newValue);
+      },
+    },
   };
 
   function settingsLoaded() {
@@ -277,6 +284,7 @@ window.BCE_VERSION = "0.104";
   chatRoomOverlay();
   privateWardrobe();
   antiGarbling();
+  autoGhostBroadcast();
 
   // Post ready when in a chat room
   await waitFor(
@@ -2603,13 +2611,8 @@ window.BCE_VERSION = "0.104";
 
   async function alternateArousal() {
     await waitFor(() => !!ServerSocket && ServerIsConnected);
-    const Direction = {
-      Up: 1,
-      Down: 2,
-    };
     Player.BCEArousalProgress = Player.ArousalSettings.Progress;
     Player.BCEEnjoyment = 1;
-    Player.BCELastDirection = Direction.Up;
     let lastSync = 0;
 
     ServerSocket.on("ChatRoomSyncArousal", (data) => {
@@ -2635,19 +2638,9 @@ window.BCE_VERSION = "0.104";
 
     const bc_ActivityTimerProgress = ActivityTimerProgress;
     ActivityTimerProgress = function (C, progress) {
-      if (progress < 0) {
-        if (C.BCELastDirection === Direction.Up) {
-          C.BCEEnjoyment = 1;
-        }
-        C.BCELastDirection = Direction.Down;
-      } else if (progress > 0) {
-        if (Player.BCELastDirection === Direction.Down) {
-          C.BCEEnjoyment = 1;
-        }
-        C.BCELastDirection = Direction.Up;
-      }
       if (!C.BCEArousalProgress) C.BCEArousalProgress = 0;
-      C.BCEArousalProgress += progress * C.BCEEnjoyment * 0.25;
+      C.BCEArousalProgress +=
+        progress * (progress > 0 ? C.BCEEnjoyment * 0.25 : 1);
       if (C.BCEArousal) {
         C.ArousalSettings.Progress = Math.round(C.BCEArousalProgress);
         bc_ActivityTimerProgress(C, 0);
@@ -2744,10 +2737,45 @@ window.BCE_VERSION = "0.104";
     ActivityVibratorLevel(Character[C], 0);
   }`
           )
+          .replace(
+            /if\s*\(Factor\s*<\s*0\)\s*ActivityTimerProgress\(Character\[C\],\s*-1\);/,
+            `
+            Character[C].BCEEnjoyment = 1;
+            if (Factor < 0) ActivityTimerProgress(Character[C], -1);
+            `
+          )
     );
   }
 
-  async function autoGhostBroadcast() {}
+  async function autoGhostBroadcast() {
+    await waitFor(() => !!ServerSocket && ServerIsConnected);
+    ServerSocket.on("ChatRoomSyncMemberJoin", (data) => {
+      if (
+        bce_settings.ghostNewUsers &&
+        Date.now() - data.Character.Creation < 120000
+      ) {
+        let secondArg = "ChatRoomListUpdate" in window ? true : null;
+        ChatRoomListManipulation(
+          Player.BlackList,
+          secondArg,
+          data.Character.MemberNumber
+        );
+        ChatRoomListManipulation(
+          Player.GhostList,
+          secondArg,
+          data.Character.MemberNumber
+        );
+        bce_log(
+          "Blacklisted",
+          data.Character.Name,
+          data.Character.MemberNumber,
+          "registered",
+          (Date.now() - data.Character.Creation) / 1000,
+          "seconds ago"
+        );
+      }
+    });
+  }
 
   function sleep(ms) {
     return new Promise((resolve) => setTimeout(resolve, ms));
