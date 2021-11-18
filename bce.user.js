@@ -1775,20 +1775,19 @@ window.BCE_VERSION = "0.107";
     ) {
       bc_CharacterSetFacialExpression(C, AssetGroup, Expression, Timer, Color);
       if (C.IsPlayer()) {
+        const duration = Timer ? Timer * 1000 : -1;
         const e = Object.create(null);
         const types = [AssetGroup];
-        if (AssetGroup === "Eyes") {
-          types.push("Eyes2");
-        } else if (AssetGroup === "Eyes1") {
+        if (AssetGroup === "Eyes1") {
           types[0] = "Eyes";
         }
         for (const t of types) {
-          e[t] = [{ Expression: Expression, Duration: -1 }];
+          e[t] = [{ Expression: Expression, Duration: duration }];
         }
         bce_log("ManualExpression", e);
         pushEvent({
           Type: "ManualOverride",
-          Duration: -1,
+          Duration: duration,
           Expression: e,
         });
       }
