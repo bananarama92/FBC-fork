@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Bondage Club Enhancements
 // @namespace https://www.bondageprojects.com/
-// @version 0.106
+// @version 0.107
 // @description enhancements for the bondage club
 // @author Sidious
 // @match https://bondageprojects.elementfx.com/*
@@ -14,7 +14,7 @@
 // @run-at document-end
 // ==/UserScript==
 
-window.BCE_VERSION = "0.106";
+window.BCE_VERSION = "0.107";
 
 (async function () {
   "use strict";
@@ -254,15 +254,7 @@ window.BCE_VERSION = "0.106";
 
   // Expressions init method for custom expressions
   window.bce_initializeDefaultExpression = () => {
-    window.bce_DefaultExpression = {};
-    for (const t of Object.keys(window.bce_ArousalExpressionStages || {})) {
-      bce_DefaultExpression[t] =
-        bce_ArousalExpressionStages[t][
-          bce_ArousalExpressionStages[t].length - 1
-        ].Expression;
-    }
-
-    window.bce_CustomLastExpression = { ...bce_DefaultExpression };
+    /* here to not break customizer script */
   };
 
   /// Init calls
@@ -1732,7 +1724,6 @@ window.BCE_VERSION = "0.106";
           if (!Player.Appearance[i].Property)
             Player.Appearance[i].Property = {};
           Player.Appearance[i].Property.Expression = n;
-          bce_CustomLastExpression[t] = n;
           break;
         }
       }
@@ -1741,9 +1732,6 @@ window.BCE_VERSION = "0.106";
     // Reset
     Player.ArousalSettings.Progress = 0;
     let _PreviousArousal = Player.ArousalSettings;
-    for (const t of Object.keys(bce_CustomLastExpression)) {
-      setExpression(t, bce_CustomLastExpression[t]);
-    }
 
     const ArousalMeterDirection = {
       None: 0,
@@ -1759,19 +1747,11 @@ window.BCE_VERSION = "0.106";
       Action: (args) => {
         if (args.length === 0 || args === "all") {
           bce_ExpressionsQueue.splice(0, bce_ExpressionsQueue.length);
-          for (const t of Object.keys(bce_CustomLastExpression)) {
-            const e = expression(t)?.[0];
-            bce_CustomLastExpression[t] = e;
-          }
           bce_chatNotify("Reset all expressions");
         } else {
           const component = `${args[0].toUpperCase()}${args
             .substr(1)
             .toLowerCase()}`;
-          bce_CustomLastExpression[component] = expression(component)?.[0];
-          if (component === "Eyes") {
-            bce_CustomLastExpression["Eyes2"] = expression("Eyes2")?.[0];
-          }
           for (const e of bce_ExpressionsQueue) {
             if (component === "Eyes" && "Eyes2" in e.Expression) {
               delete e.Expression.Eyes2;
@@ -1784,6 +1764,35 @@ window.BCE_VERSION = "0.106";
         }
       },
     });
+
+    const bc_CharacterSetFacialExpression = CharacterSetFacialExpression;
+    CharacterSetFacialExpression = function (
+      C,
+      AssetGroup,
+      Expression,
+      Timer,
+      Color
+    ) {
+      bc_CharacterSetFacialExpression(C, AssetGroup, Expression, Timer, Color);
+      if (C.IsPlayer()) {
+        const e = Object.create(null);
+        const types = [AssetGroup];
+        if (AssetGroup === "Eyes") {
+          types.push("Eyes2");
+        } else if (AssetGroup === "Eyes1") {
+          types[0] = "Eyes";
+        }
+        for (const t of types) {
+          e[t] = [{ Expression: Expression, Duration: -1 }];
+        }
+        bce_log("ManualExpression", e);
+        pushEvent({
+          Type: "ManualOverride",
+          Duration: -1,
+          Expression: e,
+        });
+      }
+    };
 
     let lastOrgasm = 0;
     let orgasmCount = 0;
@@ -1812,14 +1821,6 @@ window.BCE_VERSION = "0.106";
         }
       }
       if (isDefault) {
-        bce_CustomLastExpression = {
-          Blush: null,
-          Eyebrows: null,
-          Fluids: null,
-          Eyes: null,
-          Eyes2: null,
-          Mouth: null,
-        };
         _PreviousArousal.Progress = 0;
         _PreviousDirection = ArousalMeterDirection.Up;
         bce_ExpressionsQueue.splice(
@@ -1996,54 +1997,40 @@ window.BCE_VERSION = "0.106";
 
       // handle arousal-based expressions
       outer: for (const t of Object.keys(bce_ArousalExpressionStages)) {
-        const [exp, permanent] = expression(t);
-        // only proceed if matches without overriding manual expressions
-        if (exp === bce_CustomLastExpression[t] || isDefault) {
-          let desiredExpression = undefined;
-          for (const face of bce_ArousalExpressionStages[t]) {
-            let limit =
-              face.Limit - (direction === ArousalMeterDirection.Up ? 0 : 1);
-            if (arousal + lastOrgasmAdjustment() >= limit) {
-              if (face.Expression !== exp) {
-                desiredExpression = face.Expression;
-                break;
-              } else {
-                continue outer;
-              }
+        const [exp] = expression(t);
+        let desiredExpression = undefined;
+        for (const face of bce_ArousalExpressionStages[t]) {
+          let limit =
+            face.Limit - (direction === ArousalMeterDirection.Up ? 0 : 1);
+          if (arousal + lastOrgasmAdjustment() >= limit) {
+            if (face.Expression !== exp) {
+              desiredExpression = face.Expression;
+              break;
+            } else {
+              continue outer;
             }
           }
-          if (typeof desiredExpression !== "undefined") {
-            const e = Object.create(null);
-            e[t] = [
-              { Expression: desiredExpression, Duration: -1, Priority: 0 },
-            ];
-            pushEvent({
-              Type: AUTOMATED_AROUSAL_EVENT_TYPE,
-              Duration: -1,
-              Priority: 0,
-              Expression: e,
-            });
-          }
+        }
+        if (typeof desiredExpression !== "undefined") {
+          const e = Object.create(null);
+          e[t] = [{ Expression: desiredExpression, Duration: -1, Priority: 0 }];
+          pushEvent({
+            Type: AUTOMATED_AROUSAL_EVENT_TYPE,
+            Duration: -1,
+            Priority: 0,
+            Expression: e,
+          });
         }
       }
 
       for (const t of Object.keys(nextExpression)) {
-        const [exp, permanent] = expression(t);
+        const [exp] = expression(t);
         const nextExp = nextExpression[t];
         if (
           nextExp.Expression !== exp &&
           typeof nextExp.Expression !== "undefined"
         ) {
           desired[t] = { ...nextExp };
-        }
-        if (exp !== bce_CustomLastExpression[t] && permanent) {
-          const e = Object.create(null);
-          e[t] = [{ Expression: exp, Duration: -1 }];
-          pushEvent({
-            Type: "ManualOverride",
-            Duration: -1,
-            Expression: e,
-          });
         }
       }
 
