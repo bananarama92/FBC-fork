@@ -1717,13 +1717,16 @@ window.BCE_VERSION = "0.107";
       return [properties?.Expression || null, !properties?.RemoveTimer];
     }
 
-    function setExpression(t, n) {
+    function setExpression(t, n, color) {
       if (!n) n = null;
       for (let i = 0; i < Player.Appearance.length; i++) {
         if (Player.Appearance[i].Asset.Group.Name === t) {
           if (!Player.Appearance[i].Property)
             Player.Appearance[i].Property = {};
           Player.Appearance[i].Property.Expression = n;
+          if (color) {
+            Player.Appearance[i].Color = color;
+          }
           break;
         }
       }
@@ -1773,28 +1776,39 @@ window.BCE_VERSION = "0.107";
       Timer,
       Color
     ) {
-      bc_CharacterSetFacialExpression(C, AssetGroup, Expression, Timer, Color);
       if (C.IsPlayer()) {
         const duration = Timer ? Timer * 1000 : -1;
         const e = Object.create(null);
         const types = [AssetGroup];
-        if (AssetGroup === "Eyes1") {
+        if (AssetGroup === "Eyes") types.push("Eyes2");
+        else if (AssetGroup === "Eyes1") {
           types[0] = "Eyes";
         }
         for (const t of types) {
           e[t] = [{ Expression: Expression, Duration: duration }];
         }
         bce_log("ManualExpression", e);
-        pushEvent({
+        const evt = {
           Type: "ManualOverride",
           Duration: duration,
           Expression: e,
-        });
+        };
+        if (Color && CommonColorIsValid(Color)) evt.Color = Color;
+        pushEvent(evt);
+      } else {
+        bc_CharacterSetFacialExpression(
+          C,
+          AssetGroup,
+          Expression,
+          Timer,
+          Color
+        );
       }
     };
 
     let lastOrgasm = 0;
     let orgasmCount = 0;
+    let wasDefault = false;
 
     // this is called once per interval to check for expression changes
     const _CustomArousalExpression = () => {
@@ -1826,9 +1840,12 @@ window.BCE_VERSION = "0.107";
           0,
           bce_ExpressionsQueue.length,
           ...bce_ExpressionsQueue.filter(
-            (e) => e.Type === AUTOMATED_AROUSAL_EVENT_TYPE
+            (e) => wasDefault || e.Type === AUTOMATED_AROUSAL_EVENT_TYPE
           )
         );
+        wasDefault = true;
+      } else {
+        wasDefault = false;
       }
 
       // detect arousal movement
@@ -1903,6 +1920,7 @@ window.BCE_VERSION = "0.107";
             Duration: exp.Duration,
             Priority: priority,
             Automatic: true,
+            Color: exp.Color,
           };
         }
       };
@@ -2035,7 +2053,7 @@ window.BCE_VERSION = "0.107";
 
       if (Object.keys(desired).length > 0) {
         for (const t of Object.keys(desired)) {
-          setExpression(t, desired[t].Expression);
+          setExpression(t, desired[t].Expression, desired[t].Color);
           ServerSend("ChatRoomCharacterExpressionUpdate", {
             Name: desired[t].Expression,
             Group: t,
