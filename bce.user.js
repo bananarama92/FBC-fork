@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Bondage Club Enhancements
 // @namespace https://www.bondageprojects.com/
-// @version 0.107
+// @version 0.108
 // @description enhancements for the bondage club
 // @author Sidious
 // @match https://bondageprojects.elementfx.com/*
@@ -14,7 +14,7 @@
 // @run-at document-end
 // ==/UserScript==
 
-window.BCE_VERSION = "0.107";
+window.BCE_VERSION = "0.108";
 
 (async function () {
   "use strict";
@@ -2414,6 +2414,8 @@ window.BCE_VERSION = "0.107";
         targetCharacter = C;
         TextLoad("Wardrobe");
         WardrobeLoad();
+        // ensure all previews load by refreshing their rendering
+        WardrobeCharacter.forEach((a) => CharacterRefresh(a, false, false));
       } else {
         bc_CharacterAppearanceWardrobeLoad(C);
       }
