@@ -2628,6 +2628,7 @@ window.BCE_VERSION = "0.108";
         ActivitySetArousalTimer.toString().replace(
           "if ((Progress > 0) && (C.ArousalSettings.Progress + Progress > Max)) Progress = (Max - C.ArousalSettings.Progress >= 0) ? Max - C.ArousalSettings.Progress : 0;",
           `
+      if (Max === 100) Max = 101;
       const fromMax = Max - (C.BCEArousal ? C.BCEArousalProgress : C.ArousalSettings.Progress);
       if (Progress > 0 && fromMax < Progress) {
         if (fromMax <= 0) {
@@ -2736,6 +2737,9 @@ window.BCE_VERSION = "0.108";
           ActivityVibratorLevel(Character[C], 2);
         } else {
           ActivityVibratorLevel(Character[C], Math.min(4, Math.floor(Factor)));
+        }
+        if (maxProgress === 100) {
+          maxProgress = 101;
         }
         let maxIncrease = maxProgress - Character[C].ArousalSettings.Progress;
         if (TimerLastArousalProgressCount % stepInterval === 0 && maxIncrease > 0) {
