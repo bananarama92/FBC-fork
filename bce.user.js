@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Bondage Club Enhancements
 // @namespace https://www.bondageprojects.com/
-// @version 0.109
+// @version 0.110
 // @description enhancements for the bondage club
 // @author Sidious
 // @match https://bondageprojects.elementfx.com/*
@@ -14,7 +14,7 @@
 // @run-at document-end
 // ==/UserScript==
 
-window.BCE_VERSION = "0.109";
+window.BCE_VERSION = "0.110";
 
 (async function () {
   "use strict";
@@ -30,6 +30,7 @@ window.BCE_VERSION = "0.109";
   const MESSAGE_TYPES = {
     Hello: "Hello",
   };
+  const BCE_MAX_AROUSAL = 99.75;
 
   if (typeof ChatRoomCharacter === "undefined") {
     console.warn("Bondage Club not detected. Skipping BCE initialization.");
@@ -160,7 +161,10 @@ window.BCE_VERSION = "0.109";
       sideEffects: (newValue) => {
         sendHello();
         Player.BCEArousal = newValue;
-        Player.BCEArousalProgress = Player.ArousalSettings.Progress;
+        Player.BCEArousalProgress = Math.min(
+          BCE_MAX_AROUSAL,
+          Player.ArousalSettings.Progress
+        );
       },
     },
     ghostNewUsers: {
@@ -787,6 +791,7 @@ window.BCE_VERSION = "0.109";
       if (
         [
           "cdn.discordapp.com",
+          "media.discordapp.com",
           "i.imgur.com",
           "c.tenor.com",
           "i.redd.it",
@@ -2609,7 +2614,7 @@ window.BCE_VERSION = "0.109";
 
   async function alternateArousal() {
     await waitFor(() => !!ServerSocket && ServerIsConnected);
-    Player.BCEArousalProgress = Player.ArousalSettings.Progress;
+    Player.BCEArousalProgress = Math.min(BCE_MAX_AROUSAL, Player.ArousalSettings.Progress);
     Player.BCEEnjoyment = 1;
     let lastSync = 0;
     const enjoymentMultiplier = 0.25;
@@ -2620,7 +2625,7 @@ window.BCE_VERSION = "0.109";
         (c) => c.MemberNumber === data.MemberNumber
       );
       if (!target) return;
-      target.BCEArousalProgress = data.Progress || 0;
+      target.BCEArousalProgress = Math.min(BCE_MAX_AROUSAL, data.Progress || 0);
     });
 
     eval(
@@ -2648,7 +2653,7 @@ window.BCE_VERSION = "0.109";
     ActivitySetArousal = function (C, Progress) {
       bc_ActivitySetArousal(C, Progress);
       if (Math.abs(C.BCEArousalProgress - Progress) > 3) {
-        C.BCEArousalProgress = Progress;
+        C.BCEArousalProgress = Math.min(BCE_MAX_AROUSAL, Progress);
       }
     };
 
@@ -2663,6 +2668,7 @@ window.BCE_VERSION = "0.109";
       if (!C.BCEArousalProgress) C.BCEArousalProgress = 0;
       C.BCEArousalProgress +=
         progress * (progress > 0 ? C.BCEEnjoyment * enjoymentMultiplier : 1);
+      C.BCEArousalProgress = Math.min(BCE_MAX_AROUSAL, C.BCEArousalProgress);
       if (C.BCEArousal) {
         C.ArousalSettings.Progress = Math.round(C.BCEArousalProgress);
         bc_ActivityTimerProgress(C, 0);
