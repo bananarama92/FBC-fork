@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Bondage Club Enhancements
 // @namespace https://www.bondageprojects.com/
-// @version 0.110
+// @version 0.111
 // @description enhancements for the bondage club
 // @author Sidious
 // @match https://bondageprojects.elementfx.com/*
@@ -14,7 +14,7 @@
 // @run-at document-end
 // ==/UserScript==
 
-window.BCE_VERSION = "0.110";
+window.BCE_VERSION = "0.111";
 
 (async function () {
   "use strict";
@@ -29,6 +29,7 @@ window.BCE_VERSION = "0.110";
   const BCE_MSG = "BCEMsg";
   const MESSAGE_TYPES = {
     Hello: "Hello",
+    ArousalSync: "ArousalSync",
   };
   const BCE_MAX_AROUSAL = 99.75;
 
@@ -2387,6 +2388,13 @@ window.BCE_VERSION = "0.110";
               sender.BCEArousal = message.alternateArousal || false;
             }
             break;
+          case MESSAGE_TYPES.ArousalSync:
+            if (sender) {
+              sender.BCEArousal = message.alternateArousal || false;
+              sender.BCEArousalProgress = message.progress || 0;
+              sender.BCEEnjoyment = message.enjoyment || 1;
+            }
+            break;
         }
       }
     });
@@ -2614,7 +2622,10 @@ window.BCE_VERSION = "0.110";
 
   async function alternateArousal() {
     await waitFor(() => !!ServerSocket && ServerIsConnected);
-    Player.BCEArousalProgress = Math.min(BCE_MAX_AROUSAL, Player.ArousalSettings.Progress);
+    Player.BCEArousalProgress = Math.min(
+      BCE_MAX_AROUSAL,
+      Player.ArousalSettings.Progress
+    );
     Player.BCEEnjoyment = 1;
     let lastSync = 0;
     const enjoymentMultiplier = 0.25;
@@ -2626,28 +2637,57 @@ window.BCE_VERSION = "0.110";
       );
       if (!target) return;
       target.BCEArousalProgress = Math.min(BCE_MAX_AROUSAL, data.Progress || 0);
+      target.ArousalSettings.Progress = Math.round(target.BCEArousalProgress);
     });
 
     eval(
       "ActivitySetArousalTimer = " +
-        ActivitySetArousalTimer.toString().replace(
-          "if ((Progress > 0) && (C.ArousalSettings.Progress + Progress > Max)) Progress = (Max - C.ArousalSettings.Progress >= 0) ? Max - C.ArousalSettings.Progress : 0;",
-          `
+        ActivitySetArousalTimer.toString()
+          .replace(
+            "if ((Progress > 0) && (C.ArousalSettings.Progress + Progress > Max)) Progress = (Max - C.ArousalSettings.Progress >= 0) ? Max - C.ArousalSettings.Progress : 0;",
+            `
       if (Max === 100) Max = 101;
       const fromMax = Max - (C.BCEArousal ? C.BCEArousalProgress : C.ArousalSettings.Progress);
       if (Progress > 0 && fromMax < Progress) {
         if (fromMax <= 0) {
           Progress = 0;
         } else if (C.BCEArousal) {
-          console.log("capped", fromMax, C.BCEEnjoyment);
+          console.log("capped", Max, "/", fromMax, C.BCEEnjoyment);
           Progress = Math.floor(fromMax / ${enjoymentMultiplier} / C.BCEEnjoyment);
         } else {
           Progress = fromMax;
         }
       }
       `
-        )
+          )
+          .replace(
+            "// If",
+            `
+        Progress = Math.ceil(Progress / 3);
+      // If`
+          )
     );
+
+    const bc_ActivityChatRoomArousalSync = ActivityChatRoomArousalSync;
+    ActivityChatRoomArousalSync = function (C) {
+      if (C.ID == 0 && CurrentScreen == "ChatRoom") {
+        const message = {
+          Type: HIDDEN,
+          Content: BCE_MSG,
+          Dictionary: {
+            message: {
+              type: MESSAGE_TYPES.ArousalSync,
+              version: BCE_VERSION,
+              alternateArousal: bce_settings.alternateArousal,
+              progress: C.BCEArousalProgress,
+              enjoyment: C.BCEEnjoyment,
+            },
+          },
+        };
+        ServerSend("ChatRoomChat", message);
+      }
+      bc_ActivityChatRoomArousalSync(C);
+    };
 
     const bc_ActivitySetArousal = ActivitySetArousal;
     ActivitySetArousal = function (C, Progress) {
