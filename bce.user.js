@@ -296,7 +296,10 @@ window.BCE_VERSION = "0.112";
   await sleep(5000);
   // version check
   bce_log("checking for updates...");
-  fetch("https://sidiousious.gitlab.io/bce/bce.user.js")
+  fetch(
+    "https://sidiousious.gitlab.io/bce/bce.user.js?_=" +
+      ((Date.now() / 1000 / 3600) | 0)
+  )
     .then((r) => r.text())
     .then((r) => {
       const latest = /@version (.*)$/m.exec(r)[1];
