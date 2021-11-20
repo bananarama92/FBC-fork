@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Bondage Club Enhancements
 // @namespace https://www.bondageprojects.com/
-// @version 0.111
+// @version 0.112
 // @description enhancements for the bondage club
 // @author Sidious
 // @match https://bondageprojects.elementfx.com/*
@@ -14,7 +14,7 @@
 // @run-at document-end
 // ==/UserScript==
 
-window.BCE_VERSION = "0.111";
+window.BCE_VERSION = "0.112";
 
 (async function () {
   "use strict";
@@ -292,6 +292,33 @@ window.BCE_VERSION = "0.111";
     Timer: Date.now() + 5000,
     Message: `Bondage Club Enhancements v${BCE_VERSION} Loaded`,
   };
+
+  await sleep(5000);
+  // version check
+  bce_log("checking for updates...");
+  fetch("https://sidiousious.gitlab.io/bce/bce.user.js")
+    .then((r) => r.text())
+    .then((r) => {
+      const latest = /@version (.*)$/m.exec(r)[1];
+      bce_log("latest version:", latest);
+      if (latest !== BCE_VERSION) {
+        // create beep
+        ServerAccountBeep({
+          MemberNumber: Player.MemberNumber,
+          MemberName: "BCE",
+          ChatRoomName: "Update",
+          Private: true,
+          Message: `Your version of BCE is outdated and may not be supported. Please update the script.
+            
+            Your version: ${BCE_VERSION}
+            Latest version: ${latest}`,
+          ChatRoomSpace: "",
+        });
+      }
+    })
+    .catch((e) => {
+      console.error("BCE update checker error:", e);
+    });
 
   async function waitFor(func, cancelFunc = () => false) {
     while (!func()) {
@@ -1782,7 +1809,7 @@ window.BCE_VERSION = "0.111";
       Timer,
       Color
     ) {
-      if (C.IsPlayer()) {
+      if (C.IsPlayer() && bce_settings.expressions) {
         const duration = Timer ? Timer * 1000 : -1;
         const e = Object.create(null);
         const types = [AssetGroup];
