@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Bondage Club Enhancements
 // @namespace https://www.bondageprojects.com/
-// @version 0.114
+// @version 0.115
 // @description enhancements for the bondage club
 // @author Sidious
 // @match https://bondageprojects.elementfx.com/*
@@ -14,7 +14,7 @@
 // @run-at document-end
 // ==/UserScript==
 
-window.BCE_VERSION = "0.114";
+window.BCE_VERSION = "0.115";
 
 (async function () {
   "use strict";
@@ -314,7 +314,11 @@ window.BCE_VERSION = "0.114";
           Message: `Your version of BCE is outdated and may not be supported. Please update the script.
             
             Your version: ${BCE_VERSION}
-            Latest version: ${latest}`,
+            Latest version: ${latest}
+            
+            Changelog available on GitLab (raw) and Discord:
+            - https://gitlab.com/Sidiousious/bce/-/commits/main/
+            - https://discord.gg/aCCWVzXBUj`,
           ChatRoomSpace: "",
         });
       }
@@ -650,14 +654,7 @@ window.BCE_VERSION = "0.114";
     let _breakCircuit = false;
     let relogCheck;
 
-    function relog() {
-      bce_log(
-        bce_settings,
-        _breakCircuit,
-        CurrentScreen,
-        ServerIsConnected,
-        LoginSubmitted
-      );
+    async function relog() {
       if (_breakCircuit || !bce_settings.relogin) return;
       if (Player.AccountName && ServerIsConnected && !LoginSubmitted) {
         if (relogCheck) {
@@ -678,6 +675,8 @@ window.BCE_VERSION = "0.114";
           AccountName: Player.AccountName,
           Password: passwords[Player.AccountName],
         });
+        await waitFor(() => CurrentScreen !== "Relog");
+        await sleep(500);
         ServerAccountBeep({
           MemberNumber: Player.MemberNumber,
           MemberName: "VOID",
