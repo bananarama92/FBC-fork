@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Bondage Club Enhancements
 // @namespace https://www.bondageprojects.com/
-// @version 0.113
+// @version 0.114
 // @description enhancements for the bondage club
 // @author Sidious
 // @match https://bondageprojects.elementfx.com/*
@@ -14,7 +14,7 @@
 // @run-at document-end
 // ==/UserScript==
 
-window.BCE_VERSION = "0.113";
+window.BCE_VERSION = "0.114";
 
 (async function () {
   "use strict";
@@ -2690,12 +2690,7 @@ window.BCE_VERSION = "0.113";
       }
       `
           )
-          .replace(
-            "// If",
-            `
-        Progress = Math.ceil(Progress / 3);
-      // If`
-          )
+          .replace(/\b25\b/g, 20)
     );
 
     const bc_ActivityChatRoomArousalSync = ActivityChatRoomArousalSync;
