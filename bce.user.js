@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Bondage Club Enhancements
 // @namespace https://www.bondageprojects.com/
-// @version 0.112
+// @version 0.113
 // @description enhancements for the bondage club
 // @author Sidious
 // @match https://bondageprojects.elementfx.com/*
@@ -14,7 +14,7 @@
 // @run-at document-end
 // ==/UserScript==
 
-window.BCE_VERSION = "0.112";
+window.BCE_VERSION = "0.113";
 
 (async function () {
   "use strict";
@@ -680,7 +680,7 @@ window.BCE_VERSION = "0.112";
         });
         ServerAccountBeep({
           MemberNumber: Player.MemberNumber,
-          MemberName: Player.Name,
+          MemberName: "VOID",
           ChatRoomName: "VOID",
           Private: true,
           Message: "Reconnected!",
@@ -2676,7 +2676,7 @@ window.BCE_VERSION = "0.112";
           .replace(
             "if ((Progress > 0) && (C.ArousalSettings.Progress + Progress > Max)) Progress = (Max - C.ArousalSettings.Progress >= 0) ? Max - C.ArousalSettings.Progress : 0;",
             `
-      if (Max === 100) Max = 101;
+      if (Max === 100) Max = 105;
       const fromMax = Max - (C.BCEArousal ? C.BCEArousalProgress : C.ArousalSettings.Progress);
       if (Progress > 0 && fromMax < Progress) {
         if (fromMax <= 0) {
@@ -2729,7 +2729,8 @@ window.BCE_VERSION = "0.112";
 
     const bc_ActivitySetArousalTimer = ActivitySetArousalTimer;
     ActivitySetArousalTimer = function (C, A, Z, Factor) {
-      C.BCEEnjoyment = 1 + (Factor > 1 ? 2 * Math.round(Math.log(Factor)) : 0);
+      C.BCEEnjoyment =
+        1 + (Factor > 1 ? Math.round(1.5 * Math.log(Factor)) : 0);
       bc_ActivitySetArousalTimer(C, A, Z, Factor);
     };
 
@@ -2815,12 +2816,12 @@ window.BCE_VERSION = "0.112";
           ActivityVibratorLevel(Character[C], Math.min(4, Math.floor(Factor)));
         }
         if (maxProgress === 100) {
-          maxProgress = 101;
+          maxProgress = 105;
         }
         let maxIncrease = maxProgress - Character[C].ArousalSettings.Progress;
         if (TimerLastArousalProgressCount % stepInterval === 0 && maxIncrease > 0) {
           if (stepInterval === 1) {
-            Character[C].BCEEnjoyment = 1 + (Factor > 1 ? 2*Math.round(Math.log(Factor)) : 0);
+            Character[C].BCEEnjoyment = 1 + (Factor > 1 ? Math.round(1.5*Math.log(Factor)) : 0);
           }
           ActivityTimerProgress(Character[C], 1);
         }
