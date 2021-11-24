@@ -25,7 +25,7 @@ With Tampermonkey you can control when and if you want to update BCE and BCE wil
 
 ## Features
 
-At a glance:
+At a glance, **everything is entirely optional**:
 
 - Improved automatic facial expressions that play nice with manual control
 - Automatic relogin after disconnect
@@ -36,7 +36,8 @@ At a glance:
 - Full wardrobe in chatrooms (preview before saving/loading).
 - Anti-garble for gagspeak and deafening
 - Anti-anti-garble for your own speech: prevent others from understanding you with anti-garbling solutions while gagged
-- Optional alternative arousal calculations
+- Alternative arousal calculations
+- Blur vision when not wearing glasses
 
 ### Automatic relogin
 
