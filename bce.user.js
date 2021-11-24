@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Bondage Club Enhancements
 // @namespace https://www.bondageprojects.com/
-// @version 0.117
+// @version 0.118
 // @description enhancements for the bondage club
 // @author Sidious
 // @match https://bondageprojects.elementfx.com/*
@@ -14,7 +14,7 @@
 // @run-at document-end
 // ==/UserScript==
 
-window.BCE_VERSION = "0.117";
+window.BCE_VERSION = "0.118";
 
 (async function () {
   "use strict";
@@ -32,6 +32,8 @@ window.BCE_VERSION = "0.117";
     ArousalSync: "ArousalSync",
   };
   const BCE_MAX_AROUSAL = 99.75;
+  const GLASSES_BLUR_TARGET = document.getElementById("MainCanvas");
+  const GLASSES_BLIND_CLASS = "bce-blind";
 
   if (typeof ChatRoomCharacter === "undefined") {
     console.warn("Bondage Club not detected. Skipping BCE initialization.");
@@ -180,7 +182,7 @@ window.BCE_VERSION = "0.117";
       value: false,
       sideEffects: (newValue) => {
         if (!newValue) {
-          document.body.classList.remove("bce-blind");
+          GLASSES_BLUR_TARGET.classList.remove(GLASSES_BLIND_CLASS);
         }
       },
     },
@@ -2888,8 +2890,6 @@ window.BCE_VERSION = "0.117";
 
   async function blindWithoutGlasses() {
     await waitFor(() => !!Player && Player.Appearance);
-    const blurTarget = document.body;
-    const blindClass = "bce-blind";
 
     setInterval(() => {
       if (!bce_settings.blindWithoutGlasses) return;
@@ -2897,11 +2897,17 @@ window.BCE_VERSION = "0.117";
       const hasGlasses = !!Player.Appearance.find(
         (a) => a.Asset.Group.Name == "Glasses"
       );
-      if (hasGlasses && blurTarget.classList.contains(blindClass)) {
-        blurTarget.classList.remove(blindClass);
+      if (
+        hasGlasses &&
+        GLASSES_BLUR_TARGET.classList.contains(GLASSES_BLIND_CLASS)
+      ) {
+        GLASSES_BLUR_TARGET.classList.remove(GLASSES_BLIND_CLASS);
         bce_chatNotify("Having recovered your glasses you can see again!");
-      } else if (!hasGlasses && !blurTarget.classList.contains(blindClass)) {
-        blurTarget.classList.add(blindClass);
+      } else if (
+        !hasGlasses &&
+        !GLASSES_BLUR_TARGET.classList.contains(GLASSES_BLIND_CLASS)
+      ) {
+        GLASSES_BLUR_TARGET.classList.add(GLASSES_BLIND_CLASS);
         bce_chatNotify("Having lost your glasses your eyesight is impaired!");
       }
     }, 1000);
