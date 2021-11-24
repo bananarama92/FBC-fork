@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Bondage Club Enhancements
 // @namespace https://www.bondageprojects.com/
-// @version 0.116
+// @version 0.117
 // @description enhancements for the bondage club
 // @author Sidious
 // @match https://bondageprojects.elementfx.com/*
@@ -14,7 +14,7 @@
 // @run-at document-end
 // ==/UserScript==
 
-window.BCE_VERSION = "0.116";
+window.BCE_VERSION = "0.117";
 
 (async function () {
   "use strict";
@@ -179,7 +179,9 @@ window.BCE_VERSION = "0.116";
       label: "Require glasses to see",
       value: false,
       sideEffects: (newValue) => {
-        bce_log(newValue);
+        if (!newValue) {
+          document.body.classList.remove("bce-blind");
+        }
       },
     },
   };
