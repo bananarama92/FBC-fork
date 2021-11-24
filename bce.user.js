@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Bondage Club Enhancements
 // @namespace https://www.bondageprojects.com/
-// @version 0.115
+// @version 0.116
 // @description enhancements for the bondage club
 // @author Sidious
 // @match https://bondageprojects.elementfx.com/*
@@ -14,7 +14,7 @@
 // @run-at document-end
 // ==/UserScript==
 
-window.BCE_VERSION = "0.115";
+window.BCE_VERSION = "0.116";
 
 (async function () {
   "use strict";
@@ -40,7 +40,7 @@ window.BCE_VERSION = "0.115";
 
   /// SETTINGS LOADING
   let bce_settings = {};
-  const settingsVersion = 7;
+  const settingsVersion = 8;
   const defaultSettings = {
     relogin: {
       label: "Automatic Relogin on Disconnect",
@@ -175,6 +175,13 @@ window.BCE_VERSION = "0.115";
         bce_log(newValue);
       },
     },
+    blindWithoutGlasses: {
+      label: "Require glasses to see",
+      value: false,
+      sideEffects: (newValue) => {
+        bce_log(newValue);
+      },
+    },
   };
 
   function settingsLoaded() {
@@ -282,6 +289,7 @@ window.BCE_VERSION = "0.115";
   privateWardrobe();
   antiGarbling();
   autoGhostBroadcast();
+  blindWithoutGlasses();
 
   // Post ready when in a chat room
   await waitFor(
@@ -751,6 +759,9 @@ window.BCE_VERSION = "0.115";
     #TextAreaChatLog[data-colortheme="dark"] a:visited,
     #TextAreaChatLog[data-colortheme="dark2"] a:visited {
       color: #6a3dff;
+    }
+    .bce-blind {
+      filter: blur(0.24vw);
     }
     `;
     const head = document.head || document.getElementsByTagName("head")[0];
@@ -2871,6 +2882,27 @@ window.BCE_VERSION = "0.115";
         );
       }
     });
+  }
+
+  async function blindWithoutGlasses() {
+    await waitFor(() => !!Player && Player.Appearance);
+    const blurTarget = document.body;
+    const blindClass = "bce-blind";
+
+    setInterval(() => {
+      if (!bce_settings.blindWithoutGlasses) return;
+
+      const hasGlasses = !!Player.Appearance.find(
+        (a) => a.Asset.Group.Name == "Glasses"
+      );
+      if (hasGlasses && blurTarget.classList.contains(blindClass)) {
+        blurTarget.classList.remove(blindClass);
+        bce_chatNotify("Having recovered your glasses you can see again!");
+      } else if (!hasGlasses && !blurTarget.classList.contains(blindClass)) {
+        blurTarget.classList.add(blindClass);
+        bce_chatNotify("Having lost your glasses your eyesight is impaired!");
+      }
+    }, 1000);
   }
 
   function sleep(ms) {
