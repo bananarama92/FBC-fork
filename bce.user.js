@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Bondage Club Enhancements
 // @namespace https://www.bondageprojects.com/
-// @version 0.119
+// @version 0.120
 // @description enhancements for the bondage club
 // @author Sidious
 // @match https://bondageprojects.elementfx.com/*
@@ -14,7 +14,7 @@
 // @run-at document-end
 // ==/UserScript==
 
-window.BCE_VERSION = "0.119";
+window.BCE_VERSION = "0.120";
 
 (async function () {
   "use strict";
@@ -1201,7 +1201,7 @@ window.BCE_VERSION = "0.119";
           Type: "Blush",
           Duration: 10000,
           Expression: {
-            Blush: [{ ExpressionModifier: 2, Duration: 10000 }],
+            Blush: [{ ExpressionModifier: 1, Duration: 10000 }],
           },
         },
         Choke: {
@@ -1251,7 +1251,12 @@ window.BCE_VERSION = "0.119";
           Duration: 15000,
           Priority: 1000,
           Expression: {
-            Blush: [{ ExpressionModifier: 5, Duration: 15000 }],
+            Blush: [
+              { ExpressionModifier: 5, Duration: 10000 },
+              { ExpressionModifier: -1, Duration: 2000 },
+              { ExpressionModifier: -1, Duration: 2000 },
+              { ExpressionModifier: -1, Duration: 1000 },
+            ],
             Eyes: [
               { Expression: "Dizzy", Duration: 1000 },
               { Expression: "Scared", Duration: 8000 },
@@ -1263,7 +1268,28 @@ window.BCE_VERSION = "0.119";
               { Expression: "Surprised", Duration: 7000 },
             ],
             Eyebrows: [{ Expression: "Soft", Duration: 15000 }],
-            Mouth: [{ Expression: "Pained", Duration: 15000 }],
+            Mouth: [
+              { Expression: "Pained", Duration: 10000 },
+              { Expression: "Angry", Duration: 5000 },
+            ],
+          },
+        },
+        ShockLight: {
+          Type: "ShockLight",
+          Duration: 5000,
+          Priority: 900,
+          Expression: {
+            Blush: [{ ExpressionModifier: 2, Duration: 5000 }],
+            Eyes: [
+              { Expression: "Dizzy", Duration: 2000 },
+              { Expression: "Surprised", Duration: 3000 },
+            ],
+            Eyes2: [
+              { Expression: "Dizzy", Duration: 2000 },
+              { Expression: "Surprised", Duration: 3000 },
+            ],
+            Eyebrows: [{ Expression: "Soft", Duration: 5000 }],
+            Mouth: [{ Expression: "Angry", Duration: 5000 }],
           },
         },
         Hit: {
@@ -1531,234 +1557,471 @@ window.BCE_VERSION = "0.119";
       };
     }
 
-    if (!window.bce_ChatTriggers) {
-      window.bce_ChatTriggers = [
+    if (!window.bce_ActivityTriggers) {
+      window.bce_ActivityTriggers = [
         {
-          Trigger: new RegExp(
-            `(${Player.Name} blushes|^\\(.*?gives a friendly kiss on ${Player.Name}'s cheek')`
-          ),
           Event: "Blush",
+          Type: "Activity",
+          Matchers: [
+            {
+              Tester: /^ChatOther-ItemMouth-PoliteKiss$/,
+            },
+          ],
         },
         {
-          Trigger: new RegExp(`${Player.Name} chuckles`),
+          Event: "Blush",
+          Type: "Emote",
+          Matchers: [
+            {
+              Tester: /^blushes/,
+            },
+          ],
+        },
+        {
           Event: "Chuckle",
+          Type: "Emote",
+          Matchers: [
+            {
+              Tester: /^chuckles/,
+            },
+          ],
         },
         {
-          Trigger: new RegExp(`${Player.Name} smiles`),
-          Event: "Smile",
-        },
-        {
-          Trigger: new RegExp(`${Player.Name} laughs`),
           Event: "Laugh",
+          Type: "Emote",
+          Matchers: [
+            {
+              Tester: /^laughs/,
+            },
+          ],
         },
         {
-          Trigger: new RegExp(`${Player.Name} giggles`),
           Event: "Giggle",
+          Type: "Emote",
+          Matchers: [
+            {
+              Tester: /^giggles/,
+            },
+          ],
         },
         {
-          Trigger: new RegExp(`${Player.Name} (smirk(s|ing)|.*with a smirk)`),
           Event: "Smirk",
+          Type: "Emote",
+          Matchers: [
+            {
+              Tester: /^(smirk(s|ing)|.*with a smirk)/,
+            },
+          ],
         },
         {
-          Trigger: new RegExp(`${Player.Name} winks`),
           Event: "Wink",
+          Type: "Emote",
+          Matchers: [
+            {
+              Tester: /^winks/,
+            },
+          ],
         },
         {
-          Trigger: new RegExp(`${Player.Name} pouts`),
           Event: "Pout",
+          Type: "Emote",
+          Matchers: [
+            {
+              Tester: /^pouts/,
+            },
+          ],
         },
         {
-          Trigger: new RegExp(`${Player.Name} blinks`),
           Event: "Blink",
+          Type: "Emote",
+          Matchers: [
+            {
+              Tester: /^blinks/,
+            },
+          ],
         },
         {
-          Trigger: new RegExp(`(${Player.Name} (grins|is grinning))`),
           Event: "Grin",
+          Type: "Emote",
+          Matchers: [
+            {
+              Tester: /^(grins|is grinning)/,
+            },
+          ],
         },
         {
-          Trigger: new RegExp(
-            `${Player.Name} ((seems|looks) (confused|curious|suspicious)|raises an eyebrow)`
-          ),
           Event: "Confused",
+          Type: "Emote",
+          Matchers: [
+            {
+              Tester:
+                /^((seems|looks) (confused|curious|suspicious)|raises an eyebrow)/,
+            },
+          ],
         },
         {
-          Trigger: new RegExp(
-            `^\\((${Player.Name}'s.*?(lets out a sharp jolt|delivers an intense shock|gives her a light shock|gives? her.*?shock|shocks her(self)?\\b)|.*?(shocks ${Player.Name}('s)?.*? with a ))`
-          ),
-          Event: "Shock",
-        },
-        {
-          Trigger: new RegExp(
-            `^\\((${Player.Name} hits her(self)?\\b|.*?hits ${Player.Name}('s?)).*? with a`
-          ),
-          Event: "Hit",
-        },
-        {
-          Trigger: new RegExp(
-            `^\\((${Player.Name} spanks her(self)?\\b|.*?(spanks ${Player.Name}))`
-          ),
-          Event: "Spank",
-        },
-        {
-          Trigger: new RegExp(
-            `^\\((.*?cuddles with ${Player.Name}|${Player.Name} cuddles with)`
-          ),
-          Event: "Cuddle",
-        },
-        {
-          Trigger: new RegExp(
-            `^\\(.*?(holds a .*? against ${Player.Name}('s)? |crotch rope rubs against your|rope between your legs digs|dildo shift around inside( of)? you|large plug stuffed between your legs|dildo inside of you teases you|plug inside of you( shifts|r)|plug stimulates you|plugs (keep reminding|torment) you)`
-          ),
-          Event: "Stimulated",
-        },
-        {
-          Trigger: new RegExp(
-            `^\\(.*?(Your jaw aches from the gag shoved down your throat|It is difficult to breath with the gag pushing inside your throat|You choke momentarily on the gag inside your throat)`
-          ),
-          Event: "Choke",
-        },
-        {
-          Trigger: new RegExp(
-            `^\\((.*?kisses ${Player.Name}'s lips|${Player.Name} kisses .*?'s lips)`
-          ),
-          Event: "KissOnLips",
-        },
-        {
-          Trigger: new RegExp(
-            `^\\((.*?shares a long French kiss with ${Player.Name}|${Player.Name} shares a long French kiss with )`
-          ),
-          Event: "LongKiss",
-        },
-        {
-          Trigger: new RegExp(`^\\((${Player.Name} kisses .*?'s .*?)`),
-          Event: "Kiss",
-        },
-        {
-          Trigger: new RegExp(`^\\(${Player.Name}.*?loses her balance`),
-          Event: "Disoriented",
-        },
-        {
-          Trigger: new RegExp(
-            `^\\(.*?(masturbates|penetrates) ${Player.Name}'s`
-          ),
-          Event: "StimulatedLong",
-        },
-        {
-          Trigger: new RegExp(`^.${Player.Name} bites her( lower)? lip`),
-          Event: "LipBite",
-        },
-        {
-          Trigger: new RegExp(`^.${Player.Name} licks (?!her lips)`),
-          Event: "Lick",
-        },
-        {
-          Trigger: new RegExp(`^.${Player.Name} frowns`),
-          Event: "Frown",
-        },
-        {
-          Trigger: new RegExp(`^.${Player.Name} closes her mouth`),
           Event: "CloseMouth",
+          Type: "Emote",
+          Matchers: [
+            {
+              Tester: /^closes her mouth/,
+            },
+          ],
         },
         {
-          Trigger: new RegExp(`^.${Player.Name} opens her mouth`),
           Event: "OpenMouth",
+          Type: "Emote",
+          Matchers: [
+            {
+              Tester: /^opens her mouth/,
+            },
+          ],
         },
         {
-          Trigger: new RegExp(`^.${Player.Name} (looks|seems|is|gets) happy`),
           Event: "Happy",
+          Type: "Emote",
+          Matchers: [
+            {
+              Tester: /^(looks|seems|is|gets|smiles) happ(il)?y/,
+            },
+          ],
         },
         {
-          Trigger: new RegExp(
-            `^.${Player.Name} (looks|seems|is|gets) distressed`
-          ),
+          Event: "Smile",
+          Type: "Emote",
+          Matchers: [
+            {
+              Tester: /^smiles/,
+            },
+          ],
+        },
+        {
           Event: "Distressed",
+          Type: "Emote",
+          Matchers: [
+            {
+              Tester: /^(looks|seems|is|gets) distressed/,
+            },
+          ],
         },
         {
-          Trigger: new RegExp(`^.${Player.Name} (looks|seems|is|gets) sad`),
           Event: "Sad",
+          Type: "Emote",
+          Matchers: [
+            {
+              Tester: /^(looks|seems|is|gets) sad/,
+            },
+          ],
         },
         {
-          Trigger: new RegExp(
-            `^.${Player.Name} (looks|seems|is|gets) surprised`
-          ),
           Event: "Worried",
+          Type: "Emote",
+          Matchers: [
+            {
+              Tester: /^(looks|seems|is|gets) (worried|surprised)/,
+            },
+          ],
         },
         {
-          Trigger: new RegExp(`^.${Player.Name} (looks|seems|is|gets) worried`),
-          Event: "Worried",
-        },
-        {
-          Trigger: new RegExp(`^.${Player.Name} (bares her teeth|snarls)`),
           Event: "BareTeeth",
+          Type: "Emote",
+          Matchers: [
+            {
+              Tester: /^(bares her teeth|snarls)/,
+            },
+          ],
         },
         {
-          Trigger: new RegExp(
-            `^.${Player.Name} (looks angr(il)?y|(gets|is|seems) angry)`
-          ),
           Event: "Angry",
+          Type: "Emote",
+          Matchers: [
+            {
+              Tester: /^(looks angr(il)?y|(gets|is|seems) angry)/,
+            },
+          ],
         },
         {
-          Trigger: new RegExp(
-            `^.${Player.Name} (glares|looks harshly|gives a (glare|harsh look))`
-          ),
           Event: "Glare",
+          Type: "Emote",
+          Matchers: [
+            {
+              Tester: /^(glares|looks harshly|gives a (glare|harsh look))/,
+            },
+          ],
         },
         {
-          Trigger: new RegExp(`^.${Player.Name} opens her eyes`),
           Event: "OpenEyes",
+          Type: "Emote",
+          Matchers: [
+            {
+              Tester: /^opens her eyes/,
+            },
+          ],
         },
         {
-          Trigger: new RegExp(
-            `^.${Player.Name} ((squints|narrows) her eyes|narrowly opens her eyes)`
-          ),
           Event: "NarrowEyes",
+          Type: "Emote",
+          Matchers: [
+            {
+              Tester: /^((squints|narrows) her eyes|narrowly opens her eyes)/,
+            },
+          ],
         },
         {
-          Trigger: new RegExp(`^\\*${Player.Name} closes her eyes`),
           Event: "CloseEyes",
+          Type: "Emote",
+          Matchers: [
+            {
+              Tester: /^closes her eyes/,
+            },
+          ],
         },
         {
-          Trigger: new RegExp(`^.${Player.Name} lowers her eyebrows`),
           Event: "ResetBrows",
+          Type: "Emote",
+          Matchers: [
+            {
+              Tester: /^lowers her eyebrows/,
+            },
+          ],
         },
         {
-          Trigger: new RegExp(`^.${Player.Name} raises her eyebrows`),
           Event: "RaiseBrows",
+          Type: "Emote",
+          Matchers: [
+            {
+              Tester: /^raises her eyebrows/,
+            },
+          ],
         },
         {
-          Trigger: new RegExp(`^\\(${Player.Name}'s gag (in|de)flates`),
-          Event: "GagInflate",
-        },
-        {
-          Trigger: new RegExp(
-            `^\\(.*? rubs ${Player.Name}'s .*? with a ice cube`
-          ),
-          Event: "Iced",
-        },
-        {
-          Trigger: new RegExp(`^.${Player.Name} drools`),
           Event: "DroolSides",
+          Type: "Emote",
+          Matchers: [
+            {
+              Tester: /^drools/,
+            },
+          ],
         },
         {
-          Trigger: new RegExp(
-            `((${Player.Name} rubs her|rubs ${Player.Name}'s) (head|nose|mouth) with a towel|cleans ${Player.Name}'s mouth|${Player.Name} (licks her lips|caresses and wipes her mouth clean))`
-          ),
-          Event: "DroolReset",
-        },
-        {
-          Trigger: new RegExp(
-            `^.${Player.Name} (starts to cry|sheds .* tears|eyes( start)? leak)`
-          ),
           Event: "Cry",
+          Type: "Emote",
+          Matchers: [
+            {
+              Tester:
+                /^(starts to cry|sheds .* tears?|eyes( start( to)?)? leak)/,
+            },
+          ],
         },
         {
-          Trigger: new RegExp(
-            `^.${Player.Name}'s (expression|face) returns to normal`
-          ),
           Event: "Reset",
+          Type: "Emote",
+          Matchers: [
+            {
+              Tester: /^'s (expression|face) returns to normal/,
+            },
+          ],
+        },
+        {
+          Event: "Shock",
+          Type: "Action",
+          Matchers: [
+            {
+              Tester:
+                /^(ActionActivityShockItem|FuturisticVibratorShockTrigger|FuturisticChastityBeltShock\w+|(TriggerShock|(ShockCollar|Collar(Auto)?ShockUnit|(LoveChastityBelt|SciFiPleasurePanties)Shock)Trigger)(1|2))$/,
+            },
+          ],
+        },
+        {
+          Event: "ShockLight",
+          Type: "Action",
+          Matchers: [
+            {
+              Tester:
+                /^(TriggerShock|(ShockCollar|Collar(Auto)?ShockUnit|(LoveChastityBelt|SciFiPleasurePanties)Shock)Trigger)0$/,
+            },
+          ],
+        },
+        {
+          Event: "Hit",
+          Type: "Action",
+          Matchers: [
+            {
+              Tester: /^ActionActivitySpankItem$/,
+            },
+          ],
+        },
+        {
+          Event: "Spank",
+          Type: "Activity",
+          Matchers: [
+            {
+              Tester: /^ChatOther-ItemButt-Spank$/,
+              Criteria: {
+                TargetIsPlayer: true,
+              },
+            },
+            {
+              Tester: /^ChatSelf-ItemButt-Spank$/,
+            },
+          ],
+        },
+        {
+          Event: "Cuddle",
+          Type: "Activity",
+          Matchers: [
+            {
+              Tester: /^ChatOther-.*-Cuddle$/,
+            },
+            {
+              Tester: /^ChatSelf-.*-Cuddle$/,
+            },
+          ],
+        },
+        {
+          Event: "Stimulated",
+          Type: "Action",
+          Matchers: [
+            {
+              Tester: /^ActionActivityMasturbateItem$/,
+              Criteria: {
+                TargetIsPlayer: true,
+              },
+            },
+          ],
+        },
+        {
+          Event: "StimulatedLong",
+          Type: "Activity",
+          Matchers: [
+            {
+              Tester: /^ChatOther-.*-(Masturbate|Penetrate).*$/,
+              Criteria: {
+                TargetIsPlayer: true,
+              },
+            },
+            {
+              Tester: /^ChatSelf-.*-(Masturbate|Penetrate).*$/,
+            },
+          ],
+        },
+        {
+          Event: "KissOnLips",
+          Type: "Activity",
+          Matchers: [
+            {
+              Tester: /^ChatOther-ItemMouth-Kiss$/,
+            },
+          ],
+        },
+        {
+          Event: "Kiss",
+          Type: "Activity",
+          Matchers: [
+            {
+              Tester: /^ChatOther-.*-Kiss$/,
+              Criteria: {
+                SenderIsPlayer: true,
+              },
+            },
+          ],
+        },
+        {
+          Event: "Disoriented",
+          Type: "Action",
+          Matchers: [
+            {
+              Tester: /^(KneelDown|StandUp)Fail$/,
+            },
+          ],
+        },
+        {
+          Event: "LipBite",
+          Type: "Activity",
+          Matchers: [
+            {
+              Tester: /^ChatSelf-ItemMouth-Bite$/,
+            },
+          ],
+        },
+        {
+          Event: "Lick",
+          Type: "Activity",
+          Matchers: [
+            {
+              Tester: /^ChatOther-.*-(Lick|MasturbateTongue)$/,
+              Criteria: {
+                SenderIsPlayer: true,
+              },
+            },
+          ],
+        },
+        {
+          Event: "DroolReset",
+          Type: "Activity",
+          Matchers: [
+            {
+              Tester: /^ChatOther-ItemMouth-Caress$/,
+              Criteria: {
+                TargetIsPlayer: true,
+              },
+            },
+            {
+              Tester: /^ChatSelf-ItemMouth-Caress$/,
+            },
+          ],
         },
       ];
     }
+
+    ServerSocket.on("ChatRoomMessage", (data) => {
+      console.log(data);
+      activityTriggers: for (const trigger of window.bce_ActivityTriggers.filter(
+        (t) => t.Type === data.Type
+      )) {
+        for (const matcher of trigger.Matchers) {
+          if (matcher.Tester.test(data.Content)) {
+            if (matcher.Criteria) {
+              if (
+                matcher.Criteria.SenderIsPlayer &&
+                data.Sender != Player.MemberNumber
+              ) {
+                continue;
+              } else if (
+                matcher.Criteria.TargetIsPlayer &&
+                data.Dictionary?.find((t) =>
+                  /^(Target|Destination)Character(Name)?$/.test(t.Tag)
+                )?.MemberNumber != Player.MemberNumber
+              ) {
+                continue;
+              } else if (
+                matcher.Criteria.DictionaryMatchers &&
+                !matcher.Criteria.DictionaryMatchers.some((m) =>
+                  data.Dictionary?.find(
+                    (t) => !Object.keys(m).some((k) => m[k] != t[k])
+                  )
+                )
+              ) {
+                continue;
+              }
+              // criteria met
+              pushEvent(bce_EventExpressions[trigger.Event]);
+            } else if (
+              data.Sender == Player.MemberNumber ||
+              data.Dictionary?.some(
+                (t) =>
+                  /^(Target|Destination)Character(Name)?$/.test(t.Tag) &&
+                  t.MemberNumber == Player.MemberNumber
+              )
+            ) {
+              // lacking criteria, check for presence of player as source or target
+              pushEvent(bce_EventExpressions[trigger.Event]);
+              break activityTriggers;
+            }
+          }
+        }
+      }
+    });
 
     function expression(t) {
       const properties = Player.Appearance.filter(
@@ -1934,27 +2197,6 @@ window.BCE_VERSION = "0.119";
       ) {
         pushEvent(bce_EventExpressions.PostOrgasm);
         lastOrgasm = Date.now();
-      }
-
-      // handle chat events
-      const handledAttributeName = "data-expression-handled";
-      const unhandledChat = document.querySelectorAll(
-        `.ChatMessage:not([${handledAttributeName}=true])`
-      );
-      for (const chatMessageElement of unhandledChat) {
-        chatMessageElement.setAttribute(handledAttributeName, "true");
-        if (
-          chatMessageElement.classList.contains("ChatMessageActivity") ||
-          chatMessageElement.classList.contains("ChatMessageEmote") ||
-          chatMessageElement.classList.contains("ChatMessageAction")
-        ) {
-          const contents = chatMessageElement.textContent.trim();
-          for (const trigger of bce_ChatTriggers) {
-            if (trigger.Trigger.test(contents)) {
-              pushEvent(bce_EventExpressions[trigger.Event]);
-            }
-          }
-        }
       }
 
       // keep track of desired changes
