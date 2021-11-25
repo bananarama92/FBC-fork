@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Bondage Club Enhancements
 // @namespace https://www.bondageprojects.com/
-// @version 0.121
+// @version 0.122
 // @description enhancements for the bondage club
 // @author Sidious
 // @match https://bondageprojects.elementfx.com/*
@@ -14,7 +14,7 @@
 // @run-at document-end
 // ==/UserScript==
 
-window.BCE_VERSION = "0.121";
+window.BCE_VERSION = "0.122";
 
 (async function () {
   "use strict";
@@ -1848,6 +1848,9 @@ window.BCE_VERSION = "0.121";
           Matchers: [
             {
               Tester: /^ActionActivitySpankItem$/,
+              Criteria: {
+                TargetIsPlayer: true,
+              },
             },
           ],
         },
