@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Bondage Club Enhancements
 // @namespace https://www.bondageprojects.com/
-// @version 0.120
+// @version 0.121
 // @description enhancements for the bondage club
 // @author Sidious
 // @match https://bondageprojects.elementfx.com/*
@@ -14,7 +14,7 @@
 // @run-at document-end
 // ==/UserScript==
 
-window.BCE_VERSION = "0.120";
+window.BCE_VERSION = "0.121";
 
 (async function () {
   "use strict";
@@ -1971,11 +1971,19 @@ window.BCE_VERSION = "0.120";
             },
           ],
         },
+        {
+          Event: "LongKiss",
+          Type: "Activity",
+          Matchers: [
+            {
+              Tester: /^ChatOther-ItemMouth-FrenchKiss$/,
+            },
+          ],
+        },
       ];
     }
 
     ServerSocket.on("ChatRoomMessage", (data) => {
-      console.log(data);
       activityTriggers: for (const trigger of window.bce_ActivityTriggers.filter(
         (t) => t.Type === data.Type
       )) {
