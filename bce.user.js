@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Bondage Club Enhancements
 // @namespace https://www.bondageprojects.com/
-// @version 0.122
+// @version 0.123
 // @description enhancements for the bondage club
 // @author Sidious
 // @match https://bondageprojects.elementfx.com/*
@@ -14,7 +14,7 @@
 // @run-at document-end
 // ==/UserScript==
 
-window.BCE_VERSION = "0.122";
+window.BCE_VERSION = "0.123";
 
 (async function () {
   "use strict";
@@ -1829,6 +1829,9 @@ window.BCE_VERSION = "0.122";
             {
               Tester:
                 /^(ActionActivityShockItem|FuturisticVibratorShockTrigger|FuturisticChastityBeltShock\w+|(TriggerShock|(ShockCollar|Collar(Auto)?ShockUnit|(LoveChastityBelt|SciFiPleasurePanties)Shock)Trigger)(1|2))$/,
+              Criteria: {
+                TargetIsPlayer: true,
+              },
             },
           ],
         },
