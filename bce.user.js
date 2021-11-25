@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Bondage Club Enhancements
 // @namespace https://www.bondageprojects.com/
-// @version 0.118
+// @version 0.119
 // @description enhancements for the bondage club
 // @author Sidious
 // @match https://bondageprojects.elementfx.com/*
@@ -14,7 +14,7 @@
 // @run-at document-end
 // ==/UserScript==
 
-window.BCE_VERSION = "0.118";
+window.BCE_VERSION = "0.119";
 
 (async function () {
   "use strict";
@@ -2539,10 +2539,10 @@ window.BCE_VERSION = "0.118";
         GAGBYPASSINDICATOR,
         ""
       );
-      if (CD.trim().endsWith(GAGBYPASSINDICATOR)) {
+      if (CD?.trim().endsWith(GAGBYPASSINDICATOR)) {
         return CD.replace(/[\uE000-\uF8FF]/g, "");
       } else if (bce_settings.gagspeak) {
-        return garbled.toLowerCase() === CD.toLowerCase()
+        return garbled.toLowerCase() === CD?.toLowerCase()
           ? garbled
           : `${garbled} (${CD})`;
       }
@@ -2559,7 +2559,7 @@ window.BCE_VERSION = "0.118";
               bc_SpeechGarbleByGagLevel(1, data.Content) + GAGBYPASSINDICATOR;
           } else if (bce_settings.antiAntiGarbleStrong) {
             data.Content =
-              bc_SpeechGarbleByGagLevel(gagLevel, data.Content, true) +
+              bc_SpeechGarbleByGagLevel(gagLevel, data.Content) +
               GAGBYPASSINDICATOR;
           }
         }
