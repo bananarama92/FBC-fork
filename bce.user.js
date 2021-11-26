@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Bondage Club Enhancements
 // @namespace https://www.bondageprojects.com/
-// @version 0.123
+// @version 0.124
 // @description enhancements for the bondage club
 // @author Sidious
 // @match https://bondageprojects.elementfx.com/*
@@ -14,7 +14,7 @@
 // @run-at document-end
 // ==/UserScript==
 
-window.BCE_VERSION = "0.123";
+window.BCE_VERSION = "0.124";
 
 (async function () {
   "use strict";
@@ -2837,7 +2837,8 @@ window.BCE_VERSION = "0.123";
     };
 
     // X, Y, width, height. X and Y centered.
-    const gagAntiCheatMenuPosition = [1700, 908, 200, 90];
+    const gagAntiCheatMenuPosition = [1700, 908, 200, 45];
+    const gagCheatMenuPosition = [1700, 908 + 45, 200, 45];
 
     const bc_ChatRoomRun = ChatRoomRun;
     ChatRoomRun = function () {
@@ -2876,44 +2877,51 @@ window.BCE_VERSION = "0.123";
         next,
         previous
       );
+
+      const gagCheatMenuParams = bce_settings.gagspeak
+        ? ["Understand: Yes", "green", "", () => "No", () => "No"]
+        : ["Understand: No", "white", "", () => "Yes", () => "Yes"];
+      DrawBackNextButton(...gagCheatMenuPosition, ...gagCheatMenuParams);
     };
 
     const bc_ChatRoomClick = ChatRoomClick;
     ChatRoomClick = function () {
-      if (
-        bce_settings.showQuickAntiGarble &&
-        MouseIn(...gagAntiCheatMenuPosition)
-      ) {
-        const disableBoth = () => {
-          bce_settings.antiAntiGarble = false;
-          bce_settings.antiAntiGarbleStrong = false;
-          defaultSettings.antiAntiGarble.sideEffects(false);
-          defaultSettings.antiAntiGarbleStrong.sideEffects(false);
-        };
-        const enableLimited = () => {
-          bce_settings.antiAntiGarble = true;
-          defaultSettings.antiAntiGarble.sideEffects(true);
-        };
-        const enableStrong = () => {
-          bce_settings.antiAntiGarbleStrong = true;
-          defaultSettings.antiAntiGarbleStrong.sideEffects(true);
-        };
-        let next = enableLimited;
-        let previous = enableStrong;
-        if (bce_settings.antiAntiGarble) {
-          next = enableStrong;
-          previous = disableBoth;
-        } else if (bce_settings.antiAntiGarbleStrong) {
-          next = disableBoth;
-          previous = enableLimited;
-        }
-        if (
-          MouseX <
-          gagAntiCheatMenuPosition[0] + gagAntiCheatMenuPosition[2] / 2
-        ) {
-          previous();
-        } else {
-          next();
+      if (bce_settings.showQuickAntiGarble) {
+        if (MouseIn(...gagAntiCheatMenuPosition)) {
+          const disableBoth = () => {
+            bce_settings.antiAntiGarble = false;
+            bce_settings.antiAntiGarbleStrong = false;
+            defaultSettings.antiAntiGarble.sideEffects(false);
+            defaultSettings.antiAntiGarbleStrong.sideEffects(false);
+          };
+          const enableLimited = () => {
+            bce_settings.antiAntiGarble = true;
+            defaultSettings.antiAntiGarble.sideEffects(true);
+          };
+          const enableStrong = () => {
+            bce_settings.antiAntiGarbleStrong = true;
+            defaultSettings.antiAntiGarbleStrong.sideEffects(true);
+          };
+          let next = enableLimited;
+          let previous = enableStrong;
+          if (bce_settings.antiAntiGarble) {
+            next = enableStrong;
+            previous = disableBoth;
+          } else if (bce_settings.antiAntiGarbleStrong) {
+            next = disableBoth;
+            previous = enableLimited;
+          }
+          if (
+            MouseX <
+            gagAntiCheatMenuPosition[0] + gagAntiCheatMenuPosition[2] / 2
+          ) {
+            previous();
+          } else {
+            next();
+          }
+        } else if (MouseIn(...gagCheatMenuPosition)) {
+          bce_settings.gagspeak = !bce_settings.gagspeak;
+          defaultSettings.gagspeak.sideEffects(bce_settings.gagspeak);
         }
       }
       bc_ChatRoomClick();
