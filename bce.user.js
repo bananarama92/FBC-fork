@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Bondage Club Enhancements
 // @namespace https://www.bondageprojects.com/
-// @version 0.124
+// @version 0.125
 // @description enhancements for the bondage club
 // @author Sidious
 // @match https://bondageprojects.elementfx.com/*
@@ -14,7 +14,7 @@
 // @run-at document-end
 // ==/UserScript==
 
-window.BCE_VERSION = "0.124";
+window.BCE_VERSION = "0.125";
 
 (async function () {
   "use strict";
@@ -2839,12 +2839,14 @@ window.BCE_VERSION = "0.124";
     // X, Y, width, height. X and Y centered.
     const gagAntiCheatMenuPosition = [1700, 908, 200, 45];
     const gagCheatMenuPosition = [1700, 908 + 45, 200, 45];
+    const tooltipPosition = { X: 1000, Y: 910, Width: 200, Height: 90 };
 
     const bc_ChatRoomRun = ChatRoomRun;
     ChatRoomRun = function () {
       bc_ChatRoomRun();
       if (!bce_settings.showQuickAntiGarble) return;
-      const tooltip = "Gagging: ";
+      const tooltip = "Antigarble anti-cheat strength: ";
+      const shorttip = "Gagging: ";
       let color = "white";
       let label = "None";
       const disableBoth = () => {
@@ -2871,16 +2873,37 @@ window.BCE_VERSION = "0.124";
       }
       DrawBackNextButton(
         ...gagAntiCheatMenuPosition,
-        tooltip + label,
+        shorttip + label,
         color,
         "",
         next,
-        previous
+        previous,
+        undefined,
+        undefined,
+        tooltipPosition
       );
 
       const gagCheatMenuParams = bce_settings.gagspeak
-        ? ["Understand: Yes", "green", "", () => "No", () => "No"]
-        : ["Understand: No", "white", "", () => "Yes", () => "Yes"];
+        ? [
+            "Understand: Yes",
+            "green",
+            "",
+            () => "Understand gagspeak: No",
+            () => "Understand gagspeak: No",
+            undefined,
+            undefined,
+            tooltipPosition,
+          ]
+        : [
+            "Understand: No",
+            "white",
+            "",
+            () => "Understand gagspeak: Yes",
+            () => "Understand gagspeak: Yes",
+            undefined,
+            undefined,
+            tooltipPosition,
+          ];
       DrawBackNextButton(...gagCheatMenuPosition, ...gagCheatMenuParams);
     };
 
@@ -2926,6 +2949,18 @@ window.BCE_VERSION = "0.124";
       }
       bc_ChatRoomClick();
     };
+
+    eval(
+      `DrawBackNextButton = ${DrawBackNextButton.toString()
+        .replace(
+          "Disabled, ArrowWidth",
+          "Disabled, ArrowWidth, tooltipPosition"
+        )
+        .replace(
+          "DrawButtonHover(Left, Top, Width, Height,",
+          "DrawButtonHover(tooltipPosition?.X || Left, tooltipPosition?.Y || Top, tooltipPosition?.Width || Width, tooltipPosition?.Height || Height,"
+        )}`
+    );
   }
 
   async function alternateArousal() {
