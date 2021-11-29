@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Bondage Club Enhancements
 // @namespace https://www.bondageprojects.com/
-// @version 0.126
+// @version 1.0.0
 // @description enhancements for the bondage club
 // @author Sidious
 // @match https://bondageprojects.elementfx.com/*
@@ -14,10 +14,12 @@
 // @run-at document-end
 // ==/UserScript==
 
-window.BCE_VERSION = "0.126";
+window.BCE_VERSION = "1.0.0";
 
 (async function () {
   "use strict";
+
+  const SUPPORTED_GAME_VERSIONS = ["R74"];
 
   const BCX_SOURCE =
     "https://raw.githubusercontent.com/Jomshir98/bondage-club-extended/dfee4213965b4e53887fbf0659708269b235f843/bcx.js";
@@ -42,8 +44,15 @@ window.BCE_VERSION = "0.126";
 
   /// SETTINGS LOADING
   let bce_settings = {};
-  const settingsVersion = 8;
+  const settingsVersion = 9;
   const defaultSettings = {
+    checkUpdates: {
+      label: "Check for updates",
+      value: true,
+      sideEffects: (newValue) => {
+        bce_log(newValue);
+      },
+    },
     relogin: {
       label: "Automatic Relogin on Disconnect",
       value: true,
@@ -257,6 +266,17 @@ window.BCE_VERSION = "0.126";
     }
   };
 
+  const bce_beepNotify = (title, text) => {
+    ServerAccountBeep({
+      MemberNumber: Player.MemberNumber,
+      MemberName: "BCE",
+      ChatRoomName: title,
+      Private: true,
+      Message: text,
+      ChatRoomSpace: "",
+    });
+  };
+
   window.bce_sendAction = (text) => {
     ServerSend("ChatRoomChat", {
       Content: "Beep",
@@ -305,39 +325,45 @@ window.BCE_VERSION = "0.126";
     Message: `Bondage Club Enhancements v${BCE_VERSION} Loaded`,
   };
 
-  await sleep(5000);
-  // version check
-  bce_log("checking for updates...");
-  fetch(
-    "https://sidiousious.gitlab.io/bce/bce.user.js?_=" +
-      ((Date.now() / 1000 / 3600) | 0)
-  )
-    .then((r) => r.text())
-    .then((r) => {
-      const latest = /@version (.*)$/m.exec(r)[1];
-      bce_log("latest version:", latest);
-      if (latest !== BCE_VERSION) {
-        // create beep
-        ServerAccountBeep({
-          MemberNumber: Player.MemberNumber,
-          MemberName: "BCE",
-          ChatRoomName: "Update",
-          Private: true,
-          Message: `Your version of BCE is outdated and may not be supported. Please update the script.
+  if (bce_settings.checkUpdate) checkUpdate();
+  if (!SUPPORTED_GAME_VERSIONS.includes(GameVersion)) {
+    bce_beepNotify(
+      "Warning",
+      `Unknown game version: ${GameVersion}. Things may break. Check for updates.`
+    );
+  }
+
+  async function checkUpdate() {
+    await sleep(5000);
+    // version check
+    bce_log("checking for updates...");
+    fetch(
+      "https://sidiousious.gitlab.io/bce/bce.user.js?_=" +
+        ((Date.now() / 1000 / 3600) | 0)
+    )
+      .then((r) => r.text())
+      .then((r) => {
+        const latest = /@version (.*)$/m.exec(r)[1];
+        bce_log("latest version:", latest);
+        if (latest !== BCE_VERSION) {
+          // create beep
+          bce_beepNotify(
+            "Update",
+            `Your version of BCE is outdated and may not be supported. Please update the script.
             
             Your version: ${BCE_VERSION}
             Latest version: ${latest}
             
             Changelog available on GitLab (raw) and Discord:
             - https://gitlab.com/Sidiousious/bce/-/commits/main/
-            - https://discord.gg/aCCWVzXBUj`,
-          ChatRoomSpace: "",
-        });
-      }
-    })
-    .catch((e) => {
-      console.error("BCE update checker error:", e);
-    });
+            - https://discord.gg/aCCWVzXBUj`
+          );
+        }
+      })
+      .catch((e) => {
+        console.error("BCE update checker error:", e);
+      });
+  }
 
   async function waitFor(func, cancelFunc = () => false) {
     while (!func()) {
@@ -1637,6 +1663,15 @@ window.BCE_VERSION = "0.126";
           Matchers: [
             {
               Tester: /^blinks/,
+            },
+          ],
+        },
+        {
+          Event: "Frown",
+          Type: "Emote",
+          Matchers: [
+            {
+              Tester: /^frowns/,
             },
           ],
         },
@@ -3193,8 +3228,25 @@ window.BCE_VERSION = "0.126";
     setInterval(() => {
       if (!bce_settings.blindWithoutGlasses) return;
 
-      const hasGlasses = !!Player.Appearance.find(
-        (a) => a.Asset.Group.Name == "Glasses"
+      const glasses = [
+        "Glasses1",
+        "Glasses2",
+        "Glasses3",
+        "Glasses4",
+        "Glasses5",
+        "Glasses6",
+        "SunGlasses1",
+        "SunGlasses2",
+        "SunGlassesClear",
+        "CatGlasses",
+        "VGlasses",
+        "FuturisticVisor",
+        "InteractiveVisor",
+        "InteractiveVRHeadset",
+        "FuturisticMask",
+      ];
+      const hasGlasses = !!Player.Appearance.find((a) =>
+        glasses.includes(a.Asset.Name)
       );
       if (
         hasGlasses &&
