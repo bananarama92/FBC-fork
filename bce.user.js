@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Bondage Club Enhancements
 // @namespace https://www.bondageprojects.com/
-// @version 1.0.0
+// @version 1.0.1
 // @description enhancements for the bondage club
 // @author Sidious
 // @match https://bondageprojects.elementfx.com/*
@@ -14,7 +14,7 @@
 // @run-at document-end
 // ==/UserScript==
 
-window.BCE_VERSION = "1.0.0";
+window.BCE_VERSION = "1.0.1";
 
 (async function () {
   "use strict";
@@ -2996,6 +2996,13 @@ window.BCE_VERSION = "1.0.0";
           "DrawButtonHover(tooltipPosition?.X || Left, tooltipPosition?.Y || Top, tooltipPosition?.Width || Width, tooltipPosition?.Height || Height,"
         )}`
     );
+
+    if (CurrentScreen === "ChatRoom") {
+      CurrentScreenFunctions.Run = ChatRoomRun;
+      CurrentScreenFunctions.Click = ChatRoomClick;
+      CurrentScreenFunctions.Resize = ChatRoomResize;
+      ChatRoomResize();
+    }
   }
 
   async function alternateArousal() {
