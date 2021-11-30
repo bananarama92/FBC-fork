@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Bondage Club Enhancements
 // @namespace https://www.bondageprojects.com/
-// @version 1.1.0
+// @version 1.1.1
 // @description enhancements for the bondage club
 // @author Sidious
 // @match https://bondageprojects.elementfx.com/*
@@ -14,7 +14,7 @@
 // @run-at document-end
 // ==/UserScript==
 
-window.BCE_VERSION = "1.1.0";
+window.BCE_VERSION = "1.1.1";
 
 (async function () {
   "use strict";
@@ -414,7 +414,17 @@ window.BCE_VERSION = "1.1.0";
       .then((resp) => resp.text())
       .then((resp) => {
         bce_log(resp);
-        eval(resp);
+        eval(
+          resp
+            .replace(
+              `char.BCXVersion = message.version;`,
+              `char.BCXVersion = message.version;Character.find(c=>c.MemberNumber==sender).BCXVersion = message.version;`
+            )
+            .replace(
+              `this.BCXVersion = VERSION;`,
+              `this.BCXVersion = VERSION;Player.BCXVersion = VERSION;`
+            )
+        );
       });
     bce_log("Loaded BCX");
   }
@@ -457,6 +467,24 @@ window.BCE_VERSION = "1.1.0";
             );
             ChatRoomTargetMemberNumber = originalTarget;
           }
+        },
+      },
+      {
+        Tag: "versions",
+        Description:
+          "show versions of the club, BCE, and BCX in use by players",
+        Action: () => {
+          bce_chatNotify(
+            ChatRoomCharacter.map((a) => {
+              return `${a.Name} (${a.MemberNumber}) club ${
+                a.OnlineSharedSettings?.GameVersion
+              }${a.BCXVersion ? ` BCX ${a.BCXVersion}` : ``}${
+                a.BCE ? `\nBCE v${a.BCE} Alt Arousal: ${a.BCEArousal}` : ``
+              }`;
+            })
+              .filter((a) => a)
+              .join("\n\n")
+          );
         },
       },
     ];
