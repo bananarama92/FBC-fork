@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Bondage Club Enhancements
 // @namespace https://www.bondageprojects.com/
-// @version 1.0.1
+// @version 1.1.0
 // @description enhancements for the bondage club
 // @author Sidious
 // @match https://bondageprojects.elementfx.com/*
@@ -14,7 +14,7 @@
 // @run-at document-end
 // ==/UserScript==
 
-window.BCE_VERSION = "1.0.1";
+window.BCE_VERSION = "1.1.0";
 
 (async function () {
   "use strict";
@@ -33,6 +33,9 @@ window.BCE_VERSION = "1.0.1";
     Hello: "Hello",
     ArousalSync: "ArousalSync",
   };
+  const BEEP_CLICK_ACTIONS = {
+    FriendList: "FriendList",
+  };
   const BCE_MAX_AROUSAL = 99.75;
   const GLASSES_BLUR_TARGET = document.getElementById("MainCanvas");
   const GLASSES_BLIND_CLASS = "bce-blind";
@@ -44,7 +47,7 @@ window.BCE_VERSION = "1.0.1";
 
   /// SETTINGS LOADING
   let bce_settings = {};
-  const settingsVersion = 9;
+  const settingsVersion = 10;
   const defaultSettings = {
     checkUpdates: {
       label: "Check for updates",
@@ -195,6 +198,20 @@ window.BCE_VERSION = "1.0.1";
         }
       },
     },
+    friendPresenceNotifications: {
+      label: "Show friend presence notifications",
+      value: false,
+      sideEffects: (newValue) => {
+        bce_log(newValue);
+      },
+    },
+    friendOfflineNotifications: {
+      label: "Show friends going offline too (requires friend presence)",
+      value: false,
+      sideEffects: (newValue) => {
+        bce_log(newValue);
+      },
+    },
   };
 
   function settingsLoaded() {
@@ -277,6 +294,18 @@ window.BCE_VERSION = "1.0.1";
     });
   };
 
+  const bce_notify = async (text, duration = 5000, properties = {}) => {
+    await waitFor(
+      () => !!Player && new Date(ServerBeep?.Timer || 0) < new Date()
+    );
+
+    ServerBeep = {
+      Timer: Date.now() + duration,
+      Message: text,
+      ...properties,
+    };
+  };
+
   window.bce_sendAction = (text) => {
     ServerSend("ChatRoomChat", {
       Content: "Beep",
@@ -314,17 +343,12 @@ window.BCE_VERSION = "1.0.1";
   antiGarbling();
   autoGhostBroadcast();
   blindWithoutGlasses();
+  friendPresenceNotifications();
 
   // Post ready when in a chat room
-  await waitFor(
-    () => !!Player && new Date(ServerBeep?.Timer || 0) < new Date()
-  );
-  Player.BCE = BCE_VERSION;
-  ServerBeep = {
-    Timer: Date.now() + 5000,
-    Message: `Bondage Club Enhancements v${BCE_VERSION} Loaded`,
-  };
+  await bce_notify(`Bondage Club Enhancements v${BCE_VERSION} Loaded`);
 
+  Player.BCE = BCE_VERSION;
   if (bce_settings.checkUpdate) checkUpdate();
   if (!SUPPORTED_GAME_VERSIONS.includes(GameVersion)) {
     bce_beepNotify(
@@ -3269,6 +3293,74 @@ window.BCE_VERSION = "1.0.1";
         bce_chatNotify("Having lost your glasses your eyesight is impaired!");
       }
     }, 1000);
+  }
+
+  async function friendPresenceNotifications() {
+    await waitFor(() => !!Player && ServerSocket && ServerIsConnected);
+
+    function checkFriends() {
+      if (!bce_settings.friendPresenceNotifications) return;
+      ServerSend("AccountQuery", { Query: "OnlineFriends" });
+    }
+    setInterval(checkFriends, 60000);
+
+    let lastFriends = [];
+    ServerSocket.on("AccountQueryResult", (data) => {
+      if (CurrentScreen === "FriendList") return;
+      if (data.Query !== "OnlineFriends") return;
+      const friendMemberNumbers = data.Result.map((f) => f.MemberNumber);
+      const offlineFriends = lastFriends
+        .map((f) => f.MemberNumber)
+        .filter((f) => !friendMemberNumbers.includes(f));
+      const onlineFriends = friendMemberNumbers.filter(
+        (f) => !lastFriends.some((ff) => ff.MemberNumber === f)
+      );
+      if (onlineFriends.length) {
+        bce_notify(
+          `Now online: ${onlineFriends
+            .map((f) => {
+              const { MemberNumber, MemberName } = data.Result.find(
+                (d) => d.MemberNumber === f
+              );
+              return `${MemberName} (${MemberNumber})`;
+            })
+            .join(", ")}`,
+          5000,
+          { ClickAction: BEEP_CLICK_ACTIONS.FriendList }
+        );
+      }
+      if (bce_settings.friendOfflineNotifications && offlineFriends.length) {
+        bce_notify(
+          `Now offline: ${offlineFriends
+            .map((f) => {
+              const { MemberNumber, MemberName } = lastFriends.find(
+                (d) => d.MemberNumber === f
+              );
+              return `${MemberName} (${MemberNumber})`;
+            })
+            .join(", ")}`,
+          5000,
+          { ClickAction: BEEP_CLICK_ACTIONS.FriendList }
+        );
+      }
+      lastFriends = data.Result;
+    });
+
+    const bc_ServerClickBeep = ServerClickBeep;
+    window.ServerClickBeep = function () {
+      if (
+        ServerBeep.Timer > Date.now() &&
+        MouseIn(CurrentScreen == "ChatRoom" ? 0 : 500, 0, 1000, 50) &&
+        CurrentScreen !== "FriendList"
+      ) {
+        switch (ServerBeep.ClickAction) {
+          case BEEP_CLICK_ACTIONS.FriendList:
+            ServerOpenFriendList();
+            return;
+        }
+      }
+      bc_ServerClickBeep();
+    };
   }
 
   function sleep(ms) {
