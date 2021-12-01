@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Bondage Club Enhancements
 // @namespace https://www.bondageprojects.com/
-// @version 1.1.1
+// @version 1.1.2
 // @description enhancements for the bondage club
 // @author Sidious
 // @match https://bondageprojects.elementfx.com/*
@@ -14,7 +14,7 @@
 // @run-at document-end
 // ==/UserScript==
 
-window.BCE_VERSION = "1.1.1";
+window.BCE_VERSION = "1.1.2";
 
 (async function () {
   "use strict";
@@ -349,7 +349,7 @@ window.BCE_VERSION = "1.1.1";
   await bce_notify(`Bondage Club Enhancements v${BCE_VERSION} Loaded`);
 
   Player.BCE = BCE_VERSION;
-  if (bce_settings.checkUpdate) checkUpdate();
+  if (bce_settings.checkUpdates) checkUpdate();
   if (!SUPPORTED_GAME_VERSIONS.includes(GameVersion)) {
     bce_beepNotify(
       "Warning",
