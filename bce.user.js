@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Bondage Club Enhancements
 // @namespace https://www.bondageprojects.com/
-// @version 1.1.2
+// @version 1.1.3
 // @description enhancements for the bondage club
 // @author Sidious
 // @match https://bondageprojects.elementfx.com/*
@@ -14,7 +14,7 @@
 // @run-at document-end
 // ==/UserScript==
 
-window.BCE_VERSION = "1.1.2";
+window.BCE_VERSION = "1.1.3";
 
 (async function () {
   "use strict";
@@ -36,7 +36,7 @@ window.BCE_VERSION = "1.1.2";
   const BEEP_CLICK_ACTIONS = {
     FriendList: "FriendList",
   };
-  const BCE_MAX_AROUSAL = 99.75;
+  const BCE_MAX_AROUSAL = 99.6;
   const GLASSES_BLUR_TARGET = document.getElementById("MainCanvas");
   const GLASSES_BLIND_CLASS = "bce-blind";
 
@@ -2770,7 +2770,6 @@ window.BCE_VERSION = "1.1.2";
         switch (message.type) {
           case MESSAGE_TYPES.Hello:
             if (sender) {
-              bce_log(`${sender.Name} uses version ${message.version}.`);
               sender.BCE = message.version;
               sender.BCEArousal = message.alternateArousal || false;
             }
@@ -3065,7 +3064,7 @@ window.BCE_VERSION = "1.1.2";
     );
     Player.BCEEnjoyment = 1;
     let lastSync = 0;
-    const enjoymentMultiplier = 0.25;
+    const enjoymentMultiplier = 0.2;
 
     ServerSocket.on("ChatRoomSyncArousal", (data) => {
       if (data.MemberNumber === Player.MemberNumber) return; // skip player's own sync messages since we're tracking locally
