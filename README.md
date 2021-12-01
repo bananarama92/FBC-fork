@@ -38,6 +38,7 @@ At a glance, **everything is entirely optional**:
 - Anti-anti-garble for your own speech: prevent others from understanding you with anti-garbling solutions while gagged
 - Alternative arousal calculations
 - Blur vision when not wearing glasses
+- Notifications for friends coming online or going offline
 
 ### Automatic relogin
 
