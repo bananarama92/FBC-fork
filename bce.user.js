@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Bondage Club Enhancements
 // @namespace https://www.bondageprojects.com/
-// @version 1.1.3
+// @version 1.2.0
 // @description enhancements for the bondage club
 // @author Sidious
 // @match https://bondageprojects.elementfx.com/*
@@ -14,7 +14,7 @@
 // @run-at document-end
 // ==/UserScript==
 
-window.BCE_VERSION = "1.1.3";
+window.BCE_VERSION = "1.2.0";
 
 (async function () {
   "use strict";
@@ -47,7 +47,7 @@ window.BCE_VERSION = "1.1.3";
 
   /// SETTINGS LOADING
   let bce_settings = {};
-  const settingsVersion = 10;
+  const settingsVersion = 11;
   const defaultSettings = {
     checkUpdates: {
       label: "Check for updates",
@@ -212,6 +212,13 @@ window.BCE_VERSION = "1.1.3";
         bce_log(newValue);
       },
     },
+    stutters: {
+      label: "Alternative speech stutter",
+      value: false,
+      sideEffects: (newValue) => {
+        bce_log(newValue);
+      },
+    },
   };
 
   function settingsLoaded() {
@@ -328,6 +335,7 @@ window.BCE_VERSION = "1.1.3";
   hiddenMessageHandler();
   await bce_loadSettings();
   bce_log(bce_settings);
+  await preBCX();
   await loadBCX();
   settingsPage();
   alternateArousal();
@@ -395,6 +403,21 @@ window.BCE_VERSION = "1.1.3";
       await sleep(10);
     }
     return true;
+  }
+
+  async function preBCX() {
+    // function patching that must occur before BCX
+    eval(
+      `CommandParse = ${CommandParse.toString()
+        .replace(
+          `// Regular chat`,
+          `// Regular chat\nmsg = bce_messageReplacements(msg);`
+        )
+        .replace(
+          `// The whispers get sent to the server and shown on the client directly`,
+          `// The whispers get sent to the server and shown on the client directly\nmsg = bce_messageReplacements(msg);`
+        )}`
+    );
   }
 
   // Load BCX
@@ -853,44 +876,96 @@ window.BCE_VERSION = "1.1.3";
   }
 
   function chatAugments() {
-    const bc_ServerSend = ServerSend;
-    ServerSend = function (message, data) {
-      if (
-        (message === "ChatRoomChat" && data.Type === "Chat") ||
-        data.Type === "Whisper"
-      ) {
-        const words = [data.Content];
-        let inOOC = false;
-        const newWords = [];
-        for (let i = 0; i < words.length; i++) {
-          // handle other whitespace
-          let whitespaceIdx = words[i].search(/[\s\r\n]/);
-          if (whitespaceIdx >= 1) {
-            words.splice(i + 1, 0, words[i].substring(whitespaceIdx));
-            words[i] = words[i].substring(0, whitespaceIdx);
-          } else if (whitespaceIdx === 0) {
-            words.splice(i + 1, 0, words[i].substring(1));
-            words[i] = words[i][0];
-            newWords.push(words[i]);
-            continue;
-          }
+    const eggedSounds = [
+      "..ah... ",
+      "..aah... ",
+      "..mnn... ",
+      "..nn... ",
+      "..mnh... ",
+      "..mngh... ",
+    ];
+    // stutterWord will add s-stutters to the beginning of words and return 1-2 words, the original word with its stutters and a sound, based on arousal
+    function stutterWord(word, forceStutter) {
+      if (!word?.length) return [word];
 
-          for (const c of words[i]) {
-            if (c === "(") inOOC = true;
-            else if (c === ")") inOOC = false;
-          }
+      const addStutter = (w) => `${w[0]}-${w}`;
 
-          if (bce_parseUrl(words[i]) && !inOOC) {
-            newWords.push("( ");
-            newWords.push(words[i]);
-            newWords.push(" )");
-          } else {
-            newWords.push(words[i]);
-          }
+      const maxIntensity = Math.max(
+        ...Player.Appearance.filter((a) => a.Property?.Intensity > -1).map(
+          (a) => a.Property.Intensity
+        )
+      );
+      const eggedBonus = maxIntensity * 20;
+
+      const chanceToStutter =
+        Math.max(0, Player.ArousalSettings.Progress - 20 + eggedBonus) / 100;
+
+      const chanceToMakeSound =
+        (Math.max(0, Player.ArousalSettings.Progress - 30 + eggedBonus) * 0.8) /
+        100;
+
+      const sound = eggedSounds[Math.floor(Math.random() * eggedSounds.length)];
+      const r = Math.random();
+      for (let i = 4; i >= 1; i--) {
+        if (r < chanceToStutter / i || (i === 1 && forceStutter)) {
+          word = addStutter(word);
         }
-        data.Content = newWords.join("");
       }
-      bc_ServerSend(message, data);
+      const results = [word];
+      if (maxIntensity > -1 && Math.random() < chanceToMakeSound) {
+        results.push(" ", sound);
+      }
+      return results;
+    }
+
+    window.bce_messageReplacements = (msg) => {
+      const words = [msg];
+      let inOOC = false;
+      let firstStutter = true;
+      const newWords = [];
+      for (let i = 0; i < words.length; i++) {
+        // handle other whitespace
+        let whitespaceIdx = words[i].search(/[\s\r\n]/);
+        if (whitespaceIdx >= 1) {
+          words.splice(i + 1, 0, words[i].substring(whitespaceIdx)); // insert remainder into list of words
+          words[i] = words[i].substring(0, whitespaceIdx); // truncate current word to whitespace
+        } else if (whitespaceIdx === 0) {
+          words.splice(i + 1, 0, words[i].substring(1)); // insert remainder into list of words
+          words[i] = words[i][0]; // keep space in the message
+          newWords.push(words[i]);
+          continue;
+        }
+        // handle OOC
+        let oocIdx = words[i].search(/[\(\)]/);
+        if (oocIdx > 0) {
+          words.splice(i + 1, 0, words[i].substring(oocIdx + 1)); // insert remainder into list of words
+          words.splice(i + 1, 0, words[i].substr(oocIdx, 1)); // insert OOC marker into list of words, before remainder
+          words[i] = words[i].substring(0, oocIdx); // truncate current word to OOC
+        } else if (oocIdx === 0 && words[i].length > 1) {
+          words.splice(i + 1, 0, words[i].substring(1)); // insert remainder into list of words
+          words[i] = words[i][0]; // keep OOC marker in the message
+        }
+
+        if (words[i] === "(") {
+          inOOC = true;
+        }
+
+        if (bce_parseUrl(words[i]) && !inOOC) {
+          newWords.push("( ");
+          newWords.push(words[i]);
+          newWords.push(" )");
+        } else if (bce_settings.stutters && !inOOC) {
+          newWords.push(...stutterWord(words[i], firstStutter));
+          firstStutter = false;
+        } else {
+          newWords.push(words[i]);
+        }
+
+        if (words[i] === ")") {
+          inOOC = false;
+        }
+      }
+      return newWords.join("");
     };
 
     function bce_parseUrl(word) {
@@ -3329,7 +3404,7 @@ window.BCE_VERSION = "1.1.3";
       if (!bce_settings.friendPresenceNotifications) return;
       ServerSend("AccountQuery", { Query: "OnlineFriends" });
     }
-    setInterval(checkFriends, 60000);
+    setInterval(checkFriends, 20000);
 
     let lastFriends = [];
     ServerSocket.on("AccountQueryResult", (data) => {
