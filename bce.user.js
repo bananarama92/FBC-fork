@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Bondage Club Enhancements
 // @namespace https://www.bondageprojects.com/
-// @version 1.2.2
+// @version 1.2.3
 // @description enhancements for the bondage club
 // @author Sidious
 // @match https://bondageprojects.elementfx.com/*
@@ -14,7 +14,7 @@
 // @run-at document-end
 // ==/UserScript==
 
-window.BCE_VERSION = "1.2.2";
+window.BCE_VERSION = "1.2.3";
 
 (async function () {
   "use strict";
@@ -455,6 +455,15 @@ window.BCE_VERSION = "1.2.2";
             .replace(
               `this.BCXVersion = VERSION;`,
               `this.BCXVersion = VERSION;Player.BCXVersion = VERSION;`
+            )
+            // minified version
+            .replace(
+              `(this.BCXVersion=VERSION),`,
+              `(this.BCXVersion=VERSION),Player.BCXVersion=VERSION;`
+            )
+            .replace(
+              `o.BCXVersion=t.version;`,
+              `o.BCXVersion=t.version;o.Character.BCXVersion=t.version;`
             )
         );
       });
