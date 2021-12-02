@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Bondage Club Enhancements
 // @namespace https://www.bondageprojects.com/
-// @version 1.2.0
+// @version 1.2.1
 // @description enhancements for the bondage club
 // @author Sidious
 // @match https://bondageprojects.elementfx.com/*
@@ -14,7 +14,7 @@
 // @run-at document-end
 // ==/UserScript==
 
-window.BCE_VERSION = "1.2.0";
+window.BCE_VERSION = "1.2.1";
 
 (async function () {
   "use strict";
@@ -907,7 +907,10 @@ window.BCE_VERSION = "1.2.0";
       const sound = eggedSounds[Math.floor(Math.random() * eggedSounds.length)];
       const r = Math.random();
       for (let i = 4; i >= 1; i--) {
-        if (r < chanceToStutter / i || (i === 1 && forceStutter)) {
+        if (
+          r < chanceToStutter / i ||
+          (i === 1 && forceStutter && chanceToStutter > 0)
+        ) {
           word = addStutter(word);
         }
       }
