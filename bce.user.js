@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Bondage Club Enhancements
 // @namespace https://www.bondageprojects.com/
-// @version 1.2.1
+// @version 1.2.2
 // @description enhancements for the bondage club
 // @author Sidious
 // @match https://bondageprojects.elementfx.com/*
@@ -14,7 +14,7 @@
 // @run-at document-end
 // ==/UserScript==
 
-window.BCE_VERSION = "1.2.1";
+window.BCE_VERSION = "1.2.2";
 
 (async function () {
   "use strict";
@@ -407,6 +407,15 @@ window.BCE_VERSION = "1.2.1";
 
   async function preBCX() {
     // function patching that must occur before BCX
+    if (window.BCX_Loaded) {
+      bce_beepNotify(
+        "ACTION REQUIRED",
+        `BCE is only compatible with BCX, when BCX is loaded by BCE. You can enable this in the settings. Do not use BCX's tampermonkey script or their bookmark. Let BCE load BCX.`
+      );
+      throw new Error(
+        "BCX is loaded before BCE. Please disable BCX loader and enable BCX from BCE settings instead."
+      );
+    }
     eval(
       `CommandParse = ${CommandParse.toString()
         .replace(
@@ -876,13 +885,18 @@ window.BCE_VERSION = "1.2.1";
   }
 
   function chatAugments() {
+    const startSounds = ["..", "--"];
+    const endSounds = ["...", "~", "~..", "~~", "..~"];
     const eggedSounds = [
-      "..ah... ",
-      "..aah... ",
-      "..mnn... ",
-      "..nn... ",
-      "..mnh... ",
-      "..mngh... ",
+      "ah",
+      "aah",
+      "mnn",
+      "nn",
+      "mnh",
+      "mngh",
+      "haa",
+      "nng",
+      "mnng",
     ];
     // stutterWord will add s-stutters to the beginning of words and return 1-2 words, the original word with its stutters and a sound, based on arousal
     function stutterWord(word, forceStutter) {
@@ -891,22 +905,27 @@ window.BCE_VERSION = "1.2.1";
       const addStutter = (w) => `${w[0]}-${w}`;
 
       const maxIntensity = Math.max(
+        0,
         ...Player.Appearance.filter((a) => a.Property?.Intensity > -1).map(
           (a) => a.Property.Intensity
         )
       );
-      const eggedBonus = maxIntensity * 20;
+      const eggedBonus = maxIntensity * 5;
 
       const chanceToStutter =
-        Math.max(0, Player.ArousalSettings.Progress - 20 + eggedBonus) / 100;
-
-      const chanceToMakeSound =
-        (Math.max(0, Player.ArousalSettings.Progress - 30 + eggedBonus) * 0.8) /
+        (Math.max(0, Player.ArousalSettings.Progress - 10 + eggedBonus) * 0.5) /
         100;
 
-      const sound = eggedSounds[Math.floor(Math.random() * eggedSounds.length)];
+      const chanceToMakeSound =
+        (Math.max(
+          0,
+          Player.ArousalSettings.Progress / 2 - 20 + eggedBonus * 2
+        ) *
+          0.5) /
+        100;
+
       const r = Math.random();
-      for (let i = 4; i >= 1; i--) {
+      for (let i = Math.min(4, Math.max(1, maxIntensity)); i >= 1; i--) {
         if (
           r < chanceToStutter / i ||
           (i === 1 && forceStutter && chanceToStutter > 0)
@@ -916,7 +935,13 @@ window.BCE_VERSION = "1.2.1";
       }
       const results = [word];
       if (maxIntensity > -1 && Math.random() < chanceToMakeSound) {
-        results.push(" ", sound);
+        const startSound =
+          startSounds[Math.floor(Math.random() * startSounds.length)];
+        const sound =
+          eggedSounds[Math.floor(Math.random() * eggedSounds.length)];
+        const endSound =
+          endSounds[Math.floor(Math.random() * endSounds.length)];
+        results.push(" ", `${startSound}${sound}${endSound}`);
       }
       return results;
     }
