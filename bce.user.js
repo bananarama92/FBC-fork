@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Bondage Club Enhancements
 // @namespace https://www.bondageprojects.com/
-// @version 1.2.3
+// @version 1.2.4
 // @description enhancements for the bondage club
 // @author Sidious
 // @match https://bondageprojects.elementfx.com/*
@@ -14,7 +14,7 @@
 // @run-at document-end
 // ==/UserScript==
 
-window.BCE_VERSION = "1.2.3";
+window.BCE_VERSION = "1.2.4";
 
 (async function () {
   "use strict";
@@ -3445,7 +3445,13 @@ window.BCE_VERSION = "1.2.3";
 
     let lastFriends = [];
     ServerSocket.on("AccountQueryResult", (data) => {
-      if (CurrentScreen === "FriendList") return;
+      if (
+        CurrentScreen === "FriendList" ||
+        CurrentScreen === "Relog" ||
+        CurrentScreen === "Login"
+      )
+        return;
+      if (!bce_settings.friendPresenceNotifications) return;
       if (data.Query !== "OnlineFriends") return;
       const friendMemberNumbers = data.Result.map((f) => f.MemberNumber);
       const offlineFriends = lastFriends
