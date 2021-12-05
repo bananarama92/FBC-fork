@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Bondage Club Enhancements
 // @namespace https://www.bondageprojects.com/
-// @version 1.3.1
+// @version 1.3.2
 // @description enhancements for the bondage club
 // @author Sidious
 // @match https://bondageprojects.elementfx.com/*
@@ -14,7 +14,7 @@
 // @run-at document-end
 // ==/UserScript==
 
-window.BCE_VERSION = "1.3.1";
+window.BCE_VERSION = "1.3.2";
 
 (async function () {
   "use strict";
@@ -274,6 +274,16 @@ window.BCE_VERSION = "1.3.1";
     ServerAccountUpdate.QueueData({ OnlineSettings: Player.OnlineSettings });
   };
 
+  /// ORIGINAL FUNCTIONS
+  const bc_originalFunctions = {};
+  const callOriginal = (name, ...args) => {
+    if (name in bc_originalFunctions) {
+      return bc_originalFunctions[name](...args);
+    } else if (name in window) {
+      return window[name](...args);
+    }
+  };
+
   /// CONVENIENCE METHODS
   const bce_log = (...args) => {
     console.log("BCE", `${BCE_VERSION}:`, ...args);
@@ -298,7 +308,7 @@ window.BCE_VERSION = "1.3.1";
   };
 
   const bce_beepNotify = (title, text) => {
-    ServerAccountBeep({
+    callOriginal("ServerAccountBeep", {
       MemberNumber: Player.MemberNumber,
       MemberName: "BCE",
       ChatRoomName: title,
@@ -438,6 +448,9 @@ window.BCE_VERSION = "1.3.1";
           `// The whispers get sent to the server and shown on the client directly\nmsg = bce_messageReplacements(msg);`
         )}`
     );
+
+    if (typeof ServerAccountBeep === "function")
+      bc_originalFunctions.ServerAccountBeep = ServerAccountBeep;
 
     // Custom activity labels
     const customActivityLabels = [
@@ -1224,7 +1237,10 @@ window.BCE_VERSION = "1.3.1";
     function stutterWord(word, forceStutter) {
       if (!word?.length) return [word];
 
-      const addStutter = (w) => `${w[0]}-${w}`;
+      const addStutter = (w) =>
+        /^\p{L}/u.test(w)
+          ? `${w.substr(0, /\uD800-\uDFFF/.test(w[0]) ? 2 : 1)}-${w}`
+          : w;
 
       const maxIntensity = Math.max(
         0,
