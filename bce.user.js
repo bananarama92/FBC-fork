@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Bondage Club Enhancements
 // @namespace https://www.bondageprojects.com/
-// @version 1.2.4
+// @version 1.3.0
 // @description enhancements for the bondage club
 // @author Sidious
 // @match https://bondageprojects.elementfx.com/*
@@ -14,7 +14,7 @@
 // @run-at document-end
 // ==/UserScript==
 
-window.BCE_VERSION = "1.2.4";
+window.BCE_VERSION = "1.3.0";
 
 (async function () {
   "use strict";
@@ -47,7 +47,7 @@ window.BCE_VERSION = "1.2.4";
 
   /// SETTINGS LOADING
   let bce_settings = {};
-  const settingsVersion = 11;
+  const settingsVersion = 12;
   const defaultSettings = {
     checkUpdates: {
       label: "Check for updates",
@@ -219,6 +219,13 @@ window.BCE_VERSION = "1.2.4";
         bce_log(newValue);
       },
     },
+    activityLabels: {
+      label: "Use clearer activity labels",
+      value: true,
+      sideEffects: (newValue) => {
+        bce_log(newValue);
+      },
+    },
   };
 
   function settingsLoaded() {
@@ -324,6 +331,10 @@ window.BCE_VERSION = "1.2.4";
     });
   };
 
+  window.bce_setting_value = (key) => {
+    return key in bce_settings ? bce_settings[key] : defaultSettings[key].value;
+  };
+
   // Expressions init method for custom expressions
   window.bce_initializeDefaultExpression = () => {
     /* here to not break customizer script */
@@ -426,6 +437,308 @@ window.BCE_VERSION = "1.2.4";
           `// The whispers get sent to the server and shown on the client directly`,
           `// The whispers get sent to the server and shown on the client directly\nmsg = bce_messageReplacements(msg);`
         )}`
+    );
+
+    // Custom activity labels
+    const customActivityLabels = [
+      ["Act-ChatSelf-ItemBoots-Kiss", "Kiss Foot"],
+      ["Act-ChatSelf-ItemBoots-PoliteKiss", "Polite Kiss on Foot"],
+      ["Act-ChatSelf-ItemBoots-Lick", "Lick Feet"],
+      ["Act-ChatSelf-ItemBoots-Suck", "Suck Big Toe"],
+      ["Act-ChatSelf-ItemBoots-Nibble", "Nibble Feet"],
+      ["Act-ChatSelf-ItemBoots-Tickle", "Tickle Feet"],
+      ["Act-ChatSelf-ItemBoots-MassageHands", "Massage Feet"],
+      ["Act-ChatSelf-ItemBoots-TakeCare", "Polish Toenails"],
+      ["Act-ChatSelf-ItemBoots-Bite", "Bite Foot"],
+      ["Act-ChatSelf-ItemBoots-Wiggle", "Wiggle Feet"],
+      ["Act-ChatOther-ItemBoots-Bite", "Bite Foot"],
+      ["Act-ChatOther-ItemBoots-Kiss", "Kiss Foot"],
+      ["Act-ChatOther-ItemBoots-PoliteKiss", "Polite Kiss on Foot"],
+      ["Act-ChatOther-ItemBoots-GaggedKiss", "Touch Foot with Gag"],
+      ["Act-ChatOther-ItemBoots-Lick", "Lick Feet"],
+      ["Act-ChatOther-ItemBoots-Suck", "Suck Big Toe"],
+      ["Act-ChatOther-ItemBoots-Nibble", "Nibble Feet"],
+      ["Act-ChatOther-ItemBoots-Tickle", "Tickle Sole"],
+      ["Act-ChatOther-ItemBoots-Spank", "Spank Sole"],
+      ["Act-ChatOther-ItemBoots-MassageHands", "Massage Feet"],
+      ["Act-ChatOther-ItemBoots-MassageFeet", "Play with Feet"],
+      ["Act-ChatOther-ItemBoots-TakeCare", "Polish Toenails"],
+      ["Act-ChatSelf-ItemFeet-Tickle", "Tickle Feet"],
+      ["Act-ChatSelf-ItemFeet-Spank", "Spank Leg"],
+      ["Act-ChatSelf-ItemFeet-Caress", "Caress Legs"],
+      ["Act-ChatSelf-ItemFeet-MassageHands", "Massage Legs"],
+      ["Act-ChatSelf-ItemFeet-Bite", "Bite Leg"],
+      ["Act-ChatSelf-ItemFeet-Wiggle", "Wiggle Legs"],
+      ["Act-ChatOther-ItemFeet-Bite", "Bite Leg"],
+      ["Act-ChatOther-ItemFeet-Kiss", "Kiss Leg"],
+      ["Act-ChatOther-ItemFeet-GaggedKiss", "Touch Leg with Gag"],
+      ["Act-ChatOther-ItemFeet-Lick", "Lick Leg"],
+      ["Act-ChatOther-ItemFeet-Nibble", "Nibble Leg"],
+      ["Act-ChatOther-ItemFeet-Tickle", "Tickle Leg"],
+      ["Act-ChatOther-ItemFeet-Spank", "Spank Leg"],
+      ["Act-ChatOther-ItemFeet-Caress", "Caress Leg"],
+      ["Act-ChatOther-ItemFeet-MassageHands", "Massage Leg"],
+      ["Act-ChatOther-ItemFeet-Grope", "Grope Leg"],
+      ["Act-ChatSelf-ItemLegs-Tickle", "Tickle Thighs"],
+      ["Act-ChatSelf-ItemLegs-Spank", "Spank Thigh"],
+      ["Act-ChatSelf-ItemLegs-Caress", "Caress Thighs"],
+      ["Act-ChatSelf-ItemLegs-MassageHands", "Massage Thighs"],
+      ["Act-ChatSelf-ItemLegs-Bite", "Bite Thigh"],
+      ["Act-ChatSelf-ItemLegs-Wiggle", "Rub Thighs Together"],
+      ["Act-ChatSelf-ItemLegs-StruggleLegs", "Thrash in Bondage"],
+      ["Act-ChatOther-ItemLegs-Bite", "Bite Thigh"],
+      ["Act-ChatOther-ItemLegs-Kiss", "Kiss Thigh"],
+      ["Act-ChatOther-ItemLegs-GaggedKiss", "Rub Gag on Thighs"],
+      ["Act-ChatOther-ItemLegs-Lick", "Lick Thigh"],
+      ["Act-ChatOther-ItemLegs-Nibble", "Nibble Thighs"],
+      ["Act-ChatOther-ItemLegs-Tickle", "Tickle Thighs"],
+      ["Act-ChatOther-ItemLegs-Spank", "Spank Thighs"],
+      ["Act-ChatOther-ItemLegs-Caress", "Caress Thighs"],
+      ["Act-ChatOther-ItemLegs-MassageHands", "Massage Thighs"],
+      ["Act-ChatOther-ItemLegs-Grope", "Grope Thigh"],
+      ["Act-ChatOther-ItemLegs-Sit", "Sit in Lap"],
+      ["Act-ChatOther-ItemLegs-RestHead", "Rest Head in Lap"],
+      ["Act-ChatSelf-ItemVulva-MasturbateHand", "Masturbate Pussy"],
+      ["Act-ChatSelf-ItemVulva-Caress", "Caress Pussy"],
+      ["Act-ChatOther-ItemVulva-MasturbateHand", "Finger Pussy"],
+      ["Act-ChatOther-ItemVulva-MasturbateFist", "Fist Pussy"],
+      ["Act-ChatOther-ItemVulva-MasturbateFoot", "Foot Masturbate Pussy"],
+      ["Act-ChatOther-ItemVulva-MasturbateTongue", "Tongue Masturbate Pussy"],
+      ["Act-ChatOther-ItemVulva-Caress", "Caress Pussy"],
+      ["Act-ChatOther-ItemVulva-Slap", "Slap Pussy Lips"],
+      ["Act-ChatOther-ItemVulva-Kiss", "Kiss Pussy Lips"],
+      ["Act-ChatOther-ItemVulva-GaggedKiss", "Push Gag in Pussy"],
+      ["Act-ChatOther-ItemVulva-Lick", "Lick Pussy Lips"],
+      ["Act-ChatOther-ItemVulva-Nibble", "Nibble Pussy Lips"],
+      ["Act-ChatOther-ItemVulva-MasturbateItem", "Device on Clit"],
+      ["Act-ChatOther-ItemVulva-PenetrateSlow", "Slow Penetration"],
+      ["Act-ChatOther-ItemVulva-PenetrateFast", "Fast Penetration"],
+      ["Act-ChatSelf-ItemButt-MasturbateHand", "Finger Ass"],
+      ["Act-ChatSelf-ItemButt-Spank", "Spank Butt"],
+      ["Act-ChatSelf-ItemButt-Caress", "Caress Butt"],
+      ["Act-ChatSelf-ItemButt-Grope", "Grope Butt"],
+      ["Act-ChatSelf-ItemButt-Wiggle", "Wiggle Butt"],
+      ["Act-ChatOther-ItemButt-Bite", "Bite Butt"],
+      ["Act-ChatOther-ItemButt-Kiss", "Kiss Butt"],
+      ["Act-ChatOther-ItemButt-GaggedKiss", "Rub Gag on Butt"],
+      ["Act-ChatOther-ItemButt-MasturbateHand", "Finger Ass"],
+      ["Act-ChatOther-ItemButt-MasturbateFist", "Fist Ass"],
+      ["Act-ChatOther-ItemButt-MasturbateTongue", "Tongue Masturbate Ass"],
+      ["Act-ChatOther-ItemButt-Spank", "Spank Butt"],
+      ["Act-ChatOther-ItemButt-Caress", "Caress Butt"],
+      ["Act-ChatOther-ItemButt-Grope", "Grope Butt"],
+      ["Act-ChatOther-ItemButt-PenetrateSlow", "Slow Penetration"],
+      ["Act-ChatOther-ItemButt-PenetrateFast", "Fast Penetration"],
+      ["Act-ChatOther-ItemButt-Step", "Press Foot in Ass"],
+      ["Act-ChatSelf-ItemPelvis-Tickle", "Tickle Tummy"],
+      ["Act-ChatSelf-ItemPelvis-Spank", "Spank Tummy"],
+      ["Act-ChatSelf-ItemPelvis-Caress", "Caress Tummy"],
+      ["Act-ChatSelf-ItemPelvis-Pinch", "Pinch Tummy"],
+      ["Act-ChatSelf-ItemPelvis-MassageHands", "Massage Tummy"],
+      ["Act-ChatSelf-ItemPelvis-Wiggle", "Wiggle Hips"],
+      ["Act-ChatOther-ItemPelvis-Kiss", "Kiss Tummy"],
+      ["Act-ChatOther-ItemPelvis-GaggedKiss", "Gag Kiss Tummy"],
+      ["Act-ChatOther-ItemPelvis-Lick", "Lick Tummy"],
+      ["Act-ChatOther-ItemPelvis-Nibble", "Nibble Tummy"],
+      ["Act-ChatOther-ItemPelvis-Tickle", "Tickle Tummy"],
+      ["Act-ChatOther-ItemPelvis-Spank", "Spank Tummy"],
+      ["Act-ChatOther-ItemPelvis-Caress", "Caress Tummy"],
+      ["Act-ChatOther-ItemPelvis-Pinch", "Pinch Tummy"],
+      ["Act-ChatOther-ItemPelvis-MassageHands", "Massage Tummy"],
+      ["Act-ChatOther-ItemPelvis-Grope", "Grope Tummy"],
+      ["Act-ChatSelf-ItemTorso-Tickle", "Tickle Ribs"],
+      ["Act-ChatSelf-ItemTorso-Spank", "Spank Ribs"],
+      ["Act-ChatSelf-ItemTorso-Caress", "Caress Ribs"],
+      ["Act-ChatSelf-ItemTorso-MassageHands", "Massage Back"],
+      ["Act-ChatSelf-ItemTorso-Wiggle", "Wiggle Body"],
+      ["Act-ChatOther-ItemTorso-Bite", "Bite Back"],
+      ["Act-ChatOther-ItemTorso-Kiss", "Kiss Back"],
+      ["Act-ChatOther-ItemTorso-GaggedKiss", "Gag Kiss Back"],
+      ["Act-ChatOther-ItemTorso-Lick", "Lick Back"],
+      ["Act-ChatOther-ItemTorso-Nibble", "Nibble Ribs"],
+      ["Act-ChatOther-ItemTorso-Tickle", "Tickle Ribs"],
+      ["Act-ChatOther-ItemTorso-Spank", "Spank Back"],
+      ["Act-ChatOther-ItemTorso-Caress", "Caress Back"],
+      ["Act-ChatOther-ItemTorso-MassageHands", "Massage Back"],
+      ["Act-ChatOther-ItemTorso-MassageFeet", "Foot Massage Back"],
+      ["Act-ChatOther-ItemTorso-Rub", "Rub Bodies"],
+      ["Act-ChatSelf-ItemNipples-Kiss", "Kiss Nipple"],
+      ["Act-ChatSelf-ItemNipples-Lick", "Lick Nipple"],
+      ["Act-ChatSelf-ItemNipples-Suck", "Suck Nipple"],
+      ["Act-ChatSelf-ItemNipples-Nibble", "Nibble Nipple"],
+      ["Act-ChatSelf-ItemNipples-Pinch", "Pinch Nipple"],
+      ["Act-ChatSelf-ItemNipples-Caress", "Caress Nipple"],
+      ["Act-ChatSelf-ItemNipples-Pull", "Pull Nipples"],
+      ["Act-ChatOther-ItemNipples-Bite", "Bite Nipple"],
+      ["Act-ChatOther-ItemNipples-Pull", "Pull Nipples"],
+      ["Act-ChatOther-ItemNipples-Kiss", "Kiss Nipple"],
+      ["Act-ChatOther-ItemNipples-GaggedKiss", "Press Gag on Nipple"],
+      ["Act-ChatOther-ItemNipples-Lick", "Lick Nipple"],
+      ["Act-ChatOther-ItemNipples-Suck", "Suck Nipple"],
+      ["Act-ChatOther-ItemNipples-Nibble", "Nibble Nipple"],
+      ["Act-ChatOther-ItemNipples-Pinch", "Pinch Nipple"],
+      ["Act-ChatOther-ItemNipples-Caress", "Caress Nipples"],
+      ["Act-ChatSelf-ItemBreast-Kiss", "Kiss Breast"],
+      ["Act-ChatSelf-ItemBreast-Lick", "Lick Breast"],
+      ["Act-ChatSelf-ItemBreast-Tickle", "Tickle Breast"],
+      ["Act-ChatSelf-ItemBreast-Slap", "Slap Breast"],
+      ["Act-ChatSelf-ItemBreast-Caress", "Caress Breast"],
+      ["Act-ChatSelf-ItemBreast-MasturbateHand", "Masturbate Breast"],
+      ["Act-ChatSelf-ItemBreast-Grope", "Grope Breast"],
+      ["Act-ChatSelf-ItemBreast-Wiggle", "Shake Breasts"],
+      ["Act-ChatOther-ItemBreast-Bite", "Bite Breast"],
+      ["Act-ChatOther-ItemBreast-Kiss", "Kiss Breast"],
+      ["Act-ChatOther-ItemBreast-GaggedKiss", "Press Gag on Breast"],
+      ["Act-ChatOther-ItemBreast-Lick", "Lick Breast"],
+      ["Act-ChatOther-ItemBreast-Tickle", "Tickle Breast"],
+      ["Act-ChatOther-ItemBreast-Slap", "Slap Breast"],
+      ["Act-ChatOther-ItemBreast-Caress", "Caress Breast"],
+      ["Act-ChatOther-ItemBreast-MasturbateHand", "Masturbate Breast"],
+      ["Act-ChatOther-ItemBreast-Grope", "Grope Breast"],
+      ["Act-ChatOther-ItemBreast-Step", "Step on Breast"],
+      ["Act-ChatOther-ItemBreast-RestHead", "Rest Head on Breast"],
+      ["Act-ChatSelf-ItemArms-Kiss", "Kiss Arm"],
+      ["Act-ChatSelf-ItemArms-Lick", "Lick Arm"],
+      ["Act-ChatSelf-ItemArms-Nibble", "Nibble Arm"],
+      ["Act-ChatSelf-ItemArms-Tickle", "Tickle Arm"],
+      ["Act-ChatSelf-ItemArms-Spank", "Spank Arm"],
+      ["Act-ChatSelf-ItemArms-Pinch", "Pinch Upper Arm"],
+      ["Act-ChatSelf-ItemArms-Caress", "Caress Arms"],
+      ["Act-ChatSelf-ItemArms-MassageHands", "Massage Arms"],
+      ["Act-ChatSelf-ItemArms-Bite", "Bite Arm"],
+      ["Act-ChatSelf-ItemArms-Wiggle", "Wiggle Shoulders"],
+      ["Act-ChatSelf-ItemArms-StruggleArms", "Struggle against Binds"],
+      ["Act-ChatOther-ItemArms-Bite", "Bite Arm"],
+      ["Act-ChatOther-ItemArms-Kiss", "Kiss Arm"],
+      ["Act-ChatOther-ItemArms-GaggedKiss", "Rub Gag on Arm"],
+      ["Act-ChatOther-ItemArms-Lick", "Lick Arm"],
+      ["Act-ChatOther-ItemArms-Nibble", "Nibble Arm"],
+      ["Act-ChatOther-ItemArms-Tickle", "Tickle Arms"],
+      ["Act-ChatOther-ItemArms-Spank", "Spank Arm"],
+      ["Act-ChatOther-ItemArms-Pinch", "Pinch Upper Arm"],
+      ["Act-ChatOther-ItemArms-Caress", "Caress Arms"],
+      ["Act-ChatOther-ItemArms-MassageHands", "Massage Arms"],
+      ["Act-ChatOther-ItemArms-Grope", "Grab Arm"],
+      ["Act-ChatOther-ItemArms-Cuddle", "Cuddle"],
+      ["Act-ChatSelf-ItemHands-Kiss", "Kiss Hand"],
+      ["Act-ChatSelf-ItemHands-PoliteKiss", "Small Kiss on Hand"],
+      ["Act-ChatSelf-ItemHands-Lick", "Lick Back of Hand"],
+      ["Act-ChatSelf-ItemHands-Suck", "Suck Fingers"],
+      ["Act-ChatSelf-ItemHands-Nibble", "Nibble Hand"],
+      ["Act-ChatSelf-ItemHands-Spank", "Spank Hand with the Other"],
+      ["Act-ChatSelf-ItemHands-Caress", "Rub Hands Together"],
+      ["Act-ChatSelf-ItemHands-TakeCare", "Polish Nails"],
+      ["Act-ChatSelf-ItemHands-Bite", "Bite Hand"],
+      ["Act-ChatSelf-ItemHands-Wiggle", "Wiggle Fingers"],
+      ["Act-ChatOther-ItemHands-Bite", "Bite Hand"],
+      ["Act-ChatOther-ItemHands-Kiss", "Kiss Hand"],
+      ["Act-ChatOther-ItemHands-GaggedKiss", "Touch Hand with Gag"],
+      ["Act-ChatOther-ItemHands-PoliteKiss", "Polite Kiss on Hand"],
+      ["Act-ChatOther-ItemHands-Lick", "Lick Hand"],
+      ["Act-ChatOther-ItemHands-Suck", "Suck Fingers"],
+      ["Act-ChatOther-ItemHands-Nibble", "Nibble Hand"],
+      ["Act-ChatOther-ItemHands-Spank", "Spank Hand"],
+      ["Act-ChatOther-ItemHands-Caress", "Caress Hand"],
+      ["Act-ChatOther-ItemHands-TakeCare", "Polish Nails"],
+      ["Act-ChatSelf-ItemNeck-Caress", "Caress Neck"],
+      ["Act-ChatSelf-ItemNeck-MassageHands", "Massage Neck"],
+      ["Act-ChatSelf-ItemNeck-Choke", "Choke Self"],
+      ["Act-ChatOther-ItemNeck-Bite", "Bite Neck"],
+      ["Act-ChatOther-ItemNeck-Kiss", "Kiss Neck"],
+      ["Act-ChatOther-ItemNeck-GaggedKiss", "Touch Neck with Gag"],
+      ["Act-ChatOther-ItemNeck-Lick", "Lick Neck"],
+      ["Act-ChatOther-ItemNeck-Nibble", "Nibble Neck"],
+      ["Act-ChatOther-ItemNeck-Caress", "Caress Neck"],
+      ["Act-ChatOther-ItemNeck-MassageHands", "Massage Neck"],
+      ["Act-ChatOther-ItemNeck-Choke", "Choke Neck"],
+      ["Act-ChatOther-ItemNeck-Step", "Gently Foot on Neck"],
+      ["Act-ChatOther-ItemNeck-Tickle", "Tickle Neck"],
+      ["Act-ChatSelf-ItemMouth-Lick", "Lick Lips"],
+      ["Act-ChatSelf-ItemMouth-Nibble", "Nibble Lips"],
+      ["Act-ChatSelf-ItemMouth-Caress", "Clean Mouth"],
+      ["Act-ChatSelf-ItemMouth-Bite", "Bite Lips"],
+      ["Act-ChatSelf-ItemMouth-HandGag", "Clamp Hand over Mouth"],
+      ["Act-ChatSelf-ItemMouth-MoanGag", "Moan"],
+      ["Act-ChatSelf-ItemMouth-MoanGagWhimper", "Whimper Pleadingly"],
+      ["Act-ChatSelf-ItemMouth-MoanGagAngry", "Scream Furiously"],
+      ["Act-ChatSelf-ItemMouth-MoanGagGroan", "Groan Desperately"],
+      ["Act-ChatSelf-ItemMouth-MoanGagGiggle", "Giggle"],
+      ["Act-ChatSelf-ItemMouth-MoanGagTalk", "Mumble Incoherently"],
+      ["Act-ChatOther-ItemMouth-GagKiss", "Kiss on Gag"],
+      ["Act-ChatOther-ItemMouth-Bite", "Bite Lips"],
+      ["Act-ChatOther-ItemMouth-Kiss", "Kiss Lips"],
+      ["Act-ChatOther-ItemMouth-FrenchKiss", "French Kiss"],
+      ["Act-ChatOther-ItemMouth-PoliteKiss", "Kiss on Cheek"],
+      ["Act-ChatOther-ItemMouth-GaggedKiss", "Gag Kiss on Cheek"],
+      ["Act-ChatOther-ItemMouth-Lick", "Lick Lips"],
+      ["Act-ChatOther-ItemMouth-Nibble", "Nibble Lips"],
+      ["Act-ChatOther-ItemMouth-Caress", "Clean Mouth"],
+      ["Act-ChatOther-ItemMouth-HandGag", "Clamp Hand over Mouth"],
+      ["Act-ChatOther-ItemMouth-PenetrateSlow", "Slow Penetration"],
+      ["Act-ChatOther-ItemMouth-PenetrateFast", "Fast Penetration"],
+      ["Act-ChatSelf-ItemHead-Slap", "Slap Face"],
+      ["Act-ChatSelf-ItemHead-Caress", "Caress Face"],
+      ["Act-ChatSelf-ItemHead-TakeCare", "Brush Hair"],
+      ["Act-ChatSelf-ItemHead-Pull", "Pull Hair"],
+      ["Act-ChatSelf-ItemHead-Pet", "Pet Head"],
+      ["Act-ChatSelf-ItemHead-Wiggle", "Shake Head"],
+      ["Act-ChatSelf-ItemHead-Nod", "Nod"],
+      ["Act-ChatOther-ItemHead-Kiss", "Kiss Forehead"],
+      ["Act-ChatOther-ItemHead-GaggedKiss", "Gag Kiss Forehead"],
+      ["Act-ChatOther-ItemHead-Slap", "Slap Face"],
+      ["Act-ChatOther-ItemHead-Caress", "Caress Face"],
+      ["Act-ChatOther-ItemHead-TakeCare", "Brush Hair"],
+      ["Act-ChatOther-ItemHead-Pull", "Pull Hair"],
+      ["Act-ChatOther-ItemHead-Pet", "Pet Head"],
+      ["Act-ChatOther-ItemHead-Rub", "Rub Breast on Face"],
+      ["Act-ChatOther-ItemHead-Bite", "Bite Hair"],
+      ["Act-ChatOther-ItemHead-Step", "Rub Foot on Face"],
+      ["Act-ChatOther-ItemNose-Cuddle", "Nose-nuzzle"],
+      ["Act-ChatOther-ItemNose-Pet", "Boop Nose"],
+      ["Act-ChatOther-ItemNose-Kiss", "Kiss Nose"],
+      ["Act-ChatOther-ItemNose-GaggedKiss", "Bump Gag on Nose"],
+      ["Act-ChatOther-ItemNose-Pinch", "Pinch Nose"],
+      ["Act-ChatOther-ItemNose-Caress", "Caress Nose"],
+      ["Act-ChatOther-ItemNose-Pull", "Pull Nose"],
+      ["Act-ChatOther-ItemNose-Rub", "Rub Nose"],
+      ["Act-ChatOther-ItemNose-Nibble", "Nibble Nose"],
+      ["Act-ChatOther-ItemNose-Choke", "Pinch Nostrils Shut"],
+      ["Act-ChatOther-ItemNose-Lick", "Lick Nose"],
+      ["Act-ChatOther-ItemNose-Bite", "Bite Nose"],
+      ["Act-ChatOther-ItemNose-Step", "Force to Smell Feet"],
+      ["Act-ChatSelf-ItemNose-Pinch", "Pinch Nose"],
+      ["Act-ChatSelf-ItemNose-Caress", "Caress Nose"],
+      ["Act-ChatSelf-ItemNose-Pet", "Boop Nose"],
+      ["Act-ChatSelf-ItemNose-Pull", "Pull Nose"],
+      ["Act-ChatSelf-ItemNose-Rub", "Rub Nose"],
+      ["Act-ChatSelf-ItemNose-Choke", "Pinch Nostrils Shut"],
+      ["Act-ChatSelf-ItemNose-Wiggle", "Wiggle Nose"],
+      ["Act-ChatSelf-ItemEars-Pinch", "Pinch Ear"],
+      ["Act-ChatSelf-ItemEars-Caress", "Caress Ear"],
+      ["Act-ChatSelf-ItemEars-Wiggle", "Wiggle Ears"],
+      ["Act-ChatOther-ItemEars-Bite", "Bite Ear"],
+      ["Act-ChatOther-ItemEars-Kiss", "Kiss Ear"],
+      ["Act-ChatOther-ItemEars-GaggedKiss", "Gag Kiss on Ear"],
+      ["Act-ChatOther-ItemEars-Lick", "Lick Ear"],
+      ["Act-ChatOther-ItemEars-Nibble", "Nibble Ear"],
+      ["Act-ChatOther-ItemEars-Pinch", "Pinch Ear"],
+      ["Act-ChatOther-ItemEars-Caress", "Caress Ear"],
+      ["Act-ChatOther-ItemEars-Whisper", "Whisper in Ear"],
+      ["Act-ChatOther-ItemPelvis-Step", "Press Foot on Chest"],
+      ["Act-ChatOther-ItemTorso-Step", "Rest Feet on Back"],
+    ];
+
+    window.ActivityDictionary.push(...customActivityLabels);
+
+    eval(
+      `DialogDrawActivityMenu = ${DialogDrawActivityMenu.toString()
+        .replace(
+          `DrawTextFit(ActivityDictionaryText("Activity" + Act.Name)`,
+          `DrawTextFit(ActivityDictionaryText("bce_setting_value" in window && bce_setting_value("activityLabels") ? \`Act-\${(
+          CurrentCharacter.IsPlayer() ? "ChatSelf" : "ChatOther")
+        }-\${Player.FocusGroup?.Name ?? CurrentCharacter?.FocusGroup?.Name}-\${Act.Name}\` : "Activity" + Act.Name).replace(/SourceCharacter/g, "U").replace(/(DestinationCharacter|TargetCharacter)/g, "X")`
+        )
+        .replace(`// Prepares`, `\n// Prepares`)}`
     );
   }
 
@@ -943,7 +1256,7 @@ window.BCE_VERSION = "1.2.4";
         }
       }
       const results = [word];
-      if (maxIntensity > -1 && Math.random() < chanceToMakeSound) {
+      if (maxIntensity > 0 && Math.random() < chanceToMakeSound) {
         const startSound =
           startSounds[Math.floor(Math.random() * startSounds.length)];
         const sound =
@@ -2870,6 +3183,7 @@ window.BCE_VERSION = "1.2.4";
     }
     ServerSend("ChatRoomChat", message);
   }
+  if (window.ServerIsConnected) sendHello();
 
   async function hiddenMessageHandler() {
     await waitFor(() => ServerSocket && ServerIsConnected);
