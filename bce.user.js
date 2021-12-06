@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Bondage Club Enhancements
 // @namespace https://www.bondageprojects.com/
-// @version 1.3.2
+// @version 1.3.3
 // @description enhancements for the bondage club
 // @author Sidious
 // @match https://bondageprojects.elementfx.com/*
@@ -14,7 +14,7 @@
 // @run-at document-end
 // ==/UserScript==
 
-window.BCE_VERSION = "1.3.2";
+window.BCE_VERSION = "1.3.3";
 
 (async function () {
   "use strict";
@@ -748,8 +748,8 @@ window.BCE_VERSION = "1.3.2";
         .replace(
           `DrawTextFit(ActivityDictionaryText("Activity" + Act.Name)`,
           `DrawTextFit(ActivityDictionaryText("bce_setting_value" in window && bce_setting_value("activityLabels") ? \`Act-\${(
-          CurrentCharacter.IsPlayer() ? "ChatSelf" : "ChatOther")
-        }-\${ActivityGetGroupOrMirror(CurrentCharacter?.AssetFamily ?? Player.AssetFamily, Player.FocusGroup?.Name ?? CurrentCharacter?.FocusGroup?.Name).Name}-\${Act.Name}\` : "Activity" + Act.Name).replace(/SourceCharacter/g, "U").replace(/(DestinationCharacter|TargetCharacter)/g, "X")`
+          CharacterGetCurrent().IsPlayer() ? "ChatSelf" : "ChatOther")
+        }-\${ActivityGetGroupOrMirror(CharacterGetCurrent()?.AssetFamily ?? Player.AssetFamily, Player.FocusGroup?.Name ?? CharacterGetCurrent()?.FocusGroup?.Name).Name}-\${Act.Name}\` : "Activity" + Act.Name)`
         )
         .replace(`// Prepares`, `\n// Prepares`)}`
     );
