@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Bondage Club Enhancements
 // @namespace https://www.bondageprojects.com/
-// @version 1.3.4
+// @version 1.4.0
 // @description enhancements for the bondage club
 // @author Sidious
 // @match https://bondageprojects.elementfx.com/*
@@ -14,7 +14,7 @@
 // @run-at document-end
 // ==/UserScript==
 
-window.BCE_VERSION = "1.3.4";
+window.BCE_VERSION = "1.4.0";
 
 (async function () {
   "use strict";
@@ -48,7 +48,7 @@ window.BCE_VERSION = "1.3.4";
 
   /// SETTINGS LOADING
   let bce_settings = {};
-  const settingsVersion = 12;
+  const settingsVersion = 13;
   const defaultSettings = {
     checkUpdates: {
       label: "Check for updates",
@@ -227,6 +227,13 @@ window.BCE_VERSION = "1.3.4";
         bce_log(newValue);
       },
     },
+    accurateTimerLocks: {
+      label: "Use accurate timer inputs",
+      value: false,
+      sideEffects: (newValue) => {
+        bce_log(newValue);
+      },
+    },
   };
 
   function settingsLoaded() {
@@ -351,11 +358,8 @@ window.BCE_VERSION = "1.3.4";
     /* here to not break customizer script */
   };
 
-  const timeUntilDate = (dateFuture) => {
-    // https://stackoverflow.com/a/13904621/1780502 - jackcogdill
-    var dateNow = new Date();
-
-    var seconds = Math.floor((dateFuture - dateNow) / 1000);
+  const durationToString = (duration) => {
+    var seconds = Math.floor(duration / 1000);
     var minutes = Math.floor(seconds / 60);
     var hours = Math.floor(minutes / 60);
     var days = Math.floor(hours / 24);
@@ -369,6 +373,12 @@ window.BCE_VERSION = "1.3.4";
       minutes: minutes,
       seconds: seconds,
     };
+  };
+
+  const timeUntilDate = (dateFuture) => {
+    // https://stackoverflow.com/a/13904621/1780502 - jackcogdill
+    var dateNow = new Date();
+    return durationToString(dateFuture - dateNow);
   };
 
   const addToTimestamp = (timestamp, days, hours, minutes, seconds) => {
@@ -407,6 +417,7 @@ window.BCE_VERSION = "1.3.4";
   autoGhostBroadcast();
   blindWithoutGlasses();
   friendPresenceNotifications();
+  accurateTimerInputs();
 
   // Post ready when in a chat room
   await bce_notify(`Bondage Club Enhancements v${BCE_VERSION} Loaded`);
@@ -790,19 +801,64 @@ window.BCE_VERSION = "1.3.4";
 
     const timerInput = `ElementPosition("${TIMER_INPUT_ID}", 1400, 930, 250, 70);`;
 
+    // Lover locks
     InventoryItemMiscLoversTimerPadlockDraw = eval(
       `InventoryItemMiscLoversTimerPadlockDraw = ${InventoryItemMiscLoversTimerPadlockDraw.toString().replace(
-        /DrawButton\(1100,\s+910,\s+250,\s+70,\s+DialogFindPlayer\("AddTimerTime"\),\s+"White"\);\s+DrawBackNextButton\(1400,\s+910,\s+250,\s+70,\s+LoverTimerChooseList\[LoverTimerChooseIndex\]\s+\+\s+"\s+"\s+\+\s+DialogFindPlayer\("Hours"\),\s+"White",\s+"",\s+\(\)\s+=>\s+LoverTimerChooseList\[\(LoverTimerChooseList\.length\s+\+\s+LoverTimerChooseIndex\s+-\s+1\)\s+%\s+LoverTimerChooseList\.length\]\s+\+\s+"\s+"\s+\+\s+DialogFindPlayer\("Hours"\),\s+\(\)\s+=>\s+LoverTimerChooseList\[\(LoverTimerChooseIndex\s+\+\s+1\)\s+%\s+LoverTimerChooseList\.length\]\s+\+\s+"\s+"\s+\+\s+DialogFindPlayer\("Hours"\)\);/m,
-        timerInput
+        `// Draw buttons to add/remove time if available`,
+        `if (bce_setting_value("accurateTimerLocks") && Player.CanInteract() && (C.IsLoverOfPlayer() || C.IsOwnedByPlayer())) {${timerInput}} else`
       )}`
     );
     InventoryItemMiscLoversTimerPadlockClick = eval(
       `InventoryItemMiscLoversTimerPadlockClick = ${InventoryItemMiscLoversTimerPadlockClick.toString().replace(
         `InventoryItemMiscLoversTimerPadlockAdd(LoverTimerChooseList[LoverTimerChooseIndex] * 3600);`,
-        `;`
+        `if (!bce_setting_value("accurateTimerLocks")) InventoryItemMiscLoversTimerPadlockAdd(LoverTimerChooseList[LoverTimerChooseIndex] * 3600);`
       )}`
     );
 
+    // Mistress locks
+    InventoryItemMiscMistressTimerPadlockDraw = eval(
+      `InventoryItemMiscMistressTimerPadlockDraw = ${InventoryItemMiscMistressTimerPadlockDraw.toString().replace(
+        `// Draw buttons to add/remove time if available`,
+        `if (bce_setting_value("accurateTimerLocks") && Player.CanInteract() && (LogQuery("ClubMistress", "Management") || (Player.MemberNumber == DialogFocusSourceItem.Property.LockMemberNumber))) {${timerInput}} else`
+      )}`
+    );
+    InventoryItemMiscMistressTimerPadlockClick = eval(
+      `InventoryItemMiscMistressTimerPadlockClick = ${InventoryItemMiscMistressTimerPadlockClick.toString().replace(
+        `InventoryItemMiscMistressTimerPadlockAdd(MistressTimerChooseList[MistressTimerChooseIndex] * 60, false);`,
+        `if (!bce_setting_value("accurateTimerLocks")) InventoryItemMiscMistressTimerPadlockAdd(MistressTimerChooseList[MistressTimerChooseIndex] * 60, false);`
+      )}`
+    );
+
+    // Owner locks
+    InventoryItemMiscOwnerTimerPadlockDraw = eval(
+      `InventoryItemMiscOwnerTimerPadlockDraw = ${InventoryItemMiscOwnerTimerPadlockDraw.toString().replace(
+        `// Draw buttons to add/remove time if available`,
+        `if (bce_setting_value("accurateTimerLocks") && Player.CanInteract() && C.IsOwnedByPlayer()) {${timerInput}} else`
+      )}`
+    );
+    InventoryItemMiscOwnerTimerPadlockClick = eval(
+      `InventoryItemMiscOwnerTimerPadlockClick = ${InventoryItemMiscOwnerTimerPadlockClick.toString().replace(
+        `InventoryItemMiscOwnerTimerPadlockAdd(OwnerTimerChooseList[OwnerTimerChooseIndex] * 3600);`,
+        `if (!bce_setting_value("accurateTimerLocks")) InventoryItemMiscOwnerTimerPadlockAdd(OwnerTimerChooseList[OwnerTimerChooseIndex] * 3600);`
+      )}`
+    );
+
+    // Password timer
+    InventoryItemMiscTimerPasswordPadlockDraw = eval(
+      `InventoryItemMiscTimerPasswordPadlockDraw = ${InventoryItemMiscTimerPasswordPadlockDraw.toString().replace(
+        `// Draw buttons to add/remove time if available`,
+        `if (bce_setting_value("accurateTimerLocks") && Player.CanInteract() && Player.MemberNumber == Property.LockMemberNumber) {${timerInput}} else`
+      )}`
+    );
+    InventoryItemMiscTimerPasswordPadlockClick = eval(
+      `InventoryItemMiscTimerPasswordPadlockClick = ${InventoryItemMiscTimerPasswordPadlockClick.toString().replace(
+        `InventoryItemMiscTimerPasswordPadlockAdd(PasswordTimerChooseList[PasswordTimerChooseIndex] * 60, false);`,
+        `if (!bce_setting_value("accurateTimerLocks")) InventoryItemMiscTimerPasswordPadlockAdd(PasswordTimerChooseList[PasswordTimerChooseIndex] * 60, false);`
+      )}`
+    );
+  }
+
+  async function accurateTimerInputs() {
     const loadLockTimerInput = function () {
       let defaultValue = "0d0h5m0s";
       if (DialogFocusSourceItem?.Property?.RemoveTimer) {
@@ -854,6 +910,13 @@ window.BCE_VERSION = "1.3.4";
           additions.minutes,
           additions.seconds
         );
+        if (
+          DialogFocusSourceItem.Property.RemoveTimer - Date.now() >
+          (DialogFocusItem?.Asset?.MaxTimer || 604800) * 1000
+        ) {
+          DialogFocusSourceItem.Property.RemoveTimer =
+            Date.now() + (DialogFocusItem?.Asset?.MaxTimer || 604800) * 1000;
+        }
         if (CurrentScreen === "ChatRoom") {
           ChatRoomCharacterItemUpdate(
             CharacterGetCurrent(),
@@ -863,44 +926,107 @@ window.BCE_VERSION = "1.3.4";
             new Date(DialogFocusSourceItem.Property.RemoveTimer)
           );
           let timeMessage = "";
-          if (until.days > 0) {
-            timeMessage += `${until.days} days, `;
-          }
-          if (until.hours > 0) {
-            timeMessage += `${until.hours} hours, `;
-          }
-          if (until.minutes > 0) {
-            timeMessage += `${until.minutes} minutes, `;
-          }
-          if (until.seconds > 0) {
-            timeMessage += `${until.seconds} seconds`;
+          if (DialogFocusSourceItem.Property.ShowTimer) {
+            timeMessage += " to ";
+            if (until.days > 0) {
+              timeMessage += `${until.days} days, `;
+            }
+            if (until.hours > 0) {
+              timeMessage += `${until.hours} hours, `;
+            }
+            if (until.minutes > 0) {
+              timeMessage += `${until.minutes} minutes, `;
+            }
+            if (until.seconds > 0) {
+              timeMessage += `${until.seconds} seconds`;
+            }
           }
           bce_sendAction(
             `${Player.Name} changed the timer on the ${
-              Asset.find(
-                (a) => a.Name == DialogFocusSourceItem.Property.LockedBy
-              )?.Description?.toLowerCase() || "timer lock"
+              DialogFocusItem?.Asset?.Description?.toLowerCase() || "timer lock"
             } on ${CharacterGetCurrent().Name}'s ${
               CharacterGetCurrent().FocusGroup?.Description?.toLowerCase() ||
               "body"
-            } to ${timeMessage}.`
+            }${timeMessage.replace(/[,\s]+$/, "")}.`
           );
         }
       };
     };
 
+    // Lover
     const bc_InventoryItemMiscLoversTimerPadlockExit =
       InventoryItemMiscLoversTimerPadlockExit;
     InventoryItemMiscLoversTimerPadlockExit = function () {
       bc_InventoryItemMiscLoversTimerPadlockExit.apply(this, arguments);
-      ElementRemove(TIMER_INPUT_ID);
+      if (bce_settings.accurateTimerLocks) {
+        ElementRemove(TIMER_INPUT_ID);
+      }
     };
 
     const bc_InventoryItemMiscLoversTimerPadlockLoad =
       InventoryItemMiscLoversTimerPadlockLoad;
     InventoryItemMiscLoversTimerPadlockLoad = function () {
       bc_InventoryItemMiscLoversTimerPadlockLoad.apply(this, arguments);
-      loadLockTimerInput();
+      if (bce_settings.accurateTimerLocks) {
+        loadLockTimerInput();
+      }
+    };
+
+    // Mistress
+    const bc_InventoryItemMiscMistressTimerPadlockExit =
+      InventoryItemMiscMistressTimerPadlockExit;
+    InventoryItemMiscMistressTimerPadlockExit = function () {
+      bc_InventoryItemMiscMistressTimerPadlockExit.apply(this, arguments);
+      if (bce_settings.accurateTimerLocks) {
+        ElementRemove(TIMER_INPUT_ID);
+      }
+    };
+
+    const bc_InventoryItemMiscMistressTimerPadlockLoad =
+      InventoryItemMiscMistressTimerPadlockLoad;
+    InventoryItemMiscMistressTimerPadlockLoad = function () {
+      bc_InventoryItemMiscMistressTimerPadlockLoad.apply(this, arguments);
+      if (bce_settings.accurateTimerLocks) {
+        loadLockTimerInput();
+      }
+    };
+
+    // Owner
+    const bc_InventoryItemMiscOwnerTimerPadlockExit =
+      InventoryItemMiscOwnerTimerPadlockExit;
+    InventoryItemMiscOwnerTimerPadlockExit = function () {
+      bc_InventoryItemMiscOwnerTimerPadlockExit.apply(this, arguments);
+      if (bce_settings.accurateTimerLocks) {
+        ElementRemove(TIMER_INPUT_ID);
+      }
+    };
+
+    const bc_InventoryItemMiscOwnerTimerPadlockLoad =
+      InventoryItemMiscOwnerTimerPadlockLoad;
+    InventoryItemMiscOwnerTimerPadlockLoad = function () {
+      bc_InventoryItemMiscOwnerTimerPadlockLoad.apply(this, arguments);
+      if (bce_settings.accurateTimerLocks) {
+        loadLockTimerInput();
+      }
+    };
+
+    // Password
+    const bc_InventoryItemMiscTimerPasswordPadlockExit =
+      InventoryItemMiscTimerPasswordPadlockExit;
+    InventoryItemMiscTimerPasswordPadlockExit = function () {
+      bc_InventoryItemMiscTimerPasswordPadlockExit.apply(this, arguments);
+      if (bce_settings.accurateTimerLocks) {
+        ElementRemove(TIMER_INPUT_ID);
+      }
+    };
+
+    const bc_InventoryItemMiscTimerPasswordPadlockLoad =
+      InventoryItemMiscTimerPasswordPadlockLoad;
+    InventoryItemMiscTimerPasswordPadlockLoad = function () {
+      bc_InventoryItemMiscTimerPasswordPadlockLoad.apply(this, arguments);
+      if (bce_settings.accurateTimerLocks) {
+        loadLockTimerInput();
+      }
     };
   }
 
