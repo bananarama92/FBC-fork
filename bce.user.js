@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Bondage Club Enhancements
 // @namespace https://www.bondageprojects.com/
-// @version 1.3.3
+// @version 1.3.4
 // @description enhancements for the bondage club
 // @author Sidious
 // @match https://bondageprojects.elementfx.com/*
@@ -14,7 +14,7 @@
 // @run-at document-end
 // ==/UserScript==
 
-window.BCE_VERSION = "1.3.3";
+window.BCE_VERSION = "1.3.4";
 
 (async function () {
   "use strict";
@@ -39,6 +39,7 @@ window.BCE_VERSION = "1.3.3";
   const BCE_MAX_AROUSAL = 99.6;
   const GLASSES_BLUR_TARGET = document.getElementById("MainCanvas");
   const GLASSES_BLIND_CLASS = "bce-blind";
+  const TIMER_INPUT_ID = "bce_timerInput";
 
   if (typeof ChatRoomCharacter === "undefined") {
     console.warn("Bondage Club not detected. Skipping BCE initialization.");
@@ -348,6 +349,39 @@ window.BCE_VERSION = "1.3.3";
   // Expressions init method for custom expressions
   window.bce_initializeDefaultExpression = () => {
     /* here to not break customizer script */
+  };
+
+  const timeUntilDate = (dateFuture) => {
+    // https://stackoverflow.com/a/13904621/1780502 - jackcogdill
+    var dateNow = new Date();
+
+    var seconds = Math.floor((dateFuture - dateNow) / 1000);
+    var minutes = Math.floor(seconds / 60);
+    var hours = Math.floor(minutes / 60);
+    var days = Math.floor(hours / 24);
+
+    hours = hours - days * 24;
+    minutes = minutes - days * 24 * 60 - hours * 60;
+    seconds = seconds - days * 24 * 60 * 60 - hours * 60 * 60 - minutes * 60;
+    return {
+      days: days,
+      hours: hours,
+      minutes: minutes,
+      seconds: seconds,
+    };
+  };
+
+  const addToTimestamp = (timestamp, days, hours, minutes, seconds) => {
+    if (!days) days = 0;
+    if (!hours) hours = 0;
+    if (!minutes) minutes = 0;
+    if (!seconds) seconds = 0;
+    const date = new Date(timestamp);
+    date.setDate(date.getDate() + days);
+    date.setHours(date.getHours() + hours);
+    date.setMinutes(date.getMinutes() + minutes);
+    date.setSeconds(date.getSeconds() + seconds);
+    return date.getTime();
   };
 
   /// Init calls
@@ -753,6 +787,121 @@ window.BCE_VERSION = "1.3.3";
         )
         .replace(`// Prepares`, `\n// Prepares`)}`
     );
+
+    const timerInput = `ElementPosition("${TIMER_INPUT_ID}", 1400, 930, 250, 70);`;
+
+    InventoryItemMiscLoversTimerPadlockDraw = eval(
+      `InventoryItemMiscLoversTimerPadlockDraw = ${InventoryItemMiscLoversTimerPadlockDraw.toString().replace(
+        /DrawButton\(1100,\s+910,\s+250,\s+70,\s+DialogFindPlayer\("AddTimerTime"\),\s+"White"\);\s+DrawBackNextButton\(1400,\s+910,\s+250,\s+70,\s+LoverTimerChooseList\[LoverTimerChooseIndex\]\s+\+\s+"\s+"\s+\+\s+DialogFindPlayer\("Hours"\),\s+"White",\s+"",\s+\(\)\s+=>\s+LoverTimerChooseList\[\(LoverTimerChooseList\.length\s+\+\s+LoverTimerChooseIndex\s+-\s+1\)\s+%\s+LoverTimerChooseList\.length\]\s+\+\s+"\s+"\s+\+\s+DialogFindPlayer\("Hours"\),\s+\(\)\s+=>\s+LoverTimerChooseList\[\(LoverTimerChooseIndex\s+\+\s+1\)\s+%\s+LoverTimerChooseList\.length\]\s+\+\s+"\s+"\s+\+\s+DialogFindPlayer\("Hours"\)\);/m,
+        timerInput
+      )}`
+    );
+    InventoryItemMiscLoversTimerPadlockClick = eval(
+      `InventoryItemMiscLoversTimerPadlockClick = ${InventoryItemMiscLoversTimerPadlockClick.toString().replace(
+        `InventoryItemMiscLoversTimerPadlockAdd(LoverTimerChooseList[LoverTimerChooseIndex] * 3600);`,
+        `;`
+      )}`
+    );
+
+    const loadLockTimerInput = function () {
+      let defaultValue = "0d0h5m0s";
+      if (DialogFocusSourceItem?.Property?.RemoveTimer) {
+        const parsedTime = timeUntilDate(
+          new Date(DialogFocusSourceItem.Property.RemoveTimer)
+        );
+        defaultValue = `${parsedTime.days}d${parsedTime.hours}h${parsedTime.minutes}m${parsedTime.seconds}s`;
+      }
+      ElementCreateInput(TIMER_INPUT_ID, "text", defaultValue, 11);
+      document.getElementById(TIMER_INPUT_ID).onchange = function () {
+        const value = this.value;
+
+        // validate input
+        if (!/^[0-9]*d?[0-9]*h?[0-9]*m?[0-9]*s?$/.test(value)) return;
+
+        const additions = {};
+        value.replace(/([0-9]+)[dhms]/g, function (match, number) {
+          switch (match.slice(-1)) {
+            case "d":
+              additions.days = parseInt(number);
+              if (additions.days > 7) {
+                additions.days = 7;
+              }
+              break;
+            case "h":
+              additions.hours = parseInt(number);
+              if (additions.hours > 23) {
+                additions.hours = 23;
+              }
+              break;
+            case "m":
+              additions.minutes = parseInt(number);
+              if (additions.minutes > 59) {
+                additions.minutes = 59;
+              }
+              break;
+            case "s":
+              additions.seconds = parseInt(number);
+              if (additions.seconds > 59) {
+                additions.seconds = 59;
+              }
+              break;
+          }
+        });
+        DialogFocusSourceItem.Property.RemoveTimer = addToTimestamp(
+          Date.now(),
+          additions.days,
+          additions.hours,
+          additions.minutes,
+          additions.seconds
+        );
+        if (CurrentScreen === "ChatRoom") {
+          ChatRoomCharacterItemUpdate(
+            CharacterGetCurrent(),
+            DialogFocusSourceItem.Asset.Group.Name
+          );
+          const until = timeUntilDate(
+            new Date(DialogFocusSourceItem.Property.RemoveTimer)
+          );
+          let timeMessage = "";
+          if (until.days > 0) {
+            timeMessage += `${until.days} days, `;
+          }
+          if (until.hours > 0) {
+            timeMessage += `${until.hours} hours, `;
+          }
+          if (until.minutes > 0) {
+            timeMessage += `${until.minutes} minutes, `;
+          }
+          if (until.seconds > 0) {
+            timeMessage += `${until.seconds} seconds`;
+          }
+          bce_sendAction(
+            `${Player.Name} changed the timer on the ${
+              Asset.find(
+                (a) => a.Name == DialogFocusSourceItem.Property.LockedBy
+              )?.Description?.toLowerCase() || "timer lock"
+            } on ${CharacterGetCurrent().Name}'s ${
+              CharacterGetCurrent().FocusGroup?.Description?.toLowerCase() ||
+              "body"
+            } to ${timeMessage}.`
+          );
+        }
+      };
+    };
+
+    const bc_InventoryItemMiscLoversTimerPadlockExit =
+      InventoryItemMiscLoversTimerPadlockExit;
+    InventoryItemMiscLoversTimerPadlockExit = function () {
+      bc_InventoryItemMiscLoversTimerPadlockExit.apply(this, arguments);
+      ElementRemove(TIMER_INPUT_ID);
+    };
+
+    const bc_InventoryItemMiscLoversTimerPadlockLoad =
+      InventoryItemMiscLoversTimerPadlockLoad;
+    InventoryItemMiscLoversTimerPadlockLoad = function () {
+      bc_InventoryItemMiscLoversTimerPadlockLoad.apply(this, arguments);
+      loadLockTimerInput();
+    };
   }
 
   // Load BCX
@@ -3467,12 +3616,15 @@ window.BCE_VERSION = "1.3.3";
             gagAntiCheatMenuPosition[0] + gagAntiCheatMenuPosition[2] / 2
           ) {
             previous();
+            bce_saveSettings();
           } else {
             next();
+            bce_saveSettings();
           }
         } else if (MouseIn(...gagCheatMenuPosition)) {
           bce_settings.gagspeak = !bce_settings.gagspeak;
           defaultSettings.gagspeak.sideEffects(bce_settings.gagspeak);
+          bce_saveSettings();
         }
       }
       bc_ChatRoomClick();
