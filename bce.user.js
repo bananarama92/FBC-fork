@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Bondage Club Enhancements
 // @namespace https://www.bondageprojects.com/
-// @version 1.4.0
+// @version 1.4.1
 // @description enhancements for the bondage club
 // @author Sidious
 // @match https://bondageprojects.elementfx.com/*
@@ -14,7 +14,7 @@
 // @run-at document-end
 // ==/UserScript==
 
-window.BCE_VERSION = "1.4.0";
+window.BCE_VERSION = "1.4.1";
 
 (async function () {
   "use strict";
@@ -22,7 +22,7 @@ window.BCE_VERSION = "1.4.0";
   const SUPPORTED_GAME_VERSIONS = ["R74"];
 
   const BCX_SOURCE =
-    "https://raw.githubusercontent.com/Jomshir98/bondage-club-extended/dfee4213965b4e53887fbf0659708269b235f843/bcx.js";
+    "https://raw.githubusercontent.com/Jomshir98/bondage-club-extended/5fa553bd599086db98bee309288a4ad6a9fe1fc6/bcx.js";
   const BCX_DEVEL_SOURCE =
     "https://jomshir98.github.io/bondage-club-extended/devel/bcx.js";
 
@@ -1065,6 +1065,11 @@ window.BCE_VERSION = "1.4.0";
             .replace(
               `o.BCXVersion=t.version;`,
               `o.BCXVersion=t.version;o.Character.BCXVersion=t.version;`
+            )
+            // add BCE to detected mods
+            .replace(
+              `return{NMod:isNModClient()`,
+              `return{BCE:window.BCE_VERSION,NMod:isNModClient()`
             )
         );
       });
@@ -3975,7 +3980,7 @@ window.BCE_VERSION = "1.4.0";
     ServerSocket.on("ChatRoomSyncMemberJoin", (data) => {
       if (
         bce_settings.ghostNewUsers &&
-        Date.now() - data.Character.Creation < 120000
+        Date.now() - data.Character.Creation < 30000
       ) {
         let secondArg = "ChatRoomListUpdate" in window ? true : null;
         ChatRoomListManipulation(
