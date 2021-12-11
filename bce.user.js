@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Bondage Club Enhancements
 // @namespace https://www.bondageprojects.com/
-// @version 1.4.2
+// @version 1.4.3
 // @description enhancements for the bondage club
 // @author Sidious
 // @match https://bondageprojects.elementfx.com/*
@@ -14,7 +14,7 @@
 // @run-at document-end
 // ==/UserScript==
 
-window.BCE_VERSION = "1.4.2";
+window.BCE_VERSION = "1.4.3";
 
 (async function () {
   "use strict";
@@ -22,7 +22,7 @@ window.BCE_VERSION = "1.4.2";
   const SUPPORTED_GAME_VERSIONS = ["R74"];
 
   const BCX_SOURCE =
-    "https://raw.githubusercontent.com/Jomshir98/bondage-club-extended/adc6f61f54bcb74ef7f5a0f39fbaa7ccb869734b/bcx.js";
+    "https://raw.githubusercontent.com/Jomshir98/bondage-club-extended/bc65920a70021be8b61a1ae67d1ae9af8ea7a58f/bcx.js";
   const BCX_DEVEL_SOURCE =
     "https://jomshir98.github.io/bondage-club-extended/devel/bcx.js";
 
@@ -1049,35 +1049,12 @@ window.BCE_VERSION = "1.4.2";
       return;
     }
     bce_log("Loading BCX from", source);
+    window.BCX_SOURCE = source; // allow BCX to read where it was loaded from
     await fetch(source)
       .then((resp) => resp.text())
       .then((resp) => {
         bce_log(resp);
-        eval(
-          resp
-            .replace(
-              `char.BCXVersion = message.version;`,
-              `char.BCXVersion = message.version;Character.find(c=>c.MemberNumber==sender).BCXVersion = message.version;`
-            )
-            .replace(
-              `this.BCXVersion = VERSION;`,
-              `this.BCXVersion = VERSION;Player.BCXVersion = VERSION;`
-            )
-            // minified version
-            .replace(
-              `(this.BCXVersion=VERSION),`,
-              `(this.BCXVersion=VERSION),Player.BCXVersion=VERSION;`
-            )
-            .replace(
-              `o.BCXVersion=t.version;`,
-              `o.BCXVersion=t.version;o.Character.BCXVersion=t.version;`
-            )
-            // add BCE to detected mods
-            .replace(
-              `return{NMod:isNModClient()`,
-              `return{BCE:window.BCE_VERSION,NMod:isNModClient()`
-            )
-        );
+        eval(resp);
       });
     bce_log("Loaded BCX");
   }
@@ -1131,9 +1108,11 @@ window.BCE_VERSION = "1.4.2";
             ChatRoomCharacter.map((a) => {
               return `${a.Name} (${a.MemberNumber}) club ${
                 a.OnlineSharedSettings?.GameVersion
-              }${a.BCXVersion ? ` BCX ${a.BCXVersion}` : ``}${
-                a.BCE ? `\nBCE v${a.BCE} Alt Arousal: ${a.BCEArousal}` : ``
-              }`;
+              }${
+                window.bcx?.getCharacterVersion(a.MemberNumber)
+                  ? ` BCX ${window.bcx.getCharacterVersion(a.MemberNumber)}`
+                  : ``
+              }${a.BCE ? `\nBCE v${a.BCE} Alt Arousal: ${a.BCEArousal}` : ``}`;
             })
               .filter((a) => a)
               .join("\n\n")
