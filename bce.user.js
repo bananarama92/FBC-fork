@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Bondage Club Enhancements
 // @namespace https://www.bondageprojects.com/
-// @version 1.4.3
+// @version 1.4.4
 // @description enhancements for the bondage club
 // @author Sidious
 // @match https://bondageprojects.elementfx.com/*
@@ -14,7 +14,7 @@
 // @run-at document-end
 // ==/UserScript==
 
-window.BCE_VERSION = "1.4.3";
+window.BCE_VERSION = "1.4.4";
 
 (async function () {
   "use strict";
@@ -22,7 +22,7 @@ window.BCE_VERSION = "1.4.3";
   const SUPPORTED_GAME_VERSIONS = ["R74"];
 
   const BCX_SOURCE =
-    "https://raw.githubusercontent.com/Jomshir98/bondage-club-extended/bc65920a70021be8b61a1ae67d1ae9af8ea7a58f/bcx.js";
+    "https://raw.githubusercontent.com/Jomshir98/bondage-club-extended/a0231ab1a04f25092a1352c69e7cd7976c8cc5db/bcx.js";
   const BCX_DEVEL_SOURCE =
     "https://jomshir98.github.io/bondage-club-extended/devel/bcx.js";
 
@@ -3265,6 +3265,7 @@ window.BCE_VERSION = "1.4.3";
       Difficulty: "Difficulty",
     });
     function prioritySubscreenEnter(C, FocusItem, field) {
+      DialogFocusItem = FocusItem;
       prioritySubscreen = true;
       priorityField = field;
       let initialValue;
@@ -3285,6 +3286,7 @@ window.BCE_VERSION = "1.4.3";
     function prioritySubscreenExit() {
       prioritySubscreen = false;
       ElementRemove(layerPriority);
+      DialogFocusItem = null;
     }
     const bc_DialogDrawItemMenu = DialogDrawItemMenu;
     DialogDrawItemMenu = function (C) {
