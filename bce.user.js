@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Bondage Club Enhancements
 // @namespace https://www.bondageprojects.com/
-// @version 1.4.5
+// @version 1.4.6
 // @description enhancements for the bondage club
 // @author Sidious
 // @match https://bondageprojects.elementfx.com/*
@@ -14,12 +14,13 @@
 // @run-at document-end
 // ==/UserScript==
 
-window.BCE_VERSION = "1.4.5";
+window.BCE_VERSION = "1.4.6";
 
 (async function () {
   "use strict";
 
   const SUPPORTED_GAME_VERSIONS = ["R74"];
+  const DISCORD_INVITE_URL = "https://discord.gg/aCCWVzXBUj";
 
   const BCX_SOURCE =
     "https://raw.githubusercontent.com/Jomshir98/bondage-club-extended/2a8c520a01c29727ac421c54121d9a3f0c5d5505/bcx.js";
@@ -460,7 +461,7 @@ window.BCE_VERSION = "1.4.5";
             
             Changelog available on GitLab (raw) and Discord:
             - https://gitlab.com/Sidiousious/bce/-/commits/main/
-            - https://discord.gg/aCCWVzXBUj`
+            - ${DISCORD_INVITE_URL}`
           );
         }
       })
@@ -1142,6 +1143,7 @@ window.BCE_VERSION = "1.4.5";
     const settingsPageCount = Math.ceil(
       Object.keys(defaultSettings).length / settingsPerPage
     );
+    const discordInvitePosition = [1600, 810, 250, 90];
     let settingsPage = 0;
 
     window.PreferenceSubscreenBCESettingsLoad = function () {
@@ -1154,6 +1156,14 @@ window.BCE_VERSION = "1.4.5";
     window.PreferenceSubscreenBCESettingsRun = function () {
       MainCanvas.textAlign = "left";
       DrawText("Bondage Club Enhancements Settings", 500, 125, "Black", "Gray");
+      DrawButton(...discordInvitePosition, "", "White", "");
+      DrawText(
+        `Join Discord`,
+        discordInvitePosition[0] + 20,
+        discordInvitePosition[1] + discordInvitePosition[3] / 2,
+        "Black",
+        ""
+      );
       let y = settingsYStart;
       for (const setting of Object.keys(defaultSettings).slice(
         settingsPage * settingsPerPage,
@@ -1186,6 +1196,8 @@ window.BCE_VERSION = "1.4.5";
       } else if (MouseIn(1815, 180, 90, 90)) {
         settingsPage++;
         settingsPage %= settingsPageCount;
+      } else if (MouseIn(...discordInvitePosition)) {
+        window.open(DISCORD_INVITE_URL, "_blank");
       } else {
         for (const setting of Object.keys(defaultSettings).slice(
           settingsPage * settingsPerPage,
