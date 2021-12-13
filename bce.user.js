@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Bondage Club Enhancements
 // @namespace https://www.bondageprojects.com/
-// @version 1.4.6
+// @version 1.4.7
 // @description enhancements for the bondage club
 // @author Sidious
 // @match https://bondageprojects.elementfx.com/*
@@ -14,7 +14,7 @@
 // @run-at document-end
 // ==/UserScript==
 
-window.BCE_VERSION = "1.4.6";
+window.BCE_VERSION = "1.4.7";
 
 (async function () {
   "use strict";
@@ -3469,7 +3469,7 @@ window.BCE_VERSION = "1.4.6";
     };
   }
 
-  function sendHello(target) {
+  function sendHello(target, requestReply) {
     const message = {
       Type: HIDDEN,
       Content: BCE_MSG,
@@ -3478,6 +3478,7 @@ window.BCE_VERSION = "1.4.6";
           type: MESSAGE_TYPES.Hello,
           version: BCE_VERSION,
           alternateArousal: bce_settings.alternateArousal,
+          replyRequested: requestReply,
         },
       },
     };
@@ -3486,7 +3487,7 @@ window.BCE_VERSION = "1.4.6";
     }
     ServerSend("ChatRoomChat", message);
   }
-  if (window.ServerIsConnected) sendHello();
+  if (window.ServerIsConnected) sendHello(undefined, true);
 
   async function hiddenMessageHandler() {
     await waitFor(() => ServerSocket && ServerIsConnected);
@@ -3495,20 +3496,20 @@ window.BCE_VERSION = "1.4.6";
       if (data.Type !== HIDDEN) return;
       if (data.Content === "BCEMsg") {
         const sender = Character.find((a) => a.MemberNumber == data.Sender);
+        if (!sender) return;
         const { message } = data.Dictionary;
         switch (message.type) {
           case MESSAGE_TYPES.Hello:
-            if (sender) {
-              sender.BCE = message.version;
-              sender.BCEArousal = message.alternateArousal || false;
+            sender.BCE = message.version;
+            sender.BCEArousal = message.alternateArousal || false;
+            if (message.replyRequested) {
+              sendHello(sender.MemberNumber);
             }
             break;
           case MESSAGE_TYPES.ArousalSync:
-            if (sender) {
-              sender.BCEArousal = message.alternateArousal || false;
-              sender.BCEArousalProgress = message.progress || 0;
-              sender.BCEEnjoyment = message.enjoyment || 1;
-            }
+            sender.BCEArousal = message.alternateArousal || false;
+            sender.BCEArousalProgress = message.progress || 0;
+            sender.BCEEnjoyment = message.enjoyment || 1;
             break;
         }
       }
