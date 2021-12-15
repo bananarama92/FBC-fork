@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Bondage Club Enhancements
 // @namespace https://www.bondageprojects.com/
-// @version 1.4.7
+// @version 1.4.8
 // @description enhancements for the bondage club
 // @author Sidious
 // @match https://bondageprojects.elementfx.com/*
@@ -14,12 +14,12 @@
 // @run-at document-end
 // ==/UserScript==
 
-window.BCE_VERSION = "1.4.7";
+window.BCE_VERSION = "1.4.8";
 
 (async function () {
   "use strict";
 
-  const SUPPORTED_GAME_VERSIONS = ["R74"];
+  const SUPPORTED_GAME_VERSIONS = ["R74", "R75"];
   const DISCORD_INVITE_URL = "https://discord.gg/aCCWVzXBUj";
 
   const BCX_SOURCE =
