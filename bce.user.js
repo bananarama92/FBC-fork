@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Bondage Club Enhancements
 // @namespace https://www.bondageprojects.com/
-// @version 1.4.8
+// @version 1.4.9
 // @description enhancements for the bondage club
 // @author Sidious
 // @match https://bondageprojects.elementfx.com/*
@@ -14,7 +14,7 @@
 // @run-at document-end
 // ==/UserScript==
 
-window.BCE_VERSION = "1.4.8";
+window.BCE_VERSION = "1.4.9";
 
 (async function () {
   "use strict";
@@ -425,6 +425,7 @@ window.BCE_VERSION = "1.4.8";
   blindWithoutGlasses();
   friendPresenceNotifications();
   accurateTimerInputs();
+  logCharacterUpdates();
 
   // Post ready when in a chat room
   await bce_notify(`Bondage Club Enhancements v${BCE_VERSION} Loaded`);
@@ -4127,6 +4128,35 @@ window.BCE_VERSION = "1.4.8";
       }
       bc_ServerClickBeep();
     };
+  }
+
+  async function logCharacterUpdates() {
+    await waitFor(() => ServerSocket && ServerIsConnected);
+
+    ServerSocket.on("ChatRoomSyncSingle", (data) => {
+      if (data?.Character?.MemberNumber !== Player.MemberNumber) return;
+      bce_log(
+        "Character",
+        data.Character.Name,
+        data.Character.MemberNumber,
+        "updated by",
+        data.SourceMemberNumber
+      );
+    });
+
+    ServerSocket.on("ChatRoomSyncItem", (data) => {
+      if (data?.Item?.Target !== Player.MemberNumber) return;
+      bce_log(
+        "Item",
+        data.Item.Name,
+        "in group",
+        data.Item.Group,
+        "updated by",
+        data.Source,
+        "to",
+        data.Item
+      );
+    });
   }
 
   function sleep(ms) {
