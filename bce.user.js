@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Bondage Club Enhancements
 // @namespace https://www.bondageprojects.com/
-// @version 1.4.9
+// @version 1.4.10
 // @description enhancements for the bondage club
 // @author Sidious
 // @match https://bondageprojects.elementfx.com/*
@@ -14,16 +14,16 @@
 // @run-at document-end
 // ==/UserScript==
 
-window.BCE_VERSION = "1.4.9";
+window.BCE_VERSION = "1.4.10";
 
 (async function () {
   "use strict";
 
-  const SUPPORTED_GAME_VERSIONS = ["R74", "R75"];
+  const SUPPORTED_GAME_VERSIONS = ["R75"];
   const DISCORD_INVITE_URL = "https://discord.gg/aCCWVzXBUj";
 
   const BCX_SOURCE =
-    "https://raw.githubusercontent.com/Jomshir98/bondage-club-extended/2a8c520a01c29727ac421c54121d9a3f0c5d5505/bcx.js";
+    "https://raw.githubusercontent.com/Jomshir98/bondage-club-extended/547c52aee0d5dd34a00f5a7ebd7740f8b689400d/bcx.js";
   const BCX_DEVEL_SOURCE =
     "https://jomshir98.github.io/bondage-club-extended/devel/bcx.js";
 
@@ -3991,15 +3991,14 @@ window.BCE_VERSION = "1.4.9";
         bce_settings.ghostNewUsers &&
         Date.now() - data.Character.Creation < 30000
       ) {
-        let secondArg = "ChatRoomListUpdate" in window ? true : null;
         ChatRoomListManipulation(
           Player.BlackList,
-          secondArg,
+          true,
           data.Character.MemberNumber
         );
         ChatRoomListManipulation(
           Player.GhostList,
-          secondArg,
+          true,
           data.Character.MemberNumber
         );
         bce_log(
