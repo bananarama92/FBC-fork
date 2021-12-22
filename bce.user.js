@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Bondage Club Enhancements
 // @namespace https://www.bondageprojects.com/
-// @version 1.4.11
+// @version 1.5.0
 // @description enhancements for the bondage club
 // @author Sidious
 // @match https://bondageprojects.elementfx.com/*
@@ -14,7 +14,7 @@
 // @run-at document-end
 // ==/UserScript==
 
-window.BCE_VERSION = "1.4.11";
+window.BCE_VERSION = "1.5.0";
 
 (async function () {
   "use strict";
@@ -49,7 +49,7 @@ window.BCE_VERSION = "1.4.11";
 
   /// SETTINGS LOADING
   let bce_settings = {};
-  const settingsVersion = 13;
+  const settingsVersion = 14;
   const defaultSettings = {
     checkUpdates: {
       label: "Check for updates",
@@ -66,12 +66,21 @@ window.BCE_VERSION = "1.4.11";
       },
     },
     expressions: {
-      label: "Automatic Facial Expressions (Replaces Vanilla)",
+      label: "Automatic Arousal Expressions (Replaces Vanilla)",
       value: false,
       sideEffects: (newValue) => {
         if (newValue) {
           // disable conflicting settings
-          Player.OnlineSharedSettings.ItemsAffectExpressions = false;
+          Player.ArousalSettings.AffectExpression = false;
+        }
+      },
+    },
+    activityExpressions: {
+      label: "Activity Expressions",
+      value: false,
+      sideEffects: (newValue) => {
+        if (newValue) {
+          // disable conflicting settings
           Player.ArousalSettings.AffectExpression = false;
         }
       },
@@ -266,6 +275,10 @@ window.BCE_VERSION = "1.4.11";
       for (const setting in defaultSettings) {
         if (!defaultSettings.hasOwnProperty(setting)) continue;
         if (!(setting in settings)) {
+          if (setting === "activityExpressions" && "expressions" in settings) {
+            settings[setting] = settings.expressions;
+            continue;
+          }
           settings[setting] = defaultSettings[setting].value;
         }
       }
@@ -1805,6 +1818,10 @@ window.BCE_VERSION = "1.4.11";
       Blush: [null, "Low", "Medium", "High", "VeryHigh", "Extreme"],
     });
 
+    const AUTOMATED_AROUSAL_EVENT_TYPE = "AutomatedByArousal";
+    const MANUAL_OVERRIDE_EVENT_TYPE = "ManualOverride";
+    const POST_ORGASM_EVENT_TYPE = "PostOrgasm";
+
     const bce_ExpressionsQueue = [];
     let lastUniqueId = 0;
     function newUniqueId() {
@@ -1812,6 +1829,20 @@ window.BCE_VERSION = "1.4.11";
       return lastUniqueId;
     }
     function pushEvent(evt) {
+      if (!evt) return;
+      switch (evt.Type) {
+        case AUTOMATED_AROUSAL_EVENT_TYPE:
+        case POST_ORGASM_EVENT_TYPE:
+          if (!bce_settings.expressions) {
+            return;
+          }
+        case MANUAL_OVERRIDE_EVENT_TYPE:
+          break;
+        default:
+          if (!bce_settings.activityExpressions) {
+            return;
+          }
+      }
       const time = Date.now();
       let event = JSON.parse(JSON.stringify(evt)); // deep copy
       event.At = time;
@@ -1827,12 +1858,10 @@ window.BCE_VERSION = "1.4.11";
       bce_ExpressionsQueue.push(event);
     }
 
-    const AUTOMATED_AROUSAL_EVENT_TYPE = "AutomatedByArousal";
-
     if (!window.bce_EventExpressions) {
       window.bce_EventExpressions = {
         PostOrgasm: {
-          Type: "PostOrgasm",
+          Type: POST_ORGASM_EVENT_TYPE,
           Duration: 20000,
           Priority: 10000,
           Expression: {
@@ -2913,7 +2942,10 @@ window.BCE_VERSION = "1.4.11";
       Timer,
       Color
     ) {
-      if (C.IsPlayer() && bce_settings.expressions) {
+      if (
+        C.IsPlayer() &&
+        (bce_settings.expressions || bce_settings.activityExpressions)
+      ) {
         const duration = Timer ? Timer * 1000 : -1;
         const e = Object.create(null);
         const types = [AssetGroup];
@@ -2926,7 +2958,7 @@ window.BCE_VERSION = "1.4.11";
         }
         bce_log("ManualExpression", e);
         const evt = {
-          Type: "ManualOverride",
+          Type: MANUAL_OVERRIDE_EVENT_TYPE,
           Duration: duration,
           Expression: e,
         };
@@ -2949,10 +2981,12 @@ window.BCE_VERSION = "1.4.11";
 
     // this is called once per interval to check for expression changes
     const _CustomArousalExpression = () => {
-      if (!bce_settings.expressions || !Player?.AppearanceLayers) {
+      if (
+        !(bce_settings.expressions || bce_settings.activityExpressions) ||
+        !Player?.AppearanceLayers
+      ) {
         return;
       } else {
-        Player.OnlineSharedSettings.ItemsAffectExpressions = false;
         Player.ArousalSettings.AffectExpression = false;
       }
 
@@ -3017,7 +3051,8 @@ window.BCE_VERSION = "1.4.11";
       if (
         _PreviousArousal.OrgasmStage !== OrgasmRecoveryStage &&
         Player.ArousalSettings.OrgasmStage === OrgasmRecoveryStage &&
-        bce_ExpressionsQueue.filter((a) => a.Type === "PostOrgasm").length === 0
+        bce_ExpressionsQueue.filter((a) => a.Type === POST_ORGASM_EVENT_TYPE)
+          .length === 0
       ) {
         pushEvent(bce_EventExpressions.PostOrgasm);
         lastOrgasm = Date.now();
@@ -3092,8 +3127,13 @@ window.BCE_VERSION = "1.4.11";
           }
         }
         if (!active) {
-          bce_ExpressionsQueue.splice(j, 1);
+          let last = bce_ExpressionsQueue.splice(j, 1);
           j--;
+          if (!bce_settings.expressions && last.length > 0) {
+            for (const t of Object.keys(last[0].Expression)) {
+              trySetNextExpression(null, { Duration: -1 }, { Priority: 0 }, t);
+            }
+          }
         }
       }
 
