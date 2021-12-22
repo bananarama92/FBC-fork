@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Bondage Club Enhancements
 // @namespace https://www.bondageprojects.com/
-// @version 1.4.10
+// @version 1.4.11
 // @description enhancements for the bondage club
 // @author Sidious
 // @match https://bondageprojects.elementfx.com/*
@@ -14,7 +14,7 @@
 // @run-at document-end
 // ==/UserScript==
 
-window.BCE_VERSION = "1.4.10";
+window.BCE_VERSION = "1.4.11";
 
 (async function () {
   "use strict";
@@ -23,7 +23,7 @@ window.BCE_VERSION = "1.4.10";
   const DISCORD_INVITE_URL = "https://discord.gg/aCCWVzXBUj";
 
   const BCX_SOURCE =
-    "https://raw.githubusercontent.com/Jomshir98/bondage-club-extended/547c52aee0d5dd34a00f5a7ebd7740f8b689400d/bcx.js";
+    "https://raw.githubusercontent.com/Jomshir98/bondage-club-extended/c32a8636a806475cb8a277df6b9671834d54639a/bcx.js";
   const BCX_DEVEL_SOURCE =
     "https://jomshir98.github.io/bondage-club-extended/devel/bcx.js";
 
@@ -1055,6 +1055,10 @@ window.BCE_VERSION = "1.4.10";
     await fetch(source)
       .then((resp) => resp.text())
       .then((resp) => {
+        resp = resp.replace(
+          `sourceMappingURL=bcx.js.map`,
+          `sourceMappingURL=${source}.map`
+        );
         bce_log(resp);
         eval(resp);
       });
