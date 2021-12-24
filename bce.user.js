@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Bondage Club Enhancements
 // @namespace https://www.bondageprojects.com/
-// @version 1.5.0
+// @version 1.5.1
 // @description enhancements for the bondage club
 // @author Sidious
 // @match https://bondageprojects.elementfx.com/*
@@ -14,7 +14,7 @@
 // @run-at document-end
 // ==/UserScript==
 
-window.BCE_VERSION = "1.5.0";
+window.BCE_VERSION = "1.5.1";
 
 (async function () {
   "use strict";
@@ -23,7 +23,7 @@ window.BCE_VERSION = "1.5.0";
   const DISCORD_INVITE_URL = "https://discord.gg/aCCWVzXBUj";
 
   const BCX_SOURCE =
-    "https://raw.githubusercontent.com/Jomshir98/bondage-club-extended/c32a8636a806475cb8a277df6b9671834d54639a/bcx.js";
+    "https://raw.githubusercontent.com/Jomshir98/bondage-club-extended/fa870f6823d8f7b0c282f4397afb46aca276eeb7/bcx.js";
   const BCX_DEVEL_SOURCE =
     "https://jomshir98.github.io/bondage-club-extended/devel/bcx.js";
 
