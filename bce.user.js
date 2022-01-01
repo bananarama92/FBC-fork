@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Bondage Club Enhancements
 // @namespace https://www.bondageprojects.com/
-// @version 1.6.1
+// @version 1.6.2
 // @description enhancements for the bondage club
 // @author Sidious
 // @match https://bondageprojects.elementfx.com/*
@@ -14,7 +14,7 @@
 // @run-at document-end
 // ==/UserScript==
 
-window.BCE_VERSION = "1.6.1";
+window.BCE_VERSION = "1.6.2";
 
 (async function () {
   "use strict";
@@ -1870,7 +1870,7 @@ window.BCE_VERSION = "1.6.1";
           p.Pose = p.Pose.map((v) => {
             return {
               Pose: v,
-              Category: PoseFemale3DCG.find((a) => a.Name === v).Category,
+              Category: PoseFemale3DCG.find((a) => a.Name === v)?.Category,
             };
           });
         }
@@ -3053,6 +3053,13 @@ window.BCE_VERSION = "1.6.1";
       Action: (args) => {
         if (args.length === 0 || args === "all") {
           bce_ExpressionsQueue.splice(0, bce_ExpressionsQueue.length);
+          Player.ActivePose = Player.ActivePose?.filter(
+            (v) => PoseFemale3DCG.find((a) => a.Name === v)?.AllowMenu
+          );
+          ServerSend("ChatRoomCharacterPoseUpdate", {
+            Pose: Player.ActivePose,
+          });
+          CharacterRefresh(Player, false, false);
           bce_chatNotify("Reset all expressions");
         } else {
           const component = `${args[0].toUpperCase()}${args
@@ -3369,6 +3376,25 @@ window.BCE_VERSION = "1.6.1";
         }
       }
 
+      // clean up unused poses
+      let needsRefresh = false;
+      let needsPoseUpdate = false;
+      if (Player.ActivePose) {
+        for (let i = 0; i < Player.ActivePose.length; i++) {
+          const pose = Player.ActivePose[i];
+          const p = PoseFemale3DCG.find((p) => p.Name === pose);
+          if (
+            !p?.Category &&
+            Object.values(desiredPose).every((v) => v.Pose !== pose)
+          ) {
+            Player.ActivePose.splice(i, 1);
+            i--;
+            needsPoseUpdate = true;
+            needsRefresh = true;
+          }
+        }
+      }
+
       // handle arousal-based expressions
       outer: for (const t of Object.keys(bce_ArousalExpressionStages)) {
         const [exp] = expression(t);
@@ -3408,7 +3434,6 @@ window.BCE_VERSION = "1.6.1";
         }
       }
 
-      let needsRefresh = false;
       if (Object.keys(desiredExpression).length > 0) {
         for (const t of Object.keys(desiredExpression)) {
           setExpression(
@@ -3432,8 +3457,14 @@ window.BCE_VERSION = "1.6.1";
           Object.values(desiredPose).map((p) => p.Pose),
           true
         );
-        ServerSend("ChatRoomCharacterPoseUpdate", { Pose: Player.ActivePose });
+        needsPoseUpdate = true;
         needsRefresh = true;
+      }
+
+      if (needsPoseUpdate) {
+        ServerSend("ChatRoomCharacterPoseUpdate", {
+          Pose: Player.ActivePose,
+        });
       }
 
       if (needsRefresh) CharacterRefresh(Player, false, false);
