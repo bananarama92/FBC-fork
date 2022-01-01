@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Bondage Club Enhancements
 // @namespace https://www.bondageprojects.com/
-// @version 1.5.2
+// @version 1.6.0
 // @description enhancements for the bondage club
 // @author Sidious
 // @match https://bondageprojects.elementfx.com/*
@@ -14,7 +14,7 @@
 // @run-at document-end
 // ==/UserScript==
 
-window.BCE_VERSION = "1.5.2";
+window.BCE_VERSION = "1.6.0";
 
 (async function () {
   "use strict";
@@ -1854,12 +1854,27 @@ window.BCE_VERSION = "1.5.2";
       event.Until = time + event.Duration;
       event.Id = newUniqueId();
       if (typeof event.Priority !== "number") event.Priority = 1;
-      for (const t of Object.values(event.Expression)) {
-        for (const exp of t) {
-          exp.Id = newUniqueId();
-          if (typeof exp.Priority !== "number") exp.Priority = 1;
+      if (event.Expression) {
+        for (const t of Object.values(event.Expression)) {
+          for (const exp of t) {
+            exp.Id = newUniqueId();
+            if (typeof exp.Priority !== "number") exp.Priority = 1;
+          }
         }
       }
+      if (event.Poses) {
+        for (const p of event.Poses) {
+          p.Id = newUniqueId();
+          if (typeof p.Priority !== "number") p.Priority = 1;
+          p.Pose = p.Pose.map((v) => {
+            return {
+              Pose: v,
+              Category: PoseFemale3DCG.find((a) => a.Name === v).Category,
+            };
+          });
+        }
+      }
+      bce_log("event", event);
       bce_ExpressionsQueue.push(event);
     }
 
@@ -2389,6 +2404,59 @@ window.BCE_VERSION = "1.5.2";
             Mouth: [{ Expression: "Angry", Duration: 4000 }],
           },
         },
+        AllFours: {
+          Type: "AllFours",
+          Duration: -1,
+          Poses: [{ Pose: ["AllFours"], Duration: -1 }],
+        },
+        SpreadKnees: {
+          Type: "SpreadKnees",
+          Duration: -1,
+          Poses: [{ Pose: ["KneelingSpread"], Duration: -1 }],
+        },
+        Hogtied: {
+          Type: "Hogtied",
+          Duration: -1,
+          Poses: [{ Pose: ["Hogtied"], Duration: -1 }],
+        },
+        Handstand: {
+          Type: "Handstand",
+          Duration: -1,
+          Poses: [{ Pose: ["Suspension", "OverTheHead"], Duration: -1 }],
+        },
+        Stretch: {
+          Type: "Stretch",
+          Priority: 100,
+          Duration: 6000,
+          Poses: [
+            { Pose: ["OverTheHead"], Duration: 1000 },
+            { Pose: ["Yoked"], Duration: 1000 },
+            { Pose: ["BaseUpper"], Duration: 1000 },
+            { Pose: ["Spread"], Duration: 1000 },
+            { Pose: ["LegsClosed"], Duration: 1000 },
+            { Pose: ["BaseLower"], Duration: 1000 },
+          ],
+        },
+        SpreadLegs: {
+          Type: "SpreadLegs",
+          Duration: -1,
+          Poses: [{ Pose: ["Spread"], Duration: -1 }],
+        },
+        JumpingJacks: {
+          Type: "JumpingJacks",
+          Priority: 100,
+          Duration: 8000,
+          Poses: [
+            { Pose: ["OverTheHead", "Spread"], Duration: 1000 },
+            { Pose: ["BaseUpper", "LegsClosed"], Duration: 1000 },
+            { Pose: ["OverTheHead", "Spread"], Duration: 1000 },
+            { Pose: ["BaseUpper", "LegsClosed"], Duration: 1000 },
+            { Pose: ["OverTheHead", "Spread"], Duration: 1000 },
+            { Pose: ["BaseUpper", "LegsClosed"], Duration: 1000 },
+            { Pose: ["OverTheHead", "Spread"], Duration: 1000 },
+            { Pose: ["BaseUpper", "LegsClosed"], Duration: 1000 },
+          ],
+        },
       };
     }
 
@@ -2400,6 +2468,69 @@ window.BCE_VERSION = "1.5.2";
           Matchers: [
             {
               Tester: /^ChatOther-ItemMouth-PoliteKiss$/,
+            },
+          ],
+        },
+        {
+          Event: "Stretch",
+          Type: "Emote",
+          Matchers: [
+            {
+              Tester: /^stretches($| her)/,
+            },
+          ],
+        },
+        {
+          Event: "JumpingJacks",
+          Type: "Emote",
+          Matchers: [
+            {
+              Tester: /^does jumping[ -]?jacks/,
+            },
+          ],
+        },
+        {
+          Event: "AllFours",
+          Type: "Emote",
+          Matchers: [
+            {
+              Tester: /^(gets on all fours|starts crawling)/,
+            },
+          ],
+        },
+        {
+          Event: "SpreadKnees",
+          Type: "Emote",
+          Matchers: [
+            {
+              Tester: /^spreads(( her legs)? on)? her knees/,
+            },
+          ],
+        },
+        {
+          Event: "SpreadLegs",
+          Type: "Emote",
+          Matchers: [
+            {
+              Tester: /^spreads her legs/,
+            },
+          ],
+        },
+        {
+          Event: "Handstand",
+          Type: "Emote",
+          Matchers: [
+            {
+              Tester: /^(does a handstand|stands on her hands)/,
+            },
+          ],
+        },
+        {
+          Event: "Hogtied",
+          Type: "Emote",
+          Matchers: [
+            {
+              Tester: /^lies( down)? on (the floor|her (tummy|stomach))/,
             },
           ],
         },
@@ -2980,6 +3111,27 @@ window.BCE_VERSION = "1.5.2";
       }
     };
 
+    const bc_CharacterSetActivePose = CharacterSetActivePose;
+    CharacterSetActivePose = function (C, Pose, ForceChange) {
+      if (
+        C.IsPlayer() &&
+        (bce_settings.expressions || bce_settings.activityExpressions)
+      ) {
+        const p = Object.create(null);
+        p.Pose = [Pose];
+        p.Duration = -1;
+        bce_log("ManualPose", p);
+        const evt = {
+          Type: MANUAL_OVERRIDE_EVENT_TYPE,
+          Duration: -1,
+          Poses: [p],
+        };
+        pushEvent(evt);
+      } else {
+        bc_CharacterSetActivePose(C, Pose, ForceChange);
+      }
+    };
+
     let lastOrgasm = 0;
     let orgasmCount = 0;
     let wasDefault = false;
@@ -3064,7 +3216,8 @@ window.BCE_VERSION = "1.5.2";
       }
 
       // keep track of desired changes
-      let desired = {};
+      let desiredExpression = {};
+      let desiredPose = {};
 
       let nextExpression = {};
       const trySetNextExpression = (e, exp, next, t) => {
@@ -3075,7 +3228,6 @@ window.BCE_VERSION = "1.5.2";
             Expression: e,
             Duration: exp.Duration,
             Priority: priority,
-            Automatic: true,
             Color: exp.Color,
           };
         }
@@ -3085,45 +3237,69 @@ window.BCE_VERSION = "1.5.2";
       for (let j = 0; j < bce_ExpressionsQueue.length; j++) {
         let next = bce_ExpressionsQueue[j];
         let active = false;
-        if (
-          (next.Until > Date.now() || next.Until - next.At < 0) &&
-          Object.keys(next.Expression).length > 0
-        ) {
-          for (const t of Object.keys(next.Expression)) {
-            let durationNow = Date.now() - next.At;
-            for (let i = 0; i < next.Expression[t].length; i++) {
-              const exp = next.Expression[t][i];
-              durationNow -= exp.Duration;
-              if (durationNow < 0 || exp.Duration < 0) {
-                active = true;
-                if (!exp.Skip) {
-                  if (
-                    exp.ExpressionModifier &&
-                    t in bce_ExpressionModifierMap
-                  ) {
-                    const [current] = expression(t);
-                    if (!exp.Applied) {
-                      let idx =
-                        bce_ExpressionModifierMap[t].indexOf(current) +
-                        exp.ExpressionModifier;
-                      if (idx >= bce_ExpressionModifierMap[t].length) {
-                        idx = bce_ExpressionModifierMap[t].length - 1;
-                      } else if (idx < 0) {
-                        idx = 0;
+        if (next.Until > Date.now() || next.Until - next.At < 0) {
+          if (Object.keys(next.Expression || {}).length > 0) {
+            for (const t of Object.keys(next.Expression)) {
+              let durationNow = Date.now() - next.At;
+              for (let i = 0; i < next.Expression[t].length; i++) {
+                const exp = next.Expression[t][i];
+                durationNow -= exp.Duration;
+                if (durationNow < 0 || exp.Duration < 0) {
+                  active = true;
+                  if (!exp.Skip) {
+                    if (
+                      exp.ExpressionModifier &&
+                      t in bce_ExpressionModifierMap
+                    ) {
+                      const [current] = expression(t);
+                      if (!exp.Applied) {
+                        let idx =
+                          bce_ExpressionModifierMap[t].indexOf(current) +
+                          exp.ExpressionModifier;
+                        if (idx >= bce_ExpressionModifierMap[t].length) {
+                          idx = bce_ExpressionModifierMap[t].length - 1;
+                        } else if (idx < 0) {
+                          idx = 0;
+                        }
+                        trySetNextExpression(
+                          bce_ExpressionModifierMap[t][idx],
+                          exp,
+                          next,
+                          t
+                        );
+                        bce_ExpressionsQueue[j].Expression[t][i].Applied = true;
+                      } else {
+                        // prevent being overridden by other expressions while also not applying a change
+                        trySetNextExpression(current, exp, next, t);
                       }
-                      trySetNextExpression(
-                        bce_ExpressionModifierMap[t][idx],
-                        exp,
-                        next,
-                        t
-                      );
-                      bce_ExpressionsQueue[j].Expression[t][i].Applied = true;
                     } else {
-                      // prevent being overridden by other expressions while also not applying a change
-                      trySetNextExpression(current, exp, next, t);
+                      trySetNextExpression(exp.Expression, exp, next, t);
                     }
-                  } else {
-                    trySetNextExpression(exp.Expression, exp, next, t);
+                  }
+                  break;
+                }
+              }
+            }
+          }
+          if (next.Poses?.length) {
+            let durationNow = Date.now() - next.At;
+            for (const pose of next.Poses) {
+              durationNow -= pose.Duration;
+              if (durationNow < 0 || pose.Duration < 0) {
+                active = true;
+                for (const p of pose.Pose) {
+                  const priority = pose.Priority || next.Priority || 0;
+                  if (
+                    !desiredPose[p.Category] ||
+                    desiredPose[p.Category].Priority <= priority
+                  ) {
+                    desiredPose[p.Category] = {
+                      Id: pose.Id,
+                      Pose: p.Pose,
+                      Category: p.Category,
+                      Duration: pose.Duration,
+                      Priority: priority,
+                    };
                   }
                 }
                 break;
@@ -3133,8 +3309,13 @@ window.BCE_VERSION = "1.5.2";
         }
         if (!active) {
           let last = bce_ExpressionsQueue.splice(j, 1);
+          bce_log("event gone", last);
           j--;
-          if (!bce_settings.expressions && last.length > 0) {
+          if (
+            !bce_settings.expressions &&
+            last.length > 0 &&
+            last[0].Expression
+          ) {
             for (const t of Object.keys(last[0].Expression)) {
               trySetNextExpression(null, { Duration: -1 }, { Priority: 0 }, t);
             }
@@ -3144,7 +3325,7 @@ window.BCE_VERSION = "1.5.2";
 
       // garbage collect unused expressions - this should occur before manual expressions are detected
       for (let j = 0; j < bce_ExpressionsQueue.length; j++) {
-        for (const t of Object.keys(bce_ExpressionsQueue[j].Expression)) {
+        for (const t of Object.keys(bce_ExpressionsQueue[j].Expression || {})) {
           if (!nextExpression[t] || nextExpression[t].Duration > 0) continue;
           const nextId = nextExpression[t].Id;
           const nextPriority = nextExpression[t].Priority;
@@ -3167,8 +3348,23 @@ window.BCE_VERSION = "1.5.2";
             delete bce_ExpressionsQueue[j].Expression[t];
           }
         }
-        if (Object.keys(bce_ExpressionsQueue[j].Expression).length === 0) {
-          bce_ExpressionsQueue.splice(j, 1);
+        for (let k = 0; k < bce_ExpressionsQueue[j].Poses?.length; k++) {
+          const pose = bce_ExpressionsQueue[j].Poses[k];
+          const desiredIsNewerAndInfinite = pose.Pose.every(
+            (p) =>
+              desiredPose[p.Category]?.Duration < 0 &&
+              desiredPose[p.Category]?.Id > pose.Id
+          );
+          if (pose.Duration < 0 && desiredIsNewerAndInfinite) {
+            bce_ExpressionsQueue[j].Poses.splice(k, 1);
+            k--;
+          }
+        }
+        if (
+          Object.keys(bce_ExpressionsQueue[j].Expression || {}).length === 0 &&
+          Object.keys(bce_ExpressionsQueue[j].Poses || {}).length === 0
+        ) {
+          bce_log("gc", bce_ExpressionsQueue.splice(j, 1));
           j--;
         }
       }
@@ -3208,22 +3404,39 @@ window.BCE_VERSION = "1.5.2";
           nextExp.Expression !== exp &&
           typeof nextExp.Expression !== "undefined"
         ) {
-          desired[t] = { ...nextExp };
+          desiredExpression[t] = { ...nextExp };
         }
       }
 
-      if (Object.keys(desired).length > 0) {
-        for (const t of Object.keys(desired)) {
-          setExpression(t, desired[t].Expression, desired[t].Color);
+      let needsRefresh = false;
+      if (Object.keys(desiredExpression).length > 0) {
+        for (const t of Object.keys(desiredExpression)) {
+          setExpression(
+            t,
+            desiredExpression[t].Expression,
+            desiredExpression[t].Color
+          );
           ServerSend("ChatRoomCharacterExpressionUpdate", {
-            Name: desired[t].Expression,
+            Name: desiredExpression[t].Expression,
             Group: t,
             Appearance: ServerAppearanceBundle(Player.Appearance),
           });
         }
 
-        CharacterRefresh(Player, false, false);
+        needsRefresh = true;
       }
+
+      if (Object.keys(desiredPose).length > 0) {
+        bc_CharacterSetActivePose(
+          Player,
+          Object.values(desiredPose).map((p) => p.Pose),
+          true
+        );
+        ServerSend("ChatRoomCharacterPoseUpdate", { Pose: Player.ActivePose });
+        needsRefresh = true;
+      }
+
+      if (needsRefresh) CharacterRefresh(Player, false, false);
 
       _PreviousArousal = { ...Player.ArousalSettings };
     };

@@ -93,6 +93,7 @@
    * - Duration: how long the expression lasts, in milliseconds, or -1 for indefinite
    * - Priority: how important the expression is, higher is more important. Expressions with the same or lower priority are cut short when another expression is triggered.
    * - Expression: a map of face component (Blush, Eyes, Eyes2, Mouth, Fluids, Eyebrows) to the expression timeline.
+   * - Poses: the pose timeline.
    *
    * The expression timeline is a list of expressions, which are objects with the following properties:
    * - Expression: the expression type, e.g. "DroolSides". Refer to the expressions cheatsheet at https://gitlab.com/Sidiousious/bce/-/blob/main/README.md
@@ -100,6 +101,11 @@
    * - Priority: how important the expression is, higher is more important. Expressions with the same or lower priority are cut short when another expression is triggered.
    * - ExpressionModifier: a number from -4 to +4 that modifies the intensity of the expression. This is only valid for Blush. Use only Expression or ExpressionModifier, not both.
    * - Skip: if true, the expression will be skipped for the duration.
+   *
+   * The pose timeline is a list of poses, which are objects with the following properties:
+   * - Pose: the complete pose array, refer to https://github.com/Ben987/Bondage-College/blob/2cc8eabd51c075cb1e88c5ab36317bfc51709470/BondageClub/Assets/Female3DCG/Female3DCG.js#L5711 for a complete list. Max one per category.
+   * - Duration: how long the pose lasts, in milliseconds, or -1 for indefinite
+   * - Priority: how important the pose is, higher is more important. Poses with the same or lower priority are cut short when another pose is triggered.
    */
   window.bce_EventExpressions = {
     PostOrgasm: {
@@ -600,6 +606,59 @@
         Mouth: [{ Expression: "Angry", Duration: 4000 }],
       },
     },
+    AllFours: {
+      Type: "AllFours",
+      Duration: -1,
+      Poses: [{ Pose: ["AllFours"], Duration: -1 }],
+    },
+    SpreadKnees: {
+      Type: "SpreadKnees",
+      Duration: -1,
+      Poses: [{ Pose: ["KneelingSpread"], Duration: -1 }],
+    },
+    Hogtied: {
+      Type: "Hogtied",
+      Duration: -1,
+      Poses: [{ Pose: ["Hogtied"], Duration: -1 }],
+    },
+    Handstand: {
+      Type: "Handstand",
+      Duration: -1,
+      Poses: [{ Pose: ["Suspension", "OverTheHead"], Duration: -1 }],
+    },
+    Stretch: {
+      Type: "Stretch",
+      Priority: 100,
+      Duration: 6000,
+      Poses: [
+        { Pose: ["OverTheHead"], Duration: 1000 },
+        { Pose: ["Yoked"], Duration: 1000 },
+        { Pose: ["BaseUpper"], Duration: 1000 },
+        { Pose: ["Spread"], Duration: 1000 },
+        { Pose: ["LegsClosed"], Duration: 1000 },
+        { Pose: ["BaseLower"], Duration: 1000 },
+      ],
+    },
+    SpreadLegs: {
+      Type: "SpreadLegs",
+      Duration: -1,
+      Poses: [{ Pose: ["Spread"], Duration: -1 }],
+    },
+    JumpingJacks: {
+      Type: "JumpingJacks",
+      Priority: 100,
+      Duration: 8000,
+      Poses: [
+        { Pose: ["OverTheHead", "Spread"], Duration: 1000 },
+        { Pose: ["BaseUpper", "LegsClosed"], Duration: 1000 },
+        { Pose: ["OverTheHead", "Spread"], Duration: 1000 },
+        { Pose: ["BaseUpper", "LegsClosed"], Duration: 1000 },
+        { Pose: ["OverTheHead", "Spread"], Duration: 1000 },
+        { Pose: ["BaseUpper", "LegsClosed"], Duration: 1000 },
+        { Pose: ["OverTheHead", "Spread"], Duration: 1000 },
+        { Pose: ["BaseUpper", "LegsClosed"], Duration: 1000 },
+      ],
+    },
   };
 
   /**
@@ -624,6 +683,69 @@
       Matchers: [
         {
           Tester: /^ChatOther-ItemMouth-PoliteKiss$/,
+        },
+      ],
+    },
+    {
+      Event: "Stretch",
+      Type: "Emote",
+      Matchers: [
+        {
+          Tester: /^stretches($| her)/,
+        },
+      ],
+    },
+    {
+      Event: "JumpingJacks",
+      Type: "Emote",
+      Matchers: [
+        {
+          Tester: /^does jumping[ -]?jacks/,
+        },
+      ],
+    },
+    {
+      Event: "AllFours",
+      Type: "Emote",
+      Matchers: [
+        {
+          Tester: /^(gets on all fours|starts crawling)/,
+        },
+      ],
+    },
+    {
+      Event: "SpreadKnees",
+      Type: "Emote",
+      Matchers: [
+        {
+          Tester: /^spreads(( her legs)? on)? her knees/,
+        },
+      ],
+    },
+    {
+      Event: "SpreadLegs",
+      Type: "Emote",
+      Matchers: [
+        {
+          Tester: /^spreads her legs/,
+        },
+      ],
+    },
+    {
+      Event: "Handstand",
+      Type: "Emote",
+      Matchers: [
+        {
+          Tester: /^(does a handstand|stands on her hands)/,
+        },
+      ],
+    },
+    {
+      Event: "Hogtied",
+      Type: "Emote",
+      Matchers: [
+        {
+          Tester: /^lies( down)? on (the floor|her (tummy|stomach))/,
         },
       ],
     },
