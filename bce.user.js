@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Bondage Club Enhancements
 // @namespace https://www.bondageprojects.com/
-// @version 1.5.1
+// @version 1.5.2
 // @description enhancements for the bondage club
 // @author Sidious
 // @match https://bondageprojects.elementfx.com/*
@@ -14,7 +14,7 @@
 // @run-at document-end
 // ==/UserScript==
 
-window.BCE_VERSION = "1.5.1";
+window.BCE_VERSION = "1.5.2";
 
 (async function () {
   "use strict";
@@ -1679,6 +1679,7 @@ window.BCE_VERSION = "1.5.1";
           chatMessageElement.classList.contains("ChatMessageWhisper")
         ) {
           const newChildren = [];
+          const scrolledToEnd = ElementIsScrolledToEnd(chatLogContainerId);
           for (const node of chatMessageElement.childNodes) {
             if (node.nodeType !== Node.TEXT_NODE) {
               newChildren.push(node);
@@ -1712,6 +1713,11 @@ window.BCE_VERSION = "1.5.1";
                     const imgNode = document.createElement("img");
                     imgNode.src = url.href;
                     imgNode.alt = url.href;
+                    imgNode.onload = () => {
+                      if (scrolledToEnd) {
+                        ElementScrollToEnd(chatLogContainerId);
+                      }
+                    };
                     imgNode.classList.add("bce-img");
                     node = imgNode;
                     break;
@@ -1736,7 +1742,6 @@ window.BCE_VERSION = "1.5.1";
               }
             }
           }
-          const scrolledToEnd = ElementIsScrolledToEnd(chatLogContainerId);
           while (chatMessageElement.firstChild)
             chatMessageElement.removeChild(chatMessageElement.firstChild);
           for (const child of newChildren) {
