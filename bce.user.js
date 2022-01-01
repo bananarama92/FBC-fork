@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Bondage Club Enhancements
 // @namespace https://www.bondageprojects.com/
-// @version 1.6.0
+// @version 1.6.1
 // @description enhancements for the bondage club
 // @author Sidious
 // @match https://bondageprojects.elementfx.com/*
@@ -14,7 +14,7 @@
 // @run-at document-end
 // ==/UserScript==
 
-window.BCE_VERSION = "1.6.0";
+window.BCE_VERSION = "1.6.1";
 
 (async function () {
   "use strict";
@@ -889,6 +889,7 @@ window.BCE_VERSION = "1.6.0";
         defaultValue = `${parsedTime.days}d${parsedTime.hours}h${parsedTime.minutes}m${parsedTime.seconds}s`;
       }
       ElementCreateInput(TIMER_INPUT_ID, "text", defaultValue, 11);
+      ElementPosition(TIMER_INPUT_ID, -100, -100, 0, 0);
       document.getElementById(TIMER_INPUT_ID).onchange = function () {
         const value = this.value;
 
