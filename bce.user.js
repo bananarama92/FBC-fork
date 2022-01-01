@@ -3309,7 +3309,6 @@ window.BCE_VERSION = "1.6.0";
         }
         if (!active) {
           let last = bce_ExpressionsQueue.splice(j, 1);
-          bce_log("event gone", last);
           j--;
           if (
             !bce_settings.expressions &&
@@ -3364,7 +3363,7 @@ window.BCE_VERSION = "1.6.0";
           Object.keys(bce_ExpressionsQueue[j].Expression || {}).length === 0 &&
           Object.keys(bce_ExpressionsQueue[j].Poses || {}).length === 0
         ) {
-          bce_log("gc", bce_ExpressionsQueue.splice(j, 1));
+          bce_ExpressionsQueue.splice(j, 1);
           j--;
         }
       }
@@ -4396,19 +4395,13 @@ window.BCE_VERSION = "1.6.0";
 
     ServerSocket.on("ChatRoomSyncSingle", (data) => {
       if (data?.Character?.MemberNumber !== Player.MemberNumber) return;
-      bce_log(
-        "Character",
-        data.Character.Name,
-        data.Character.MemberNumber,
-        "updated by",
-        data.SourceMemberNumber
-      );
+      bce_log("Player appearance updated by", data.SourceMemberNumber);
     });
 
     ServerSocket.on("ChatRoomSyncItem", (data) => {
       if (data?.Item?.Target !== Player.MemberNumber) return;
       bce_log(
-        "Item",
+        "Player's worn item",
         data.Item.Name,
         "in group",
         data.Item.Group,
