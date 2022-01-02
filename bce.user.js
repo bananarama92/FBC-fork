@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Bondage Club Enhancements
 // @namespace https://www.bondageprojects.com/
-// @version 1.6.5
+// @version 1.6.6
 // @description enhancements for the bondage club
 // @author Sidious
 // @match https://bondageprojects.elementfx.com/*
@@ -14,7 +14,7 @@
 // @run-at document-end
 // ==/UserScript==
 
-window.BCE_VERSION = "1.6.5";
+window.BCE_VERSION = "1.6.6";
 
 (async function () {
   "use strict";
@@ -3121,6 +3121,9 @@ window.BCE_VERSION = "1.6.5";
         C.IsPlayer() &&
         (bce_settings.expressions || bce_settings.activityExpressions)
       ) {
+        if (!Pose || (Array.isArray(Pose) && Pose.every((p) => !p))) {
+          Pose = ["BaseUpper", "BaseLower"];
+        }
         const p = Object.create(null);
         p.Pose = Array.isArray(Pose) ? Pose : [Pose];
         p.Duration = -1;
