@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Bondage Club Enhancements
 // @namespace https://www.bondageprojects.com/
-// @version 1.6.6
+// @version 1.6.7
 // @description enhancements for the bondage club
 // @author Sidious
 // @match https://bondageprojects.elementfx.com/*
@@ -14,7 +14,7 @@
 // @run-at document-end
 // ==/UserScript==
 
-window.BCE_VERSION = "1.6.6";
+window.BCE_VERSION = "1.6.7";
 
 (async function () {
   "use strict";
@@ -49,7 +49,7 @@ window.BCE_VERSION = "1.6.6";
 
   /// SETTINGS LOADING
   let bce_settings = {};
-  const settingsVersion = 14;
+  const settingsVersion = 15;
   const defaultSettings = {
     checkUpdates: {
       label: "Check for updates",
@@ -240,6 +240,13 @@ window.BCE_VERSION = "1.6.6";
     accurateTimerLocks: {
       label: "Use accurate timer inputs",
       value: false,
+      sideEffects: (newValue) => {
+        bce_log(newValue);
+      },
+    },
+    confirmLeave: {
+      label: "Confirm leaving the game",
+      value: true,
       sideEffects: (newValue) => {
         bce_log(newValue);
       },
@@ -4478,4 +4485,12 @@ window.BCE_VERSION = "1.6.6";
   function sleep(ms) {
     return new Promise((resolve) => setTimeout(resolve, ms));
   }
+
+  // Confirm leaving the page to prevent accidental back button, refresh, or other navigation-related disruptions
+  window.addEventListener("beforeunload", (e) => {
+    if (bce_settings.confirmLeave) {
+      e.preventDefault();
+      return "Are you sure you want to leave the club?";
+    }
+  });
 })();
