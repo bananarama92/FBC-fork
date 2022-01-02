@@ -3362,12 +3362,6 @@ window.BCE_VERSION = "1.6.3";
                 bce_ExpressionsQueue[j].Type !== MANUAL_OVERRIDE_EVENT_TYPE)
           );
           if (pose.Duration < 0 && desiredIsNewerAndInfinite) {
-            bce_log(
-              "garbage collecting pose",
-              pose,
-              "from",
-              bce_ExpressionsQueue[j]
-            );
             bce_ExpressionsQueue[j].Poses.splice(k, 1);
             k--;
           }
