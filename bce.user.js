@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Bondage Club Enhancements
 // @namespace https://www.bondageprojects.com/
-// @version 1.6.4
+// @version 1.6.5
 // @description enhancements for the bondage club
 // @author Sidious
 // @match https://bondageprojects.elementfx.com/*
@@ -14,7 +14,7 @@
 // @run-at document-end
 // ==/UserScript==
 
-window.BCE_VERSION = "1.6.4";
+window.BCE_VERSION = "1.6.5";
 
 (async function () {
   "use strict";
@@ -3122,7 +3122,7 @@ window.BCE_VERSION = "1.6.4";
         (bce_settings.expressions || bce_settings.activityExpressions)
       ) {
         const p = Object.create(null);
-        p.Pose = [Pose];
+        p.Pose = Array.isArray(Pose) ? Pose : [Pose];
         p.Duration = -1;
         bce_log("ManualPose", p);
         const evt = {
@@ -3135,6 +3135,24 @@ window.BCE_VERSION = "1.6.4";
         bc_CharacterSetActivePose(C, Pose, ForceChange);
       }
     };
+
+    ServerSocket.on("ChatRoomSyncPose", function (data) {
+      if (data == null || typeof data !== "object") return;
+      if (!(bce_settings.expressions || bce_settings.activityExpressions))
+        return;
+      if (data.MemberNumber === Player.MemberNumber) {
+        CharacterSetActivePose(Player, data.Pose, true);
+      }
+    });
+
+    ServerSocket.on("ChatRoomSyncSingle", function (data) {
+      if (data == null || typeof data !== "object") return;
+      if (!(bce_settings.expressions || bce_settings.activityExpressions))
+        return;
+      if (data.Character?.MemberNumber === Player.MemberNumber) {
+        CharacterSetActivePose(Player, data.Character.ActivePose, true);
+      }
+    });
 
     let lastOrgasm = 0;
     let orgasmCount = 0;
