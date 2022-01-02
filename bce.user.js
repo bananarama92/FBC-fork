@@ -3168,16 +3168,13 @@ window.BCE_VERSION = "1.6.4";
       if (isDefault) {
         _PreviousArousal.Progress = 0;
         _PreviousDirection = ArousalMeterDirection.Up;
-        bce_ExpressionsQueue.splice(
-          0,
-          bce_ExpressionsQueue.length,
-          ...bce_ExpressionsQueue.filter(
-            (e) =>
-              wasDefault ||
-              e.Type === AUTOMATED_AROUSAL_EVENT_TYPE ||
-              (e.Type === MANUAL_OVERRIDE_EVENT_TYPE && e.Poses)
-          )
-        );
+        if (!wasDefault) {
+          for (let i = 0; i < bce_ExpressionsQueue.length; i++) {
+            if (bce_ExpressionsQueue[i].Type === AUTOMATED_AROUSAL_EVENT_TYPE)
+              continue;
+            bce_ExpressionsQueue[i].Expression = Object.create(null);
+          }
+        }
         wasDefault = true;
       } else {
         wasDefault = false;
