@@ -14,10 +14,17 @@
 // @run-at document-end
 // ==/UserScript==
 
-window.BCE_VERSION = "1.6.7";
+const bce_version = "1.6.7";
 
 (async function () {
   "use strict";
+
+  if (window.BCE_VERSION) {
+    console.warn("BCE already loaded. Skipping load.");
+    return;
+  }
+
+  window.BCE_VERSION = bce_version;
 
   const SUPPORTED_GAME_VERSIONS = ["R75"];
   const DISCORD_INVITE_URL = "https://discord.gg/aCCWVzXBUj";
