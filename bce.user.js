@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Bondage Club Enhancements
 // @namespace https://www.bondageprojects.com/
-// @version 1.6.2
+// @version 1.6.3
 // @description enhancements for the bondage club
 // @author Sidious
 // @match https://bondageprojects.elementfx.com/*
@@ -14,7 +14,7 @@
 // @run-at document-end
 // ==/UserScript==
 
-window.BCE_VERSION = "1.6.2";
+window.BCE_VERSION = "1.6.3";
 
 (async function () {
   "use strict";
@@ -1875,7 +1875,6 @@ window.BCE_VERSION = "1.6.2";
           });
         }
       }
-      bce_log("event", event);
       bce_ExpressionsQueue.push(event);
     }
 
@@ -3052,14 +3051,11 @@ window.BCE_VERSION = "1.6.2";
         "[part of face or 'all']: resets expression overrides on part of or all of face",
       Action: (args) => {
         if (args.length === 0 || args === "all") {
-          bce_ExpressionsQueue.splice(0, bce_ExpressionsQueue.length);
-          Player.ActivePose = Player.ActivePose?.filter(
-            (v) => PoseFemale3DCG.find((a) => a.Name === v)?.AllowMenu
+          bce_ExpressionsQueue.push(
+            ...bce_ExpressionsQueue
+              .splice(0, bce_ExpressionsQueue.length)
+              .filter((e) => e.Type === MANUAL_OVERRIDE_EVENT_TYPE)
           );
-          ServerSend("ChatRoomCharacterPoseUpdate", {
-            Pose: Player.ActivePose,
-          });
-          CharacterRefresh(Player, false, false);
           bce_chatNotify("Reset all expressions");
         } else {
           const component = `${args[0].toUpperCase()}${args
@@ -3307,6 +3303,7 @@ window.BCE_VERSION = "1.6.2";
                       Category: p.Category,
                       Duration: pose.Duration,
                       Priority: priority,
+                      Type: next.Type,
                     };
                   }
                 }
@@ -3360,9 +3357,17 @@ window.BCE_VERSION = "1.6.2";
           const desiredIsNewerAndInfinite = pose.Pose.every(
             (p) =>
               desiredPose[p.Category]?.Duration < 0 &&
-              desiredPose[p.Category]?.Id > pose.Id
+              desiredPose[p.Category]?.Id > pose.Id &&
+              (desiredPose[p.Category]?.Type === MANUAL_OVERRIDE_EVENT_TYPE ||
+                bce_ExpressionsQueue[j].Type !== MANUAL_OVERRIDE_EVENT_TYPE)
           );
           if (pose.Duration < 0 && desiredIsNewerAndInfinite) {
+            bce_log(
+              "garbage collecting pose",
+              pose,
+              "from",
+              bce_ExpressionsQueue[j]
+            );
             bce_ExpressionsQueue[j].Poses.splice(k, 1);
             k--;
           }
@@ -3451,12 +3456,22 @@ window.BCE_VERSION = "1.6.2";
         needsRefresh = true;
       }
 
-      if (Object.keys(desiredPose).length > 0) {
-        bc_CharacterSetActivePose(
-          Player,
-          Object.values(desiredPose).map((p) => p.Pose),
-          true
-        );
+      if (Object.keys(desiredPose).length === 0) {
+        desiredPose = {
+          BodyUpper: { Pose: "BaseUpper" },
+          BodyLower: { Pose: "BaseLower" },
+        };
+      }
+      const basePoseMatcher = /^Base(Lower|Upper)$/;
+      const newPose = Object.values(desiredPose).map((p) => p.Pose);
+      if (
+        !Player.ActivePose ||
+        !newPose.every(
+          (p) => basePoseMatcher.test(p) || Player.ActivePose.includes(p)
+        ) ||
+        !Player.ActivePose.every((p) => newPose.includes(p))
+      ) {
+        bc_CharacterSetActivePose(Player, newPose, true);
         needsPoseUpdate = true;
         needsRefresh = true;
       }
