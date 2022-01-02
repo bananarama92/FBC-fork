@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Bondage Club Enhancements
 // @namespace https://www.bondageprojects.com/
-// @version 1.6.7
+// @version 1.6.8
 // @description enhancements for the bondage club
 // @author Sidious
 // @match https://bondageprojects.elementfx.com/*
@@ -14,7 +14,7 @@
 // @run-at document-end
 // ==/UserScript==
 
-const bce_version = "1.6.7";
+const bce_version = "1.6.8";
 
 (async function () {
   "use strict";
@@ -4494,10 +4494,18 @@ const bce_version = "1.6.7";
   }
 
   // Confirm leaving the page to prevent accidental back button, refresh, or other navigation-related disruptions
-  window.addEventListener("beforeunload", (e) => {
-    if (bce_settings.confirmLeave) {
-      e.preventDefault();
-      return "Are you sure you want to leave the club?";
+  window.addEventListener(
+    "beforeunload",
+    (e) => {
+      if (bce_settings.confirmLeave) {
+        e.preventDefault();
+        ServerSocket.io.disconnect(); // the connection is closed, this call gets you relogin immediately
+        ServerSocket.io.connect();
+        return "Are you sure you want to leave the club?";
+      }
+    },
+    {
+      capture: true,
     }
-  });
+  );
 })();
