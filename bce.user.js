@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Bondage Club Enhancements
 // @namespace https://www.bondageprojects.com/
-// @version 1.6.3
+// @version 1.6.4
 // @description enhancements for the bondage club
 // @author Sidious
 // @match https://bondageprojects.elementfx.com/*
@@ -14,7 +14,7 @@
 // @run-at document-end
 // ==/UserScript==
 
-window.BCE_VERSION = "1.6.3";
+window.BCE_VERSION = "1.6.4";
 
 (async function () {
   "use strict";
@@ -3172,7 +3172,10 @@ window.BCE_VERSION = "1.6.3";
           0,
           bce_ExpressionsQueue.length,
           ...bce_ExpressionsQueue.filter(
-            (e) => wasDefault || e.Type === AUTOMATED_AROUSAL_EVENT_TYPE
+            (e) =>
+              wasDefault ||
+              e.Type === AUTOMATED_AROUSAL_EVENT_TYPE ||
+              (e.Type === MANUAL_OVERRIDE_EVENT_TYPE && e.Poses)
           )
         );
         wasDefault = true;
@@ -3368,7 +3371,7 @@ window.BCE_VERSION = "1.6.3";
         }
         if (
           Object.keys(bce_ExpressionsQueue[j].Expression || {}).length === 0 &&
-          Object.keys(bce_ExpressionsQueue[j].Poses || {}).length === 0
+          bce_ExpressionsQueue[j].Poses?.length === 0
         ) {
           bce_ExpressionsQueue.splice(j, 1);
           j--;
