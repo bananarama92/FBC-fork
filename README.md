@@ -39,6 +39,7 @@ At a glance, **everything is entirely optional**:
 - Alternative arousal calculations
 - Blur vision when not wearing glasses
 - Notifications for friends coming online or going offline
+- Confirmation prompt when leaving the page (prevent accidental back button or refresh)
 
 ### Automatic relogin
 
