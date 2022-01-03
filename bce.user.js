@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Bondage Club Enhancements
 // @namespace https://www.bondageprojects.com/
-// @version 1.6.9
+// @version 1.6.10
 // @description enhancements for the bondage club
 // @author Sidious
 // @match https://bondageprojects.elementfx.com/*
@@ -14,7 +14,7 @@
 // @run-at document-end
 // ==/UserScript==
 
-const bce_version = "1.6.9";
+const bce_version = "1.6.10";
 
 (async function () {
   "use strict";
@@ -3048,6 +3048,18 @@ const bce_version = "1.6.9";
       }
     }
 
+    const poseCategories = {
+      BodyFull: {
+        Conflicts: ["BodyUpper", "BodyLower", undefined],
+      },
+      BodyUpper: {
+        Conflicts: ["BodyFull"],
+      },
+      BodyLower: {
+        Conflicts: ["BodyFull"],
+      },
+    };
+
     // Reset
     Player.ArousalSettings.Progress = 0;
     let _PreviousArousal = Player.ArousalSettings;
@@ -3085,6 +3097,37 @@ const bce_version = "1.6.9";
           }
           bce_chatNotify(`Reset expression on ${component}`);
         }
+      },
+    });
+
+    window.Commands.push({
+      Tag: "pose",
+      Description: "['list' or list of poses]: set your pose",
+      Action: (_1, _2, poses) => {
+        if (poses[0] === "list") {
+          const categories = [
+            ...new Set(PoseFemale3DCG.map((a) => a.Category)),
+          ];
+          for (const category of categories) {
+            const list = PoseFemale3DCG.filter(
+              (a) => a.Category === category
+            )?.map((a) => a.Name);
+            list.sort();
+            bce_chatNotify(`=> ${category}:\n${list.join("\n")}\n\n`);
+          }
+          return;
+        }
+        bce_ExpressionsQueue.forEach((e) => {
+          if (e.Type === MANUAL_OVERRIDE_EVENT_TYPE) e.Poses = [];
+          else if (e.Poses?.length > 0)
+            e.Poses = e.Poses.filter((p) => p.Category);
+        });
+        CharacterSetActivePose(
+          Player,
+          PoseFemale3DCG.filter((p) =>
+            poses.includes(p.Name.toLowerCase())
+          ).map((p) => p.Name)
+        );
       },
     });
 
@@ -3484,6 +3527,32 @@ const bce_version = "1.6.9";
 
         needsRefresh = true;
       }
+
+      // figure out desiredPose conflicts
+      function resolvePoseConflicts() {
+        const maxPriority = Math.max(
+          ...Object.values(desiredPose).map((p) => p.Priority)
+        );
+        const maxPriorityPoses = Object.entries(desiredPose).filter(
+          (p) => p[1].Priority === maxPriority
+        );
+        let maxPriorityPose = maxPriorityPoses[0];
+        if (maxPriorityPoses.length > 1) {
+          const maxId = Math.max(...maxPriorityPoses.map((p) => p[1].Id));
+          const maxIdPoses = maxPriorityPoses.filter((p) => p[1].Id === maxId);
+          maxPriorityPose = maxIdPoses[0];
+        } else if (maxPriorityPoses.length === 0) {
+          return 0;
+        }
+        let deleted = 0;
+        const conflicts = poseCategories[maxPriorityPose[0]]?.Conflicts || [];
+        for (const conflict of conflicts.filter((c) => c in desiredPose)) {
+          delete desiredPose[conflict];
+          deleted++;
+        }
+        return deleted;
+      }
+      while (resolvePoseConflicts() > 0);
 
       if (Object.keys(desiredPose).length === 0) {
         desiredPose = {
