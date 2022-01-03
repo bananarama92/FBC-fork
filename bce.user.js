@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Bondage Club Enhancements
 // @namespace https://www.bondageprojects.com/
-// @version 1.6.8
+// @version 1.6.9
 // @description enhancements for the bondage club
 // @author Sidious
 // @match https://bondageprojects.elementfx.com/*
@@ -14,7 +14,7 @@
 // @run-at document-end
 // ==/UserScript==
 
-const bce_version = "1.6.8";
+const bce_version = "1.6.9";
 
 (async function () {
   "use strict";
@@ -30,7 +30,7 @@ const bce_version = "1.6.8";
   const DISCORD_INVITE_URL = "https://discord.gg/aCCWVzXBUj";
 
   const BCX_SOURCE =
-    "https://raw.githubusercontent.com/Jomshir98/bondage-club-extended/fa870f6823d8f7b0c282f4397afb46aca276eeb7/bcx.js";
+    "https://raw.githubusercontent.com/Jomshir98/bondage-club-extended/85c3ba46dac4af8feff4cb2e0b28255a99cf926f/bcx.js";
   const BCX_DEVEL_SOURCE =
     "https://jomshir98.github.io/bondage-club-extended/devel/bcx.js";
 
@@ -3068,7 +3068,7 @@ const bce_version = "1.6.8";
           bce_ExpressionsQueue.push(
             ...bce_ExpressionsQueue
               .splice(0, bce_ExpressionsQueue.length)
-              .filter((e) => e.Type === MANUAL_OVERRIDE_EVENT_TYPE)
+              .filter((e) => e.Type === MANUAL_OVERRIDE_EVENT_TYPE && e.Poses)
           );
           bce_chatNotify("Reset all expressions");
         } else {
