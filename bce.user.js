@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Bondage Club Enhancements
 // @namespace https://www.bondageprojects.com/
-// @version 1.6.10
+// @version 1.6.11
 // @description enhancements for the bondage club
 // @author Sidious
 // @match https://bondageprojects.elementfx.com/*
@@ -14,7 +14,7 @@
 // @run-at document-end
 // ==/UserScript==
 
-const bce_version = "1.6.10";
+const bce_version = "1.6.11";
 
 (async function () {
   "use strict";
@@ -3191,6 +3191,7 @@ const bce_version = "1.6.10";
           Poses: [p],
         };
         pushEvent(evt);
+        _CustomArousalExpression();
       } else {
         bc_CharacterSetActivePose(C, Pose, ForceChange);
       }
