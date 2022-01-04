@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Bondage Club Enhancements
 // @namespace https://www.bondageprojects.com/
-// @version 1.6.13
+// @version 1.6.14
 // @description enhancements for the bondage club
 // @author Sidious
 // @match https://bondageprojects.elementfx.com/*
@@ -14,7 +14,7 @@
 // @run-at document-end
 // ==/UserScript==
 
-const BCE_VERSION = "1.6.13";
+const BCE_VERSION = "1.6.14";
 
 (async function BondageClubEnhancements() {
   "use strict";
@@ -3297,11 +3297,12 @@ const BCE_VERSION = "1.6.13";
         } else if (AssetGroup === "Eyes1") {
           types[0] = "Eyes";
         }
-        for (const t of types) {
-          e[t] = [{ Expression, Duration: duration }];
+        if (!Color || !w.CommonColorIsValid(Color)) {
+          // eslint-disable-next-line no-undefined
+          Color = undefined;
         }
-        if (Color && w.CommonColorIsValid(Color)) {
-          e.Color = Color;
+        for (const t of types) {
+          e[t] = [{ Expression, Duration: duration, Color }];
         }
         bceLog("ManualExpression", e);
         const evt = {
