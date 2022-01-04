@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Bondage Club Enhancements
 // @namespace https://www.bondageprojects.com/
-// @version 1.6.15
+// @version 1.6.16
 // @description enhancements for the bondage club
 // @author Sidious
 // @match https://bondageprojects.elementfx.com/*
@@ -14,7 +14,7 @@
 // @run-at document-end
 // ==/UserScript==
 
-const BCE_VERSION = "1.6.15";
+const BCE_VERSION = "1.6.16";
 
 (async function BondageClubEnhancements() {
   "use strict";
@@ -46,7 +46,7 @@ const BCE_VERSION = "1.6.15";
     },
     GAGBYPASSINDICATOR = "\uf123",
     GLASSES_BLIND_CLASS = "bce-blind",
-    GLASSES_BLUR_TARGET = document.getElementById("MainCanvas"),
+    GLASSES_BLUR_TARGET = w.MainCanvas,
     HIDDEN = "Hidden",
     MESSAGE_TYPES = {
       ArousalSync: "ArousalSync",
@@ -1270,7 +1270,7 @@ const BCE_VERSION = "1.6.15";
       w.PreferenceMessage = "";
     };
     w.PreferenceSubscreenBCESettingsRun = function () {
-      w.MainCanvas.textAlign = "left";
+      w.MainCanvas.getContext("2d").textAlign = "left";
       w.DrawText(
         "Bondage Club Enhancements Settings",
         500,
@@ -5178,7 +5178,7 @@ const BCE_VERSION = "1.6.15";
  * @property {string[]} PreferenceSubscreenList
  * @property {string} PreferenceSubscreen
  * @property {string} PreferenceMessage
- * @property {CanvasRenderingContext2D} MainCanvas
+ * @property {HTMLCanvasElement} MainCanvas
  * @property {(text: string, x: number, y: number, color: string, backColor?: string) => void} DrawText
  * @property {(text: string, x: number, y: number, w: number, color: string, backColor?: string) => void} DrawTextFit
  * @property {(x: number, y: number, w: number, h: number, label: string, image?: string, hoveringText?: string, disabled?: boolean) => void} DrawButton
