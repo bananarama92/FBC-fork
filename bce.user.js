@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Bondage Club Enhancements
 // @namespace https://www.bondageprojects.com/
-// @version 1.6.16
+// @version 1.6.17
 // @description enhancements for the bondage club
 // @author Sidious
 // @match https://bondageprojects.elementfx.com/*
@@ -13,8 +13,9 @@
 // @grant none
 // @run-at document-end
 // ==/UserScript==
+// @ts-check
 
-const BCE_VERSION = "1.6.16";
+const BCE_VERSION = "1.6.17";
 
 (async function BondageClubEnhancements() {
   "use strict";
@@ -22,6 +23,7 @@ const BCE_VERSION = "1.6.16";
   /**
    * @type {ExtendedWindow}
    */
+  // @ts-ignore
   const w = window;
 
   if (w.BCE_VERSION) {
@@ -42,6 +44,7 @@ const BCE_VERSION = "1.6.16";
   const BCE_MAX_AROUSAL = 99.6,
     BCE_MSG = "BCEMsg",
     BEEP_CLICK_ACTIONS = {
+      /** @type {"FriendList"} */
       FriendList: "FriendList",
     },
     GAGBYPASSINDICATOR = "\uf123",
@@ -54,16 +57,16 @@ const BCE_VERSION = "1.6.16";
     },
     TIMER_INPUT_ID = "bce_timerInput";
 
-  if (typeof ChatRoomCharacter === "undefined") {
+  if (typeof w.ChatRoomCharacter === "undefined") {
     console.warn("Bondage Club not detected. Skipping BCE initialization.");
     return;
   }
 
+  const settingsVersion = 15;
   /**
    * @type {Settings}
    */
   let bceSettings = {};
-  const settingsVersion = 15;
 
   /**
    * @type {DefaultSettings}
@@ -116,7 +119,7 @@ const BCE_VERSION = "1.6.16";
       sideEffects: (newValue) => {
         const defaultSize = 24;
         w.WardrobeSize = newValue ? defaultSize * 2 : defaultSize;
-        callOriginal("WardrobeSize");
+        callOriginal("WardrobeFixLength");
       },
     },
     layeringMenu: {
@@ -350,9 +353,9 @@ const BCE_VERSION = "1.6.16";
    */
   const callOriginal = (name, ...args) => {
     if (name in bcOriginalFunctions) {
-      return bcOriginalFunctions[name](...args);
+      return bcOriginalFunctions[name].apply(null, args);
     } else if (name in w) {
-      return w[name](...args);
+      return w[name].apply(null, args);
     }
     // eslint-disable-next-line no-undefined
     return undefined;
@@ -438,9 +441,9 @@ const BCE_VERSION = "1.6.16";
   };
 
   /**
-   * @type {(duration: number) => void}
+   * @type {(duration: number) => Duration}
    */
-  const durationToString = (duration) => {
+  const durationToComponents = (duration) => {
     let seconds = Math.floor(duration / 1000);
     let minutes = Math.floor(seconds / 60);
     let hours = Math.floor(minutes / 60);
@@ -458,12 +461,12 @@ const BCE_VERSION = "1.6.16";
   };
 
   /**
-   * @type {(dateFuture: Date) => string}
+   * @type {(dateFuture: Date) => Duration}
    */
   const timeUntilDate = (dateFuture) => {
     // https://stackoverflow.com/a/13904621/1780502 - jackcogdill
     const dateNow = new Date();
-    return durationToString(dateFuture - dateNow);
+    return durationToComponents(dateFuture.getTime() - dateNow.getTime());
   };
 
   /**
@@ -976,9 +979,13 @@ const BCE_VERSION = "1.6.16";
         );
         defaultValue = `${parsedTime.days}d${parsedTime.hours}h${parsedTime.minutes}m${parsedTime.seconds}s`;
       }
-      w.ElementCreateInput(TIMER_INPUT_ID, "text", defaultValue, 11);
+      w.ElementCreateInput(TIMER_INPUT_ID, "text", defaultValue, "11");
       w.ElementPosition(TIMER_INPUT_ID, -100, -100, 0, 0);
-      document.getElementById(TIMER_INPUT_ID).onchange = function onchange() {
+      /** @type {HTMLInputElement} */
+      // @ts-ignore
+      const timerInput = document.getElementById(TIMER_INPUT_ID);
+      timerInput.onchange = function onchange() {
+        // @ts-ignore - value does exist on this type
         const { value } = this;
 
         // Validate input
@@ -1278,7 +1285,7 @@ const BCE_VERSION = "1.6.16";
         "Black",
         "Gray"
       );
-      w.DrawButton(...discordInvitePosition, "", "White", "");
+      w.DrawButton.apply(null, [...discordInvitePosition, "", "White", ""]);
       w.DrawText(
         "Join Discord",
         discordInvitePosition[0] + 20,
@@ -1318,7 +1325,7 @@ const BCE_VERSION = "1.6.16";
       } else if (w.MouseIn(1815, 180, 90, 90)) {
         currentPageNumber += 1;
         currentPageNumber %= settingsPageCount;
-      } else if (w.MouseIn(...discordInvitePosition)) {
+      } else if (w.MouseIn.apply(null, discordInvitePosition)) {
         w.open(DISCORD_INVITE_URL, "_blank");
       } else {
         for (const setting of Object.keys(defaultSettings).slice(
@@ -1380,7 +1387,7 @@ const BCE_VERSION = "1.6.16";
   async function lockpickHelp() {
     await waitFor(() => !!w.StruggleDrawLockpickProgress);
 
-    /** @type {(s: number) => number} */
+    /** @type {(s: number) => () => number} */
     const newRand = (s) =>
       function () {
         s = Math.sin(s) * 10000;
@@ -1407,7 +1414,12 @@ const BCE_VERSION = "1.6.16";
           const xx =
             x - pinWidth / 2 + (0.5 - hints.length / 2 + p) * pinSpacing;
           if (hints[p]) {
-            w.DrawText(w.StruggleLockPickOrder.indexOf(p) + 1, xx, y, "blue");
+            w.DrawText(
+              `${w.StruggleLockPickOrder.indexOf(p) + 1}`,
+              xx,
+              y,
+              "blue"
+            );
           }
         }
       }
@@ -1493,16 +1505,16 @@ const BCE_VERSION = "1.6.16";
             return;
           }
           lastClick = now;
-          for (let pos in posMaps) {
+          for (const pos in posMaps) {
             if (!Object.hasOwn(posMaps, pos)) {
               continue;
             }
-            pos = parseInt(pos);
-            if (w.MouseIn(10, pos, 350, 60)) {
-              w.ElementValue("InputName", posMaps[pos]);
-              w.ElementValue("InputPassword", passwords[posMaps[pos]]);
-            } else if (w.MouseIn(355, pos, 60, 60)) {
-              w.bceClearPassword(posMaps[pos]);
+            const idx = parseInt(pos);
+            if (w.MouseIn(10, idx, 350, 60)) {
+              w.ElementValue("InputName", posMaps[idx]);
+              w.ElementValue("InputPassword", passwords[posMaps[idx]]);
+            } else if (w.MouseIn(355, idx, 60, 60)) {
+              w.bceClearPassword(posMaps[idx]);
               resetLoginCheck();
             }
           }
@@ -1807,7 +1819,7 @@ const BCE_VERSION = "1.6.16";
         ) {
           const newChildren = [],
             scrolledToEnd = w.ElementIsScrolledToEnd(chatLogContainerId);
-          for (const node of chatMessageElement.childNodes) {
+          for (const node of chatMessageElement.children) {
             if (node.nodeType !== Node.TEXT_NODE) {
               newChildren.push(node);
               if (node.classList.contains("ChatMessageName")) {
@@ -1834,7 +1846,7 @@ const BCE_VERSION = "1.6.16";
               const url = bceParseUrl(words[i].replace(/(^\(+|\)+$)/gu, ""));
               if (url) {
                 // Embed or link
-                /** @type {HTMLElement} */
+                /** @type {HTMLElement | Text} */
                 let domNode = null;
                 switch (bceAllowedToEmbed(url)) {
                   case EMBED_TYPE.Image:
@@ -1957,6 +1969,7 @@ const BCE_VERSION = "1.6.16";
     });
 
     const AUTOMATED_AROUSAL_EVENT_TYPE = "AutomatedByArousal",
+      DEFAULT_EVENT_TYPE = "DEFAULT",
       MANUAL_OVERRIDE_EVENT_TYPE = "ManualOverride",
       POST_ORGASM_EVENT_TYPE = "PostOrgasm";
 
@@ -2421,7 +2434,7 @@ const BCE_VERSION = "1.6.16";
           Type: "Cry",
           Duration: -1,
           Expression: {
-            Drool: [{ Expression: "TearsMedium", Duration: -1 }],
+            Fluids: [{ Expression: "TearsMedium", Duration: -1 }],
           },
         },
         DroolReset: {
@@ -3134,8 +3147,8 @@ const BCE_VERSION = "1.6.16";
               } else if (
                 matcher.Criteria.DictionaryMatchers &&
                 !matcher.Criteria.DictionaryMatchers.some((m) =>
-                  data.Dictionary?.find(
-                    (t) => !Object.keys(m).some((k) => m[k] !== t[k])
+                  data.Dictionary?.find((t) =>
+                    Object.keys(m).every((k) => m[k] === t[k])
                   )
                 )
               ) {
@@ -3160,7 +3173,7 @@ const BCE_VERSION = "1.6.16";
       }
     });
 
-    /** @type {(faceComponent: string) => [string?, number?]} */
+    /** @type {(faceComponent: string) => [string | null, boolean]} */
     function expression(t) {
       const properties = w.Player.Appearance.filter(
         (a) => a.Asset.Group.Name === t
@@ -3265,14 +3278,24 @@ const BCE_VERSION = "1.6.16";
           if (e.Type === MANUAL_OVERRIDE_EVENT_TYPE) {
             e.Poses = [];
           } else if (e.Poses?.length > 0) {
-            e.Poses = e.Poses.filter((p) => p.Category);
+            e.Poses.forEach((p) => {
+              if (p.Pose.length === 0) {
+                return;
+              }
+              if (typeof p.Pose[0] === "string") {
+                return;
+              }
+              // @ts-ignore
+              p.Pose = p.Pose.filter((pp) => pp.Category);
+            });
           }
         });
         w.CharacterSetActivePose(
           w.Player,
           w.PoseFemale3DCG.filter((p) =>
             poses.includes(p.Name.toLowerCase())
-          ).map((p) => p.Name)
+          ).map((p) => p.Name),
+          false
         );
       },
     });
@@ -3451,10 +3474,10 @@ const BCE_VERSION = "1.6.16";
       }
 
       // Keep track of desired changes
-      /** @type {{ [key: string]: ExpressionStage ]}} */
+      /** @type {{ [key: string]: ExpressionStage }} */
       const desiredExpression = {};
 
-      /** @type {{ [key: string]: { Id: number; Pose: Pose; Category?: string; Duration: number; Priority: number; Type: string }}} */
+      /** @type {{ [key: string]: { Id: number; Pose: string; Category?: string; Duration: number; Priority: number; Type: string }}} */
       let desiredPose = {};
 
       /** @type {{ [key: string]: ExpressionStage }} */
@@ -3530,7 +3553,10 @@ const BCE_VERSION = "1.6.16";
               durationNow -= pose.Duration;
               if (durationNow < 0 || pose.Duration < 0) {
                 active = true;
-                for (const p of pose.Pose) {
+                for (const pp of pose.Pose) {
+                  /** @type {PoseEx} */
+                  // @ts-ignore
+                  const p = pp;
                   const priority = pose.Priority || next.Priority || 0;
                   if (
                     !desiredPose[p.Category] ||
@@ -3560,7 +3586,16 @@ const BCE_VERSION = "1.6.16";
             last[0].Expression
           ) {
             for (const t of Object.keys(last[0].Expression)) {
-              trySetNextExpression(null, { Duration: -1 }, { Priority: 0 }, t);
+              trySetNextExpression(
+                null,
+                { Duration: -1 },
+                {
+                  Priority: 0,
+                  Type: DEFAULT_EVENT_TYPE,
+                  Duration: 500,
+                },
+                t
+              );
             }
           }
         }
@@ -3595,6 +3630,7 @@ const BCE_VERSION = "1.6.16";
         }
         for (let k = 0; k < bceExpressionsQueue[j].Poses?.length; k++) {
           const pose = bceExpressionsQueue[j].Poses[k];
+          // @ts-ignore
           const desiredIsNewerAndInfinite = pose.Pose.every(
             // eslint-disable-next-line no-loop-func
             (p) =>
@@ -3722,8 +3758,20 @@ const BCE_VERSION = "1.6.16";
 
       if (Object.keys(desiredPose).length === 0) {
         desiredPose = {
-          BodyUpper: { Pose: "BaseUpper" },
-          BodyLower: { Pose: "BaseLower" },
+          BodyUpper: {
+            Pose: "BaseUpper",
+            Duration: -1,
+            Id: newUniqueId(),
+            Priority: 0,
+            Type: DEFAULT_EVENT_TYPE,
+          },
+          BodyLower: {
+            Pose: "BaseLower",
+            Duration: -1,
+            Id: newUniqueId(),
+            Priority: 0,
+            Type: DEFAULT_EVENT_TYPE,
+          },
         };
       }
       const basePoseMatcher = /^Base(Lower|Upper)$/u,
@@ -3814,8 +3862,10 @@ const BCE_VERSION = "1.6.16";
             } else {
               w.ElementValue(
                 layerPriority,
-                C.AppearanceLayers.find((a) => a.Asset === item.Asset)
-                  ?.Priority || 0
+                (
+                  C.AppearanceLayers.find((a) => a.Asset === item.Asset)
+                    ?.Priority || 0
+                ).toString()
               );
             }
           }
@@ -3850,11 +3900,13 @@ const BCE_VERSION = "1.6.16";
       return item && C.Appearance.find((a) => a.Asset === item.Asset);
     }
 
+    /** @type {"Priority" | "Difficulty"} */
     let priorityField = "Priority",
-      /** @type {"Priority" | "Difficulty"} */
       prioritySubscreen = false;
     const FIELDS = Object.freeze({
+      /** @type {"Priority"} */
       Priority: "Priority",
+      /** @type {"Difficulty"} */
       Difficulty: "Difficulty",
     });
 
@@ -3876,7 +3928,12 @@ const BCE_VERSION = "1.6.16";
         default:
           break;
       }
-      w.ElementCreateInput(layerPriority, "number", initialValue, 20);
+      w.ElementCreateInput(
+        layerPriority,
+        "number",
+        initialValue.toString(),
+        "20"
+      );
     }
     function prioritySubscreenExit() {
       prioritySubscreen = false;
@@ -4011,7 +4068,12 @@ const BCE_VERSION = "1.6.16";
       }
 
       bceLog("Clearing caches");
+      /*
+       * GL is non-standard extension
+       */
+      // @ts-ignore
       if (w.GLDrawCanvas.GL.textureCache) {
+        // @ts-ignore
         w.GLDrawCanvas.GL.textureCache.clear();
       }
       w.GLDrawResetCanvas();
@@ -4177,7 +4239,7 @@ const BCE_VERSION = "1.6.16";
 
     const bcWardrobeFastLoad = w.WardrobeFastLoad;
     w.WardrobeFastLoad = function (C, W, Update) {
-      if (inCustomWardrobe && C.ID === 0) {
+      if (inCustomWardrobe && C.IsPlayer()) {
         bcWardrobeFastLoad(targetCharacter, W, false);
       } else {
         bcWardrobeFastLoad(C, W, Update);
@@ -4186,7 +4248,7 @@ const BCE_VERSION = "1.6.16";
 
     const bcWardrobeFastSave = w.WardrobeFastSave;
     w.WardrobeFastSave = function (C, W, Push) {
-      if (inCustomWardrobe && C.ID === 0) {
+      if (inCustomWardrobe && C.IsPlayer()) {
         bcWardrobeFastSave(targetCharacter, W, Push);
       } else {
         bcWardrobeFastSave(C, W, Push);
@@ -4280,7 +4342,7 @@ const BCE_VERSION = "1.6.16";
         next = disableBoth;
         previous = enableLimited;
       }
-      w.DrawBackNextButton(
+      w.DrawBackNextButton.apply(null, [
         ...gagAntiCheatMenuPosition,
         shorttip + label,
         color,
@@ -4291,8 +4353,8 @@ const BCE_VERSION = "1.6.16";
         undefined,
         // eslint-disable-next-line no-undefined
         undefined,
-        tooltipPosition
-      );
+        tooltipPosition,
+      ]);
 
       const gagCheatMenuParams = bceSettings.gagspeak
         ? [
@@ -4319,13 +4381,16 @@ const BCE_VERSION = "1.6.16";
             undefined,
             tooltipPosition,
           ];
-      w.DrawBackNextButton(...gagCheatMenuPosition, ...gagCheatMenuParams);
+      w.DrawBackNextButton.apply(null, [
+        ...gagCheatMenuPosition,
+        ...gagCheatMenuParams,
+      ]);
     };
 
     const bcChatRoomClick = w.ChatRoomClick;
     w.ChatRoomClick = function () {
       if (bceSettings.showQuickAntiGarble) {
-        if (w.MouseIn(...gagAntiCheatMenuPosition)) {
+        if (w.MouseIn.apply(null, [...gagAntiCheatMenuPosition])) {
           const disableBoth = () => {
               bceSettings.antiAntiGarble = false;
               bceSettings.antiAntiGarbleStrong = false;
@@ -4359,7 +4424,7 @@ const BCE_VERSION = "1.6.16";
             next();
             bceSaveSettings();
           }
-        } else if (w.MouseIn(...gagCheatMenuPosition)) {
+        } else if (w.MouseIn.apply(null, [...gagCheatMenuPosition])) {
           bceSettings.gagspeak = !bceSettings.gagspeak;
           defaultSettings.gagspeak.sideEffects(bceSettings.gagspeak);
           bceSaveSettings();
@@ -4384,7 +4449,7 @@ const BCE_VERSION = "1.6.16";
       w.CurrentScreenFunctions.Run = w.ChatRoomRun;
       w.CurrentScreenFunctions.Click = w.ChatRoomClick;
       w.CurrentScreenFunctions.Resize = w.ChatRoomResize;
-      w.ChatRoomResize();
+      w.ChatRoomResize(false);
     }
   }
 
@@ -4432,7 +4497,7 @@ const BCE_VERSION = "1.6.16";
       }
       `
         )
-        .replace(/\b25\b/gu, 20)}`
+        .replace(/\b25\b/gu, "20")}`
     );
 
     const bcActivityChatRoomArousalSync = w.ActivityChatRoomArousalSync;
@@ -4482,7 +4547,7 @@ const BCE_VERSION = "1.6.16";
       if (C.BCEArousal) {
         C.ArousalSettings.Progress = Math.round(C.BCEArousalProgress);
         bcActivityTimerProgress(C, 0);
-        if (C.ID === 0 && Date.now() - lastSync > 2100) {
+        if (C.IsPlayer() && Date.now() - lastSync > 2100) {
           lastSync = Date.now();
           w.ActivityChatRoomArousalSync(C);
         }
@@ -4617,7 +4682,7 @@ const BCE_VERSION = "1.6.16";
   }
 
   async function blindWithoutGlasses() {
-    await waitFor(() => !!w.Player && w.Player.Appearance);
+    await waitFor(() => !!w.Player && !!w.Player.Appearance);
 
     setInterval(() => {
       if (!bceSettings.blindWithoutGlasses) {
@@ -4805,13 +4870,13 @@ const BCE_VERSION = "1.6.16";
 
 /**
  * Original settings
- * @typedef {"ServerAccountBeep"} OriginalFunction
+ * @typedef {"ServerAccountBeep" | "WardrobeFixLength"} OriginalFunction
  */
 
 /**
  * @typedef {Object} OriginalFunctions
- * @property {(data: Object) => void} ServerAccountBeep
- * @property {() => void} WardrobeFixLength
+ * @property {(data: Object) => void} [ServerAccountBeep]
+ * @property {() => void} [WardrobeFixLength]
  */
 
 /**
@@ -4821,38 +4886,39 @@ const BCE_VERSION = "1.6.16";
 
 /**
  * @typedef {Object} Settings
- * @property {boolean} checkUpdates
- * @property {boolean} relogin
- * @property {boolean} expressions
- * @property {boolean} activityExpressions
- * @property {boolean} privateWardrobe
- * @property {boolean} extendedWardrobe
- * @property {boolean} layeringMenu
- * @property {boolean} automateCacheClear
- * @property {boolean} augmentChat
- * @property {boolean} gagspeak
- * @property {boolean} lockpick
- * @property {boolean} bcx
- * @property {boolean} bcxDevel
- * @property {boolean} antiAntiGarble
- * @property {boolean} antiAntiGarbleStrong
- * @property {boolean} showQuickAntiGarble
- * @property {boolean} alternateArousal
- * @property {boolean} ghostNewUsers
- * @property {boolean} blindWithoutGlasses
- * @property {boolean} friendPresenceNotifications
- * @property {boolean} friendOfflineNotifications
- * @property {boolean} stutters
- * @property {boolean} activityLabels
- * @property {boolean} accurateTimerLocks
- * @property {boolean} confirmLeave
+ * @property {boolean} [checkUpdates]
+ * @property {boolean} [relogin]
+ * @property {boolean} [expressions]
+ * @property {boolean} [activityExpressions]
+ * @property {boolean} [privateWardrobe]
+ * @property {boolean} [extendedWardrobe]
+ * @property {boolean} [layeringMenu]
+ * @property {boolean} [automateCacheClear]
+ * @property {boolean} [augmentChat]
+ * @property {boolean} [gagspeak]
+ * @property {boolean} [lockpick]
+ * @property {boolean} [bcx]
+ * @property {boolean} [bcxDevel]
+ * @property {boolean} [antiAntiGarble]
+ * @property {boolean} [antiAntiGarbleStrong]
+ * @property {boolean} [showQuickAntiGarble]
+ * @property {boolean} [alternateArousal]
+ * @property {boolean} [ghostNewUsers]
+ * @property {boolean} [blindWithoutGlasses]
+ * @property {boolean} [friendPresenceNotifications]
+ * @property {boolean} [friendOfflineNotifications]
+ * @property {boolean} [stutters]
+ * @property {boolean} [activityLabels]
+ * @property {boolean} [accurateTimerLocks]
+ * @property {boolean} [confirmLeave]
+ * @property {number} [version]
  */
 
 /**
  * @typedef {Object} DefaultSetting
  * @property {string} label
  * @property {boolean} value
- * @property {SideEffect} sideEffects
+ * @property {(newValue: boolean) => void} sideEffects
  */
 
 /**
@@ -4891,24 +4957,19 @@ const BCE_VERSION = "1.6.16";
  */
 
 /**
- * @name SendAction
- * @param {string} text
- * @returns {void}
+ * @typedef {Object} Duration
+ * @property {number} days
+ * @property {number} hours
+ * @property {number} minutes
+ * @property {number} seconds
  */
-
-/**
- * @name SettingValue
- * @param {SettingKey} key
- * @returns {boolean}
- */
-
-// Window extensions
 
 /**
  * @typedef {Object} ArousalSettings
  * @property {number} Progress
  * @property {number} OrgasmCount
  * @property {number} OrgasmStage
+ * @property {boolean} AffectExpression
  */
 
 /**
@@ -4938,6 +4999,8 @@ const BCE_VERSION = "1.6.16";
  * @property {number} BCEArousalProgress
  * @property {number} BCEEnjoyment
  * @property {() => boolean} IsPlayer
+ * @property {number[]} BlackList
+ * @property {number[]} GhostList
  */
 
 /**
@@ -4956,8 +5019,9 @@ const BCE_VERSION = "1.6.16";
  * @property {number} Timer
  * @property {number} MemberNumber
  * @property {string} Message
- * @property {string} ChatRoomName
- * @property {boolean} IsMail
+ * @property {string} [ChatRoomName]
+ * @property {boolean} [IsMail]
+ * @property {"FriendList"} [ClickAction]
  */
 
 /**
@@ -4971,12 +5035,14 @@ const BCE_VERSION = "1.6.16";
 /**
  * @typedef {Object} AssetGroup
  * @property {string} Name
+ * @property {string} [Description]
  */
 
 /**
  * @typedef {Object} Asset
  * @property {string} Name
  * @property {AssetGroup} Group
+ * @property {string} [Description]
  * @property {string} Color
  * @property {number} [MaxTimer]
  */
@@ -5006,6 +5072,7 @@ const BCE_VERSION = "1.6.16";
  * @typedef {Object} ScreenFunctions
  * @property {(time: number) => void} Run
  * @property {(event: MouseEvent | TouchEvent) => void} Click
+ * @property {(load: boolean) => void} [Resize]
  */
 
 /**
@@ -5040,23 +5107,31 @@ const BCE_VERSION = "1.6.16";
  * @property {number} [Priority]
  * @property {boolean} [Skip]
  * @property {string} [Color]
+ * @property {boolean} [Applied]
  */
 
 /**
  * @typedef {Object} ExpressionStages
- * @property {ExpressionStage[]} Blush
- * @property {ExpressionStage[]} Eyebrows
- * @property {ExpressionStage[]} Fluids
- * @property {ExpressionStage[]} Eyes
- * @property {ExpressionStage[]} Eyes2
- * @property {ExpressionStage[]} Mouth
+ * @property {ExpressionStage[]} [Blush]
+ * @property {ExpressionStage[]} [Eyebrows]
+ * @property {ExpressionStage[]} [Fluids]
+ * @property {ExpressionStage[]} [Eyes]
+ * @property {ExpressionStage[]} [Eyes2]
+ * @property {ExpressionStage[]} [Mouth]
  */
 
 /**
  * @typedef {Object} Pose
- * @property {string[]} Pose
+ * @property {number} [Id]
+ * @property {string[] | PoseEx[]} Pose
  * @property {number} Duration
  * @property {number} [Priority]
+ */
+
+/**
+ * @typedef {Object} PoseEx
+ * @property {string} Pose
+ * @property {string} [Category]
  */
 
 /**
@@ -5070,9 +5145,9 @@ const BCE_VERSION = "1.6.16";
 
 /**
  * @typedef {Object} EventParams
- * @property {number} At
- * @property {number} Until
- * @property {number} Id
+ * @property {number} [At]
+ * @property {number} [Until]
+ * @property {number} [Id]
  *
  * @typedef {Expression & EventParams} ExpressionEvent
  */
@@ -5080,7 +5155,7 @@ const BCE_VERSION = "1.6.16";
 /**
  * @typedef {Object} ActivityTriggerMatcher
  * @property {RegExp} Tester
- * @property {{ TargetIsPlayer?: boolean; SenderIsPlayer?: boolean }} [Criteria]
+ * @property {{ TargetIsPlayer?: boolean; SenderIsPlayer?: boolean; DictionaryMatchers?: { [key: string]: string }[] }} [Criteria]
  */
 
 /**
@@ -5122,8 +5197,8 @@ const BCE_VERSION = "1.6.16";
 /**
  * @typedef {Object} WindowExtension
  * @property {string} BCE_VERSION
- * @property {SendAction} bceSendAction
- * @property {SettingValue} bceSettingValue
+ * @property {(text: string) => void} bceSendAction
+ * @property {(key: string) => boolean} bceSettingValue
  * @property {() => void} bce_initializeDefaultExpression
  * @property {() => void} bceUpdatePasswordForReconnect
  * @property {(msg: string) => string} bceMessageReplacements
@@ -5165,9 +5240,9 @@ const BCE_VERSION = "1.6.16";
  * @property {Item | null} DialogFocusSourceItem
  * @property {Item | null} DialogFocusItem
  * @property {(id: string, type: string, value: string, maxlength: string) => HTMLInputElement} ElementCreateInput
- * @property {(id: string, x: number, y: number, w: width, h?: height) => void} ElementPosition
+ * @property {(id: string, x: number, y: number, w: number, h?: number) => void} ElementPosition
  * @property {(id: string) => void} ElementRemove
- * @property {(id: string) => string} ElementValue
+ * @property {(id: string, newValue?: string) => string} ElementValue
  * @property {string} CurrentScreen
  * @property {(C: Character, group: string) => void} ChatRoomCharacterItemUpdate
  * @property {() => Character} CharacterGetCurrent
@@ -5181,11 +5256,11 @@ const BCE_VERSION = "1.6.16";
  * @property {HTMLCanvasElement} MainCanvas
  * @property {(text: string, x: number, y: number, color: string, backColor?: string) => void} DrawText
  * @property {(text: string, x: number, y: number, w: number, color: string, backColor?: string) => void} DrawTextFit
- * @property {(x: number, y: number, w: number, h: number, label: string, image?: string, hoveringText?: string, disabled?: boolean) => void} DrawButton
+ * @property {(x: number, y: number, w: number, h: number, label: string, color: string, image?: string, hoveringText?: string, disabled?: boolean) => void} DrawButton
  * @property {(x: number, y: number, w: number, h: number, text: string, isChecked: boolean, disabled?: boolean, textColor?: string, checkImage?: string) => void} DrawCheckbox
  * @property {(image: string, x: number, y: number, w: number, h: number) => boolean} DrawImageResize
  * @property {(x: number, y: number, w: number, h: number) => boolean} MouseIn
- * @property {(id?: string)} TextLoad
+ * @property {(id?: string) => void} TextLoad
  * @property {(id: string) => string} TextGet
  * @property {(C: Character) => void} StruggleDrawLockpickProgress
  * @property {number[]} StruggleLockPickOrder
@@ -5206,7 +5281,7 @@ const BCE_VERSION = "1.6.16";
  * @property {(color: string | string[]) => boolean} CommonColorIsValid
  * @property {(C: Character) => void} ActivityChatRoomArousalSync
  * @property {(appearance: Item[]) => ItemBundle[]} ServerAppearanceBundle
- * @property {(C: Character, push?: boolean = true, refreshDialog?: boolean = true) => void} CharacterRefresh
+ * @property {(C: Character, push?: boolean, refreshDialog?: boolean) => void} CharacterRefresh
  * @property {() => void} AppearanceExit
  * @property {() => void} AppearanceLoad
  * @property {() => void} AppearanceRun
@@ -5221,7 +5296,7 @@ const BCE_VERSION = "1.6.16";
  * @property {HTMLCanvasElement} GLDrawCanvas
  * @property {() => void} GLDrawResetCanvas
  * @property {() => void} WardrobeFixLength
- * @property {(C: Character, charX: number, charY: number, zoom: number, pos: number)} ChatRoomDrawCharacterOverlay
+ * @property {(C: Character, charX: number, charY: number, zoom: number, pos: number) => void} ChatRoomDrawCharacterOverlay
  * @property {number} ChatRoomHideIconState
  * @property {(C: Character) => void} CharacterAppearanceWardrobeLoad
  * @property {() => void} AppearanceRun
@@ -5229,12 +5304,13 @@ const BCE_VERSION = "1.6.16";
  * @property {string} WardrobeBackground
  * @property {() => void} WardrobeLoad
  * @property {() => void} WardrobeRun
+ * @property {() => void} WardrobeClick
  * @property {() => void} WardrobeExit
  * @property {() => void} AppearanceClick
  * @property {Character[]} WardrobeCharacter
  * @property {(C: Character, position: number, update?: boolean) => void} WardrobeFastLoad
  * @property {(C: Character, position: number, update?: boolean) => void} WardrobeFastSave
- * @property {(level: number, dialogText: string) => string} SpeechGarbleByGagLevel
+ * @property {(level: number, dialogText: string, ignoreOOC?: boolean) => string} SpeechGarbleByGagLevel
  * @property {(C: Character) => number} SpeechGetTotalGagLevel
  * @property {(load: boolean) => void} ChatRoomResize
  * @property {() => void} ChatRoomRun
@@ -5244,11 +5320,19 @@ const BCE_VERSION = "1.6.16";
  * @property {number} MouseY
  * @property {(C: Character) => void} ActivityChatRoomArousalSync
  * @property {(C: Character, progress: number) => void} ActivitySetArousal
- * @property {(C: Character, activity: Object, zone: string, progress: number)} ActivitySetArousalTimer
+ * @property {(C: Character, activity: Object, zone: string, progress: number) => void} ActivitySetArousalTimer
  * @property {(C: Character, progress: number) => void} ActivityTimerProgress
  * @property {(timestamp: number) => void} TimerProcess
  * @property {(list: number[] | null, adding: boolean, memberNumber: string | number) => void} ChatRoomListManipulation
  * @property {() => void} ServerOpenFriendList
+ * @property {(data: Object) => void} ServerAccountBeep
+ * @property {() => void} ServerClickBeep
+ * @property {boolean} BCX_Loaded
+ * @property {string} BCX_SOURCE
+ * @property {() => void} PreferenceSubscreenBCESettingsLoad
+ * @property {() => void} PreferenceSubscreenBCESettingsExit
+ * @property {() => void} PreferenceSubscreenBCESettingsRun
+ * @property {() => void} PreferenceSubscreenBCESettingsClick
  *
  * @typedef {Window & WindowExtension} ExtendedWindow
  */

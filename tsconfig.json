@@ -1,0 +1,11 @@
+{
+	"include": [
+		"bce.user.js",
+		"**/*.ts"
+	],
+	"compilerOptions": {
+		"allowJs": true,
+		"noEmit": true,
+		"target": "es2021",
+	}
+}
