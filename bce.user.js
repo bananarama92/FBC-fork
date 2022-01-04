@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Bondage Club Enhancements
 // @namespace https://www.bondageprojects.com/
-// @version 1.6.14
+// @version 1.6.15
 // @description enhancements for the bondage club
 // @author Sidious
 // @match https://bondageprojects.elementfx.com/*
@@ -14,7 +14,7 @@
 // @run-at document-end
 // ==/UserScript==
 
-const BCE_VERSION = "1.6.14";
+const BCE_VERSION = "1.6.15";
 
 (async function BondageClubEnhancements() {
   "use strict";
@@ -1651,7 +1651,7 @@ const BCE_VERSION = "1.6.14";
 
       const addStutter = (wrd) =>
         /^\p{L}/u.test(wrd)
-          ? `${wrd.substr(0, /\uD800-\uDFFF/u.test(wrd[0]) ? 2 : 1)}-${w}`
+          ? `${wrd.substr(0, /\uD800-\uDFFF/u.test(wrd[0]) ? 2 : 1)}-${wrd}`
           : wrd;
 
       const maxIntensity = Math.max(
