@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Bondage Club Enhancements
 // @namespace https://www.bondageprojects.com/
-// @version 1.6.18
+// @version 1.6.19
 // @description enhancements for the bondage club
 // @author Sidious
 // @match https://bondageprojects.elementfx.com/*
@@ -16,7 +16,7 @@
 // @ts-check
 /* eslint-disable @typescript-eslint/no-floating-promises */
 
-const BCE_VERSION = "1.6.18";
+const BCE_VERSION = "1.6.19";
 
 (async function BondageClubEnhancements() {
   "use strict";
@@ -1861,10 +1861,13 @@ const BCE_VERSION = "1.6.18";
         ) {
           const newChildren = [],
             scrolledToEnd = w.ElementIsScrolledToEnd(chatLogContainerId);
-          for (const node of chatMessageElement.children) {
+          for (const node of chatMessageElement.childNodes) {
             if (node.nodeType !== Node.TEXT_NODE) {
               newChildren.push(node);
-              if (node.classList.contains("ChatMessageName")) {
+              /** @type {HTMLElement} */
+              // @ts-ignore
+              const el = node;
+              if (el.classList.contains("ChatMessageName")) {
                 newChildren.push(document.createTextNode(" "));
               }
               continue;
