@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Bondage Club Enhancements
 // @namespace https://www.bondageprojects.com/
-// @version 1.6.20
+// @version 1.6.21
 // @description enhancements for the bondage club
 // @author Sidious
 // @match https://bondageprojects.elementfx.com/*
@@ -16,7 +16,7 @@
 // @ts-check
 /* eslint-disable @typescript-eslint/no-floating-promises */
 
-const BCE_VERSION = "1.6.20";
+const BCE_VERSION = "1.6.21";
 
 (async function BondageClubEnhancements() {
   "use strict";
@@ -3847,8 +3847,8 @@ const BCE_VERSION = "1.6.20";
           },
         };
       }
-      const basePoseMatcher = /^Base(Lower|Upper)$/u,
-        newPose = Object.values(desiredPose).map((p) => p.Pose);
+      const basePoseMatcher = /^Base(Lower|Upper)$/u;
+      let newPose = Object.values(desiredPose).map((p) => p.Pose);
       if (
         !w.Player.ActivePose ||
         !newPose.every(
@@ -3856,6 +3856,9 @@ const BCE_VERSION = "1.6.20";
         ) ||
         !w.Player.ActivePose.every((p) => newPose.includes(p))
       ) {
+        if (newPose.every((p) => basePoseMatcher.test(p))) {
+          newPose = null;
+        }
         bcCharacterSetActivePose(w.Player, newPose, true);
         needsPoseUpdate = true;
         needsRefresh = true;
