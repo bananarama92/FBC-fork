@@ -6,6 +6,6 @@
 	"compilerOptions": {
 		"allowJs": true,
 		"noEmit": true,
-		"target": "es2021",
+		"target": "es2020",
 	}
 }

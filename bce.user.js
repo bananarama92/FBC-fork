@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Bondage Club Enhancements
 // @namespace https://www.bondageprojects.com/
-// @version 1.6.19
+// @version 1.6.20
 // @description enhancements for the bondage club
 // @author Sidious
 // @match https://bondageprojects.elementfx.com/*
@@ -16,7 +16,7 @@
 // @ts-check
 /* eslint-disable @typescript-eslint/no-floating-promises */
 
-const BCE_VERSION = "1.6.19";
+const BCE_VERSION = "1.6.20";
 
 (async function BondageClubEnhancements() {
   "use strict";
@@ -311,7 +311,7 @@ const BCE_VERSION = "1.6.19";
       }
 
       for (const setting in defaultSettings) {
-        if (!Object.hasOwn(defaultSettings, setting)) {
+        if (!Object.prototype.hasOwnProperty.call(defaultSettings, setting)) {
           continue;
         }
         if (!(setting in settings)) {
@@ -1478,7 +1478,10 @@ const BCE_VERSION = "1.6.19";
       const passwords = JSON.parse(
         localStorage.getItem(localStoragePasswordsKey)
       );
-      if (!passwords || !Object.hasOwn(passwords, accountname)) {
+      if (
+        !passwords ||
+        !Object.prototype.hasOwnProperty.call(passwords, accountname)
+      ) {
         return;
       }
       delete passwords[accountname];
@@ -1515,7 +1518,7 @@ const BCE_VERSION = "1.6.19";
 
           let y = 60;
           for (const user in passwords) {
-            if (!Object.hasOwn(passwords, user)) {
+            if (!Object.prototype.hasOwnProperty.call(passwords, user)) {
               continue;
             }
             posMaps[y] = user;
@@ -1537,7 +1540,7 @@ const BCE_VERSION = "1.6.19";
           }
           lastClick = now;
           for (const pos in posMaps) {
-            if (!Object.hasOwn(posMaps, pos)) {
+            if (!Object.prototype.hasOwnProperty.call(posMaps, pos)) {
               continue;
             }
             const idx = parseInt(pos);
