@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Bondage Club Enhancements
 // @namespace https://www.bondageprojects.com/
-// @version 1.7.0
+// @version 1.7.1
 // @description enhancements for the bondage club
 // @author Sidious
 // @match https://bondageprojects.elementfx.com/*
@@ -16,7 +16,7 @@
 // @ts-check
 /* eslint-disable @typescript-eslint/no-floating-promises */
 
-const BCE_VERSION = "1.7.0";
+const BCE_VERSION = "1.7.1";
 
 (async function BondageClubEnhancements() {
   "use strict";
@@ -1289,6 +1289,13 @@ const BCE_VERSION = "1.7.0";
         Description:
           "[looks string]: Import looks from a string (BCX or BCE export)",
         Action: (_, command) => {
+          if (!w.Player.CanChange() || !w.OnlineGameAllowChange()) {
+            bceLog(
+              "You cannot change your appearance while bound or during online games, such as LARP."
+            );
+            return;
+          }
+
           const [, bundleString] = command.split(" ");
           if (!bundleString) {
             bceLog("No looks string provided");
@@ -5192,6 +5199,7 @@ const BCE_VERSION = "1.7.0";
  * @property {number} BCEArousalProgress
  * @property {number} BCEEnjoyment
  * @property {() => boolean} IsPlayer
+ * @property {() => boolean} CanChange
  * @property {number[]} BlackList
  * @property {number[]} GhostList
  */
@@ -5561,6 +5569,7 @@ const BCE_VERSION = "1.7.0";
  * @property {() => void} PreferenceSubscreenBCESettingsExit
  * @property {() => void} PreferenceSubscreenBCESettingsRun
  * @property {() => void} PreferenceSubscreenBCESettingsClick
+ * @property {() => boolean} OnlineGameAllowChange
  * @property {HTMLTextAreaElement} [InputChat]
  *
  * @typedef {Window & WindowExtension} ExtendedWindow
