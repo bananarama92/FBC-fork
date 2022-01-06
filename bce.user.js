@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Bondage Club Enhancements
 // @namespace https://www.bondageprojects.com/
-// @version 1.6.21
+// @version 1.7.0
 // @description enhancements for the bondage club
 // @author Sidious
 // @match https://bondageprojects.elementfx.com/*
@@ -16,7 +16,7 @@
 // @ts-check
 /* eslint-disable @typescript-eslint/no-floating-promises */
 
-const BCE_VERSION = "1.6.21";
+const BCE_VERSION = "1.7.0";
 
 (async function BondageClubEnhancements() {
   "use strict";
@@ -606,6 +606,14 @@ const BCE_VERSION = "1.6.21";
           "// The whispers get sent to the server and shown on the client directly",
           "// The whispers get sent to the server and shown on the client directly\nmsg = bceMessageReplacements(msg);"
         )}`
+    );
+
+    w.InputChat?.removeAttribute("maxlength");
+    eval(
+      `ChatRoomCreateElement = ${w.ChatRoomCreateElement.toString().replace(
+        `document.getElementById("InputChat").setAttribute("maxLength", 1000);`,
+        "document.getElementById('InputChat').addEventListener('input', (e) => { if (e.target.value.length > 1000 && (!e.target.value.startsWith('/') || e.target.value.startsWith('/w '))) e.target.classList.add('bce-input-warn'); else e.target.classList.remove('bce-input-warn') }, true);"
+      )}`
     );
 
     if (typeof w.ServerAccountBeep === "function") {
@@ -1206,6 +1214,115 @@ const BCE_VERSION = "1.6.21";
     /** @type {Command[]} */
     const cmds = [
       {
+        Tag: "exportlooks",
+        Description:
+          "[target member number] [includeBinds: true/false] [total: true/false]: Copy your or another player's appearance in a format that can be imported with BCX",
+        Action: async (_, _command, args) => {
+          const [target, includeBindsArg, total] = args;
+          /** @type {Character} */
+          let targetMember = null;
+          if (!target) {
+            targetMember = w.Player;
+          } else {
+            targetMember = w.Character.find(
+              (c) => c.MemberNumber === parseInt(target)
+            );
+          }
+          if (!targetMember) {
+            bceLog("Could not find member", target);
+            return;
+          }
+          const includeBinds = includeBindsArg === "true";
+          // LockMemberNumber
+
+          const clothes = targetMember.Appearance.filter(
+            (a) =>
+              a.Asset.Group.Category === "Appearance" &&
+              a.Asset.Group.AllowNone &&
+              a.Asset.Group.Clothing
+          );
+
+          const appearance = [...clothes];
+          if (includeBinds) {
+            appearance.push(
+              ...targetMember.Appearance.filter(
+                (a) =>
+                  a.Asset.Group.Category === "Item" &&
+                  !["ItemNeck", "ItemNeckAccessories"].includes(
+                    a.Asset.Group.Name
+                  ) &&
+                  !a.Asset.Group.BodyCosplay
+              )
+            );
+          }
+
+          /** @type {ItemBundle[]} */
+          const looks = (
+            total === "true" ? targetMember.Appearance : appearance
+          ).map((i) => {
+            if (i.Property?.LockMemberNumber) {
+              i.Property.LockMemberNumber = w.Player.MemberNumber;
+            }
+            return {
+              Group: i.Asset.Group.Name,
+              Name: i.Asset.Name,
+              Color: i.Color,
+              Difficulty: i.Difficulty,
+              Property: i.Property,
+            };
+          });
+
+          const targetName = targetMember.IsPlayer()
+            ? "yourself"
+            : targetMember.Name;
+
+          bceBeepNotify(
+            `Exported looks for ${targetName}`,
+            JSON.stringify(looks)
+          );
+          await navigator.clipboard.writeText(JSON.stringify(looks));
+          bceChatNotify(`Exported looks for ${targetName} copied to clipboard`);
+        },
+      },
+      {
+        Tag: "importlooks",
+        Description:
+          "[looks string]: Import looks from a string (BCX or BCE export)",
+        Action: (_, command) => {
+          const [, bundleString] = command.split(" ");
+          if (!bundleString) {
+            bceLog("No looks string provided");
+            return;
+          }
+          try {
+            /** @type {ItemBundle[]} */
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+            const bundle = bundleString.startsWith("[")
+              ? JSON.parse(bundleString)
+              : JSON.parse(w.LZString.decompressFromBase64(bundleString));
+
+            if (
+              !Array.isArray(bundle) ||
+              bundle.length === 0 ||
+              !bundle[0].Group
+            ) {
+              throw new Error("Invalid bundle");
+            }
+            w.ServerAppearanceLoadFromBundle(
+              w.Player,
+              "Female3DCG",
+              bundle,
+              w.Player.MemberNumber
+            );
+            w.ChatRoomCharacterUpdate(w.Player);
+            bceChatNotify("Applied looks");
+          } catch (e) {
+            console.error(e);
+            bceChatNotify("Could not parse looks");
+          }
+        },
+      },
+      {
         Tag: "w",
         Description:
           "[target name] [message]: whisper the target player. Use first name only. Finds the first person in the room with a matching name, left-to-right, top-to-bottom.",
@@ -1653,6 +1770,9 @@ const BCE_VERSION = "1.6.21";
       vertical-align: middle;
       border: 0.1em solid black;
       margin-right: 0.1em;
+    }
+    .bce-input-warn {
+      background-color: yellow;
     }
     #TextAreaChatLog a {
       color: #003f91;
@@ -5104,12 +5224,17 @@ const BCE_VERSION = "1.6.21";
  * @property {number} [Intensity]
  * @property {string} [Expression]
  * @property {number} [OverridePriority]
+ * @property {number} [LockMemberNumber]
  */
 
 /**
  * @typedef {Object} AssetGroup
  * @property {string} Name
- * @property {string} [Description]
+ * @property {string} Description
+ * @property {"Appearance" | "Item"} Category
+ * @property {boolean} AllowNone
+ * @property {boolean} BodyCosplay
+ * @property {boolean} Clothing
  */
 
 /**
@@ -5345,6 +5470,8 @@ const BCE_VERSION = "1.6.21";
  * @property {(id: string, newValue?: string) => string} ElementValue
  * @property {string} CurrentScreen
  * @property {(C: Character, group: string) => void} ChatRoomCharacterItemUpdate
+ * @property {(C: Character) => void} ChatRoomCharacterUpdate
+ * @property {() => void} ChatRoomCreateElement
  * @property {() => Character} CharacterGetCurrent
  * @property {Character[]} ChatRoomCharacter
  * @property {Character[]} Character
@@ -5381,6 +5508,7 @@ const BCE_VERSION = "1.6.21";
  * @property {(color: string | string[]) => boolean} CommonColorIsValid
  * @property {(C: Character) => void} ActivityChatRoomArousalSync
  * @property {(appearance: Item[]) => ItemBundle[]} ServerAppearanceBundle
+ * @property {(C: Character, assetFamily: string, bundle: ItemBundle[], sourceMemberNumber?: number, appearanceFull?: boolean) => boolean} ServerAppearanceLoadFromBundle
  * @property {(C: Character, push?: boolean, refreshDialog?: boolean) => void} CharacterRefresh
  * @property {() => void} AppearanceExit
  * @property {() => void} AppearanceLoad
@@ -5433,6 +5561,7 @@ const BCE_VERSION = "1.6.21";
  * @property {() => void} PreferenceSubscreenBCESettingsExit
  * @property {() => void} PreferenceSubscreenBCESettingsRun
  * @property {() => void} PreferenceSubscreenBCESettingsClick
+ * @property {HTMLTextAreaElement} [InputChat]
  *
  * @typedef {Window & WindowExtension} ExtendedWindow
  */
