@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Bondage Club Enhancements
 // @namespace https://www.bondageprojects.com/
-// @version 1.7.1
+// @version 1.7.2
 // @description enhancements for the bondage club
 // @author Sidious
 // @match https://bondageprojects.elementfx.com/*
@@ -16,7 +16,7 @@
 // @ts-check
 /* eslint-disable @typescript-eslint/no-floating-promises */
 
-const BCE_VERSION = "1.7.1";
+const BCE_VERSION = "1.7.2";
 
 (async function BondageClubEnhancements() {
   "use strict";
@@ -613,6 +613,15 @@ const BCE_VERSION = "1.7.1";
       `ChatRoomCreateElement = ${w.ChatRoomCreateElement.toString().replace(
         `document.getElementById("InputChat").setAttribute("maxLength", 1000);`,
         "document.getElementById('InputChat').addEventListener('input', (e) => { if (e.target.value.length > 1000 && (!e.target.value.startsWith('/') || e.target.value.startsWith('/w '))) e.target.classList.add('bce-input-warn'); else e.target.classList.remove('bce-input-warn') }, true);"
+      )}`
+    );
+
+    eval(
+      `ServerAccountBeep = ${w.ServerAccountBeep.toString().replace(
+        // eslint-disable-next-line no-template-curly-in-string
+        'ChatRoomSendLocal(`<a onclick="ServerOpenFriendList()">(${ServerBeep.Message})</a>`);',
+        // eslint-disable-next-line no-template-curly-in-string
+        '{ const beepId = FriendListBeepLog.length - 1; ChatRoomSendLocal(`<a onclick="ServerOpenFriendList();FriendListModeIndex = 1;FriendListShowBeep(${beepId})">(${ServerBeep.Message}${data.Message ? `: ${data.Message.length > 150 ? data.Message.substring(0, 150) + "..." : data.Message}` : ""})</a>`); }'
       )}`
     );
 
