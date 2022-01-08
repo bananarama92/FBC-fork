@@ -41,6 +41,7 @@ At a glance, **everything is entirely optional**:
 - Notifications for friends coming online or going offline
 - Confirmation prompt when leaving the page (prevent accidental back button or refresh)
 - Beeps display their text in chat. Clicking on them takes you directly to the beep. (Incompatible with BcUtil)
+- Ctrl+Enter to OOC
 
 ### Automatic relogin
 

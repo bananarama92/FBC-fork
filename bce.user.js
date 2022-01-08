@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Bondage Club Enhancements
 // @namespace https://www.bondageprojects.com/
-// @version 1.7.5
+// @version 1.7.6
 // @description enhancements for the bondage club
 // @author Sidious
 // @match https://bondageprojects.elementfx.com/*
@@ -16,7 +16,7 @@
 // @ts-check
 /* eslint-disable @typescript-eslint/no-floating-promises */
 
-const BCE_VERSION = "1.7.5";
+const BCE_VERSION = "1.7.6";
 
 (async function BondageClubEnhancements() {
   "use strict";
@@ -63,7 +63,7 @@ const BCE_VERSION = "1.7.5";
     return;
   }
 
-  const settingsVersion = 16;
+  const settingsVersion = 17;
   /**
    * @type {Settings}
    */
@@ -280,6 +280,13 @@ const BCE_VERSION = "1.7.5";
     },
     confirmLeave: {
       label: "Confirm leaving the game",
+      value: true,
+      sideEffects: (newValue) => {
+        bceLog(newValue);
+      },
+    },
+    ctrlEnterOoc: {
+      label: "Use Ctrl+Enter to OOC",
       value: true,
       sideEffects: (newValue) => {
         bceLog(newValue);
@@ -625,6 +632,13 @@ const BCE_VERSION = "1.7.5";
       `ChatRoomCreateElement = ${w.ChatRoomCreateElement.toString().replace(
         `document.getElementById("InputChat").setAttribute("maxLength", 1000);`,
         "document.getElementById('InputChat').addEventListener('input', (e) => { if (e.target.value.length > 1000 && (!e.target.value.startsWith('/') || e.target.value.startsWith('/w '))) e.target.classList.add('bce-input-warn'); else e.target.classList.remove('bce-input-warn') }, true);"
+      )}`
+    );
+
+    eval(
+      `ChatRoomKeyDown = ${w.ChatRoomKeyDown.toString().replace(
+        "ChatRoomSendChat()",
+        'if ("bceSettingValue" in window && bceSettingValue("ctrlEnterOoc") && event.ctrlKey) ElementValue("InputChat", "(" + ElementValue("InputChat"));ChatRoomSendChat()'
       )}`
     );
 
@@ -5622,6 +5636,7 @@ const BCE_VERSION = "1.7.5";
  * @property {() => void} PreferenceSubscreenBCESettingsClick
  * @property {() => boolean} OnlineGameAllowChange
  * @property {HTMLTextAreaElement} [InputChat]
+ * @property {(event: KeyboardEvent) => void} ChatRoomKeyDown
  *
  * @typedef {Window & WindowExtension} ExtendedWindow
  */
