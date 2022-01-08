@@ -1,6 +1,6 @@
 {
 	"include": [
-		"bce.user.js",
+		"**/*.js",
 		"**/*.ts"
 	],
 	"compilerOptions": {

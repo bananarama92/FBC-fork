@@ -13,9 +13,14 @@
 // @grant none
 // @run-at document-end
 // ==/UserScript==
+/* eslint-disable camelcase */
 
+// eslint-disable-next-line @typescript-eslint/no-floating-promises
 (async function () {
   "use strict";
+
+  /** @type {ExtendedWindow} */
+  const w = window;
 
   if (typeof ChatRoomCharacter === "undefined") {
     console.warn(
@@ -24,7 +29,7 @@
     return;
   }
 
-  await waitFor(() => !!Player?.Name && window.bce_initializeDefaultExpression);
+  await waitFor(() => !!w.Player?.Name && !!w.bce_initializeDefaultExpression);
 
   // NOTICE: You may delete blocks that you do not wish to customize in order to use the default ones.
 
@@ -37,7 +42,7 @@
    *
    * Limit dictates above which the expression will be used.
    */
-  window.bce_ArousalExpressionStages = {
+  w.bce_ArousalExpressionStages = {
     Blush: [
       { Expression: "Extreme", Limit: 100 },
       { Expression: "VeryHigh", Limit: 90 },
@@ -107,7 +112,7 @@
    * - Duration: how long the pose lasts, in milliseconds, or -1 for indefinite
    * - Priority: how important the pose is, higher is more important. Poses with the same or lower priority are cut short when another pose is triggered.
    */
-  window.bce_EventExpressions = {
+  w.bce_EventExpressions = {
     PostOrgasm: {
       Type: "PostOrgasm",
       Duration: 20000,
@@ -676,13 +681,13 @@
    * - TargetIsPlayer: if present and true, the expression will only be triggered if the target is the player.
    * - SenderIsPlayer: if present and true, the expression will only be triggered if the sender is the player.
    */
-  window.bce_ActivityTriggers = [
+  w.bce_ActivityTriggers = [
     {
       Event: "Blush",
       Type: "Activity",
       Matchers: [
         {
-          Tester: /^ChatOther-ItemMouth-PoliteKiss$/,
+          Tester: /^ChatOther-ItemMouth-PoliteKiss$/u,
         },
       ],
     },
@@ -691,7 +696,7 @@
       Type: "Emote",
       Matchers: [
         {
-          Tester: /^stretches($| her)/,
+          Tester: /^stretches($| her)/u,
         },
       ],
     },
@@ -700,7 +705,7 @@
       Type: "Emote",
       Matchers: [
         {
-          Tester: /^does jumping[ -]?jacks/,
+          Tester: /^does jumping[ -]?jacks/u,
         },
       ],
     },
@@ -709,7 +714,7 @@
       Type: "Emote",
       Matchers: [
         {
-          Tester: /^(gets on all fours|starts crawling)/,
+          Tester: /^(gets on all fours|starts crawling)/u,
         },
       ],
     },
@@ -718,7 +723,7 @@
       Type: "Emote",
       Matchers: [
         {
-          Tester: /^spreads(( her legs)? on)? her knees/,
+          Tester: /^spreads(( her legs)? on)? her knees/u,
         },
       ],
     },
@@ -727,7 +732,7 @@
       Type: "Emote",
       Matchers: [
         {
-          Tester: /^spreads her legs/,
+          Tester: /^spreads her legs/u,
         },
       ],
     },
@@ -736,7 +741,7 @@
       Type: "Emote",
       Matchers: [
         {
-          Tester: /^(does a handstand|stands on her hands)/,
+          Tester: /^(does a handstand|stands on her hands)/u,
         },
       ],
     },
@@ -745,7 +750,7 @@
       Type: "Emote",
       Matchers: [
         {
-          Tester: /^lies( down)? on (the floor|her (tummy|stomach))/,
+          Tester: /^lies( down)? on (the floor|her (tummy|stomach))/u,
         },
       ],
     },
@@ -754,7 +759,7 @@
       Type: "Emote",
       Matchers: [
         {
-          Tester: /^blushes/,
+          Tester: /^blushes/u,
         },
       ],
     },
@@ -763,7 +768,7 @@
       Type: "Emote",
       Matchers: [
         {
-          Tester: /^chuckles/,
+          Tester: /^chuckles/u,
         },
       ],
     },
@@ -772,7 +777,7 @@
       Type: "Emote",
       Matchers: [
         {
-          Tester: /^laughs/,
+          Tester: /^laughs/u,
         },
       ],
     },
@@ -781,7 +786,7 @@
       Type: "Emote",
       Matchers: [
         {
-          Tester: /^giggles/,
+          Tester: /^giggles/u,
         },
       ],
     },
@@ -790,7 +795,7 @@
       Type: "Emote",
       Matchers: [
         {
-          Tester: /^(smirk(s|ing)|.*with a smirk)/,
+          Tester: /^(smirk(s|ing)|.*with a smirk)/u,
         },
       ],
     },
@@ -799,7 +804,7 @@
       Type: "Emote",
       Matchers: [
         {
-          Tester: /^winks/,
+          Tester: /^winks/u,
         },
       ],
     },
@@ -808,7 +813,7 @@
       Type: "Emote",
       Matchers: [
         {
-          Tester: /^pouts/,
+          Tester: /^pouts/u,
         },
       ],
     },
@@ -817,7 +822,16 @@
       Type: "Emote",
       Matchers: [
         {
-          Tester: /^blinks/,
+          Tester: /^blinks/u,
+        },
+      ],
+    },
+    {
+      Event: "Frown",
+      Type: "Emote",
+      Matchers: [
+        {
+          Tester: /^frowns/u,
         },
       ],
     },
@@ -826,7 +840,7 @@
       Type: "Emote",
       Matchers: [
         {
-          Tester: /^(grins|is grinning)/,
+          Tester: /^(grins|is grinning)/u,
         },
       ],
     },
@@ -836,7 +850,7 @@
       Matchers: [
         {
           Tester:
-            /^((seems|looks) (confused|curious|suspicious)|raises an eyebrow)/,
+            /^((seems|looks) (confused|curious|suspicious)|raises an eyebrow)/u,
         },
       ],
     },
@@ -845,7 +859,7 @@
       Type: "Emote",
       Matchers: [
         {
-          Tester: /^closes her mouth/,
+          Tester: /^closes her mouth/u,
         },
       ],
     },
@@ -854,7 +868,7 @@
       Type: "Emote",
       Matchers: [
         {
-          Tester: /^opens her mouth/,
+          Tester: /^opens her mouth/u,
         },
       ],
     },
@@ -863,7 +877,7 @@
       Type: "Emote",
       Matchers: [
         {
-          Tester: /^(looks|seems|is|gets|smiles) happ(il)?y/,
+          Tester: /^(looks|seems|is|gets|smiles) happ(il)?y/u,
         },
       ],
     },
@@ -872,7 +886,7 @@
       Type: "Emote",
       Matchers: [
         {
-          Tester: /^smiles/,
+          Tester: /^smiles/u,
         },
       ],
     },
@@ -881,7 +895,7 @@
       Type: "Emote",
       Matchers: [
         {
-          Tester: /^(looks|seems|is|gets) distressed/,
+          Tester: /^(looks|seems|is|gets) distressed/u,
         },
       ],
     },
@@ -890,7 +904,7 @@
       Type: "Emote",
       Matchers: [
         {
-          Tester: /^(looks|seems|is|gets) sad/,
+          Tester: /^(looks|seems|is|gets) sad/u,
         },
       ],
     },
@@ -899,7 +913,7 @@
       Type: "Emote",
       Matchers: [
         {
-          Tester: /^(looks|seems|is|gets) (worried|surprised)/,
+          Tester: /^(looks|seems|is|gets) (worried|surprised)/u,
         },
       ],
     },
@@ -908,7 +922,7 @@
       Type: "Emote",
       Matchers: [
         {
-          Tester: /^(bares her teeth|snarls)/,
+          Tester: /^(bares her teeth|snarls)/u,
         },
       ],
     },
@@ -917,7 +931,7 @@
       Type: "Emote",
       Matchers: [
         {
-          Tester: /^(looks angr(il)?y|(gets|is|seems) angry)/,
+          Tester: /^(looks angr(il)?y|(gets|is|seems) angry)/u,
         },
       ],
     },
@@ -926,7 +940,7 @@
       Type: "Emote",
       Matchers: [
         {
-          Tester: /^(glares|looks harshly|gives a (glare|harsh look))/,
+          Tester: /^(glares|looks harshly|gives a (glare|harsh look))/u,
         },
       ],
     },
@@ -935,7 +949,7 @@
       Type: "Emote",
       Matchers: [
         {
-          Tester: /^opens her eyes/,
+          Tester: /^opens her eyes/u,
         },
       ],
     },
@@ -944,7 +958,7 @@
       Type: "Emote",
       Matchers: [
         {
-          Tester: /^((squints|narrows) her eyes|narrowly opens her eyes)/,
+          Tester: /^((squints|narrows) her eyes|narrowly opens her eyes)/u,
         },
       ],
     },
@@ -953,7 +967,7 @@
       Type: "Emote",
       Matchers: [
         {
-          Tester: /^closes her eyes/,
+          Tester: /^closes her eyes/u,
         },
       ],
     },
@@ -962,7 +976,7 @@
       Type: "Emote",
       Matchers: [
         {
-          Tester: /^lowers her eyebrows/,
+          Tester: /^lowers her eyebrows/u,
         },
       ],
     },
@@ -971,7 +985,7 @@
       Type: "Emote",
       Matchers: [
         {
-          Tester: /^raises her eyebrows/,
+          Tester: /^raises her eyebrows/u,
         },
       ],
     },
@@ -980,7 +994,7 @@
       Type: "Emote",
       Matchers: [
         {
-          Tester: /^drools/,
+          Tester: /^drools/u,
         },
       ],
     },
@@ -989,7 +1003,7 @@
       Type: "Emote",
       Matchers: [
         {
-          Tester: /^(starts to cry|sheds .* tears?|eyes( start( to)?)? leak)/,
+          Tester: /^(starts to cry|sheds .* tears?|eyes( start( to)?)? leak)/u,
         },
       ],
     },
@@ -998,7 +1012,7 @@
       Type: "Emote",
       Matchers: [
         {
-          Tester: /^'s (expression|face) returns to normal/,
+          Tester: /^'s (expression|face) returns to normal/u,
         },
       ],
     },
@@ -1008,7 +1022,10 @@
       Matchers: [
         {
           Tester:
-            /^(ActionActivityShockItem|FuturisticVibratorShockTrigger|FuturisticChastityBeltShock\w+|(TriggerShock|(ShockCollar|Collar(Auto)?ShockUnit|(LoveChastityBelt|SciFiPleasurePanties)Shock)Trigger)(1|2))$/,
+            /^(ActionActivityShockItem|FuturisticVibratorShockTrigger|FuturisticChastityBeltShock\w+|(TriggerShock|(ShockCollar|Collar(Auto)?ShockUnit|(LoveChastityBelt|SciFiPleasurePanties)Shock)Trigger)(1|2))$/u,
+          Criteria: {
+            TargetIsPlayer: true,
+          },
         },
       ],
     },
@@ -1018,7 +1035,7 @@
       Matchers: [
         {
           Tester:
-            /^(TriggerShock|(ShockCollar|Collar(Auto)?ShockUnit|(LoveChastityBelt|SciFiPleasurePanties)Shock)Trigger)0$/,
+            /^(TriggerShock|(ShockCollar|Collar(Auto)?ShockUnit|(LoveChastityBelt|SciFiPleasurePanties)Shock)Trigger)0$/u,
         },
       ],
     },
@@ -1027,7 +1044,10 @@
       Type: "Action",
       Matchers: [
         {
-          Tester: /^ActionActivitySpankItem$/,
+          Tester: /^ActionActivitySpankItem$/u,
+          Criteria: {
+            TargetIsPlayer: true,
+          },
         },
       ],
     },
@@ -1036,13 +1056,13 @@
       Type: "Activity",
       Matchers: [
         {
-          Tester: /^ChatOther-ItemButt-Spank$/,
+          Tester: /^ChatOther-ItemButt-Spank$/u,
           Criteria: {
             TargetIsPlayer: true,
           },
         },
         {
-          Tester: /^ChatSelf-ItemButt-Spank$/,
+          Tester: /^ChatSelf-ItemButt-Spank$/u,
         },
       ],
     },
@@ -1051,10 +1071,10 @@
       Type: "Activity",
       Matchers: [
         {
-          Tester: /^ChatOther-.*-Cuddle$/,
+          Tester: /^ChatOther-.*-Cuddle$/u,
         },
         {
-          Tester: /^ChatSelf-.*-Cuddle$/,
+          Tester: /^ChatSelf-.*-Cuddle$/u,
         },
       ],
     },
@@ -1063,7 +1083,7 @@
       Type: "Action",
       Matchers: [
         {
-          Tester: /^ActionActivityMasturbateItem$/,
+          Tester: /^ActionActivityMasturbateItem$/u,
           Criteria: {
             TargetIsPlayer: true,
           },
@@ -1075,13 +1095,13 @@
       Type: "Activity",
       Matchers: [
         {
-          Tester: /^ChatOther-.*-(Masturbate|Penetrate).*$/,
+          Tester: /^ChatOther-.*-(Masturbate|Penetrate).*$/u,
           Criteria: {
             TargetIsPlayer: true,
           },
         },
         {
-          Tester: /^ChatSelf-.*-(Masturbate|Penetrate).*$/,
+          Tester: /^ChatSelf-.*-(Masturbate|Penetrate).*$/u,
         },
       ],
     },
@@ -1090,7 +1110,7 @@
       Type: "Activity",
       Matchers: [
         {
-          Tester: /^ChatOther-ItemMouth-Kiss$/,
+          Tester: /^ChatOther-ItemMouth-Kiss$/u,
         },
       ],
     },
@@ -1099,7 +1119,7 @@
       Type: "Activity",
       Matchers: [
         {
-          Tester: /^ChatOther-.*-Kiss$/,
+          Tester: /^ChatOther-.*-Kiss$/u,
           Criteria: {
             SenderIsPlayer: true,
           },
@@ -1111,7 +1131,7 @@
       Type: "Action",
       Matchers: [
         {
-          Tester: /^(KneelDown|StandUp)Fail$/,
+          Tester: /^(KneelDown|StandUp)Fail$/u,
         },
       ],
     },
@@ -1120,7 +1140,7 @@
       Type: "Activity",
       Matchers: [
         {
-          Tester: /^ChatSelf-ItemMouth-Bite$/,
+          Tester: /^ChatSelf-ItemMouth-Bite$/u,
         },
       ],
     },
@@ -1129,7 +1149,7 @@
       Type: "Activity",
       Matchers: [
         {
-          Tester: /^ChatOther-.*-(Lick|MasturbateTongue)$/,
+          Tester: /^ChatOther-.*-(Lick|MasturbateTongue)$/u,
           Criteria: {
             SenderIsPlayer: true,
           },
@@ -1141,25 +1161,38 @@
       Type: "Activity",
       Matchers: [
         {
-          Tester: /^ChatOther-ItemMouth-Caress$/,
+          Tester: /^ChatOther-ItemMouth-Caress$/u,
           Criteria: {
             TargetIsPlayer: true,
           },
         },
         {
-          Tester: /^ChatSelf-ItemMouth-Caress$/,
+          Tester: /^ChatSelf-ItemMouth-Caress$/u,
+        },
+      ],
+    },
+    {
+      Event: "LongKiss",
+      Type: "Activity",
+      Matchers: [
+        {
+          Tester: /^ChatOther-ItemMouth-FrenchKiss$/u,
         },
       ],
     },
   ];
 
+  /** @type {(func: () => boolean) => Promise<void>} */
   async function waitFor(func) {
     while (!func()) {
+      // eslint-disable-next-line no-await-in-loop
       await sleep(100);
     }
   }
 
+  /** @type {(ms: number) => Promise<void>} */
   function sleep(ms) {
+    // eslint-disable-next-line no-promise-executor-return
     return new Promise((resolve) => setTimeout(resolve, ms));
   }
 })();
