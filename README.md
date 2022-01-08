@@ -42,12 +42,57 @@ At a glance, **everything is entirely optional**:
 - Confirmation prompt when leaving the page (prevent accidental back button or refresh)
 - Beeps display their text in chat. Clicking on them takes you directly to the beep. (Incompatible with BcUtil)
 - Ctrl+Enter to OOC
+- Clearer activity labels
+- Accurate timer inputs
+
+### Chat Links and Embeds
+
+![](static/bceEmbeds.png)
+
+### Require Glasses to See
+
+![](static/bceGlasses.png)
+
+### Confirm Leaving the Club
+
+![](static/bceLeaveProtect.png)
+
+### Lockpick Helper
+
+![](static/bceLockPick.png)
+
+### Full Wardrobe in Chatrooms
+
+![](static/bceFullWardrobe.png)
+
+### Additional Chat Commands for Convenience
+
+![](static/bceCommands.png)
+
+### Clearer Activity Labels
+
+![](static/bceActivityLabels.png)
+
+### Friend Presence Notifications
+
+![](static/bceNowOnline.png)
+
+### Beep Enhancements
+
+![](static/bceMessagePreviewDemo.png)
+
+### Accurate Timer Durations
+
+![](static/bceTimerInput.png)
 
 ### Automatic relogin
 
 BCE can automatically enter your password, when you lose connection to the game. You can enable this by choosing to save your login after entering your details, but before clicking login, by clicking on the "Save (BCE)" button. You can then populate the login by pressing the name on the left for future logins, and remove it there, also disabling the auto-relogin. **Warning**: this does store your password in plaintext in your local storage, where malicious scripts could theoretically read it.
 
 ### Layer-priority editor and ability to loosen/tighten restraints
+
+![](static/bceLayering1.png)
+![](static/bceLayering2.png)
 
 BCE allows manual editing of an asset's priority — the value the game uses to decide what item shows over others — as well as the difficulty to struggle out of a restraint. When you select an item, you should see either:
 
