@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Bondage Club Enhancements
 // @namespace https://www.bondageprojects.com/
-// @version 1.7.3
+// @version 1.7.4
 // @description enhancements for the bondage club
 // @author Sidious
 // @match https://bondageprojects.elementfx.com/*
@@ -16,7 +16,7 @@
 // @ts-check
 /* eslint-disable @typescript-eslint/no-floating-promises */
 
-const BCE_VERSION = "1.7.3";
+const BCE_VERSION = "1.7.4";
 
 (async function BondageClubEnhancements() {
   "use strict";
@@ -63,7 +63,7 @@ const BCE_VERSION = "1.7.3";
     return;
   }
 
-  const settingsVersion = 15;
+  const settingsVersion = 16;
   /**
    * @type {Settings}
    */
@@ -183,6 +183,7 @@ const BCE_VERSION = "1.7.3";
       sideEffects: (newValue) => {
         if (newValue) {
           bceSettings.antiAntiGarbleStrong = false;
+          bceSettings.antiAntiGarbleExtra = false;
         }
       },
     },
@@ -192,6 +193,17 @@ const BCE_VERSION = "1.7.3";
       sideEffects: (newValue) => {
         if (newValue) {
           bceSettings.antiAntiGarble = false;
+          bceSettings.antiAntiGarbleExtra = false;
+        }
+      },
+    },
+    antiAntiGarbleExtra: {
+      label: "Anti-Anti-Garble - no cheating your gag (extra)",
+      value: false,
+      sideEffects: (newValue) => {
+        if (newValue) {
+          bceSettings.antiAntiGarble = false;
+          bceSettings.antiAntiGarbleStrong = false;
         }
       },
     },
@@ -4523,6 +4535,11 @@ const BCE_VERSION = "1.7.3";
           if (bceSettings.antiAntiGarble) {
             data.Content =
               bcSpeechGarbleByGagLevel(1, data.Content) + GAGBYPASSINDICATOR;
+          } else if (bceSettings.antiAntiGarbleExtra && gagLevel > 24) {
+            data.Content = `${data.Content.replace(
+              /\S+/gu,
+              "m"
+            )}${GAGBYPASSINDICATOR}`;
           } else if (bceSettings.antiAntiGarbleStrong) {
             data.Content =
               bcSpeechGarbleByGagLevel(gagLevel, data.Content) +
@@ -4565,10 +4582,12 @@ const BCE_VERSION = "1.7.3";
 
       const disableBoth = () => `${tooltip}None`,
         enableLimited = () => `${tooltip}Limited`,
-        enableStrong = () => `${tooltip}Full`;
+        enableStrong = () => `${tooltip}Full`,
+        // eslint-disable-next-line sort-vars
+        enableExtra = () => `${tooltip}Extra`;
 
       let next = enableLimited,
-        previous = enableStrong;
+        previous = enableExtra;
 
       if (bceSettings.antiAntiGarble) {
         color = "yellow";
@@ -4578,8 +4597,13 @@ const BCE_VERSION = "1.7.3";
       } else if (bceSettings.antiAntiGarbleStrong) {
         color = "red";
         label = "Full";
-        next = disableBoth;
+        next = enableExtra;
         previous = enableLimited;
+      } else if (bceSettings.antiAntiGarbleExtra) {
+        color = "purple";
+        label = "Extra";
+        next = disableBoth;
+        previous = enableStrong;
       }
       w.DrawBackNextButton.apply(null, [
         ...gagAntiCheatMenuPosition,
@@ -4630,7 +4654,7 @@ const BCE_VERSION = "1.7.3";
     w.ChatRoomClick = function () {
       if (bceSettings.showQuickAntiGarble) {
         if (w.MouseIn.apply(null, [...gagAntiCheatMenuPosition])) {
-          const disableBoth = () => {
+          const disableAll = () => {
               bceSettings.antiAntiGarble = false;
               bceSettings.antiAntiGarbleStrong = false;
               defaultSettings.antiAntiGarble.sideEffects(false);
@@ -4643,15 +4667,23 @@ const BCE_VERSION = "1.7.3";
             enableStrong = () => {
               bceSettings.antiAntiGarbleStrong = true;
               defaultSettings.antiAntiGarbleStrong.sideEffects(true);
+            },
+            // eslint-disable-next-line sort-vars
+            enableExtra = () => {
+              bceSettings.antiAntiGarbleExtra = true;
+              defaultSettings.antiAntiGarbleExtra.sideEffects(true);
             };
           let next = enableLimited,
-            previous = enableStrong;
+            previous = enableExtra;
           if (bceSettings.antiAntiGarble) {
             next = enableStrong;
-            previous = disableBoth;
+            previous = disableAll;
           } else if (bceSettings.antiAntiGarbleStrong) {
-            next = disableBoth;
+            next = enableExtra;
             previous = enableLimited;
+          } else if (bceSettings.antiAntiGarbleExtra) {
+            next = disableAll;
+            previous = enableStrong;
           }
           if (
             w.MouseX <
