@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Bondage Club Enhancements
 // @namespace https://www.bondageprojects.com/
-// @version 1.7.4
+// @version 1.7.5
 // @description enhancements for the bondage club
 // @author Sidious
 // @match https://bondageprojects.elementfx.com/*
@@ -16,7 +16,7 @@
 // @ts-check
 /* eslint-disable @typescript-eslint/no-floating-promises */
 
-const BCE_VERSION = "1.7.4";
+const BCE_VERSION = "1.7.5";
 
 (async function BondageClubEnhancements() {
   "use strict";
@@ -3455,7 +3455,7 @@ const BCE_VERSION = "1.7.4";
           const component = `${args[0].toUpperCase()}${args
             .substring(1)
             .toLowerCase()}`;
-          for (const e of bceExpressionsQueue) {
+          for (const e of bceExpressionsQueue.filter((a) => a.Expression)) {
             if (component === "Eyes" && "Eyes2" in e.Expression) {
               delete e.Expression.Eyes2;
             }
