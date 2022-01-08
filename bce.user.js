@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Bondage Club Enhancements
 // @namespace https://www.bondageprojects.com/
-// @version 1.7.6
+// @version 1.7.7
 // @description enhancements for the bondage club
 // @author Sidious
 // @match https://bondageprojects.elementfx.com/*
@@ -16,7 +16,7 @@
 // @ts-check
 /* eslint-disable @typescript-eslint/no-floating-promises */
 
-const BCE_VERSION = "1.7.6";
+const BCE_VERSION = "1.7.7";
 
 (async function BondageClubEnhancements() {
   "use strict";
@@ -4551,7 +4551,10 @@ const BCE_VERSION = "1.7.6";
               bcSpeechGarbleByGagLevel(1, data.Content) + GAGBYPASSINDICATOR;
           } else if (bceSettings.antiAntiGarbleExtra && gagLevel > 24) {
             data.Content = `m${GAGBYPASSINDICATOR}`;
-          } else if (bceSettings.antiAntiGarbleStrong) {
+          } else if (
+            bceSettings.antiAntiGarbleStrong ||
+            bceSettings.antiAntiGarbleExtra
+          ) {
             data.Content =
               bcSpeechGarbleByGagLevel(gagLevel, data.Content) +
               GAGBYPASSINDICATOR;
