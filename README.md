@@ -39,8 +39,8 @@ At a glance, **everything is entirely optional**:
 - Alternative arousal calculations
 - Blur vision when not wearing glasses
 - Notifications for friends coming online or going offline
-- Confirmation prompt when leaving the page (prevent accidental back button or refresh)
-- Beeps display their text in chat. Clicking on them takes you directly to the beep. (Incompatible with BcUtil)
+- Confirmation prompt when leaving the page
+- Beeps display their text in chat. Clicking on them takes you directly to the beep.
 - Ctrl+Enter to OOC
 - Clearer activity labels
 - Accurate timer inputs
@@ -49,41 +49,67 @@ At a glance, **everything is entirely optional**:
 
 ![](static/bceEmbeds.png)
 
+BCE allows clicking links posted in chat and embeds images from trusted domains, such as Discord, Imgur and Tenor. Additionally any links you send will always be inside OOC brackets to ensure stutter algorithms do not break your links.
+
 ### Require Glasses to See
 
 ![](static/bceGlasses.png)
+
+BCE can blur your vision, when your character is not wearing glasses or visors.
 
 ### Confirm Leaving the Club
 
 ![](static/bceLeaveProtect.png)
 
+BCE can ask you to confirm when navigating away from the club. This protects against accidental back button or refresh. Best combined with saved credentials for automatic relogin, as relogin will still be required.
+
 ### Lockpick Helper
 
 ![](static/bceLockPick.png)
+
+BCE can give hints in the lockpicking minigame, based on your skill. Do note that lockpicking can still be impossible, if you are tied up too tightly or your skill is too low.
 
 ### Full Wardrobe in Chatrooms
 
 ![](static/bceFullWardrobe.png)
 
+BCE can allow using the full wardrobe with previews from the singleplayer private room inside online chatrooms.
+
 ### Additional Chat Commands for Convenience
 
 ![](static/bceCommands.png)
+
+- `/exportlooks <member number> <include restraints: true/false> <include body, eyes, etc: true/false>` allows you to save your or another player's last seen appearance as a string you can later import with BCX or on yourself `/importlooks`. If no member number is given, copies your own appearance. Additional parameters default to "false".
+- `/importlooks [looks string]` sets your current appearance to the copied appearance.
+- `/w [target's first name] [message]` sends a whisper to the target. No message will be sent if the target cannot be found or if many people with the same name are present in the room. No more danger of the other player disconnecting and you uttering the message out loud in public.
+- `/versions` show what versions of BC, BCX and BCE other players in the room are using.
+- `/r` resets animations and expressions. You can optionally define part of the face to reset, leaving other parts intact, e.g. `/r eyes`
+- `/pose <space separated list of poses>` allows setting or resetting your character's pose. Note that this bypasses restrictions, but will not override poses imposed by items, e.g. short collar chain.
+- `/pose list` lists all available poses.
 
 ### Clearer Activity Labels
 
 ![](static/bceActivityLabels.png)
 
+BCE includes friendlier labels for activities so you don't have to guess or remember what "Body Rub" on the forehead means.
+
 ### Friend Presence Notifications
 
 ![](static/bceNowOnline.png)
+
+BCE can notify you when friends come and go.
 
 ### Beep Enhancements
 
 ![](static/bceMessagePreviewDemo.png)
 
+BCE will display a snippet of the message received in beeps in chat, and clicking the message takes you directly to the beep. This functionality is incompatible with BcUtil and disabled, when that addon is detected.
+
 ### Accurate Timer Durations
 
 ![](static/bceTimerInput.png)
+
+BCE allows you to set timer locks at a greater accuracy. Does not allow exceeding maximum duration of the locks.
 
 ### Automatic relogin
 
