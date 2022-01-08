@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Bondage Club Enhancements
 // @namespace https://www.bondageprojects.com/
-// @version 1.7.8
+// @version 1.7.9
 // @description enhancements for the bondage club
 // @author Sidious
 // @match https://bondageprojects.elementfx.com/*
@@ -16,7 +16,7 @@
 // @ts-check
 /* eslint-disable @typescript-eslint/no-floating-promises */
 
-const BCE_VERSION = "1.7.8";
+const BCE_VERSION = "1.7.9";
 
 (async function BondageClubEnhancements() {
   "use strict";
@@ -5178,7 +5178,7 @@ const BCE_VERSION = "1.7.8";
         // The connection is closed, this call gets you relogin immediately
         w.ServerSocket.io.disconnect();
         w.ServerSocket.io.connect();
-        return "Are you sure you want to leave the club?";
+        return (e.returnValue = "Are you sure you want to leave the club?");
       }
       return null;
     },
