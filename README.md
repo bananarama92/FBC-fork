@@ -1,6 +1,6 @@
 # BCE - Bondage Club Enhancements
 
-This addon to [Bondage Club](https://www.bondageprojects.com/club_game/) offers various mostly small improvements to the game experience. See features below for more details.
+This addon to [Bondage Club](https://www.bondageprojects.com/club_game/) offers various mostly small improvements to the game experience. Making the game easier, safer and, in some cases, more immersive for certain types of people. See features below for more details.
 
 ## How to install and use
 
@@ -16,7 +16,7 @@ With Tampermonkey you can control when and if you want to update BCE and BCE wil
 
 ### Manual bookmark
 
-1. Save `javascript:(() => { fetch('https://sidiousious.gitlab.io/bce/bce.user.js').then(r=>r.text()).then(r=>eval(r)); })();` as a bookmark on your devices, or [bookmark this link][bookmarklet]
+1. Save `javascript:(()=>{fetch('https://sidiousious.gitlab.io/bce/bce.user.js').then(r=>r.text()).then(r=>eval(r));})();` as a bookmark on your devices, or [bookmark this link][bookmarklet]
 1. Use by opening the bookmark in the bondage club tab on your browser. If used on the login page you should see the "SAVE (BCE)" button appear.
 
 - Desktop: use from your bookmarks menu
@@ -40,6 +40,7 @@ At a glance, **everything is entirely optional**:
 - Blur vision when not wearing glasses
 - Notifications for friends coming online or going offline
 - Confirmation prompt when leaving the page (prevent accidental back button or refresh)
+- Beeps display their text in chat. Clicking on them takes you directly to the beep. (Incompatible with BcUtil)
 
 ### Automatic relogin
 
