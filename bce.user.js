@@ -4536,10 +4536,7 @@ const BCE_VERSION = "1.7.4";
             data.Content =
               bcSpeechGarbleByGagLevel(1, data.Content) + GAGBYPASSINDICATOR;
           } else if (bceSettings.antiAntiGarbleExtra && gagLevel > 24) {
-            data.Content = `${data.Content.replace(
-              /\S+/gu,
-              "m"
-            )}${GAGBYPASSINDICATOR}`;
+            data.Content = `m${GAGBYPASSINDICATOR}`;
           } else if (bceSettings.antiAntiGarbleStrong) {
             data.Content =
               bcSpeechGarbleByGagLevel(gagLevel, data.Content) +
