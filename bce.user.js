@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Bondage Club Enhancements
 // @namespace https://www.bondageprojects.com/
-// @version 1.7.2
+// @version 1.7.3
 // @description enhancements for the bondage club
 // @author Sidious
 // @match https://bondageprojects.elementfx.com/*
@@ -16,7 +16,7 @@
 // @ts-check
 /* eslint-disable @typescript-eslint/no-floating-promises */
 
-const BCE_VERSION = "1.7.2";
+const BCE_VERSION = "1.7.3";
 
 (async function BondageClubEnhancements() {
   "use strict";
@@ -616,14 +616,21 @@ const BCE_VERSION = "1.7.2";
       )}`
     );
 
-    eval(
-      `ServerAccountBeep = ${w.ServerAccountBeep.toString().replace(
-        // eslint-disable-next-line no-template-curly-in-string
-        'ChatRoomSendLocal(`<a onclick="ServerOpenFriendList()">(${ServerBeep.Message})</a>`);',
-        // eslint-disable-next-line no-template-curly-in-string
-        '{ const beepId = FriendListBeepLog.length - 1; ChatRoomSendLocal(`<a onclick="ServerOpenFriendList();FriendListModeIndex = 1;FriendListShowBeep(${beepId})">(${ServerBeep.Message}${data.Message ? `: ${data.Message.length > 150 ? data.Message.substring(0, 150) + "..." : data.Message}` : ""})</a>`); }'
-      )}`
-    );
+    if (detectBcUtil()) {
+      bceBeepNotify(
+        "Compatibility Warning",
+        "BcUtil is not compatible with BCE's beep enhancements. Beep enhancements will be unavailable until BcUtil has been disabled."
+      );
+    } else {
+      eval(
+        `ServerAccountBeep = ${w.ServerAccountBeep.toString().replace(
+          // eslint-disable-next-line no-template-curly-in-string
+          'ChatRoomSendLocal(`<a onclick="ServerOpenFriendList()">(${ServerBeep.Message})</a>`);',
+          // eslint-disable-next-line no-template-curly-in-string
+          '{ const beepId = FriendListBeepLog.length - 1; ChatRoomSendLocal(`<a onclick="ServerOpenFriendList();FriendListModeIndex = 1;FriendListShowBeep(${beepId})">(${ServerBeep.Message}${data.Message ? `: ${data.Message.length > 150 ? data.Message.substring(0, 150) + "..." : data.Message}` : ""})</a>`); }'
+        )}`
+      );
+    }
 
     if (typeof w.ServerAccountBeep === "function") {
       bcOriginalFunctions.ServerAccountBeep = w.ServerAccountBeep;
@@ -5101,6 +5108,11 @@ const BCE_VERSION = "1.7.2";
     );
   }
 
+  /** @type {() => boolean} */
+  function detectBcUtil() {
+    return typeof w.StartBcUtil === "function";
+  }
+
   /** @type {(ms: number) => Promise<void>} */
   function sleep(ms) {
     // eslint-disable-next-line no-promise-executor-return
@@ -5574,6 +5586,7 @@ const BCE_VERSION = "1.7.2";
  * @property {() => void} ServerClickBeep
  * @property {boolean} BCX_Loaded
  * @property {string} BCX_SOURCE
+ * @property {() => void} [StartBcUtil]
  * @property {() => void} PreferenceSubscreenBCESettingsLoad
  * @property {() => void} PreferenceSubscreenBCESettingsExit
  * @property {() => void} PreferenceSubscreenBCESettingsRun
