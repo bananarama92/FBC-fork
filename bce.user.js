@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Bondage Club Enhancements
 // @namespace https://www.bondageprojects.com/
-// @version 1.8.0
+// @version 1.8.1
 // @description enhancements for the bondage club
 // @author Sidious
 // @match https://bondageprojects.elementfx.com/*
@@ -16,7 +16,7 @@
 // @ts-check
 /* eslint-disable @typescript-eslint/no-floating-promises */
 
-const BCE_VERSION = "1.8.0";
+const BCE_VERSION = "1.8.1";
 
 (async function BondageClubEnhancements() {
   "use strict";
@@ -647,7 +647,7 @@ const BCE_VERSION = "1.8.0";
           // eslint-disable-next-line no-template-curly-in-string
           'ChatRoomSendLocal(`<a onclick="ServerOpenFriendList()">(${ServerBeep.Message})</a>`);',
           // eslint-disable-next-line no-template-curly-in-string
-          '{ const beepId = FriendListBeepLog.length - 1; ChatRoomSendLocal(`<a onclick="ServerOpenFriendList();FriendListModeIndex = 1;FriendListShowBeep(${beepId})">(${ServerBeep.Message}${data.Message ? `: ${data.Message.length > 150 ? data.Message.substring(0, 150) + "..." : data.Message}` : ""})</a>`); }'
+          '{ const beepId = FriendListBeepLog.length - 1; ChatRoomSendLocal(`<a class="bce-beep-link" onclick="ServerOpenFriendList();FriendListModeIndex = 1;FriendListShowBeep(${beepId})">(${ServerBeep.Message}${data.Message ? `: ${data.Message.length > 150 ? data.Message.substring(0, 150) + "..." : data.Message}` : ""})</a>`); }'
         )}`
       );
     }
@@ -1385,8 +1385,33 @@ const BCE_VERSION = "1.8.0";
             BeepType: "",
             MemberNumber: targetMemberNumber,
             Message: msg,
+            IsSecret: true,
           });
-          bceChatNotify(`beeped ${target}`);
+          w.FriendListBeepLog.push({
+            MemberNumber: targetMemberNumber,
+            MemberName: w.Player.FriendNames.get(targetMemberNumber),
+            ChatRoomName: null,
+            Sent: true,
+            Private: false,
+            Time: new Date(),
+            Message: msg,
+          });
+          const beepId = w.FriendListBeepLog.length - 1;
+          const link = document.createElement("a");
+          link.href = `#beep-${beepId}`;
+          link.onclick = (e) => {
+            e.preventDefault();
+            w.ServerOpenFriendList();
+            w.FriendListModeIndex = 1;
+            w.FriendListShowBeep(beepId);
+          };
+          link.textContent = `(Beep to ${w.Player.FriendNames.get(
+            targetMemberNumber
+          )} (${targetMemberNumber}): ${
+            msg.length > 150 ? `${msg.substring(0, 150)}...` : msg
+          })`;
+          link.classList.add("bce-beep-link");
+          bceChatNotify(link);
         },
       },
       {
@@ -1821,6 +1846,9 @@ const BCE_VERSION = "1.8.0";
 
   function bceStyles() {
     const css = `
+    .bce-beep-link {
+      text-decoration: none;
+    }
     .bce-notification {
       background-color: #481D64;
       color: white;
@@ -1845,17 +1873,18 @@ const BCE_VERSION = "1.8.0";
     }
     #TextAreaChatLog a {
       color: #003f91;
+      cursor: pointer;
     }
     #TextAreaChatLog a:visited {
       color: #380091;
     }
     #TextAreaChatLog[data-colortheme="dark"] a,
     #TextAreaChatLog[data-colortheme="dark2"] a {
-      color: #3d91ff;
+      color: #a9ceff;
     }
     #TextAreaChatLog[data-colortheme="dark"] a:visited,
     #TextAreaChatLog[data-colortheme="dark2"] a:visited {
-      color: #6a3dff;
+      color: #3d91ff;
     }
     .bce-blind {
       filter: blur(0.24vw);
@@ -5280,6 +5309,20 @@ const BCE_VERSION = "1.8.0";
  * @property {number[]} BlackList
  * @property {number[]} GhostList
  * @property {number[]} FriendList
+ * @property {Map<number, string>} FriendNames
+ */
+
+/**
+ * @typedef {Object} Beep
+ * @property {string} [Message]
+ * @property {boolean} [Private]
+ * @property {Date} [Time]
+ * @property {boolean} [IsSecret]
+ * @property {string} [BeepType]
+ * @property {number} MemberNumber
+ * @property {string} [MemberName]
+ * @property {string} [ChatRoomName]
+ * @property {boolean} [Sent]
  */
 
 /**
@@ -5651,6 +5694,9 @@ const BCE_VERSION = "1.8.0";
  * @property {() => boolean} OnlineGameAllowChange
  * @property {HTMLTextAreaElement} [InputChat]
  * @property {(event: KeyboardEvent) => void} ChatRoomKeyDown
+ * @property {Beep[]} FriendListBeepLog
+ * @property {number} FriendListModeIndex
+ * @property {(id: number) => void} FriendListShowBeep
  *
  * @typedef {Window & WindowExtension} ExtendedWindow
  */
