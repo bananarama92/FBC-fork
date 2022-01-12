@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Bondage Club Enhancements
 // @namespace https://www.bondageprojects.com/
-// @version 1.7.9
+// @version 1.8.0
 // @description enhancements for the bondage club
 // @author Sidious
 // @match https://bondageprojects.elementfx.com/*
@@ -16,7 +16,7 @@
 // @ts-check
 /* eslint-disable @typescript-eslint/no-floating-promises */
 
-const BCE_VERSION = "1.7.9";
+const BCE_VERSION = "1.8.0";
 
 (async function BondageClubEnhancements() {
   "use strict";
@@ -63,7 +63,7 @@ const BCE_VERSION = "1.7.9";
     return;
   }
 
-  const settingsVersion = 17;
+  const settingsVersion = 18;
   /**
    * @type {Settings}
    */
@@ -112,15 +112,6 @@ const BCE_VERSION = "1.7.9";
       value: false,
       sideEffects: (newValue) => {
         bceLog(newValue);
-      },
-    },
-    extendedWardrobe: {
-      label: "Extend wardrobe slots (double)",
-      value: false,
-      sideEffects: (newValue) => {
-        const defaultSize = 24;
-        w.WardrobeSize = newValue ? defaultSize * 2 : defaultSize;
-        callOriginal("WardrobeFixLength");
       },
     },
     layeringMenu: {
@@ -533,7 +524,6 @@ const BCE_VERSION = "1.7.9";
   alternateArousal();
   chatAugments();
   automaticExpressions();
-  extendedWardrobe();
   layeringMenu();
   cacheClearer();
   lockpickHelp();
@@ -1376,18 +1366,42 @@ const BCE_VERSION = "1.7.9";
         },
       },
       {
+        Tag: "beep",
+        Description: "[membernumber] [message]: beep someone",
+        Action: (_, command, args) => {
+          const [target] = args,
+            [, , ...message] = command.split(" "),
+            msg = message?.join(" ");
+          if (!target || !msg || !/^\d+$/u.test(target)) {
+            bceChatNotify(`beep target or message not provided`);
+            return;
+          }
+          const targetMemberNumber = parseInt(target);
+          if (!w.Player.FriendList.includes(targetMemberNumber)) {
+            bceChatNotify(`${target} is not in your friend list`);
+            return;
+          }
+          w.ServerSend("AccountBeep", {
+            BeepType: "",
+            MemberNumber: targetMemberNumber,
+            Message: msg,
+          });
+          bceChatNotify(`beeped ${target}`);
+        },
+      },
+      {
         Tag: "w",
         Description:
           "[target name] [message]: whisper the target player. Use first name only. Finds the first person in the room with a matching name, left-to-right, top-to-bottom.",
         Action: (_, command, args) => {
           const [target] = args,
             [, , ...message] = command.split(" "),
-            msg = message.join(" "),
+            msg = message?.join(" "),
             targetMembers = w.ChatRoomCharacter.filter(
-              (c) => c.Name.split(" ")[0].toLowerCase() === target.toLowerCase()
+              (c) =>
+                c.Name.split(" ")[0]?.toLowerCase() === target?.toLowerCase()
             );
-          bceLog(target, msg);
-          if (targetMembers.length === 0) {
+          if (!target || targetMembers.length === 0) {
             bceChatNotify(`Whisper target not found: ${target}`);
           } else if (targetMembers.length > 1) {
             bceChatNotify(
@@ -1397,6 +1411,8 @@ const BCE_VERSION = "1.7.9";
                   ", "
                 )}. You can still whisper the player by clicking their name.`
             );
+          } else if (!msg) {
+            bceChatNotify(`No message provided`);
           } else {
             const targetMemberNumber = targetMembers[0].MemberNumber;
             const originalTarget = w.ChatRoomTargetMemberNumber;
@@ -4332,16 +4348,6 @@ const BCE_VERSION = "1.7.9";
     }
   }
 
-  function extendedWardrobe() {
-    w.WardrobeFixLength = () => {
-      const defaultSize = 24;
-      w.WardrobeSize = bceSettings.extendedWardrobe
-        ? defaultSize * 2
-        : defaultSize;
-      callOriginal("WardrobeFixLength");
-    };
-  }
-
   function chatRoomOverlay() {
     const bcChatRoomDrawCharacterOverlay = w.ChatRoomDrawCharacterOverlay;
     w.ChatRoomDrawCharacterOverlay = function (C, CharX, CharY, Zoom, Pos) {
@@ -5273,6 +5279,7 @@ const BCE_VERSION = "1.7.9";
  * @property {() => boolean} CanChange
  * @property {number[]} BlackList
  * @property {number[]} GhostList
+ * @property {number[]} FriendList
  */
 
 /**
