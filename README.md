@@ -129,10 +129,6 @@ This allow manually overriding the assets' relative positioning, giving better f
 
 **Note**: the difficulty modification is technically cheating and should be used for roleplay purposes only. This does also allow struggling out of items you are not supposed to remove, such as a slave collar. Both of these features can be used to break the game, so use them responsibly. The main intent here is along the lines of choosing whether a shirt goes on top of your pants or vice-versa, or modifying the tightness of a rope tie without having to remove it, modify your bondage skill, and re-apply.
 
-### Expanded wardrobe slots
-
-Double your wardrobe size to 48 slots at the press of a button. **Warning**: this is currently not persistent and you will likely lose outfits 25-48 on next login.
-
 ### Customizable automated expressions
 
 BCE has an expression animator that replaces the game's default animator. It uses both the arousal meter, and messages posted in chat, and respects manual changes you make to your face (not overriding them every 2 seconds like the game's own face animator).
