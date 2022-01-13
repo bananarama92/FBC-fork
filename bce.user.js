@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Bondage Club Enhancements
 // @namespace https://www.bondageprojects.com/
-// @version 1.8.1
+// @version 1.8.2
 // @description enhancements for the bondage club
 // @author Sidious
 // @match https://bondageprojects.elementfx.com/*
@@ -16,7 +16,7 @@
 // @ts-check
 /* eslint-disable @typescript-eslint/no-floating-promises */
 
-const BCE_VERSION = "1.8.1";
+const BCE_VERSION = "1.8.2";
 
 (async function BondageClubEnhancements() {
   "use strict";
@@ -389,6 +389,22 @@ const BCE_VERSION = "1.8.1";
   };
 
   /**
+   * @type {(...args: any[]) => void}
+   */
+  const bceWarn = (...args) => {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+    console.warn("BCE", `${w.BCE_VERSION}:`, ...args);
+  };
+
+  /**
+   * @type {(...args: any[]) => void}
+   */
+  const bceError = (...args) => {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+    console.error("BCE", `${w.BCE_VERSION}:`, ...args);
+  };
+
+  /**
    * @type {(node: HTMLElement | string) => void}
    */
   const bceChatNotify = (node) => {
@@ -513,6 +529,7 @@ const BCE_VERSION = "1.8.1";
     return date.getTime();
   };
 
+  functionIntegrityCheck();
   bceStyles();
   automaticReconnect();
   hiddenMessageHandler();
@@ -551,6 +568,121 @@ const BCE_VERSION = "1.8.1";
     );
   }
 
+  function functionIntegrityCheck() {
+    /**
+     * @type {{ [key: string]: number }}
+     */
+    const expectedHashes = {
+      ActivityChatRoomArousalSync: 2971455460369990,
+      ActivitySetArousal: 7357117347936900,
+      // R76 verified: 1908330478975498
+      ActivitySetArousalTimer: 8441451185503760,
+      ActivityTimerProgress: 3132257411270963,
+      AppearanceClick: 2577670695726505,
+      AppearanceExit: 6043996746274230,
+      AppearanceLoad: 318038610585259,
+      AppearanceRun: 4447390256070365,
+      CharacterAppearanceWardrobeLoad: 1024487924475385,
+      CharacterGetCurrent: 2230431260459378,
+      CharacterRefresh: 6855166438178254,
+      CharacterSetActivePose: 5864479931338055,
+      CharacterSetFacialExpression: 3628440184167461,
+      ChatRoomCharacterItemUpdate: 3554937737739171,
+      ChatRoomCharacterUpdate: 5847173315712178,
+      ChatRoomClick: 1516540320485356,
+      ChatRoomCreateElement: 7478347692525566,
+      ChatRoomCurrentTime: 3364862637820289,
+      ChatRoomDrawCharacterOverlay: 5369638654189394,
+      ChatRoomKeyDown: 6879966488410200,
+      ChatRoomListManipulation: 218675230270,
+      ChatRoomResize: 5251276321558043,
+      ChatRoomRun: 7692271367116918,
+      CommandParse: 6084545049509320,
+      CommonColorIsValid: 4855710632415704,
+      DialogClick: 798751755690754,
+      DialogDraw: 2868571887038145,
+      DialogDrawActivityMenu: 3008968350523825,
+      DialogDrawItemMenu: 4334269354539712,
+      DrawBackNextButton: 5090331954030593,
+      DrawButton: 7168900912842990,
+      DrawCheckbox: 2662604878239790,
+      DrawImageResize: 6394177784434117,
+      DrawText: 1950095674535445,
+      DrawTextFit: 3488730873625659,
+      ElementCreateInput: 6525906267998974,
+      ElementIsScrolledToEnd: 99667124835273,
+      ElementPosition: 3742615981238775,
+      ElementRemove: 4658399954293931,
+      ElementScrollToEnd: 4878179843157650,
+      ElementValue: 7486291396850287,
+      FriendListShowBeep: 6702069602772700,
+      GLDrawResetCanvas: 3663201061885078,
+      InventoryGet: 6142134266866859,
+      InventoryItemMiscLoversTimerPadlockClick: 8107057910877884,
+      InventoryItemMiscLoversTimerPadlockDraw: 8057727141390318,
+      InventoryItemMiscLoversTimerPadlockExit: 8323898828202853,
+      InventoryItemMiscLoversTimerPadlockLoad: 5510659662853517,
+      InventoryItemMiscMistressTimerPadlockClick: 5599362305459123,
+      InventoryItemMiscMistressTimerPadlockDraw: 3812085209143196,
+      InventoryItemMiscMistressTimerPadlockExit: 160093519056734,
+      InventoryItemMiscMistressTimerPadlockLoad: 7342410949249994,
+      InventoryItemMiscOwnerTimerPadlockClick: 1052668154354233,
+      InventoryItemMiscOwnerTimerPadlockDraw: 5697779387273422,
+      InventoryItemMiscOwnerTimerPadlockExit: 4844944911225709,
+      InventoryItemMiscOwnerTimerPadlockLoad: 1456740187902217,
+      InventoryItemMiscTimerPasswordPadlockClick: 3359312753176763,
+      InventoryItemMiscTimerPasswordPadlockDraw: 5350489452603323,
+      InventoryItemMiscTimerPasswordPadlockExit: 7104890308123556,
+      InventoryItemMiscTimerPasswordPadlockLoad: 6516661389502762,
+      LoginClick: 3972006254666793,
+      LoginRun: 1357779450401958,
+      LoginSetSubmitted: 5037803792528296,
+      MouseIn: 2659797024552939,
+      OnlineGameAllowChange: 2348135251117141,
+      // R76 verified: 5229920216822273
+      ServerAccountBeep: 7290601313677713,
+      ServerAppearanceBundle: 5264433604010176,
+      ServerAppearanceLoadFromBundle: 2356301037697152,
+      // R76 verified: 4732162325239203
+      ServerClickBeep: 1039225291022208,
+      ServerConnect: 8341437351224791,
+      ServerDisconnect: 7623652804225244,
+      ServerOpenFriendList: 7598438006135932,
+      ServerSend: 5586025187389532,
+      SkillGetWithRatio: 6713266246379814,
+      SpeechGarbleByGagLevel: 3778741626096362,
+      SpeechGetTotalGagLevel: 1025002189598004,
+      StruggleDrawLockpickProgress: 433247500965714,
+      TextGet: 7879009445399078,
+      TextLoad: 5026399427354377,
+      // R76 verified: 2045761904827696
+      TimerProcess: 4879482539091301,
+      WardrobeClick: 8554869702812786,
+      WardrobeExit: 3381167184862635,
+      WardrobeFastLoad: 2809338805039123,
+      WardrobeFastSave: 8247072197553189,
+      WardrobeFixLength: 2779616285888834,
+      WardrobeLoad: 2703505937355641,
+      WardrobeRun: 2335336863253367,
+    };
+
+    for (const [func, hash] of Object.entries(expectedHashes)) {
+      if (!w[func]) {
+        bceWarn(`Expected function ${func} not found.`);
+        continue;
+      }
+      if (typeof w[func] !== "function") {
+        bceWarn(`Expected function ${func} is not a function.`);
+        continue;
+      }
+      // eslint-disable-next-line
+      const actualHash = cyrb53(w[func].toString());
+      if (actualHash !== hash) {
+        bceWarn(`Function ${func} has been modified before BCE: ${actualHash}`);
+      }
+    }
+  }
+
   async function checkUpdate() {
     await sleep(5000);
     // Version check
@@ -580,7 +712,7 @@ const BCE_VERSION = "1.8.1";
         }
       })
       .catch((e) => {
-        console.error("BCE update checker error:", e);
+        bceError("BCE update checker error:", e);
       });
   }
 
@@ -5202,6 +5334,31 @@ const BCE_VERSION = "1.8.1";
   function sleep(ms) {
     // eslint-disable-next-line no-promise-executor-return
     return new Promise((resolve) => setTimeout(resolve, ms));
+  }
+
+  /**
+   * @type {(s: string) => number}
+   */
+  // eslint-disable-next-line
+  // prettier-ignore
+  function cyrb53(str, seed = 0) {
+    // Bryc https://stackoverflow.com/a/52171480/1780502
+    // eslint-disable-next-line
+    let h1 = 0xdeadbeef ^ seed, h2 = 0x41c6ce57 ^ seed; str = str.replace(/\r/gu, '');
+    // eslint-disable-next-line
+    for (let i = 0, ch; i < str.length; i++) {
+        ch = str.charCodeAt(i);
+    // eslint-disable-next-line
+        h1 = Math.imul(h1 ^ ch, 2654435761);
+    // eslint-disable-next-line
+        h2 = Math.imul(h2 ^ ch, 1597334677);
+    }
+    // eslint-disable-next-line
+    h1 = Math.imul(h1 ^ (h1>>>16), 2246822507) ^ Math.imul(h2 ^ (h2>>>13), 3266489909);
+    // eslint-disable-next-line
+    h2 = Math.imul(h2 ^ (h2>>>16), 2246822507) ^ Math.imul(h1 ^ (h1>>>13), 3266489909);
+    // eslint-disable-next-line
+    return 4294967296 * (2097151 & h2) + (h1>>>0);
   }
 
   // Confirm leaving the page to prevent accidental back button, refresh, or other navigation-related disruptions
