@@ -72,7 +72,7 @@ const BCE_VERSION = "1.8.2";
   /**
    * @type {DefaultSettings}
    */
-  const defaultSettings = {
+  const defaultSettings = Object.freeze({
     checkUpdates: {
       label: "Check for updates",
       sideEffects: (newValue) => {
@@ -283,7 +283,7 @@ const BCE_VERSION = "1.8.2";
         bceLog(newValue);
       },
     },
-  };
+  });
 
   function settingsLoaded() {
     return Object.keys(bceSettings).length > 0;
@@ -5421,7 +5421,7 @@ const BCE_VERSION = "1.8.2";
  */
 
 /**
- * @typedef {{ [ key: string ]: DefaultSetting }} DefaultSettings
+ * @typedef {Readonly<{ [ key: string ]: DefaultSetting }>} DefaultSettings
  */
 
 /**
