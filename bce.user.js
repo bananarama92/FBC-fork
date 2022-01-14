@@ -701,11 +701,11 @@ const BCE_VERSION = "1.8.3";
           // Create beep
           bceBeepNotify(
             "Update",
-            `Your version of BCE is outdated and may not be supported. Please update the script.
-            
+            `Your version of BCE is outdated and may not be supported. Please update.
+
             Your version: ${w.BCE_VERSION}
             Latest version: ${latest}
-            
+
             Changelog available on GitLab (raw) and Discord:
             - https://gitlab.com/Sidiousious/bce/-/commits/main/
             - ${DISCORD_INVITE_URL}`
@@ -1724,8 +1724,12 @@ const BCE_VERSION = "1.8.3";
       Disabled
     ) {
       // Avoid image load errors
-      if (/\bBCE/u.test(Image)) {
-        Image = null;
+      switch (Image) {
+        case "Icons/BCESettings.png":
+          Image = ICONS.LOGO;
+          break;
+        default:
+          break;
       }
       bcDrawButton(
         Left,
