@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Bondage Club Enhancements
 // @namespace https://www.bondageprojects.com/
-// @version 1.8.2
+// @version 1.8.3
 // @description enhancements for the bondage club
 // @author Sidious
 // @match https://bondageprojects.elementfx.com/*
@@ -16,7 +16,7 @@
 // @ts-check
 /* eslint-disable @typescript-eslint/no-floating-promises */
 
-const BCE_VERSION = "1.8.2";
+const BCE_VERSION = "1.8.3";
 
 (async function BondageClubEnhancements() {
   "use strict";
@@ -2015,6 +2015,10 @@ const BCE_VERSION = "1.8.2";
     }
     #TextAreaChatLog a:visited {
       color: #380091;
+    }
+    #TextAreaChatLog[data-colortheme="dark"] div.ChatMessageWhisper,
+    #TextAreaChatLog[data-colortheme="dark2"] div.ChatMessageWhisper {
+      color: #ffa4a4;
     }
     #TextAreaChatLog[data-colortheme="dark"] a,
     #TextAreaChatLog[data-colortheme="dark2"] a {
@@ -4727,7 +4731,26 @@ const BCE_VERSION = "1.8.2";
             data.Content =
               bcSpeechGarbleByGagLevel(1, data.Content) + GAGBYPASSINDICATOR;
           } else if (bceSettings.antiAntiGarbleExtra && gagLevel > 24) {
-            data.Content = `m${GAGBYPASSINDICATOR}`;
+            const icIndicator = "\uF124";
+            let inOOC = false;
+            data.Content = `${data.Content.split("")
+              .map((c) => {
+                switch (c) {
+                  case "(":
+                    inOOC = true;
+                    return c;
+                  case ")":
+                    inOOC = false;
+                    return c;
+                  default:
+                    return inOOC ? c : icIndicator;
+                }
+              })
+              .join("")
+              .replace(
+                new RegExp(`${icIndicator}+`, "gu"),
+                "m"
+              )}${GAGBYPASSINDICATOR}`;
           } else if (
             bceSettings.antiAntiGarbleStrong ||
             bceSettings.antiAntiGarbleExtra
@@ -4848,8 +4871,10 @@ const BCE_VERSION = "1.8.2";
           const disableAll = () => {
               bceSettings.antiAntiGarble = false;
               bceSettings.antiAntiGarbleStrong = false;
+              bceSettings.antiAntiGarbleExtra = false;
               defaultSettings.antiAntiGarble.sideEffects(false);
               defaultSettings.antiAntiGarbleStrong.sideEffects(false);
+              defaultSettings.antiAntiGarbleExtra.sideEffects(false);
             },
             enableLimited = () => {
               bceSettings.antiAntiGarble = true;
