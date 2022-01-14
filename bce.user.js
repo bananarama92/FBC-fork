@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Bondage Club Enhancements
 // @namespace https://www.bondageprojects.com/
-// @version 1.8.3
+// @version 1.8.4
 // @description enhancements for the bondage club
 // @author Sidious
 // @match https://bondageprojects.elementfx.com/*
@@ -16,7 +16,7 @@
 // @ts-check
 /* eslint-disable @typescript-eslint/no-floating-promises */
 
-const BCE_VERSION = "1.8.3";
+const BCE_VERSION = "1.8.4";
 
 (async function BondageClubEnhancements() {
   "use strict";
@@ -42,7 +42,8 @@ const BCE_VERSION = "1.8.3";
     BCX_SOURCE =
       "https://raw.githubusercontent.com/Jomshir98/bondage-club-extended/85c3ba46dac4af8feff4cb2e0b28255a99cf926f/bcx.js";
 
-  const BCE_MAX_AROUSAL = 99.6,
+  const BCE_COLOR_ADJUSTMENTS_CLASS_NAME = "bce-colors",
+    BCE_MAX_AROUSAL = 99.6,
     BCE_MSG = "BCEMsg",
     BEEP_CLICK_ACTIONS = Object.freeze({
       /** @type {"FriendList"} */
@@ -56,14 +57,15 @@ const BCE_VERSION = "1.8.3";
       ArousalSync: "ArousalSync",
       Hello: "Hello",
     }),
-    TIMER_INPUT_ID = "bce_timerInput";
+    TIMER_INPUT_ID = "bce_timerInput",
+    WHISPER_CLASS = "bce-whisper-input";
 
   if (typeof w.ChatRoomCharacter === "undefined") {
     console.warn("Bondage Club not detected. Skipping BCE initialization.");
     return;
   }
 
-  const settingsVersion = 18;
+  const settingsVersion = 19;
   /**
    * @type {Settings}
    */
@@ -76,14 +78,14 @@ const BCE_VERSION = "1.8.3";
     checkUpdates: {
       label: "Check for updates",
       sideEffects: (newValue) => {
-        bceLog(newValue);
+        bceLog("checkUpdates", newValue);
       },
       value: true,
     },
     relogin: {
       label: "Automatic Relogin on Disconnect",
       sideEffects: (newValue) => {
-        bceLog(newValue);
+        bceLog("relogin", newValue);
       },
       value: true,
     },
@@ -94,6 +96,7 @@ const BCE_VERSION = "1.8.3";
           // Disable conflicting settings
           w.Player.ArousalSettings.AffectExpression = false;
         }
+        bceLog("expressions", newValue);
       },
       value: false,
     },
@@ -105,48 +108,49 @@ const BCE_VERSION = "1.8.3";
           // Disable conflicting settings
           w.Player.ArousalSettings.AffectExpression = false;
         }
+        bceLog("activityExpressions", newValue);
       },
     },
     privateWardrobe: {
       label: "Use full wardrobe in clothing menu",
       value: false,
       sideEffects: (newValue) => {
-        bceLog(newValue);
+        bceLog("privateWardrobe", newValue);
       },
     },
     layeringMenu: {
       label: "Enable Layering Menus",
       value: false,
       sideEffects: (newValue) => {
-        bceLog(newValue);
+        bceLog("layeringMenu", newValue);
       },
     },
     automateCacheClear: {
       label: "Clear Drawing Cache Hourly",
       value: false,
       sideEffects: (newValue) => {
-        bceLog(newValue);
+        bceLog("automateCacheClear", newValue);
       },
     },
     augmentChat: {
       label: "Chat Links and Embeds",
       value: false,
       sideEffects: (newValue) => {
-        bceLog(newValue);
+        bceLog("augmentChat", newValue);
       },
     },
     gagspeak: {
       label: "(Cheat) Understand All Gagged and when Deafened",
       value: false,
       sideEffects: (newValue) => {
-        bceLog(newValue);
+        bceLog("gagspeak", newValue);
       },
     },
     lockpick: {
       label: "(Cheat) Reveal Lockpicking Order Based on Skill",
       value: false,
       sideEffects: (newValue) => {
-        bceLog(newValue);
+        bceLog("lockpick", newValue);
       },
     },
     bcx: {
@@ -156,6 +160,7 @@ const BCE_VERSION = "1.8.3";
         if (newValue) {
           bceSettings.bcxDevel = false;
         }
+        bceLog("bcx", newValue);
       },
     },
     bcxDevel: {
@@ -166,6 +171,7 @@ const BCE_VERSION = "1.8.3";
         if (newValue) {
           bceSettings.bcx = false;
         }
+        bceLog("bcxDevel", newValue);
       },
     },
     antiAntiGarble: {
@@ -176,6 +182,7 @@ const BCE_VERSION = "1.8.3";
           bceSettings.antiAntiGarbleStrong = false;
           bceSettings.antiAntiGarbleExtra = false;
         }
+        bceLog("antiAntiGarble", newValue);
       },
     },
     antiAntiGarbleStrong: {
@@ -186,6 +193,7 @@ const BCE_VERSION = "1.8.3";
           bceSettings.antiAntiGarble = false;
           bceSettings.antiAntiGarbleExtra = false;
         }
+        bceLog("antiAntiGarbleStrong", newValue);
       },
     },
     antiAntiGarbleExtra: {
@@ -196,13 +204,14 @@ const BCE_VERSION = "1.8.3";
           bceSettings.antiAntiGarble = false;
           bceSettings.antiAntiGarbleStrong = false;
         }
+        bceLog("antiAntiGarbleExtra", newValue);
       },
     },
     showQuickAntiGarble: {
       label: "Show Quick Anti-Anti-Garble in Chat",
       value: false,
       sideEffects: (newValue) => {
-        bceLog(newValue);
+        bceLog("showQuickAntiGarble", newValue);
       },
     },
     alternateArousal: {
@@ -216,13 +225,14 @@ const BCE_VERSION = "1.8.3";
           BCE_MAX_AROUSAL,
           w.Player.ArousalSettings.Progress
         );
+        bceLog("alternateArousal", newValue);
       },
     },
     ghostNewUsers: {
       label: "Automatically ghost+blocklist unnaturally new users",
       value: false,
       sideEffects: (newValue) => {
-        bceLog(newValue);
+        bceLog("ghostNewUsers", newValue);
       },
     },
     blindWithoutGlasses: {
@@ -232,55 +242,75 @@ const BCE_VERSION = "1.8.3";
         if (!newValue) {
           GLASSES_BLUR_TARGET.classList.remove(GLASSES_BLIND_CLASS);
         }
+        bceLog("blindWithoutGlasses", newValue);
       },
     },
     friendPresenceNotifications: {
       label: "Show friend presence notifications",
       value: false,
       sideEffects: (newValue) => {
-        bceLog(newValue);
+        bceLog("friendPresenceNotifications", newValue);
       },
     },
     friendOfflineNotifications: {
       label: "Show friends going offline too (requires friend presence)",
       value: false,
       sideEffects: (newValue) => {
-        bceLog(newValue);
+        bceLog("friendOfflineNotifications", newValue);
       },
     },
     stutters: {
       label: "Alternative speech stutter",
       value: false,
       sideEffects: (newValue) => {
-        bceLog(newValue);
+        bceLog("stutters", newValue);
       },
     },
     activityLabels: {
       label: "Use clearer activity labels",
       value: true,
       sideEffects: (newValue) => {
-        bceLog(newValue);
+        bceLog("activityLabels", newValue);
       },
     },
     accurateTimerLocks: {
       label: "Use accurate timer inputs",
       value: false,
       sideEffects: (newValue) => {
-        bceLog(newValue);
+        bceLog("accurateTimerLocks", newValue);
       },
     },
     confirmLeave: {
       label: "Confirm leaving the game",
       value: true,
       sideEffects: (newValue) => {
-        bceLog(newValue);
+        bceLog("confirmLeave", newValue);
       },
     },
     ctrlEnterOoc: {
       label: "Use Ctrl+Enter to OOC",
       value: true,
       sideEffects: (newValue) => {
-        bceLog(newValue);
+        bceLog("ctrlEnterOoc", newValue);
+      },
+    },
+    whisperInput: {
+      label: "Use italics for input when whispering",
+      value: true,
+      sideEffects: (newValue) => {
+        bceLog("whisperInput", newValue);
+      },
+    },
+    chatColors: {
+      label: "Improve colors for readability",
+      value: true,
+      sideEffects: (newValue) => {
+        if (newValue) {
+          document.body.classList.add(BCE_COLOR_ADJUSTMENTS_CLASS_NAME);
+        } else {
+          document.body.classList.remove(BCE_COLOR_ADJUSTMENTS_CLASS_NAME);
+        }
+        bceLog("chatColors", newValue);
       },
     },
   });
@@ -348,6 +378,15 @@ const BCE_VERSION = "1.8.3";
       OnlineSettings: w.Player.OnlineSettings,
     });
   };
+
+  function postSettings() {
+    bceLog("handling settings side effects");
+    for (const [k, v] of Object.entries(bceSettings)) {
+      if (k in defaultSettings) {
+        defaultSettings[k].sideEffects(!!v);
+      }
+    }
+  }
 
   // ICONS
   const ICONS = Object.freeze({
@@ -535,6 +574,7 @@ const BCE_VERSION = "1.8.3";
   automaticReconnect();
   hiddenMessageHandler();
   await bceLoadSettings();
+  postSettings();
   bceLog(bceSettings);
   preBCX();
   await loadBCX();
@@ -2021,9 +2061,13 @@ const BCE_VERSION = "1.8.3";
     #TextAreaChatLog a:visited {
       color: #380091;
     }
-    #TextAreaChatLog[data-colortheme="dark"] div.ChatMessageWhisper,
-    #TextAreaChatLog[data-colortheme="dark2"] div.ChatMessageWhisper {
-      color: #ffa4a4;
+    .${BCE_COLOR_ADJUSTMENTS_CLASS_NAME} div.ChatMessageWhisper,
+    .${BCE_COLOR_ADJUSTMENTS_CLASS_NAME} div.ChatMessageWhisper {
+      color: #646464;
+    }
+    .${BCE_COLOR_ADJUSTMENTS_CLASS_NAME} #TextAreaChatLog[data-colortheme="dark"] div.ChatMessageWhisper,
+    .${BCE_COLOR_ADJUSTMENTS_CLASS_NAME} #TextAreaChatLog[data-colortheme="dark2"] div.ChatMessageWhisper {
+      color: #828282;
     }
     #TextAreaChatLog[data-colortheme="dark"] a,
     #TextAreaChatLog[data-colortheme="dark2"] a {
@@ -2033,8 +2077,11 @@ const BCE_VERSION = "1.8.3";
     #TextAreaChatLog[data-colortheme="dark2"] a:visited {
       color: #3d91ff;
     }
-    .bce-blind {
+    .${GLASSES_BLIND_CLASS} {
       filter: blur(0.24vw);
+    }
+    .${WHISPER_CLASS} {
+      font-style: italic;
     }
     `,
       head = document.head || document.getElementsByTagName("head")[0],
@@ -3755,8 +3802,12 @@ const BCE_VERSION = "1.8.3";
           Duration: duration,
           Expression: e,
         };
+        if (duration < 0) {
+          bceLog("infinite manual expression", evt);
+        }
         // @ts-ignore
         pushEvent(evt);
+        CustomArousalExpression();
       } else {
         bcCharacterSetFacialExpression(C, AssetGroup, Expression, Timer, Color);
       }
@@ -3774,7 +3825,6 @@ const BCE_VERSION = "1.8.3";
         const p = {};
         p.Pose = Array.isArray(Pose) ? Pose : [Pose];
         p.Duration = -1;
-        bceLog("ManualPose", p);
         const evt = {
           Type: MANUAL_OVERRIDE_EVENT_TYPE,
           Duration: -1,
@@ -4790,6 +4840,16 @@ const BCE_VERSION = "1.8.3";
     const bcChatRoomRun = w.ChatRoomRun;
     w.ChatRoomRun = function () {
       bcChatRoomRun();
+
+      /** @type {() => boolean} */
+      const isWhispering = () =>
+        w.InputChat?.value.startsWith("/w ") || !!w.ChatRoomTargetMemberNumber;
+      if (w.InputChat.classList.contains(WHISPER_CLASS) && !isWhispering()) {
+        w.InputChat.classList.remove(WHISPER_CLASS);
+      } else if (bceSettings.whisperInput && isWhispering()) {
+        w.InputChat.classList.add(WHISPER_CLASS);
+      }
+
       if (!bceSettings.showQuickAntiGarble) {
         return;
       }
