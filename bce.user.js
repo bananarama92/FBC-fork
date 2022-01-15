@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Bondage Club Enhancements
 // @namespace https://www.bondageprojects.com/
-// @version 1.8.5
+// @version 1.8.6
 // @description enhancements for the bondage club
 // @author Sidious
 // @match https://bondageprojects.elementfx.com/*
@@ -16,7 +16,7 @@
 // @ts-check
 /* eslint-disable @typescript-eslint/no-floating-promises */
 
-const BCE_VERSION = "1.8.5";
+const BCE_VERSION = "1.8.6";
 
 (async function BondageClubEnhancements() {
   "use strict";
@@ -638,6 +638,7 @@ const BCE_VERSION = "1.8.5";
       ChatRoomListManipulation: 218675230270,
       ChatRoomResize: 5251276321558043,
       ChatRoomRun: 7692271367116918,
+      CommandExecute: 6351113844499493,
       CommandParse: 6084545049509320,
       CommonColorIsValid: 4855710632415704,
       DialogClick: 798751755690754,
@@ -792,6 +793,13 @@ const BCE_VERSION = "1.8.5";
           "// The whispers get sent to the server and shown on the client directly",
           "// The whispers get sent to the server and shown on the client directly\nmsg = bceMessageReplacements(msg);"
         )}`
+    );
+
+    eval(
+      `CommandExecute = ${w.CommandExecute.toString().replace(
+        `key.indexOf(CommandsKey + C.Tag) == 0)`,
+        `key.substring(1) === C.Tag)`
+      )}`
     );
 
     w.InputChat?.removeAttribute("maxlength");
@@ -1523,6 +1531,31 @@ const BCE_VERSION = "1.8.5";
               !bundle[0].Group
             ) {
               throw new Error("Invalid bundle");
+            }
+
+            // Keep items you cannot unlock in your appearance
+            for (const item of w.Player.Appearance) {
+              if (
+                item.Property?.LockedBy &&
+                !w.DialogCanUnlock(w.Player, item)
+              ) {
+                /** @type {ItemBundle} */
+                const itemBundle = {
+                  Group: item.Asset.Group.Name,
+                  Name: item.Asset.Name,
+                  Color: item.Color,
+                  Difficulty: item.Difficulty,
+                  Property: item.Property,
+                };
+                const idx = bundle.findIndex(
+                  (v) => v.Group === item.Asset.Group.Name
+                );
+                if (idx < 0) {
+                  bundle.push(itemBundle);
+                } else {
+                  bundle[idx] = itemBundle;
+                }
+              }
             }
             w.ServerAppearanceLoadFromBundle(
               w.Player,
@@ -5607,6 +5640,7 @@ const BCE_VERSION = "1.8.5";
  * @property {string} [Expression]
  * @property {number} [OverridePriority]
  * @property {number} [LockMemberNumber]
+ * @property {string} [LockedBy]
  */
 
 /**
@@ -5950,6 +5984,8 @@ const BCE_VERSION = "1.8.5";
  * @property {Beep[]} FriendListBeepLog
  * @property {number} FriendListModeIndex
  * @property {(id: number) => void} FriendListShowBeep
+ * @property {(C: Character, item: Item) => boolean} DialogCanUnlock
+ * @property {(msg: string) => void} CommandExecute
  *
  * @typedef {Window & WindowExtension} ExtendedWindow
  */
