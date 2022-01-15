@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Bondage Club Enhancements
 // @namespace https://www.bondageprojects.com/
-// @version 1.8.4
+// @version 1.8.5
 // @description enhancements for the bondage club
 // @author Sidious
 // @match https://bondageprojects.elementfx.com/*
@@ -16,7 +16,7 @@
 // @ts-check
 /* eslint-disable @typescript-eslint/no-floating-promises */
 
-const BCE_VERSION = "1.8.4";
+const BCE_VERSION = "1.8.5";
 
 (async function BondageClubEnhancements() {
   "use strict";
@@ -4844,10 +4844,10 @@ const BCE_VERSION = "1.8.4";
       /** @type {() => boolean} */
       const isWhispering = () =>
         w.InputChat?.value.startsWith("/w ") || !!w.ChatRoomTargetMemberNumber;
-      if (w.InputChat.classList.contains(WHISPER_CLASS) && !isWhispering()) {
+      if (w.InputChat?.classList.contains(WHISPER_CLASS) && !isWhispering()) {
         w.InputChat.classList.remove(WHISPER_CLASS);
       } else if (bceSettings.whisperInput && isWhispering()) {
-        w.InputChat.classList.add(WHISPER_CLASS);
+        w.InputChat?.classList.add(WHISPER_CLASS);
       }
 
       if (!bceSettings.showQuickAntiGarble) {
