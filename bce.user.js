@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Bondage Club Enhancements
 // @namespace https://www.bondageprojects.com/
-// @version 1.9.0
+// @version 1.9.1
 // @description enhancements for the bondage club
 // @author Sidious
 // @match https://bondageprojects.elementfx.com/*
@@ -16,7 +16,7 @@
 // @ts-check
 /* eslint-disable @typescript-eslint/no-floating-promises */
 
-const BCE_VERSION = "1.9.0";
+const BCE_VERSION = "1.9.1";
 
 (async function BondageClubEnhancements() {
   "use strict";
@@ -32,10 +32,12 @@ const BCE_VERSION = "1.9.0";
     return;
   }
 
+  const CAPABILITIES = ["clubslave"];
+
   w.BCE_VERSION = BCE_VERSION;
 
   const DISCORD_INVITE_URL = "https://discord.gg/aCCWVzXBUj",
-    SUPPORTED_GAME_VERSIONS = ["R75"];
+    SUPPORTED_GAME_VERSIONS = ["R75", "R76"];
 
   const BCX_DEVEL_SOURCE =
       "https://jomshir98.github.io/bondage-club-extended/devel/bcx.js",
@@ -618,8 +620,7 @@ const BCE_VERSION = "1.9.0";
     const expectedHashes = Object.freeze({
       ActivityChatRoomArousalSync: 2971455460369990,
       ActivitySetArousal: 7357117347936900,
-      // R76 verified: 1908330478975498
-      ActivitySetArousalTimer: 8441451185503760,
+      ActivitySetArousalTimer: 1908330478975498,
       ActivityTimerProgress: 3132257411270963,
       AppearanceClick: 2577670695726505,
       AppearanceExit: 6043996746274230,
@@ -689,12 +690,10 @@ const BCE_VERSION = "1.9.0";
       LoginSetSubmitted: 5037803792528296,
       MouseIn: 2659797024552939,
       OnlineGameAllowChange: 2348135251117141,
-      // R76 verified: 5229920216822273
-      ServerAccountBeep: 7290601313677713,
+      ServerAccountBeep: 5229920216822273,
       ServerAppearanceBundle: 5264433604010176,
       ServerAppearanceLoadFromBundle: 2356301037697152,
-      // R76 verified: 4732162325239203
-      ServerClickBeep: 1039225291022208,
+      ServerClickBeep: 4732162325239203,
       ServerConnect: 8341437351224791,
       ServerDisconnect: 7623652804225244,
       ServerOpenFriendList: 7598438006135932,
@@ -705,8 +704,7 @@ const BCE_VERSION = "1.9.0";
       StruggleDrawLockpickProgress: 433247500965714,
       TextGet: 7879009445399078,
       TextLoad: 5026399427354377,
-      // R76 verified: 2045761904827696
-      TimerProcess: 4879482539091301,
+      TimerProcess: 2045761904827696,
       WardrobeClick: 8554869702812786,
       WardrobeExit: 3381167184862635,
       WardrobeFastLoad: 2809338805039123,
@@ -4652,6 +4650,7 @@ const BCE_VERSION = "1.9.0";
           version: w.BCE_VERSION,
           alternateArousal: bceSettings.alternateArousal,
           replyRequested: requestReply,
+          capabilities: CAPABILITIES,
         },
       },
     };
@@ -4688,6 +4687,7 @@ const BCE_VERSION = "1.9.0";
             case MESSAGE_TYPES.Hello:
               sender.BCE = message.version;
               sender.BCEArousal = message.alternateArousal || false;
+              sender.BCECapabilities = message.capabilities;
               if (message.replyRequested) {
                 sendHello(sender.MemberNumber);
               }
@@ -5500,7 +5500,7 @@ const BCE_VERSION = "1.9.0";
             "160",
             "",
             "([BCE] Force her to become a Club Slave.)",
-            "(Requires both you and the target to use the same version of BCE and the target to not already be a club slave.)",
+            "(Requires both to use compatible versions of BCE and the target to not already be a club slave.)",
             "",
             "!bceCanSendToClubSlavery()",
           ],
@@ -5539,7 +5539,7 @@ const BCE_VERSION = "1.9.0";
         return false;
       }
       return (
-        C.BCE === w.Player.BCE &&
+        C.BCECapabilities?.includes("clubslave") &&
         !C.Appearance.some((a) => a.Asset.Name === "ClubSlaveCollar")
       );
     };
@@ -5737,10 +5737,11 @@ const BCE_VERSION = "1.9.0";
  * @property {ItemLayer[]} AppearanceLayers
  * @property {AssetGroup} [FocusGroup]
  * @property {string[] | null} ActivePose
- * @property {string} BCE
- * @property {boolean} BCEArousal
- * @property {number} BCEArousalProgress
- * @property {number} BCEEnjoyment
+ * @property {string} [BCE]
+ * @property {boolean} [BCEArousal]
+ * @property {string[]} [BCECapabilities]
+ * @property {number} [BCEArousalProgress]
+ * @property {number} [BCEEnjoyment]
  * @property {() => boolean} IsPlayer
  * @property {() => boolean} CanChange
  * @property {number[]} BlackList
@@ -5957,6 +5958,7 @@ const BCE_VERSION = "1.9.0";
  * @typedef {Object} BCEMessage
  * @property {string} type
  * @property {string} version
+ * @property {string[]} [capabilities]
  * @property {boolean} [alternateArousal]
  * @property {boolean} [replyRequested]
  * @property {number} [progress]
