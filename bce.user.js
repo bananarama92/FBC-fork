@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Bondage Club Enhancements
 // @namespace https://www.bondageprojects.com/
-// @version 1.8.6
+// @version 1.9.0
 // @description enhancements for the bondage club
 // @author Sidious
 // @match https://bondageprojects.elementfx.com/*
@@ -16,7 +16,7 @@
 // @ts-check
 /* eslint-disable @typescript-eslint/no-floating-promises */
 
-const BCE_VERSION = "1.8.6";
+const BCE_VERSION = "1.9.0";
 
 (async function BondageClubEnhancements() {
   "use strict";
@@ -54,6 +54,7 @@ const BCE_VERSION = "1.8.6";
     GLASSES_BLUR_TARGET = w.MainCanvas,
     HIDDEN = "Hidden",
     MESSAGE_TYPES = Object.freeze({
+      Activity: "Activity",
       ArousalSync: "ArousalSync",
       Hello: "Hello",
     }),
@@ -594,6 +595,7 @@ const BCE_VERSION = "1.8.6";
   friendPresenceNotifications();
   accurateTimerInputs();
   logCharacterUpdates();
+  forcedClubSlave();
 
   // Post ready when in a chat room
   await bceNotify(`Bondage Club Enhancements v${w.BCE_VERSION} Loaded`);
@@ -624,12 +626,15 @@ const BCE_VERSION = "1.8.6";
       AppearanceLoad: 318038610585259,
       AppearanceRun: 4447390256070365,
       CharacterAppearanceWardrobeLoad: 1024487924475385,
+      CharacterBuildDialog: 0,
       CharacterGetCurrent: 2230431260459378,
       CharacterRefresh: 6855166438178254,
       CharacterSetActivePose: 5864479931338055,
+      CharacterSetCurrent: 0,
       CharacterSetFacialExpression: 3628440184167461,
       ChatRoomCharacterItemUpdate: 3554937737739171,
       ChatRoomCharacterUpdate: 5847173315712178,
+      ChatRoomClearAllElements: 0,
       ChatRoomClick: 1516540320485356,
       ChatRoomCreateElement: 7478347692525566,
       ChatRoomCurrentTime: 3364862637820289,
@@ -638,13 +643,16 @@ const BCE_VERSION = "1.8.6";
       ChatRoomListManipulation: 218675230270,
       ChatRoomResize: 5251276321558043,
       ChatRoomRun: 7692271367116918,
+      ChatRoomStart: 0,
       CommandExecute: 6351113844499493,
       CommandParse: 6084545049509320,
       CommonColorIsValid: 4855710632415704,
+      CommonSetScreen: 0,
       DialogClick: 798751755690754,
       DialogDraw: 2868571887038145,
       DialogDrawActivityMenu: 3008968350523825,
       DialogDrawItemMenu: 4334269354539712,
+      DialogLeave: 0,
       DrawBackNextButton: 5090331954030593,
       DrawButton: 7168900912842990,
       DrawCheckbox: 2662604878239790,
@@ -4689,6 +4697,11 @@ const BCE_VERSION = "1.8.6";
               sender.BCEArousalProgress = message.progress || 0;
               sender.BCEEnjoyment = message.enjoyment || 1;
               break;
+            case MESSAGE_TYPES.Activity:
+              if (sender.MemberNumber === w.Player.Ownership?.MemberNumber) {
+                w.bceStartClubSlave();
+              }
+              break;
             default:
               break;
           }
@@ -5454,6 +5467,127 @@ const BCE_VERSION = "1.8.6";
     );
   }
 
+  async function forcedClubSlave() {
+    const patch = (async function patchDialog() {
+      await waitFor(
+        () =>
+          !!w.CommonCSVCache["Screens/Online/ChatRoom/Dialog_Online.csv"] &&
+          w.CommonCSVCache["Screens/Online/ChatRoom/Dialog_Online.csv"].length >
+            150
+      );
+
+      w.CommonCSVCache["Screens/Online/ChatRoom/Dialog_Online.csv"].splice(
+        w.CommonCSVCache["Screens/Online/ChatRoom/Dialog_Online.csv"].findIndex(
+          (v) => v[0] === "160"
+        ),
+        0,
+        ...[
+          [
+            "160",
+            "100",
+            "([BCE] Force her to become a Club Slave.)",
+            "(She will become a Club Slave for the next hour.)",
+            "bceSendToClubSlavery()",
+            "bceCanSendToClubSlavery()",
+          ],
+          [
+            "160",
+            "",
+            "([BCE] Force her to become a Club Slave.)",
+            "(Requires both you and the target to use the same version of BCE.)",
+            "",
+            "!bceCanSendToClubSlavery()",
+          ],
+        ]
+      );
+
+      for (const c of w.ChatRoomCharacter) {
+        w.CharacterBuildDialog(
+          c,
+          w.CommonCSVCache["Screens/Online/ChatRoom/Dialog_Online.csv"]
+        );
+      }
+    })();
+
+    w.bceSendToClubSlavery = function () {
+      /** @type {BCEChatMessage} */
+      const message = {
+        Type: HIDDEN,
+        Content: BCE_MSG,
+        Sender: w.Player.MemberNumber,
+        Dictionary: {
+          message: {
+            type: MESSAGE_TYPES.Activity,
+            version: BCE_VERSION,
+            activity: "ClubSlavery",
+          },
+        },
+      };
+      w.ServerSend("ChatRoomChat", message);
+    };
+
+    w.bceCanSendToClubSlavery = function () {
+      const C = w.CurrentCharacter;
+      if (!C) {
+        return false;
+      }
+      bceLog("asd");
+      return C.BCE === w.Player.BCE;
+    };
+
+    w.bceGotoRoom = (roomName) => {
+      w.ChatRoomJoinLeash = roomName;
+      w.DialogLeave();
+      w.ChatRoomClearAllElements();
+      if (w.CurrentScreen === "ChatRoom") {
+        w.ServerSend("ChatRoomLeave", "");
+        w.CommonSetScreen("Online", "ChatSearch");
+      } else {
+        w.ChatRoomStart(
+          "",
+          "",
+          "MainHall",
+          "Introduction",
+          w.BackgroundsTagList
+        );
+      }
+    };
+
+    w.bceStartClubSlave = async () => {
+      const managementScreen = "Management";
+
+      w.bceSendAction(
+        `${w.Player.Name} gets grabbed by two maids and escorted to management to serve as a Club Slave.`
+      );
+
+      const room = w.ChatRoomData.Name;
+      w.ChatRoomClearAllElements();
+      w.ServerSend("ChatRoomLeave", "");
+      w.ChatRoomLeashPlayer = null;
+      w.CommonSetScreen("Room", managementScreen);
+
+      await waitFor(() => !!w.ManagementMistress);
+
+      w.CharacterSetActivePose(w.Player, "Kneel", false);
+      // eslint-disable-next-line require-atomic-updates
+      w.ManagementMistress.Stage = "320";
+      w.ManagementMistress.CurrentDialog =
+        "Your owner sent you here. Now strip.";
+      w.CharacterSetCurrent(w.ManagementMistress);
+
+      await waitFor(
+        () => w.CurrentScreen !== managementScreen || !w.CurrentCharacter
+      );
+
+      w.bceGotoRoom(room);
+    };
+
+    w.ChatRoombceSendToClubSlavery = w.bceSendToClubSlavery;
+    w.ChatRoombceCanSendToClubSlavery = w.bceCanSendToClubSlavery;
+
+    await patch;
+  }
+
   /** @type {() => boolean} */
   function detectBcUtil() {
     return typeof w.StartBcUtil === "function";
@@ -5574,6 +5708,14 @@ const BCE_VERSION = "1.8.6";
  */
 
 /**
+ * @typedef {Object} NPCharacter
+ * @property {string} Stage
+ * @property {string} CurrentDialog
+ *
+ * @typedef {NPCharacter & Character} NPC
+ */
+
+/**
  * @typedef {Object} Character
  * @property {ArousalSettings} ArousalSettings
  * @property {OnlineSettings} OnlineSettings
@@ -5596,6 +5738,7 @@ const BCE_VERSION = "1.8.6";
  * @property {number[]} GhostList
  * @property {number[]} FriendList
  * @property {Map<number, string>} FriendNames
+ * @property {{ Name: string; MemberNumber: number; Start: number; Stage: number }} [Ownership]
  */
 
 /**
@@ -5798,6 +5941,10 @@ const BCE_VERSION = "1.8.6";
  */
 
 /**
+ * @typedef {"ClubSlavery"} BCEActivity
+ */
+
+/**
  * @typedef {Object} BCEMessage
  * @property {string} type
  * @property {string} version
@@ -5805,6 +5952,7 @@ const BCE_VERSION = "1.8.6";
  * @property {boolean} [replyRequested]
  * @property {number} [progress]
  * @property {number} [enjoyment]
+ * @property {BCEActivity} [activity]
  *
  * @typedef {Object} ChatMessageDictionary
  * @property {string} [Tag]
@@ -5833,6 +5981,10 @@ const BCE_VERSION = "1.8.6";
  * @typedef {Object} ChatRoomSyncItemEvent
  * @property {{ Name: string; Target: number; Group: string; }} Item
  * @property {number} Source
+ */
+
+/**
+ * @typedef {(this: XMLHttpRequest, xhr: XMLHttpRequest) => void} XHRCallback
  */
 
 /**
@@ -5944,7 +6096,7 @@ const BCE_VERSION = "1.8.6";
  * @property {number} ChatRoomHideIconState
  * @property {(C: Character) => void} CharacterAppearanceWardrobeLoad
  * @property {() => void} AppearanceRun
- * @property {{ Background: string }} ChatRoomData
+ * @property {{ Background: string; Name: string }} ChatRoomData
  * @property {string} WardrobeBackground
  * @property {() => void} WardrobeLoad
  * @property {() => void} WardrobeRun
@@ -5986,6 +6138,23 @@ const BCE_VERSION = "1.8.6";
  * @property {(id: number) => void} FriendListShowBeep
  * @property {(C: Character, item: Item) => boolean} DialogCanUnlock
  * @property {(msg: string) => void} CommandExecute
+ * @property {NPC} [ManagementMistress]
+ * @property {(category: string, screen: string) => void} CommonSetScreen
+ * @property {number} [ChatRoomLeashPlayer]
+ * @property {() => void} ChatRoomClearAllElements
+ * @property {(room: string) => void} bceGotoRoom
+ * @property {() => void} DialogLeave
+ * @property {(space: string, game: string, leaveRoom: string, background: string, bgTagList: string[]) => void} ChatRoomStart
+ * @property {string[]} BackgroundsTagList
+ * @property {string} ChatRoomJoinLeash
+ * @property {() => Promise<void>} bceStartClubSlave
+ * @property {() => void} bceSendToClubSlavery
+ * @property {() => boolean} bceCanSendToClubSlavery
+ * @property {() => void} ChatRoombceSendToClubSlavery
+ * @property {() => boolean} ChatRoombceCanSendToClubSlavery
+ * @property {(C: Character) => void} CharacterSetCurrent
+ * @property {{ [key: string]: string[][] }} [CommonCSVCache]
+ * @property {(C: Character, csv: string[][]) => void} CharacterBuildDialog
  *
  * @typedef {Window & WindowExtension} ExtendedWindow
  */
