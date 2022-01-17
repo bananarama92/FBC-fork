@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Bondage Club Enhancements
 // @namespace https://www.bondageprojects.com/
-// @version 1.9.1
+// @version 1.9.2
 // @description enhancements for the bondage club
 // @author Sidious
 // @match https://bondageprojects.elementfx.com/*
@@ -16,7 +16,7 @@
 // @ts-check
 /* eslint-disable @typescript-eslint/no-floating-promises */
 
-const BCE_VERSION = "1.9.1";
+const BCE_VERSION = "1.9.2";
 
 (async function BondageClubEnhancements() {
   "use strict";
@@ -5507,7 +5507,7 @@ const BCE_VERSION = "1.9.1";
         ]
       );
 
-      for (const c of w.ChatRoomCharacter) {
+      for (const c of w.ChatRoomCharacter.filter((cc) => !cc.IsPlayer())) {
         w.CharacterBuildDialog(
           c,
           w.CommonCSVCache["Screens/Online/ChatRoom/Dialog_Online.csv"]
