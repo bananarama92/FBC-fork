@@ -4698,7 +4698,13 @@ const BCE_VERSION = "1.9.0";
               sender.BCEEnjoyment = message.enjoyment || 1;
               break;
             case MESSAGE_TYPES.Activity:
-              if (sender.MemberNumber === w.Player.Ownership?.MemberNumber) {
+              // Sender is owner and player is not already wearing a club slave collar
+              if (
+                sender.MemberNumber === w.Player.Ownership?.MemberNumber &&
+                !w.Player.Appearance.some(
+                  (a) => a.Asset.Name === "ClubSlaveCollar"
+                )
+              ) {
                 w.bceStartClubSlave();
               }
               break;
@@ -5494,7 +5500,7 @@ const BCE_VERSION = "1.9.0";
             "160",
             "",
             "([BCE] Force her to become a Club Slave.)",
-            "(Requires both you and the target to use the same version of BCE.)",
+            "(Requires both you and the target to use the same version of BCE and the target to not already be a club slave.)",
             "",
             "!bceCanSendToClubSlavery()",
           ],
@@ -5524,6 +5530,7 @@ const BCE_VERSION = "1.9.0";
         },
       };
       w.ServerSend("ChatRoomChat", message);
+      w.DialogLeave();
     };
 
     w.bceCanSendToClubSlavery = function () {
@@ -5531,8 +5538,10 @@ const BCE_VERSION = "1.9.0";
       if (!C) {
         return false;
       }
-      bceLog("asd");
-      return C.BCE === w.Player.BCE;
+      return (
+        C.BCE === w.Player.BCE &&
+        !C.Appearance.some((a) => a.Asset.Name === "ClubSlaveCollar")
+      );
     };
 
     w.bceGotoRoom = (roomName) => {
@@ -5572,7 +5581,7 @@ const BCE_VERSION = "1.9.0";
       // eslint-disable-next-line require-atomic-updates
       w.ManagementMistress.Stage = "320";
       w.ManagementMistress.CurrentDialog =
-        "Your owner sent you here. Now strip.";
+        "(You get grabbed by a pair of maids and brought to management.) Your owner wants you to be a Club Slave. Now strip.";
       w.CharacterSetCurrent(w.ManagementMistress);
 
       await waitFor(

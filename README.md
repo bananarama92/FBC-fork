@@ -44,6 +44,7 @@ At a glance, **everything is entirely optional**:
 - Ctrl+Enter to OOC
 - Clearer activity labels
 - Accurate timer inputs
+- Club slave as an option for owners under forced labor
 
 ### Chat Links and Embeds
 
@@ -114,6 +115,12 @@ BCE allows you to set timer locks at a greater accuracy. Does not allow exceedin
 ### Automatic relogin
 
 BCE can automatically enter your password, when you lose connection to the game. You can enable this by choosing to save your login after entering your details, but before clicking login, by clicking on the "Save (BCE)" button. You can then populate the login by pressing the name on the left for future logins, and remove it there, also disabling the auto-relogin. **Warning**: this does store your password in plaintext in your local storage, where malicious scripts could theoretically read it.
+
+### Forced Labor: Club Slave
+
+![](static/bceForceCS.png)
+
+BCE allows owners to send their submissives to work as club slaves, when both are running the same version of BCE.
 
 ### Layer-priority editor and ability to loosen/tighten restraints
 
