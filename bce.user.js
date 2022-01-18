@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Bondage Club Enhancements
 // @namespace https://www.bondageprojects.com/
-// @version 1.9.2
+// @version 1.9.3
 // @description enhancements for the bondage club
 // @author Sidious
 // @match https://bondageprojects.elementfx.com/*
@@ -16,7 +16,7 @@
 // @ts-check
 /* eslint-disable @typescript-eslint/no-floating-promises */
 
-const BCE_VERSION = "1.9.2";
+const BCE_VERSION = "1.9.3";
 
 (async function BondageClubEnhancements() {
   "use strict";
@@ -42,7 +42,7 @@ const BCE_VERSION = "1.9.2";
   const BCX_DEVEL_SOURCE =
       "https://jomshir98.github.io/bondage-club-extended/devel/bcx.js",
     BCX_SOURCE =
-      "https://raw.githubusercontent.com/Jomshir98/bondage-club-extended/85c3ba46dac4af8feff4cb2e0b28255a99cf926f/bcx.js";
+      "https://raw.githubusercontent.com/Jomshir98/bondage-club-extended/4f98a1865dcc61917ad067729322eabff17c9a23/bcx.js";
 
   const BCE_COLOR_ADJUSTMENTS_CLASS_NAME = "bce-colors",
     BCE_MAX_AROUSAL = 99.6,
@@ -5596,6 +5596,31 @@ const BCE_VERSION = "1.9.2";
 
     await patch;
   }
+
+  (function () {
+    const sendHeartbeat = () => {
+      let bcxType = "none";
+      if (bceSettings.bcx) {
+        bcxType = "stable";
+      } else if (bceSettings.bcxDevel) {
+        bcxType = "devel";
+      }
+      w.ServerSend("AccountBeep", {
+        BeepType: "Leash",
+        // BCE statbot, which only collects anonymous aggregate version and usage data to justify supporting or dropping support for features
+        MemberNumber: 61197,
+        Message: JSON.stringify({
+          Version: BCE_VERSION,
+          GameVersion: w.GameVersion,
+          BCX: bcxType,
+        }),
+        IsSecret: true,
+      });
+    };
+    sendHeartbeat();
+    // 5 minutes
+    setInterval(sendHeartbeat, 1000 * 60 * 5);
+  })();
 
   /** @type {() => boolean} */
   function detectBcUtil() {
