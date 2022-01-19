@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Bondage Club Enhancements
 // @namespace https://www.bondageprojects.com/
-// @version 1.9.4
+// @version 1.9.5
 // @description enhancements for the bondage club
 // @author Sidious
 // @match https://bondageprojects.elementfx.com/*
@@ -16,7 +16,7 @@
 // @ts-check
 /* eslint-disable @typescript-eslint/no-floating-promises */
 
-const BCE_VERSION = "1.9.4";
+const BCE_VERSION = "1.9.5";
 
 (async function BondageClubEnhancements() {
   "use strict";
@@ -1149,7 +1149,7 @@ const BCE_VERSION = "1.9.4";
         .replace("// Prepares", "\n// Prepares")}`
     );
 
-    const timerInput = `ElementPosition("${TIMER_INPUT_ID}", 1400, 930, 250, 70);`;
+    const timerInput = `ElementPosition("${TIMER_INPUT_ID}", 1400, 930, 250, 70);document.getElementById('${TIMER_INPUT_ID}').disabled = false;`;
 
     // Lover locks
     eval(
@@ -1219,6 +1219,8 @@ const BCE_VERSION = "1.9.4";
       }
       w.ElementCreateInput(TIMER_INPUT_ID, "text", defaultValue, "11");
       w.ElementPosition(TIMER_INPUT_ID, -100, -100, 0, 0);
+      // @ts-ignore
+      document.getElementById(TIMER_INPUT_ID).disabled = true;
       /** @type {HTMLInputElement} */
       // @ts-ignore
       const timerInput = document.getElementById(TIMER_INPUT_ID);
