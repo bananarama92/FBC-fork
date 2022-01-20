@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Bondage Club Enhancements
 // @namespace https://www.bondageprojects.com/
-// @version 1.9.6
+// @version 1.9.8
 // @description enhancements for the bondage club
 // @author Sidious
 // @match https://bondageprojects.elementfx.com/*
@@ -16,7 +16,7 @@
 // @ts-check
 /* eslint-disable @typescript-eslint/no-floating-promises */
 
-const BCE_VERSION = "1.9.6";
+const BCE_VERSION = "1.9.8";
 
 (async function BondageClubEnhancements() {
   "use strict";
@@ -643,6 +643,7 @@ const BCE_VERSION = "1.9.6";
       ChatRoomDrawCharacterOverlay: 5369638654189394,
       ChatRoomKeyDown: 6879966488410200,
       ChatRoomListManipulation: 218675230270,
+      ChatRoomMessage: 1275188464356568,
       ChatRoomResize: 5251276321558043,
       ChatRoomRun: 7692271367116918,
       ChatRoomStart: 8043968639468530,
@@ -811,7 +812,7 @@ const BCE_VERSION = "1.9.6";
           repl.href = "#";
           repl.onclick = (e) => {
             e.preventDefault();
-            ElementValue("InputChat", \`/w \${SenderCharacter.Name.split(' ')[0]} \${ElementValue("InputChat")}\`);
+            ElementValue("InputChat", \`/w \${SenderCharacter.Name.split(' ')[0]} \${ElementValue("InputChat").replace(/^\\/(beep|w) \\S+ ?/u, '')}\`);
             window.InputChat.focus();
           };
           repl.textContent = '↩️';
@@ -855,13 +856,10 @@ const BCE_VERSION = "1.9.6";
           // eslint-disable-next-line no-template-curly-in-string
           `{
             const beepId = FriendListBeepLog.length - 1;
-            ChatRoomSendLocal(\`
-            <a id="bce-beep-reply-\${beepId}">↩️</a>
-            <a class="bce-beep-link" id="bce-beep-\${beepId}">(\${ServerBeep.Message}\${data.Message ? \`: \${data.Message.length > 150 ? data.Message.substring(0, 150) + "..." : data.Message}\` : ""})</a>
-            \`);
+            ChatRoomSendLocal(\`<a id="bce-beep-reply-\${beepId}">↩️</a><a class="bce-beep-link" id="bce-beep-\${beepId}">(\${ServerBeep.Message}\${data.Message ? \`: \${data.Message.length > 150 ? data.Message.substring(0, 150) + "..." : data.Message}\` : ""})</a>\`);
             document.getElementById(\`bce-beep-reply-\${beepId}\`).onclick = (e) => {
               e.preventDefault();
-              ElementValue("InputChat", \`/beep \${data.MemberNumber} \${ElementValue("InputChat")}\`);
+              ElementValue("InputChat", \`/beep \${data.MemberNumber} \${ElementValue("InputChat").replace(/^\\/(beep|w) \\S+ ?/u, '')}\`);
               document.getElementById('InputChat').focus();
             };
             document.getElementById(\`bce-beep-\${beepId}\`).onclick = (e) => {
