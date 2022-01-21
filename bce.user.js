@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Bondage Club Enhancements
 // @namespace https://www.bondageprojects.com/
-// @version 1.9.8
+// @version 1.9.9
 // @description enhancements for the bondage club
 // @author Sidious
 // @match https://bondageprojects.elementfx.com/*
@@ -16,7 +16,7 @@
 // @ts-check
 /* eslint-disable @typescript-eslint/no-floating-promises */
 
-const BCE_VERSION = "1.9.8";
+const BCE_VERSION = "1.9.9";
 
 (async function BondageClubEnhancements() {
   "use strict";
@@ -857,17 +857,21 @@ const BCE_VERSION = "1.9.8";
           `{
             const beepId = FriendListBeepLog.length - 1;
             ChatRoomSendLocal(\`<a id="bce-beep-reply-\${beepId}">↩️</a><a class="bce-beep-link" id="bce-beep-\${beepId}">(\${ServerBeep.Message}\${data.Message ? \`: \${data.Message.length > 150 ? data.Message.substring(0, 150) + "..." : data.Message}\` : ""})</a>\`);
-            document.getElementById(\`bce-beep-reply-\${beepId}\`).onclick = (e) => {
-              e.preventDefault();
-              ElementValue("InputChat", \`/beep \${data.MemberNumber} \${ElementValue("InputChat").replace(/^\\/(beep|w) \\S+ ?/u, '')}\`);
-              document.getElementById('InputChat').focus();
-            };
-            document.getElementById(\`bce-beep-\${beepId}\`).onclick = (e) => {
-              e.preventDefault();
-              ServerOpenFriendList();
-              FriendListModeIndex = 1;
-              FriendListShowBeep(\`\${beepId}\`);
-            };
+            if (document.getElementById("bce-beep-reply-" + beepId)) {
+              document.getElementById(\`bce-beep-reply-\${beepId}\`).onclick = (e) => {
+                e.preventDefault();
+                ElementValue("InputChat", \`/beep \${data.MemberNumber} \${ElementValue("InputChat").replace(/^\\/(beep|w) \\S+ ?/u, '')}\`);
+                document.getElementById('InputChat').focus();
+              };
+            }
+            if (document.getElementById("bce-beep-" + beepId)) {
+              document.getElementById(\`bce-beep-\${beepId}\`).onclick = (e) => {
+                e.preventDefault();
+                ServerOpenFriendList();
+                FriendListModeIndex = 1;
+                FriendListShowBeep(\`\${beepId}\`);
+              };
+            }
           }`
         )}`
       );
@@ -5533,37 +5537,73 @@ const BCE_VERSION = "1.9.8";
             150
       );
 
-      w.CommonCSVCache["Screens/Online/ChatRoom/Dialog_Online.csv"].splice(
+      const clubSlaveDialog = [
+        [
+          "160",
+          "100",
+          "([BCE] Force her to become a Club Slave.)",
+          "(She will become a Club Slave for the next hour.)",
+          "bceSendToClubSlavery()",
+          "bceCanSendToClubSlavery()",
+        ],
+        [
+          "160",
+          "",
+          "([BCE] Force her to become a Club Slave.)",
+          "(Requires both to use compatible versions of BCE and the target to not already be a club slave.)",
+          "",
+          "!bceCanSendToClubSlavery()",
+        ],
+      ];
+
+      const idx =
         w.CommonCSVCache["Screens/Online/ChatRoom/Dialog_Online.csv"].findIndex(
           (v) => v[0] === "160"
-        ),
+        ) + 1;
+      w.CommonCSVCache["Screens/Online/ChatRoom/Dialog_Online.csv"].splice(
+        idx,
         0,
-        ...[
-          [
-            "160",
-            "100",
-            "([BCE] Force her to become a Club Slave.)",
-            "(She will become a Club Slave for the next hour.)",
-            "bceSendToClubSlavery()",
-            "bceCanSendToClubSlavery()",
-          ],
-          [
-            "160",
-            "",
-            "([BCE] Force her to become a Club Slave.)",
-            "(Requires both to use compatible versions of BCE and the target to not already be a club slave.)",
-            "",
-            "!bceCanSendToClubSlavery()",
-          ],
-        ]
+        ...clubSlaveDialog
       );
 
-      for (const c of w.ChatRoomCharacter.filter((cc) => !cc.IsPlayer())) {
-        w.CharacterBuildDialog(
-          c,
-          w.CommonCSVCache["Screens/Online/ChatRoom/Dialog_Online.csv"]
+      /** @type {(c: Character) => void} */
+      const appendDialog = (c) => {
+        if (!c.Dialog || c.Dialog.some((v) => v.Modded)) {
+          return;
+        }
+        c.Dialog.splice(
+          idx,
+          0,
+          ...clubSlaveDialog.map((v) => ({
+            Stage: v[0],
+            NextStage: v[1],
+            Option: v[2]
+              .replace("DialogCharacterName", c.Name)
+              .replace("DialogPlayerName", w.Player.Name),
+            Result: v[3]
+              .replace("DialogCharacterName", c.Name)
+              .replace("DialogPlayerName", w.Player.Name),
+            Function:
+              (v[4].trim().substring(0, 6) === "Dialog" ? "" : "ChatRoom") +
+              v[4],
+            Prerequisite: v[5],
+          }))
         );
+      };
+
+      for (const c of w.ChatRoomCharacter.filter(
+        (cc) => !cc.IsPlayer() && cc.IsOnline()
+      )) {
+        appendDialog(c);
       }
+
+      const bcCharacterBuildDialog = w.CharacterBuildDialog;
+      w.CharacterBuildDialog = function (C, CSV) {
+        bcCharacterBuildDialog(C, CSV);
+        if (C.IsOnline()) {
+          appendDialog(C);
+        }
+      };
     })();
 
     w.bceSendToClubSlavery = function () {
@@ -5825,12 +5865,14 @@ const BCE_VERSION = "1.9.8";
  * @property {number} [BCEArousalProgress]
  * @property {number} [BCEEnjoyment]
  * @property {() => boolean} IsPlayer
+ * @property {() => boolean} IsOnline
  * @property {() => boolean} CanChange
  * @property {number[]} BlackList
  * @property {number[]} GhostList
  * @property {number[]} FriendList
  * @property {Map<number, string>} FriendNames
  * @property {{ Name: string; MemberNumber: number; Start: number; Stage: number }} [Ownership]
+ * @property {{ Function: string; NextStage: string; Option: string; Prerequisite: string; Result: string; Stage: string; Modded?: boolean }[]} [Dialog]
  */
 
 /**
