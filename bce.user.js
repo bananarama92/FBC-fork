@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Bondage Club Enhancements
 // @namespace https://www.bondageprojects.com/
-// @version 1.9.9
+// @version 1.9.10
 // @description enhancements for the bondage club
 // @author Sidious
 // @match https://bondageprojects.elementfx.com/*
@@ -16,7 +16,7 @@
 // @ts-check
 /* eslint-disable @typescript-eslint/no-floating-promises */
 
-const BCE_VERSION = "1.9.9";
+const BCE_VERSION = "1.9.10";
 
 (async function BondageClubEnhancements() {
   "use strict";
@@ -56,6 +56,7 @@ const BCE_VERSION = "1.9.9";
     GLASSES_BLIND_CLASS = "bce-blind",
     GLASSES_BLUR_TARGET = w.MainCanvas,
     HIDDEN = "Hidden",
+    INPUT_WARN_CLASS = "bce-input-warn",
     MESSAGE_TYPES = Object.freeze({
       Activity: "Activity",
       ArousalSync: "ArousalSync",
@@ -832,7 +833,7 @@ const BCE_VERSION = "1.9.9";
     eval(
       `ChatRoomCreateElement = ${w.ChatRoomCreateElement.toString().replace(
         `document.getElementById("InputChat").setAttribute("maxLength", 1000);`,
-        "document.getElementById('InputChat').addEventListener('input', (e) => { if (e.target.value.length > 1000 && (!e.target.value.startsWith('/') || e.target.value.startsWith('/w '))) e.target.classList.add('bce-input-warn'); else e.target.classList.remove('bce-input-warn') }, true);"
+        ``
       )}`
     );
 
@@ -2130,8 +2131,11 @@ const BCE_VERSION = "1.9.9";
       border: 0.1em solid black;
       margin-right: 0.1em;
     }
-    .bce-input-warn {
-      background-color: yellow;
+    .${BCE_COLOR_ADJUSTMENTS_CLASS_NAME} .${DARK_INPUT_CLASS}.${INPUT_WARN_CLASS} {
+      background-color: #400000 !important;
+    }
+    .${INPUT_WARN_CLASS} {
+      background-color: yellow !important;
     }
     #TextAreaChatLog a {
       color: #003f91;
@@ -4347,17 +4351,13 @@ const BCE_VERSION = "1.9.9";
         };
       }
       const basePoseMatcher = /^Base(Lower|Upper)$/u;
-      let newPose = Object.values(desiredPose).map((p) => p.Pose);
-      if (
-        !w.Player.ActivePose ||
-        !newPose.every(
-          (p) => basePoseMatcher.test(p) || w.Player.ActivePose.includes(p)
-        ) ||
-        !w.Player.ActivePose.every((p) => newPose.includes(p))
-      ) {
-        if (newPose.every((p) => basePoseMatcher.test(p))) {
-          newPose = null;
-        }
+      let newPose = Object.values(desiredPose)
+        .map((p) => p.Pose)
+        .filter((p) => !basePoseMatcher.test(p));
+      if (newPose.length === 0) {
+        newPose = null;
+      }
+      if (JSON.stringify(w.Player.ActivePose) !== JSON.stringify(newPose)) {
         bcCharacterSetActivePose(w.Player, newPose, true);
         needsPoseUpdate = true;
         needsRefresh = true;
@@ -4954,6 +4954,15 @@ const BCE_VERSION = "1.9.9";
           }
         } else if (w.InputChat.classList.contains(DARK_INPUT_CLASS)) {
           w.InputChat.classList.remove(DARK_INPUT_CLASS);
+        }
+        if (
+          w.InputChat.value.length > 1000 &&
+          (!w.InputChat.value.startsWith("/") ||
+            w.InputChat.value.startsWith("/w "))
+        ) {
+          w.InputChat.classList.add(INPUT_WARN_CLASS);
+        } else {
+          w.InputChat.classList.remove(INPUT_WARN_CLASS);
         }
       }
 
@@ -5858,7 +5867,7 @@ const BCE_VERSION = "1.9.9";
  * @property {Item[]} Appearance
  * @property {ItemLayer[]} AppearanceLayers
  * @property {AssetGroup} [FocusGroup]
- * @property {string[] | null} ActivePose
+ * @property {string[] | null} [ActivePose]
  * @property {string} [BCE]
  * @property {boolean} [BCEArousal]
  * @property {string[]} [BCECapabilities]
@@ -6291,6 +6300,7 @@ const BCE_VERSION = "1.9.9";
  * @property {{ [key: string]: string[][] }} [CommonCSVCache]
  * @property {(C: Character, csv: string[][]) => void} CharacterBuildDialog
  * @property {(data: Object) => void} ChatRoomMessage
+ * @property {(data: { MemberNumber: number; Character?: Character; Pose: string | string[]; }) => void} ChatRoomSyncPose
  *
  * @typedef {Window & WindowExtension} ExtendedWindow
  */
