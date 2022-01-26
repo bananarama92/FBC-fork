@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Bondage Club Enhancements
 // @namespace https://www.bondageprojects.com/
-// @version 1.9.10
+// @version 1.9.11
 // @description enhancements for the bondage club
 // @author Sidious
 // @match https://bondageprojects.elementfx.com/*
@@ -16,7 +16,7 @@
 // @ts-check
 /* eslint-disable @typescript-eslint/no-floating-promises */
 
-const BCE_VERSION = "1.9.10";
+const BCE_VERSION = "1.9.11";
 
 (async function BondageClubEnhancements() {
   "use strict";
@@ -3809,6 +3809,26 @@ const BCE_VERSION = "1.9.10";
             }
           }
           bceChatNotify(`Reset expression on ${component}`);
+        }
+      },
+    });
+
+    w.Commands.push({
+      Tag: "anim",
+      Description: "['list' or name of emote]: run an animation",
+      Action: (_1, _2, args) => {
+        if (args[0] === "list") {
+          bceChatNotify(
+            `Available animations: ${Object.keys(w.bce_EventExpressions).join(
+              ", "
+            )}`
+          );
+        }
+        const animation = Object.keys(w.bce_EventExpressions).find(
+          (a) => a.toLowerCase() === args[0]?.toLowerCase()
+        );
+        if (animation) {
+          pushEvent(w.bce_EventExpressions[animation]);
         }
       },
     });
