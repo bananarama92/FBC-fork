@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Bondage Club Enhancements
 // @namespace https://www.bondageprojects.com/
-// @version 1.9.11
+// @version 1.9.12
 // @description enhancements for the bondage club
 // @author Sidious
 // @match https://bondageprojects.elementfx.com/*
@@ -16,7 +16,7 @@
 // @ts-check
 /* eslint-disable @typescript-eslint/no-floating-promises */
 
-const BCE_VERSION = "1.9.11";
+const BCE_VERSION = "1.9.12";
 
 (async function BondageClubEnhancements() {
   "use strict";
@@ -37,7 +37,7 @@ const BCE_VERSION = "1.9.11";
   w.BCE_VERSION = BCE_VERSION;
 
   const DISCORD_INVITE_URL = "https://discord.gg/aCCWVzXBUj",
-    SUPPORTED_GAME_VERSIONS = ["R75", "R76"];
+    SUPPORTED_GAME_VERSIONS = ["R76"];
 
   const BCX_DEVEL_SOURCE =
       "https://jomshir98.github.io/bondage-club-extended/devel/bcx.js",
@@ -857,7 +857,7 @@ const BCE_VERSION = "1.9.11";
           // eslint-disable-next-line no-template-curly-in-string
           `{
             const beepId = FriendListBeepLog.length - 1;
-            ChatRoomSendLocal(\`<a id="bce-beep-reply-\${beepId}">↩️</a><a class="bce-beep-link" id="bce-beep-\${beepId}">(\${ServerBeep.Message}\${data.Message ? \`: \${data.Message.length > 150 ? data.Message.substring(0, 150) + "..." : data.Message}\` : ""})</a>\`);
+            ChatRoomSendLocal(\`<a id="bce-beep-reply-\${beepId}">↩️</a><a class="bce-beep-link" id="bce-beep-\${beepId}">(\${ServerBeep.Message}\${ChatRoomHTMLEntities(data.Message ? \`: \${data.Message.length > 150 ? data.Message.substring(0, 150) + "..." : data.Message}\` : "")})</a>\`);
             if (document.getElementById("bce-beep-reply-" + beepId)) {
               document.getElementById(\`bce-beep-reply-\${beepId}\`).onclick = (e) => {
                 e.preventDefault();
