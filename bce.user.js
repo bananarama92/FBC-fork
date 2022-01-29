@@ -818,6 +818,7 @@ const BCE_VERSION = "1.9.13";
             ElementValue("InputChat", \`/w \${SenderCharacter.Name.split(' ')[0]} \${ElementValue("InputChat").replace(/^\\/(beep|w) \\S+ ?/u, '')}\`);
             window.InputChat.focus();
           };
+          repl.classList.add("bce-button");
           repl.textContent = '↩️';
           div.prepend(repl);
         }`
@@ -833,7 +834,9 @@ const BCE_VERSION = "1.9.13";
             if (data.Type === "Whisper" && data.Dictionary?.some(d => d.Tag === "${BCX_ORIGINAL_MESSAGE}")) {
               original = data.Dictionary.find(d => d.Tag === "${BCX_ORIGINAL_MESSAGE}").Text;
             }
-            msg += \` (\${ChatRoomHTMLEntities(original)})\`
+            if (original.toLowerCase() !== chatMsg.toLowerCase()) {
+              msg += \` (\${ChatRoomHTMLEntities(original)})\`
+            }
           }
         }`
         )}`
@@ -1261,6 +1264,76 @@ const BCE_VERSION = "1.9.13";
         'if (!bceSettingValue("accurateTimerLocks")) InventoryItemMiscTimerPasswordPadlockAdd(PasswordTimerChooseList[PasswordTimerChooseIndex] * 60, false);'
       )}`
     );
+
+    const bcServerSend = w.ServerSend;
+    w.ServerSend = function (
+      message,
+      /** @type {ChatMessage} */
+      data
+    ) {
+      if (message === "ChatRoomChat") {
+        switch (data.Type) {
+          case "Whisper":
+            {
+              const idx = data.Dictionary?.findIndex(
+                (d) => d.Tag === BCX_ORIGINAL_MESSAGE
+              );
+              if (
+                idx >= 0 &&
+                (bceSettings.antiAntiGarble ||
+                  bceSettings.antiAntiGarbleStrong ||
+                  bceSettings.antiAntiGarbleExtra)
+              ) {
+                data.Dictionary.splice(idx, 1);
+              }
+            }
+            break;
+          case "Chat":
+            {
+              const gagLevel = w.SpeechGetTotalGagLevel(w.Player);
+              if (gagLevel > 0) {
+                if (bceSettings.antiAntiGarble) {
+                  data.Content =
+                    w.SpeechGarbleByGagLevel(1, data.Content) +
+                    GAGBYPASSINDICATOR;
+                } else if (bceSettings.antiAntiGarbleExtra && gagLevel > 24) {
+                  const icIndicator = "\uF124";
+                  let inOOC = false;
+                  data.Content = `${data.Content.split("")
+                    .map((c) => {
+                      switch (c) {
+                        case "(":
+                          inOOC = true;
+                          return c;
+                        case ")":
+                          inOOC = false;
+                          return c;
+                        default:
+                          return inOOC ? c : icIndicator;
+                      }
+                    })
+                    .join("")
+                    .replace(
+                      new RegExp(`${icIndicator}+`, "gu"),
+                      "m"
+                    )}${GAGBYPASSINDICATOR}`;
+                } else if (
+                  bceSettings.antiAntiGarbleStrong ||
+                  bceSettings.antiAntiGarbleExtra
+                ) {
+                  data.Content =
+                    w.SpeechGarbleByGagLevel(gagLevel, data.Content) +
+                    GAGBYPASSINDICATOR;
+                }
+              }
+            }
+            break;
+          default:
+            break;
+        }
+      }
+      bcServerSend(message, data);
+    };
   }
 
   function accurateTimerInputs() {
@@ -2187,6 +2260,9 @@ const BCE_VERSION = "1.9.13";
       background-color: #111;
       color: #eee;
       border-color: #333;
+    }
+    a.bce-button {
+      text-decoration: none;
     }
     `,
       head = document.head || document.getElementsByTagName("head")[0],
