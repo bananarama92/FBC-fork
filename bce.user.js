@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Bondage Club Enhancements
 // @namespace https://www.bondageprojects.com/
-// @version 1.9.12
+// @version 1.9.13
 // @description enhancements for the bondage club
 // @author Sidious
 // @match https://bondageprojects.elementfx.com/*
@@ -16,7 +16,7 @@
 // @ts-check
 /* eslint-disable @typescript-eslint/no-floating-promises */
 
-const BCE_VERSION = "1.9.12";
+const BCE_VERSION = "1.9.13";
 
 (async function BondageClubEnhancements() {
   "use strict";
@@ -47,6 +47,7 @@ const BCE_VERSION = "1.9.12";
   const BCE_COLOR_ADJUSTMENTS_CLASS_NAME = "bce-colors",
     BCE_MAX_AROUSAL = 99.6,
     BCE_MSG = "BCEMsg",
+    BCX_ORIGINAL_MESSAGE = "BCX_ORIGINAL_MESSAGE",
     BEEP_CLICK_ACTIONS = Object.freeze({
       /** @type {"FriendList"} */
       FriendList: "FriendList",
@@ -805,9 +806,10 @@ const BCE_VERSION = "1.9.12";
     );
 
     eval(
-      `ChatRoomMessage = ${w.ChatRoomMessage.toString().replace(
-        `div.innerHTML = msg;`,
-        `div.innerHTML = msg;
+      `ChatRoomMessage = ${w.ChatRoomMessage.toString()
+        .replace(
+          `div.innerHTML = msg;`,
+          `div.innerHTML = msg;
         if (data.Type === "Whisper") {
           let repl = document.createElement("a");
           repl.href = "#";
@@ -819,7 +821,22 @@ const BCE_VERSION = "1.9.12";
           repl.textContent = '↩️';
           div.prepend(repl);
         }`
-      )}`
+        )
+        .replace(
+          `msg += chatMsg;`,
+          `msg += chatMsg;
+        if (bceSettingValue("gagspeak") && SpeechGetTotalGagLevel(SenderCharacter) > 0) {
+          if (data.Content.trim().endsWith('\\uf123')) {
+            msg = msg.replace(/[\\uE000-\\uF8FF]/gu, '');
+          } else {
+            let original = data.Content;
+            if (data.Type === "Whisper" && data.Dictionary?.some(d => d.Tag === "${BCX_ORIGINAL_MESSAGE}")) {
+              original = data.Dictionary.find(d => d.Tag === "${BCX_ORIGINAL_MESSAGE}").Text;
+            }
+            msg += \` (\${ChatRoomHTMLEntities(original)})\`
+          }
+        }`
+        )}`
     );
 
     eval(
@@ -4873,64 +4890,71 @@ const BCE_VERSION = "1.9.12";
   async function antiGarbling() {
     await waitFor(() => !!w.SpeechGarbleByGagLevel);
 
-    const bcSpeechGarbleByGagLevel = w.SpeechGarbleByGagLevel;
-    w.SpeechGarbleByGagLevel = function (GagEffect, CD, IgnoreOOC) {
-      const garbled = bcSpeechGarbleByGagLevel(
-        GagEffect,
-        CD,
-        IgnoreOOC
-      ).replace(GAGBYPASSINDICATOR, "");
-      if (CD?.trim().endsWith(GAGBYPASSINDICATOR)) {
-        return CD.replace(/[\uE000-\uF8FF]/gu, "");
-      } else if (bceSettings.gagspeak) {
-        return garbled.toLowerCase() === CD?.toLowerCase()
-          ? garbled
-          : `${garbled} (${CD})`;
-      }
-      return garbled;
-    };
-
     const bcServerSend = w.ServerSend;
     w.ServerSend = function (
       message,
       /** @type {ChatMessage} */
       data
     ) {
-      if (message === "ChatRoomChat" && data.Type === "Chat") {
-        const gagLevel = w.SpeechGetTotalGagLevel(w.Player);
-        if (gagLevel > 0) {
-          if (bceSettings.antiAntiGarble) {
-            data.Content =
-              bcSpeechGarbleByGagLevel(1, data.Content) + GAGBYPASSINDICATOR;
-          } else if (bceSettings.antiAntiGarbleExtra && gagLevel > 24) {
-            const icIndicator = "\uF124";
-            let inOOC = false;
-            data.Content = `${data.Content.split("")
-              .map((c) => {
-                switch (c) {
-                  case "(":
-                    inOOC = true;
-                    return c;
-                  case ")":
-                    inOOC = false;
-                    return c;
-                  default:
-                    return inOOC ? c : icIndicator;
+      if (message === "ChatRoomChat") {
+        switch (data.Type) {
+          case "Whisper":
+            {
+              const idx = data.Dictionary?.findIndex(
+                (d) => d.Tag === BCX_ORIGINAL_MESSAGE
+              );
+              if (
+                idx >= 0 &&
+                (bceSettings.antiAntiGarble ||
+                  bceSettings.antiAntiGarbleStrong ||
+                  bceSettings.antiAntiGarbleExtra)
+              ) {
+                data.Dictionary.splice(idx, 1);
+              }
+            }
+            break;
+          case "Chat":
+            {
+              const gagLevel = w.SpeechGetTotalGagLevel(w.Player);
+              if (gagLevel > 0) {
+                if (bceSettings.antiAntiGarble) {
+                  data.Content =
+                    w.SpeechGarbleByGagLevel(1, data.Content) +
+                    GAGBYPASSINDICATOR;
+                } else if (bceSettings.antiAntiGarbleExtra && gagLevel > 24) {
+                  const icIndicator = "\uF124";
+                  let inOOC = false;
+                  data.Content = `${data.Content.split("")
+                    .map((c) => {
+                      switch (c) {
+                        case "(":
+                          inOOC = true;
+                          return c;
+                        case ")":
+                          inOOC = false;
+                          return c;
+                        default:
+                          return inOOC ? c : icIndicator;
+                      }
+                    })
+                    .join("")
+                    .replace(
+                      new RegExp(`${icIndicator}+`, "gu"),
+                      "m"
+                    )}${GAGBYPASSINDICATOR}`;
+                } else if (
+                  bceSettings.antiAntiGarbleStrong ||
+                  bceSettings.antiAntiGarbleExtra
+                ) {
+                  data.Content =
+                    w.SpeechGarbleByGagLevel(gagLevel, data.Content) +
+                    GAGBYPASSINDICATOR;
                 }
-              })
-              .join("")
-              .replace(
-                new RegExp(`${icIndicator}+`, "gu"),
-                "m"
-              )}${GAGBYPASSINDICATOR}`;
-          } else if (
-            bceSettings.antiAntiGarbleStrong ||
-            bceSettings.antiAntiGarbleExtra
-          ) {
-            data.Content =
-              bcSpeechGarbleByGagLevel(gagLevel, data.Content) +
-              GAGBYPASSINDICATOR;
-          }
+              }
+            }
+            break;
+          default:
+            break;
         }
       }
       bcServerSend(message, data);
