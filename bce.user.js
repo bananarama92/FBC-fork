@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Bondage Club Enhancements
 // @namespace https://www.bondageprojects.com/
-// @version 1.9.13
+// @version 1.9.14
 // @description enhancements for the bondage club
 // @author Sidious
 // @match https://bondageprojects.elementfx.com/*
@@ -16,7 +16,7 @@
 // @ts-check
 /* eslint-disable @typescript-eslint/no-floating-promises */
 
-const BCE_VERSION = "1.9.13";
+const BCE_VERSION = "1.9.14";
 
 (async function BondageClubEnhancements() {
   "use strict";
@@ -824,19 +824,19 @@ const BCE_VERSION = "1.9.13";
         }`
         )
         .replace(
+          `const chatMsg`,
+          `const clientGagged = data.Content.endsWith('\\uf123');data.Content = data.Content.replace(/[\\uE000-\\uF8FF]/gu, '');const chatMsg`
+        )
+        .replace(
           `msg += chatMsg;`,
           `msg += chatMsg;
-        if (bceSettingValue("gagspeak") && SpeechGetTotalGagLevel(SenderCharacter) > 0) {
-          if (data.Content.trim().endsWith('\\uf123')) {
-            msg = msg.replace(/[\\uE000-\\uF8FF]/gu, '');
-          } else {
-            let original = data.Content;
-            if (data.Type === "Whisper" && data.Dictionary?.some(d => d.Tag === "${BCX_ORIGINAL_MESSAGE}")) {
-              original = data.Dictionary.find(d => d.Tag === "${BCX_ORIGINAL_MESSAGE}").Text;
-            }
-            if (original.toLowerCase() !== chatMsg.toLowerCase()) {
-              msg += \` (\${ChatRoomHTMLEntities(original)})\`
-            }
+        if (bceSettingValue("gagspeak") && SpeechGetTotalGagLevel(SenderCharacter) > 0 && !clientGagged) {
+          let original = data.Content;
+          if (data.Type === "Whisper" && data.Dictionary?.some(d => d.Tag === "${BCX_ORIGINAL_MESSAGE}")) {
+            original = data.Dictionary.find(d => d.Tag === "${BCX_ORIGINAL_MESSAGE}").Text;
+          }
+          if (original.toLowerCase() !== chatMsg.toLowerCase()) {
+            msg += \` (\${ChatRoomHTMLEntities(original)})\`
           }
         }`
         )}`
@@ -1785,11 +1785,13 @@ const BCE_VERSION = "1.9.13";
             const targetMemberNumber = targetMembers[0].MemberNumber;
             const originalTarget = w.ChatRoomTargetMemberNumber;
             w.ChatRoomTargetMemberNumber = targetMemberNumber;
-            w.CommandParse(
+            w.ElementValue(
+              "InputChat",
               `${
                 msg.length > 0 && [".", "/"].includes(msg[0]) ? "\u200b" : ""
               }${msg}`
             );
+            w.ChatRoomSendChat();
             w.ChatRoomTargetMemberNumber = originalTarget;
           }
         },
@@ -4966,76 +4968,6 @@ const BCE_VERSION = "1.9.13";
   async function antiGarbling() {
     await waitFor(() => !!w.SpeechGarbleByGagLevel);
 
-    const bcServerSend = w.ServerSend;
-    w.ServerSend = function (
-      message,
-      /** @type {ChatMessage} */
-      data
-    ) {
-      if (message === "ChatRoomChat") {
-        switch (data.Type) {
-          case "Whisper":
-            {
-              const idx = data.Dictionary?.findIndex(
-                (d) => d.Tag === BCX_ORIGINAL_MESSAGE
-              );
-              if (
-                idx >= 0 &&
-                (bceSettings.antiAntiGarble ||
-                  bceSettings.antiAntiGarbleStrong ||
-                  bceSettings.antiAntiGarbleExtra)
-              ) {
-                data.Dictionary.splice(idx, 1);
-              }
-            }
-            break;
-          case "Chat":
-            {
-              const gagLevel = w.SpeechGetTotalGagLevel(w.Player);
-              if (gagLevel > 0) {
-                if (bceSettings.antiAntiGarble) {
-                  data.Content =
-                    w.SpeechGarbleByGagLevel(1, data.Content) +
-                    GAGBYPASSINDICATOR;
-                } else if (bceSettings.antiAntiGarbleExtra && gagLevel > 24) {
-                  const icIndicator = "\uF124";
-                  let inOOC = false;
-                  data.Content = `${data.Content.split("")
-                    .map((c) => {
-                      switch (c) {
-                        case "(":
-                          inOOC = true;
-                          return c;
-                        case ")":
-                          inOOC = false;
-                          return c;
-                        default:
-                          return inOOC ? c : icIndicator;
-                      }
-                    })
-                    .join("")
-                    .replace(
-                      new RegExp(`${icIndicator}+`, "gu"),
-                      "m"
-                    )}${GAGBYPASSINDICATOR}`;
-                } else if (
-                  bceSettings.antiAntiGarbleStrong ||
-                  bceSettings.antiAntiGarbleExtra
-                ) {
-                  data.Content =
-                    w.SpeechGarbleByGagLevel(gagLevel, data.Content) +
-                    GAGBYPASSINDICATOR;
-                }
-              }
-            }
-            break;
-          default:
-            break;
-        }
-      }
-      bcServerSend(message, data);
-    };
-
     const bcChatRoomResize = w.ChatRoomResize;
     w.ChatRoomResize = function (load) {
       bcChatRoomResize(load);
@@ -5286,7 +5218,6 @@ const BCE_VERSION = "1.9.13";
         if (fromMax <= 0) {
           Progress = 0;
         } else if (C.BCEArousal) {
-          console.log("capped", Max, "/", fromMax, C.BCEEnjoyment);
           Progress = Math.floor(fromMax / ${enjoymentMultiplier} / C.BCEEnjoyment);
         } else {
           Progress = fromMax;
@@ -6421,6 +6352,7 @@ const BCE_VERSION = "1.9.13";
  * @property {(C: Character, csv: string[][]) => void} CharacterBuildDialog
  * @property {(data: Object) => void} ChatRoomMessage
  * @property {(data: { MemberNumber: number; Character?: Character; Pose: string | string[]; }) => void} ChatRoomSyncPose
+ * @property {() => void} ChatRoomSendChat
  *
  * @typedef {Window & WindowExtension} ExtendedWindow
  */
