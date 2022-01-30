@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Bondage Club Enhancements
 // @namespace https://www.bondageprojects.com/
-// @version 1.9.14
+// @version 1.9.15
 // @description enhancements for the bondage club
 // @author Sidious
 // @match https://bondageprojects.elementfx.com/*
@@ -16,7 +16,7 @@
 // @ts-check
 /* eslint-disable @typescript-eslint/no-floating-promises */
 
-const BCE_VERSION = "1.9.14";
+const BCE_VERSION = "1.9.15";
 
 (async function BondageClubEnhancements() {
   "use strict";
@@ -802,6 +802,15 @@ const BCE_VERSION = "1.9.14";
         .replace(
           "// The whispers get sent to the server and shown on the client directly",
           "// The whispers get sent to the server and shown on the client directly\nmsg = bceMessageReplacements(msg);"
+        )}`
+    );
+
+    eval(
+      `ChatRoomSendChat = ${w.ChatRoomSendChat.toString()
+        .replace(`ChatRoomSendChat()`, `ChatRoomSendChat(skipHistory)`)
+        .replace(
+          `ChatRoomLastMessage.push(msg);`,
+          `if (!skipHistory) ChatRoomLastMessage.push(msg);`
         )}`
     );
 
@@ -1791,7 +1800,8 @@ const BCE_VERSION = "1.9.14";
                 msg.length > 0 && [".", "/"].includes(msg[0]) ? "\u200b" : ""
               }${msg}`
             );
-            w.ChatRoomSendChat();
+            // True to skip history
+            w.ChatRoomSendChat(true);
             w.ChatRoomTargetMemberNumber = originalTarget;
           }
         },
@@ -6352,7 +6362,7 @@ const BCE_VERSION = "1.9.14";
  * @property {(C: Character, csv: string[][]) => void} CharacterBuildDialog
  * @property {(data: Object) => void} ChatRoomMessage
  * @property {(data: { MemberNumber: number; Character?: Character; Pose: string | string[]; }) => void} ChatRoomSyncPose
- * @property {() => void} ChatRoomSendChat
+ * @property {(skipHistory?: boolean) => void} ChatRoomSendChat
  *
  * @typedef {Window & WindowExtension} ExtendedWindow
  */
