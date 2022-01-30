@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Bondage Club Enhancements
 // @namespace https://www.bondageprojects.com/
-// @version 1.9.15
+// @version 1.9.16
 // @description enhancements for the bondage club
 // @author Sidious
 // @match https://bondageprojects.elementfx.com/*
@@ -16,7 +16,7 @@
 // @ts-check
 /* eslint-disable @typescript-eslint/no-floating-promises */
 
-const BCE_VERSION = "1.9.15";
+const BCE_VERSION = "1.9.16";
 
 (async function BondageClubEnhancements() {
   "use strict";
@@ -616,7 +616,7 @@ const BCE_VERSION = "1.9.15";
     );
   }
 
-  function functionIntegrityCheck() {
+  async function functionIntegrityCheck() {
     /**
      * @type {Readonly<{ [key: string]: number }>}
      */
@@ -718,20 +718,31 @@ const BCE_VERSION = "1.9.15";
       WardrobeRun: 2335336863253367,
     });
 
+    let possibleIncompatibility = false;
     for (const [func, hash] of Object.entries(expectedHashes)) {
       if (!w[func]) {
         bceWarn(`Expected function ${func} not found.`);
+        possibleIncompatibility = true;
         continue;
       }
       if (typeof w[func] !== "function") {
         bceWarn(`Expected function ${func} is not a function.`);
+        possibleIncompatibility = true;
         continue;
       }
       // eslint-disable-next-line
       const actualHash = cyrb53(w[func].toString());
       if (actualHash !== hash) {
         bceWarn(`Function ${func} has been modified before BCE: ${actualHash}`);
+        possibleIncompatibility = true;
       }
+    }
+    if (possibleIncompatibility) {
+      await waitFor(() => !!w.Player?.Name);
+      bceBeepNotify(
+        "Incompatibility warning",
+        "BCE has detected that game code has been modified before BCE was loaded. This may be caused by using an incompatible version of the club or running another addon. This may cause unexpected behavior and is unsupported.\n\nIf this was caused by another addon, please report this to that addon's developer. Alternatively, ensure BCE loads first."
+      );
     }
   }
 
