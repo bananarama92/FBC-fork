@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Bondage Club Enhancements
 // @namespace https://www.bondageprojects.com/
-// @version 1.9.16
+// @version 1.9.17
 // @description enhancements for the bondage club
 // @author Sidious
 // @match https://bondageprojects.elementfx.com/*
@@ -16,7 +16,7 @@
 // @ts-check
 /* eslint-disable @typescript-eslint/no-floating-promises */
 
-const BCE_VERSION = "1.9.16";
+const BCE_VERSION = "1.9.17";
 
 (async function BondageClubEnhancements() {
   "use strict";
@@ -855,8 +855,9 @@ const BCE_VERSION = "1.9.16";
           if (data.Type === "Whisper" && data.Dictionary?.some(d => d.Tag === "${BCX_ORIGINAL_MESSAGE}")) {
             original = data.Dictionary.find(d => d.Tag === "${BCX_ORIGINAL_MESSAGE}").Text;
           }
-          if (original.toLowerCase() !== chatMsg.toLowerCase()) {
-            msg += \` (\${ChatRoomHTMLEntities(original)})\`
+          original = ChatRoomHTMLEntities(original);
+          if (original.toLowerCase().trim() !== chatMsg.toLowerCase().trim()) {
+            msg += \` (\${original})\`
           }
         }`
         )}`
