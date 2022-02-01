@@ -1249,83 +1249,6 @@ const BCE_BC_MOD_SDK=function(){"use strict";const VERSION="1.0.1";function Thro
 			"InventoryItemMiscTimerPasswordPadlockAdd(PasswordTimerChooseList[PasswordTimerChooseIndex] * 60, false);":
 				'if (!bceSettingValue("accurateTimerLocks")) InventoryItemMiscTimerPasswordPadlockAdd(PasswordTimerChooseList[PasswordTimerChooseIndex] * 60, false);',
 		});
-
-		// ServerSend hook for client-side gagspeak, priority lower than BCX's whisper dictionary hook
-		SDK.hookFunction(
-			"ServerSend",
-			HOOK_PRIORITIES.ModifyBehaviourLow,
-			(args, next) => {
-				if (args.length < 2) {
-					return next(args);
-				}
-				const [message, data] = args;
-				if (!isString(message) || !isChatMessage(data)) {
-					return next(args);
-				}
-				if (message === "ChatRoomChat") {
-					switch (data.Type) {
-						case "Whisper":
-							{
-								const idx = data.Dictionary?.findIndex(
-									(d) => d.Tag === BCX_ORIGINAL_MESSAGE
-								);
-								if (
-									idx >= 0 &&
-									(bceSettings.antiAntiGarble ||
-										bceSettings.antiAntiGarbleStrong ||
-										bceSettings.antiAntiGarbleExtra)
-								) {
-									data.Dictionary.splice(idx, 1);
-								}
-							}
-							break;
-						case "Chat":
-							{
-								const gagLevel = w.SpeechGetTotalGagLevel(w.Player);
-								if (gagLevel > 0) {
-									if (bceSettings.antiAntiGarble) {
-										data.Content =
-											w.SpeechGarbleByGagLevel(1, data.Content) +
-											GAGBYPASSINDICATOR;
-									} else if (bceSettings.antiAntiGarbleExtra && gagLevel > 24) {
-										const icIndicator = "\uF124";
-										let inOOC = false;
-										data.Content = `${data.Content.split("")
-											.map((c) => {
-												switch (c) {
-													case "(":
-														inOOC = true;
-														return c;
-													case ")":
-														inOOC = false;
-														return c;
-													default:
-														return inOOC ? c : icIndicator;
-												}
-											})
-											.join("")
-											.replace(
-												new RegExp(`${icIndicator}+`, "gu"),
-												"m"
-											)}${GAGBYPASSINDICATOR}`;
-									} else if (
-										bceSettings.antiAntiGarbleStrong ||
-										bceSettings.antiAntiGarbleExtra
-									) {
-										data.Content =
-											w.SpeechGarbleByGagLevel(gagLevel, data.Content) +
-											GAGBYPASSINDICATOR;
-									}
-								}
-							}
-							break;
-						default:
-							break;
-					}
-				}
-				return next([message, data, ...args.slice(2)]);
-			}
-		);
 	}
 
 	function accurateTimerInputs() {
@@ -5000,6 +4923,83 @@ const BCE_BC_MOD_SDK=function(){"use strict";const VERSION="1.0.1";function Thro
 
 	async function antiGarbling() {
 		await waitFor(() => !!w.SpeechGarbleByGagLevel);
+
+		// ServerSend hook for client-side gagspeak, priority lower than BCX's whisper dictionary hook
+		SDK.hookFunction(
+			"ServerSend",
+			HOOK_PRIORITIES.ModifyBehaviourLow,
+			(args, next) => {
+				if (args.length < 2) {
+					return next(args);
+				}
+				const [message, data] = args;
+				if (!isString(message) || !isChatMessage(data)) {
+					return next(args);
+				}
+				if (message === "ChatRoomChat") {
+					switch (data.Type) {
+						case "Whisper":
+							{
+								const idx = data.Dictionary?.findIndex(
+									(d) => d.Tag === BCX_ORIGINAL_MESSAGE
+								);
+								if (
+									idx >= 0 &&
+									(bceSettings.antiAntiGarble ||
+										bceSettings.antiAntiGarbleStrong ||
+										bceSettings.antiAntiGarbleExtra)
+								) {
+									data.Dictionary.splice(idx, 1);
+								}
+							}
+							break;
+						case "Chat":
+							{
+								const gagLevel = w.SpeechGetTotalGagLevel(w.Player);
+								if (gagLevel > 0) {
+									if (bceSettings.antiAntiGarble) {
+										data.Content =
+											w.SpeechGarbleByGagLevel(1, data.Content) +
+											GAGBYPASSINDICATOR;
+									} else if (bceSettings.antiAntiGarbleExtra && gagLevel > 24) {
+										const icIndicator = "\uF124";
+										let inOOC = false;
+										data.Content = `${data.Content.split("")
+											.map((c) => {
+												switch (c) {
+													case "(":
+														inOOC = true;
+														return c;
+													case ")":
+														inOOC = false;
+														return c;
+													default:
+														return inOOC ? c : icIndicator;
+												}
+											})
+											.join("")
+											.replace(
+												new RegExp(`${icIndicator}+`, "gu"),
+												"m"
+											)}${GAGBYPASSINDICATOR}`;
+									} else if (
+										bceSettings.antiAntiGarbleStrong ||
+										bceSettings.antiAntiGarbleExtra
+									) {
+										data.Content =
+											w.SpeechGarbleByGagLevel(gagLevel, data.Content) +
+											GAGBYPASSINDICATOR;
+									}
+								}
+							}
+							break;
+						default:
+							break;
+					}
+				}
+				return next([message, data, ...args.slice(2)]);
+			}
+		);
 
 		SDK.hookFunction(
 			"ChatRoomResize",
