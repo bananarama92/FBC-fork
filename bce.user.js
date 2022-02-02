@@ -705,8 +705,10 @@ const BCE_BC_MOD_SDK=function(){"use strict";const VERSION="1.0.1";function Thro
 	await bceLoadSettings();
 	postSettings();
 	bceLog(bceSettings);
-	preBCX();
-	await loadBCX();
+	commonPatches();
+	const bcxLoad = loadBCX();
+	friendlyActivityLabels();
+	beepImprovements();
 	settingsPage();
 	alternateArousal();
 	chatAugments();
@@ -724,6 +726,8 @@ const BCE_BC_MOD_SDK=function(){"use strict";const VERSION="1.0.1";function Thro
 	accurateTimerInputs();
 	logCharacterUpdates();
 	forcedClubSlave();
+
+	await bcxLoad;
 
 	// Post ready when in a chat room
 	await bceNotify(`Bondage Club Enhancements v${w.BCE_VERSION} Loaded`);
@@ -787,12 +791,12 @@ const BCE_BC_MOD_SDK=function(){"use strict";const VERSION="1.0.1";function Thro
 						"Update",
 						`Your version of BCE is outdated and may not be supported. Please update.
 
-            Your version: ${w.BCE_VERSION}
-            Latest version: ${latest}
+						Your version: ${w.BCE_VERSION}
+						Latest version: ${latest}
 
-            Changelog available on GitLab (raw) and Discord:
-            - https://gitlab.com/Sidiousious/bce/-/commits/main/
-            - ${DISCORD_INVITE_URL}`
+						Changelog available on GitLab (raw) and Discord:
+						- https://gitlab.com/Sidiousious/bce/-/commits/main/
+						- ${DISCORD_INVITE_URL}`
 					);
 				}
 			})
@@ -815,105 +819,50 @@ const BCE_BC_MOD_SDK=function(){"use strict";const VERSION="1.0.1";function Thro
 		return true;
 	}
 
-	function preBCX() {
-		// Function patching that must occur before BCX
-		if (w.BCX_Loaded) {
-			bceBeepNotify(
-				"ACTION REQUIRED",
-				"BCE is only compatible with BCX, when BCX is loaded by BCE. You can enable this in the settings. Do not use BCX's tampermonkey script or their bookmark. Let BCE load BCX."
-			);
-			throw new Error(
-				"BCX is loaded before BCE. Please disable BCX loader and enable BCX from BCE settings instead."
-			);
-		}
-		SDK.patchFunction("CommandParse", {
-			"// Regular chat": "// Regular chat\nmsg = bceMessageReplacements(msg);",
-			"// The whispers get sent to the server and shown on the client directly":
-				"// The whispers get sent to the server and shown on the client directly\nmsg = bceMessageReplacements(msg);",
-		});
-
-		// Only patch send chat if hash is expected one for compatibility with elis at the cost of whispers triggering shock collars
-		if (isFunctionOriginal("ChatRoomSendChat")) {
-			SDK.patchFunction("ChatRoomSendChat", {
-				"ChatRoomSendChat()": `ChatRoomSendChat(skipHistory)`,
-				"ChatRoomLastMessage.push(msg);": `if (!skipHistory) ChatRoomLastMessage.push(msg);`,
-			});
-		}
-
-		SDK.patchFunction("ChatRoomMessage", {
-			"div.innerHTML = msg;": `div.innerHTML = msg;
-        if (data.Type === "Whisper") {
-          let repl = document.createElement("a");
-          repl.href = "#";
-          repl.onclick = (e) => {
-            e.preventDefault();
-            ElementValue("InputChat", \`/w \${SenderCharacter.Name.split(' ')[0]} \${ElementValue("InputChat").replace(/^\\/(beep|w) \\S+ ?/u, '')}\`);
-            window.InputChat.focus();
-          };
-          repl.classList.add("bce-button");
-          repl.textContent = '↩️';
-          div.prepend(repl);
-        }`,
-			"const chatMsg": `const clientGagged = data.Content.endsWith('\\uf123');data.Content = data.Content.replace(/[\\uE000-\\uF8FF]/gu, '');const chatMsg`,
-			"msg += chatMsg;": `msg += chatMsg;
-      if (bceSettingValue("gagspeak") && SpeechGetTotalGagLevel(SenderCharacter) > 0 && !clientGagged) {
-        let original = data.Content;
-        if (data.Type === "Whisper" && data.Dictionary?.some(d => d.Tag === "${BCX_ORIGINAL_MESSAGE}")) {
-          original = data.Dictionary.find(d => d.Tag === "${BCX_ORIGINAL_MESSAGE}").Text;
-        }
-        original = ChatRoomHTMLEntities(original);
-        if (original.toLowerCase().trim() !== chatMsg.toLowerCase().trim()) {
-          msg += \` (\${original})\`
-        }
-      }`,
-		});
-
-		SDK.patchFunction("CommandExecute", {
-			"key.indexOf(CommandsKey + C.Tag) == 0)": `key.substring(1) === C.Tag)`,
-		});
-
-		w.InputChat?.removeAttribute("maxlength");
-		SDK.patchFunction("ChatRoomCreateElement", {
-			'document.getElementById("InputChat").setAttribute("maxLength", 1000);':
-				"",
-		});
-
-		SDK.patchFunction("ChatRoomKeyDown", {
-			"ChatRoomSendChat()":
-				'if ("bceSettingValue" in window && bceSettingValue("ctrlEnterOoc") && event.ctrlKey) ElementValue("InputChat", "(" + ElementValue("InputChat"));ChatRoomSendChat()',
-		});
-
-		if (isFunctionOriginal("ServerAccountBeep")) {
-			SDK.patchFunction("ServerAccountBeep", {
-				// eslint-disable-next-line no-template-curly-in-string
-				'ChatRoomSendLocal(`<a onclick="ServerOpenFriendList()">(${ServerBeep.Message})</a>`);': `{
-          const beepId = FriendListBeepLog.length - 1;
-          ChatRoomSendLocal(\`<a id="bce-beep-reply-\${beepId}">↩️</a><a class="bce-beep-link" id="bce-beep-\${beepId}">(\${ServerBeep.Message}\${ChatRoomHTMLEntities(data.Message ? \`: \${data.Message.length > 150 ? data.Message.substring(0, 150) + "..." : data.Message}\` : "")})</a>\`);
-          if (document.getElementById("bce-beep-reply-" + beepId)) {
-            document.getElementById(\`bce-beep-reply-\${beepId}\`).onclick = (e) => {
-              e.preventDefault();
-              ElementValue("InputChat", \`/beep \${data.MemberNumber} \${ElementValue("InputChat").replace(/^\\/(beep|w) \\S+ ?/u, '')}\`);
-              document.getElementById('InputChat').focus();
-            };
-          }
-          if (document.getElementById("bce-beep-" + beepId)) {
-            document.getElementById(\`bce-beep-\${beepId}\`).onclick = (e) => {
-              e.preventDefault();
-              ServerOpenFriendList();
-              FriendListModeIndex = 1;
-              FriendListShowBeep(\`\${beepId}\`);
-            };
-          }
-        }`,
-			});
-		}
-
+	function commonPatches() {
+		// DrawBackNextButton patch to allow overriding hover text position
 		SDK.patchFunction("DrawBackNextButton", {
 			"Disabled, ArrowWidth": "Disabled, ArrowWidth, tooltipPosition",
 			"DrawButtonHover(Left, Top, Width, Height,":
 				"DrawButtonHover(tooltipPosition?.X || Left, tooltipPosition?.Y || Top, tooltipPosition?.Width || Width, tooltipPosition?.Height || Height,",
 		});
 
+		// CommandExecute patch to fix /whitelistadd and /whitelistremove
+		SDK.patchFunction("CommandExecute", {
+			"key.indexOf(CommandsKey + C.Tag) == 0)": `key.substring(1) === C.Tag)`,
+		});
+	}
+
+	function beepImprovements() {
+		if (isFunctionOriginal("ServerAccountBeep")) {
+			// ServerAccountBeep patch for beep notification improvements in chat
+			SDK.patchFunction("ServerAccountBeep", {
+				// eslint-disable-next-line no-template-curly-in-string
+				'ChatRoomSendLocal(`<a onclick="ServerOpenFriendList()">(${ServerBeep.Message})</a>`);': `{
+					console.log("HERE");
+					const beepId = FriendListBeepLog.length - 1;
+					ChatRoomSendLocal(\`<a id="bce-beep-reply-\${beepId}">↩️</a><a class="bce-beep-link" id="bce-beep-\${beepId}">(\${ServerBeep.Message}\${ChatRoomHTMLEntities(data.Message ? \`: \${data.Message.length > 150 ? data.Message.substring(0, 150) + "..." : data.Message}\` : "")})</a>\`);
+					if (document.getElementById("bce-beep-reply-" + beepId)) {
+						document.getElementById(\`bce-beep-reply-\${beepId}\`).onclick = (e) => {
+							e.preventDefault();
+							ElementValue("InputChat", \`/beep \${data.MemberNumber} \${ElementValue("InputChat").replace(/^\\/(beep|w) \\S+ ?/u, '')}\`);
+							document.getElementById('InputChat').focus();
+						};
+					}
+					if (document.getElementById("bce-beep-" + beepId)) {
+						document.getElementById(\`bce-beep-\${beepId}\`).onclick = (e) => {
+							e.preventDefault();
+							ServerOpenFriendList();
+							FriendListModeIndex = 1;
+							FriendListShowBeep(\`\${beepId}\`);
+						};
+					}
+				}`,
+			});
+		}
+	}
+
+	function friendlyActivityLabels() {
 		// Custom activity labels
 		const customActivityLabels = [
 			["Act-ChatSelf-ItemBoots-Kiss", "Kiss Foot"],
@@ -1205,18 +1154,21 @@ const BCE_BC_MOD_SDK=function(){"use strict";const VERSION="1.0.1";function Thro
 
 		w.ActivityDictionary.push(...customActivityLabels);
 
+		// DialogDrawActivityMenu patch to display friendlier labels - TODO: remove after R77
 		SDK.patchFunction("DialogDrawActivityMenu", {
 			'DrawTextFit(ActivityDictionaryText("Activity" + Act.Name)': `DrawTextFit(ActivityDictionaryText("bceSettingValue" in window && bceSettingValue("activityLabels") ? \`Act-\${(
-          CharacterGetCurrent().IsPlayer() ? "ChatSelf" : "ChatOther")
-        }-\${ActivityGetGroupOrMirror(CharacterGetCurrent()?.AssetFamily ?? Player.AssetFamily, Player.FocusGroup?.Name ?? CharacterGetCurrent()?.FocusGroup?.Name).Name}-\${Act.Name}\` : "Activity" + Act.Name)`,
+					CharacterGetCurrent().IsPlayer() ? "ChatSelf" : "ChatOther")
+				}-\${ActivityGetGroupOrMirror(CharacterGetCurrent()?.AssetFamily ?? Player.AssetFamily, Player.FocusGroup?.Name ?? CharacterGetCurrent()?.FocusGroup?.Name).Name}-\${Act.Name}\` : "Activity" + Act.Name)`,
 			"// Prepares": "\n// Prepares",
 		});
+	}
 
-		const timerInput = `ElementPosition("${TIMER_INPUT_ID}", 1400, 930, 250, 70);document.getElementById('${TIMER_INPUT_ID}').disabled = false;`;
+	function accurateTimerInputs() {
+		const timerInputElement = `ElementPosition("${TIMER_INPUT_ID}", 1400, 930, 250, 70);document.getElementById('${TIMER_INPUT_ID}').disabled = false;`;
 
 		// Lover locks
 		SDK.patchFunction("InventoryItemMiscLoversTimerPadlockDraw", {
-			"// Draw buttons to add/remove time if available": `if (bceSettingValue("accurateTimerLocks") && Player.CanInteract() && (C.IsLoverOfPlayer() || C.IsOwnedByPlayer())) {${timerInput}} else`,
+			"// Draw buttons to add/remove time if available": `if (bceSettingValue("accurateTimerLocks") && Player.CanInteract() && (C.IsLoverOfPlayer() || C.IsOwnedByPlayer())) {${timerInputElement}} else`,
 		});
 		SDK.patchFunction("InventoryItemMiscLoversTimerPadlockClick", {
 			"InventoryItemMiscLoversTimerPadlockAdd(LoverTimerChooseList[LoverTimerChooseIndex] * 3600);":
@@ -1225,7 +1177,7 @@ const BCE_BC_MOD_SDK=function(){"use strict";const VERSION="1.0.1";function Thro
 
 		// Mistress locks
 		SDK.patchFunction("InventoryItemMiscMistressTimerPadlockDraw", {
-			"// Draw buttons to add/remove time if available": `if (bceSettingValue("accurateTimerLocks") && Player.CanInteract() && (LogQuery("ClubMistress", "Management") || (Player.MemberNumber == DialogFocusSourceItem.Property.LockMemberNumber))) {${timerInput}} else`,
+			"// Draw buttons to add/remove time if available": `if (bceSettingValue("accurateTimerLocks") && Player.CanInteract() && (LogQuery("ClubMistress", "Management") || (Player.MemberNumber == DialogFocusSourceItem.Property.LockMemberNumber))) {${timerInputElement}} else`,
 		});
 		SDK.patchFunction("InventoryItemMiscMistressTimerPadlockClick", {
 			"InventoryItemMiscMistressTimerPadlockAdd(MistressTimerChooseList[MistressTimerChooseIndex] * 60, false);":
@@ -1234,7 +1186,7 @@ const BCE_BC_MOD_SDK=function(){"use strict";const VERSION="1.0.1";function Thro
 
 		// Owner locks
 		SDK.patchFunction("InventoryItemMiscOwnerTimerPadlockDraw", {
-			"// Draw buttons to add/remove time if available": `if (bceSettingValue("accurateTimerLocks") && Player.CanInteract() && C.IsOwnedByPlayer()) {${timerInput}} else`,
+			"// Draw buttons to add/remove time if available": `if (bceSettingValue("accurateTimerLocks") && Player.CanInteract() && C.IsOwnedByPlayer()) {${timerInputElement}} else`,
 		});
 		SDK.patchFunction("InventoryItemMiscOwnerTimerPadlockClick", {
 			"InventoryItemMiscOwnerTimerPadlockAdd(OwnerTimerChooseList[OwnerTimerChooseIndex] * 3600);":
@@ -1243,15 +1195,13 @@ const BCE_BC_MOD_SDK=function(){"use strict";const VERSION="1.0.1";function Thro
 
 		// Password timer
 		SDK.patchFunction("InventoryItemMiscTimerPasswordPadlockDraw", {
-			"// Draw buttons to add/remove time if available": `if (bceSettingValue("accurateTimerLocks") && Player.CanInteract() && Player.MemberNumber == Property.LockMemberNumber) {${timerInput}} else`,
+			"// Draw buttons to add/remove time if available": `if (bceSettingValue("accurateTimerLocks") && Player.CanInteract() && Player.MemberNumber == Property.LockMemberNumber) {${timerInputElement}} else`,
 		});
 		SDK.patchFunction("InventoryItemMiscTimerPasswordPadlockClick", {
 			"InventoryItemMiscTimerPasswordPadlockAdd(PasswordTimerChooseList[PasswordTimerChooseIndex] * 60, false);":
 				'if (!bceSettingValue("accurateTimerLocks")) InventoryItemMiscTimerPasswordPadlockAdd(PasswordTimerChooseList[PasswordTimerChooseIndex] * 60, false);',
 		});
-	}
 
-	function accurateTimerInputs() {
 		const loadLockTimerInput = () => {
 			let defaultValue = "0d0h5m0s";
 			if (w.DialogFocusSourceItem?.Property?.RemoveTimer) {
@@ -1512,10 +1462,6 @@ const BCE_BC_MOD_SDK=function(){"use strict";const VERSION="1.0.1";function Thro
 						? "yourself"
 						: targetMember.Name;
 
-					bceBeepNotify(
-						`Exported looks for ${targetName}`,
-						JSON.stringify(looks)
-					);
 					await navigator.clipboard.writeText(JSON.stringify(looks));
 					bceChatNotify(`Exported looks for ${targetName} copied to clipboard`);
 				},
@@ -1705,6 +1651,22 @@ const BCE_BC_MOD_SDK=function(){"use strict";const VERSION="1.0.1";function Thro
 				},
 			},
 		];
+
+		// Only patch send chat if hash is expected one for compatibility with elis at the cost of whispers triggering shock collars
+		if (isFunctionOriginal("ChatRoomSendChat")) {
+			// Skip history patch for /w
+			SDK.patchFunction("ChatRoomSendChat", {
+				"ChatRoomSendChat()": `ChatRoomSendChat(skipHistory)`,
+				"ChatRoomLastMessage.push(msg);": `if (!skipHistory) ChatRoomLastMessage.push(msg);`,
+			});
+		}
+
+		// Patch to allow /importlooks to exceed 1000 characters
+		w.InputChat?.removeAttribute("maxlength");
+		SDK.patchFunction("ChatRoomCreateElement", {
+			'document.getElementById("InputChat").setAttribute("maxLength", 1000);':
+				"",
+		});
 
 		for (const c of cmds) {
 			if (w.Commands.some((a) => a.Tag === c.Tag)) {
@@ -2076,78 +2038,78 @@ const BCE_BC_MOD_SDK=function(){"use strict";const VERSION="1.0.1";function Thro
 
 	function bceStyles() {
 		const css = `
-    .bce-beep-link {
-      text-decoration: none;
-    }
-    #TextAreaChatLog .bce-notification,
-    #TextAreaChatLog .bce-notification {
-      background-color: #D696FF;
-      color: black;
-    }
-    #TextAreaChatLog[data-colortheme="dark"] .bce-notification,
-    #TextAreaChatLog[data-colortheme="dark2"] .bce-notification {
-      background-color: #481D64;
-      color: white;
-    }
-    .bce-img {
-      max-height:25rem;
-      max-width:90%;
-      display:block;
-      border:1px solid red;
-      padding: 0.1rem;
-    }
-    .bce-color {
-      width: 0.8em;
-      height: 0.8em;
-      display: inline-block;
-      vertical-align: middle;
-      border: 0.1em solid black;
-      margin-right: 0.1em;
-    }
-    .${BCE_COLOR_ADJUSTMENTS_CLASS_NAME} .${DARK_INPUT_CLASS}.${INPUT_WARN_CLASS} {
-      background-color: #400000 !important;
-    }
-    .${INPUT_WARN_CLASS} {
-      background-color: yellow !important;
-    }
-    #TextAreaChatLog a {
-      color: #003f91;
-      cursor: pointer;
-    }
-    #TextAreaChatLog a:visited {
-      color: #380091;
-    }
-    .${BCE_COLOR_ADJUSTMENTS_CLASS_NAME} div.ChatMessageWhisper,
-    .${BCE_COLOR_ADJUSTMENTS_CLASS_NAME} div.ChatMessageWhisper {
-      color: #646464;
-    }
-    .${BCE_COLOR_ADJUSTMENTS_CLASS_NAME} #TextAreaChatLog[data-colortheme="dark"] div.ChatMessageWhisper,
-    .${BCE_COLOR_ADJUSTMENTS_CLASS_NAME} #TextAreaChatLog[data-colortheme="dark2"] div.ChatMessageWhisper {
-      color: #828282;
-    }
-    #TextAreaChatLog[data-colortheme="dark"] a,
-    #TextAreaChatLog[data-colortheme="dark2"] a {
-      color: #a9ceff;
-    }
-    #TextAreaChatLog[data-colortheme="dark"] a:visited,
-    #TextAreaChatLog[data-colortheme="dark2"] a:visited {
-      color: #3d91ff;
-    }
-    .${GLASSES_BLIND_CLASS} {
-      filter: blur(0.24vw);
-    }
-    .${WHISPER_CLASS} {
-      font-style: italic;
-    }
-    .${BCE_COLOR_ADJUSTMENTS_CLASS_NAME} .${DARK_INPUT_CLASS} {
-      background-color: #111;
-      color: #eee;
-      border-color: #333;
-    }
-    a.bce-button {
-      text-decoration: none;
-    }
-    `;
+		.bce-beep-link {
+			text-decoration: none;
+		}
+		#TextAreaChatLog .bce-notification,
+		#TextAreaChatLog .bce-notification {
+			background-color: #D696FF;
+			color: black;
+		}
+		#TextAreaChatLog[data-colortheme="dark"] .bce-notification,
+		#TextAreaChatLog[data-colortheme="dark2"] .bce-notification {
+			background-color: #481D64;
+			color: white;
+		}
+		.bce-img {
+			max-height:25rem;
+			max-width:90%;
+			display:block;
+			border:1px solid red;
+			padding: 0.1rem;
+		}
+		.bce-color {
+			width: 0.8em;
+			height: 0.8em;
+			display: inline-block;
+			vertical-align: middle;
+			border: 0.1em solid black;
+			margin-right: 0.1em;
+		}
+		.${BCE_COLOR_ADJUSTMENTS_CLASS_NAME} .${DARK_INPUT_CLASS}.${INPUT_WARN_CLASS} {
+			background-color: #400000 !important;
+		}
+		.${INPUT_WARN_CLASS} {
+			background-color: yellow !important;
+		}
+		#TextAreaChatLog a {
+			color: #003f91;
+			cursor: pointer;
+		}
+		#TextAreaChatLog a:visited {
+			color: #380091;
+		}
+		.${BCE_COLOR_ADJUSTMENTS_CLASS_NAME} div.ChatMessageWhisper,
+		.${BCE_COLOR_ADJUSTMENTS_CLASS_NAME} div.ChatMessageWhisper {
+			color: #646464;
+		}
+		.${BCE_COLOR_ADJUSTMENTS_CLASS_NAME} #TextAreaChatLog[data-colortheme="dark"] div.ChatMessageWhisper,
+		.${BCE_COLOR_ADJUSTMENTS_CLASS_NAME} #TextAreaChatLog[data-colortheme="dark2"] div.ChatMessageWhisper {
+			color: #828282;
+		}
+		#TextAreaChatLog[data-colortheme="dark"] a,
+		#TextAreaChatLog[data-colortheme="dark2"] a {
+			color: #a9ceff;
+		}
+		#TextAreaChatLog[data-colortheme="dark"] a:visited,
+		#TextAreaChatLog[data-colortheme="dark2"] a:visited {
+			color: #3d91ff;
+		}
+		.${GLASSES_BLIND_CLASS} {
+			filter: blur(0.24vw);
+		}
+		.${WHISPER_CLASS} {
+			font-style: italic;
+		}
+		.${BCE_COLOR_ADJUSTMENTS_CLASS_NAME} .${DARK_INPUT_CLASS} {
+			background-color: #111;
+			color: #eee;
+			border-color: #333;
+		}
+		a.bce-button {
+			text-decoration: none;
+		}
+		`;
 		const head = document.head || document.getElementsByTagName("head")[0];
 		const style = document.createElement("style");
 		style.appendChild(document.createTextNode(css));
@@ -2155,6 +2117,19 @@ const BCE_BC_MOD_SDK=function(){"use strict";const VERSION="1.0.1";function Thro
 	}
 
 	function chatAugments() {
+		// CTRL+Enter OOC implementation
+		SDK.patchFunction("ChatRoomKeyDown", {
+			"ChatRoomSendChat()":
+				'if ("bceSettingValue" in window && bceSettingValue("ctrlEnterOoc") && event.ctrlKey) ElementValue("InputChat", "(" + ElementValue("InputChat"));ChatRoomSendChat()',
+		});
+
+		// CommandParse patch for link OOC in whispers
+		SDK.patchFunction("CommandParse", {
+			"// Regular chat": "// Regular chat\nmsg = bceMessageReplacements(msg);",
+			"// The whispers get sent to the server and shown on the client directly":
+				"// The whispers get sent to the server and shown on the client directly\nmsg = bceMessageReplacements(msg);",
+		});
+
 		const startSounds = ["..", "--"];
 		const endSounds = ["...", "~", "~..", "~~", "..~"];
 		const eggedSounds = [
@@ -4924,82 +4899,108 @@ const BCE_BC_MOD_SDK=function(){"use strict";const VERSION="1.0.1";function Thro
 	async function antiGarbling() {
 		await waitFor(() => !!w.SpeechGarbleByGagLevel);
 
+		// Antigarble patch for message printing
+		SDK.patchFunction("ChatRoomMessage", {
+			"div.innerHTML = msg;": `div.innerHTML = msg;
+				if (data.Type === "Whisper") {
+					let repl = document.createElement("a");
+					repl.href = "#";
+					repl.onclick = (e) => {
+						e.preventDefault();
+						ElementValue("InputChat", \`/w \${SenderCharacter.Name.split(' ')[0]} \${ElementValue("InputChat").replace(/^\\/(beep|w) \\S+ ?/u, '')}\`);
+						window.InputChat.focus();
+					};
+					repl.classList.add("bce-button");
+					repl.textContent = '↩️';
+					div.prepend(repl);
+				}`,
+			"const chatMsg": `const clientGagged = data.Content.endsWith('\\uf123');data.Content = data.Content.replace(/[\\uE000-\\uF8FF]/gu, '');const chatMsg`,
+			"msg += chatMsg;": `msg += chatMsg;
+			if (bceSettingValue("gagspeak") && SpeechGetTotalGagLevel(SenderCharacter) > 0 && !clientGagged) {
+				let original = data.Content;
+				if (data.Type === "Whisper" && data.Dictionary?.some(d => d.Tag === "${BCX_ORIGINAL_MESSAGE}")) {
+					original = data.Dictionary.find(d => d.Tag === "${BCX_ORIGINAL_MESSAGE}").Text;
+				}
+				original = ChatRoomHTMLEntities(original);
+				if (original.toLowerCase().trim() !== chatMsg.toLowerCase().trim()) {
+					msg += \` (\${original})\`
+				}
+			}`,
+		});
+
 		// ServerSend hook for client-side gagspeak, priority lower than BCX's whisper dictionary hook
-		SDK.hookFunction(
-			"ServerSend",
-			HOOK_PRIORITIES.ModifyBehaviourLow,
-			(args, next) => {
-				if (args.length < 2) {
-					return next(args);
-				}
-				const [message, data] = args;
-				if (!isString(message) || !isChatMessage(data)) {
-					return next(args);
-				}
-				if (message === "ChatRoomChat") {
-					switch (data.Type) {
-						case "Whisper":
-							{
-								const idx = data.Dictionary?.findIndex(
-									(d) => d.Tag === BCX_ORIGINAL_MESSAGE
-								);
-								if (
-									idx >= 0 &&
-									(bceSettings.antiAntiGarble ||
-										bceSettings.antiAntiGarbleStrong ||
-										bceSettings.antiAntiGarbleExtra)
-								) {
-									data.Dictionary.splice(idx, 1);
-								}
-							}
-							break;
-						case "Chat":
-							{
-								const gagLevel = w.SpeechGetTotalGagLevel(w.Player);
-								if (gagLevel > 0) {
-									if (bceSettings.antiAntiGarble) {
-										data.Content =
-											w.SpeechGarbleByGagLevel(1, data.Content) +
-											GAGBYPASSINDICATOR;
-									} else if (bceSettings.antiAntiGarbleExtra && gagLevel > 24) {
-										const icIndicator = "\uF124";
-										let inOOC = false;
-										data.Content = `${data.Content.split("")
-											.map((c) => {
-												switch (c) {
-													case "(":
-														inOOC = true;
-														return c;
-													case ")":
-														inOOC = false;
-														return c;
-													default:
-														return inOOC ? c : icIndicator;
-												}
-											})
-											.join("")
-											.replace(
-												new RegExp(`${icIndicator}+`, "gu"),
-												"m"
-											)}${GAGBYPASSINDICATOR}`;
-									} else if (
-										bceSettings.antiAntiGarbleStrong ||
-										bceSettings.antiAntiGarbleExtra
-									) {
-										data.Content =
-											w.SpeechGarbleByGagLevel(gagLevel, data.Content) +
-											GAGBYPASSINDICATOR;
-									}
-								}
-							}
-							break;
-						default:
-							break;
-					}
-				}
-				return next([message, data, ...args.slice(2)]);
+		SDK.hookFunction("ServerSend", 0, (args, next) => {
+			if (args.length < 2) {
+				return next(args);
 			}
-		);
+			const [message, data] = args;
+			if (!isString(message) || !isChatMessage(data)) {
+				return next(args);
+			}
+			if (message === "ChatRoomChat") {
+				switch (data.Type) {
+					case "Whisper":
+						{
+							const idx = data.Dictionary?.findIndex(
+								(d) => d.Tag === BCX_ORIGINAL_MESSAGE
+							);
+							bceLog(idx, "HERE", data);
+							if (
+								idx >= 0 &&
+								(bceSettings.antiAntiGarble ||
+									bceSettings.antiAntiGarbleStrong ||
+									bceSettings.antiAntiGarbleExtra)
+							) {
+								data.Dictionary.splice(idx, 1);
+							}
+						}
+						break;
+					case "Chat":
+						{
+							const gagLevel = w.SpeechGetTotalGagLevel(w.Player);
+							if (gagLevel > 0) {
+								if (bceSettings.antiAntiGarble) {
+									data.Content =
+										w.SpeechGarbleByGagLevel(1, data.Content) +
+										GAGBYPASSINDICATOR;
+								} else if (bceSettings.antiAntiGarbleExtra && gagLevel > 24) {
+									const icIndicator = "\uF124";
+									let inOOC = false;
+									data.Content = `${data.Content.split("")
+										.map((c) => {
+											switch (c) {
+												case "(":
+													inOOC = true;
+													return c;
+												case ")":
+													inOOC = false;
+													return c;
+												default:
+													return inOOC ? c : icIndicator;
+											}
+										})
+										.join("")
+										.replace(
+											new RegExp(`${icIndicator}+`, "gu"),
+											"m"
+										)}${GAGBYPASSINDICATOR}`;
+								} else if (
+									bceSettings.antiAntiGarbleStrong ||
+									bceSettings.antiAntiGarbleExtra
+								) {
+									data.Content =
+										w.SpeechGarbleByGagLevel(gagLevel, data.Content) +
+										GAGBYPASSINDICATOR;
+								}
+							}
+						}
+						break;
+					default:
+						break;
+				}
+			}
+			return next([message, data, ...args.slice(2)]);
+		});
 
 		SDK.hookFunction(
 			"ChatRoomResize",
@@ -5245,18 +5246,18 @@ const BCE_BC_MOD_SDK=function(){"use strict";const VERSION="1.0.1";function Thro
 
 		SDK.patchFunction("ActivitySetArousalTimer", {
 			"if ((Progress > 0) && (C.ArousalSettings.Progress + Progress > Max)) Progress = (Max - C.ArousalSettings.Progress >= 0) ? Max - C.ArousalSettings.Progress : 0;": `
-      if (Max === 100) Max = 105;
-      const fromMax = Max - (C.BCEArousal ? C.BCEArousalProgress : C.ArousalSettings.Progress);
-      if (Progress > 0 && fromMax < Progress) {
-        if (fromMax <= 0) {
-          Progress = 0;
-        } else if (C.BCEArousal) {
-          Progress = Math.floor(fromMax / ${enjoymentMultiplier} / C.BCEEnjoyment);
-        } else {
-          Progress = fromMax;
-        }
-      }
-      `,
+			if (Max === 100) Max = 105;
+			const fromMax = Max - (C.BCEArousal ? C.BCEArousalProgress : C.ArousalSettings.Progress);
+			if (Progress > 0 && fromMax < Progress) {
+				if (fromMax <= 0) {
+					Progress = 0;
+				} else if (C.BCEArousal) {
+					Progress = Math.floor(fromMax / ${enjoymentMultiplier} / C.BCEEnjoyment);
+				} else {
+					Progress = fromMax;
+				}
+			}
+			`,
 			"if (Progress < -25) Progress = -25;":
 				"if (Progress < -20) Progress = -20;",
 			"if (Progress > 25) Progress = 25;": "if (Progress > 20) Progress = 20;",
@@ -5419,16 +5420,16 @@ const BCE_BC_MOD_SDK=function(){"use strict";const VERSION="1.0.1";function Thro
 						}
 					}
 				} else {
-        `,
+				`,
 			"if ((Factor == -1)) {ActivityVibratorLevel(Character[C], 0);}\n\n\t\t\t\t\t\t}": `if (Factor == -1) {
-            ActivityVibratorLevel(Character[C], 0);
-          }
-        }
-      } else {
-        ActivityVibratorLevel(Character[C], 0);
-      }`,
+						ActivityVibratorLevel(Character[C], 0);
+					}
+				}
+			} else {
+				ActivityVibratorLevel(Character[C], 0);
+			}`,
 			"// No decay if there's a vibrating item running": `// No decay if there's a vibrating item running
-      Character[C].BCEEnjoyment = 1;`,
+			Character[C].BCEEnjoyment = 1;`,
 		});
 	}
 
@@ -5845,24 +5846,24 @@ const BCE_BC_MOD_SDK=function(){"use strict";const VERSION="1.0.1";function Thro
 	// eslint-disable-next-line
 	// prettier-ignore
 	function cyrb53(str, seed = 0) {
-    // Bryc https://stackoverflow.com/a/52171480/1780502
-    // eslint-disable-next-line
-    let h1 = 0xdeadbeef ^ seed, h2 = 0x41c6ce57 ^ seed; str = str.replace(/\r/gu, '');
-    // eslint-disable-next-line
-    for (let i = 0, ch; i < str.length; i++) {
-        ch = str.charCodeAt(i);
-    // eslint-disable-next-line
-        h1 = Math.imul(h1 ^ ch, 2654435761);
-    // eslint-disable-next-line
-        h2 = Math.imul(h2 ^ ch, 1597334677);
-    }
-    // eslint-disable-next-line
-    h1 = Math.imul(h1 ^ (h1>>>16), 2246822507) ^ Math.imul(h2 ^ (h2>>>13), 3266489909);
-    // eslint-disable-next-line
-    h2 = Math.imul(h2 ^ (h2>>>16), 2246822507) ^ Math.imul(h1 ^ (h1>>>13), 3266489909);
-    // eslint-disable-next-line
-    return 4294967296 * (2097151 & h2) + (h1>>>0);
-  }
+		// Bryc https://stackoverflow.com/a/52171480/1780502
+		// eslint-disable-next-line
+		let h1 = 0xdeadbeef ^ seed, h2 = 0x41c6ce57 ^ seed; str = str.replace(/\r/gu, '');
+		// eslint-disable-next-line
+		for (let i = 0, ch; i < str.length; i++) {
+				ch = str.charCodeAt(i);
+		// eslint-disable-next-line
+				h1 = Math.imul(h1 ^ ch, 2654435761);
+		// eslint-disable-next-line
+				h2 = Math.imul(h2 ^ ch, 1597334677);
+		}
+		// eslint-disable-next-line
+		h1 = Math.imul(h1 ^ (h1>>>16), 2246822507) ^ Math.imul(h2 ^ (h2>>>13), 3266489909);
+		// eslint-disable-next-line
+		h2 = Math.imul(h2 ^ (h2>>>16), 2246822507) ^ Math.imul(h1 ^ (h1>>>13), 3266489909);
+		// eslint-disable-next-line
+		return 4294967296 * (2097151 & h2) + (h1>>>0);
+	}
 
 	/** @type {(s: unknown) => s is string} */
 	function isString(s) {
@@ -5880,8 +5881,6 @@ const BCE_BC_MOD_SDK=function(){"use strict";const VERSION="1.0.1";function Thro
 			isNonNullObject(m) &&
 			// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
 			typeof m.Type === "string" &&
-			// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-			typeof m.Sender === "number" &&
 			// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
 			typeof m.Content === "string"
 		);
