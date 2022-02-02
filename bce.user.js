@@ -5324,8 +5324,7 @@ const BCE_BC_MOD_SDK=function(){"use strict";const VERSION="1.0.1";function Thro
 			(args, next) => {
 				const [C, , , Factor] = args;
 				if (isCharacter(C) && typeof Factor === "number") {
-					C.BCEEnjoyment =
-						1 + (Factor > 1 ? Math.round(1.5 * Math.log(Factor)) : 0);
+					C.BCEEnjoyment = 1 + (Factor > 1 ? Math.round(Math.log2(Factor)) : 0);
 				}
 				return next(args);
 			}
@@ -5427,7 +5426,7 @@ const BCE_BC_MOD_SDK=function(){"use strict";const VERSION="1.0.1";function Thro
 						let maxIncrease = maxProgress - Character[C].ArousalSettings.Progress;
 						if (TimerLastArousalProgressCount % stepInterval === 0 && maxIncrease > 0) {
 							if (stepInterval === 1) {
-								Character[C].BCEEnjoyment = 1 + (Factor > 1 ? Math.round(1.5*Math.log(Factor)) : 0);
+								Character[C].BCEEnjoyment = 1 + (Factor > 1 ? Math.round(1.5*Math.log2(Factor)) : 0);
 							}
 							ActivityTimerProgress(Character[C], 1);
 						}
