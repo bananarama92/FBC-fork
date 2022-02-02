@@ -852,7 +852,6 @@ const BCE_BC_MOD_SDK=function(){"use strict";const VERSION="1.0.1";function Thro
 			SDK.patchFunction("ServerAccountBeep", {
 				// eslint-disable-next-line no-template-curly-in-string
 				'ChatRoomSendLocal(`<a onclick="ServerOpenFriendList()">(${ServerBeep.Message})</a>`);': `{
-					console.log("HERE");
 					const beepId = FriendListBeepLog.length - 1;
 					ChatRoomSendLocal(\`<a id="bce-beep-reply-\${beepId}">↩️</a><a class="bce-beep-link" id="bce-beep-\${beepId}">(\${ServerBeep.Message}\${ChatRoomHTMLEntities(data.Message ? \`: \${data.Message.length > 150 ? data.Message.substring(0, 150) + "..." : data.Message}\` : "")})</a>\`);
 					if (document.getElementById("bce-beep-reply-" + beepId)) {
@@ -4970,7 +4969,6 @@ const BCE_BC_MOD_SDK=function(){"use strict";const VERSION="1.0.1";function Thro
 							const idx = data.Dictionary?.findIndex(
 								(d) => d.Tag === BCX_ORIGINAL_MESSAGE
 							);
-							bceLog(idx, "HERE", data);
 							if (
 								idx >= 0 &&
 								(bceSettings.antiAntiGarble ||
