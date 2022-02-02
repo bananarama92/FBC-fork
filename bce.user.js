@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Bondage Club Enhancements
 // @namespace https://www.bondageprojects.com/
-// @version 2.0.2
+// @version 2.0.3
 // @description enhancements for the bondage club
 // @author Sidious
 // @match https://bondageprojects.elementfx.com/*
@@ -18,7 +18,7 @@
 /// <reference path="./typedef.d.ts" />
 /* eslint-disable @typescript-eslint/no-floating-promises */
 
-const BCE_VERSION = "2.0.2";
+const BCE_VERSION = "2.0.3";
 
 /*
  * Bondage Club Mod Development Kit
@@ -3845,7 +3845,7 @@ const BCE_BC_MOD_SDK=function(){"use strict";const VERSION="1.0.1";function Thro
 				if (
 					!isCharacter(C) ||
 					!isString(AssetGroup) ||
-					!isString(Expression) ||
+					(!isString(Expression) && Expression !== null) ||
 					!C.IsPlayer() ||
 					(!bceSettings.expressions && !bceSettings.activityExpressions)
 				) {
@@ -3975,7 +3975,15 @@ const BCE_BC_MOD_SDK=function(){"use strict";const VERSION="1.0.1";function Thro
 
 			// Reset everything when face is fully default
 			let isDefault = true;
-			for (const t of Object.keys(w.bce_ArousalExpressionStages)) {
+			for (const t of [
+				"Eyes",
+				"Eyes2",
+				"Eyebrows",
+				"Mouth",
+				"Fluids",
+				"Emoticon",
+				"Blush",
+			]) {
 				if (expression(t)[0]) {
 					isDefault = false;
 				}
