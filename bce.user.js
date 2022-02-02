@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Bondage Club Enhancements
 // @namespace https://www.bondageprojects.com/
-// @version 2.0.1
+// @version 2.0.2
 // @description enhancements for the bondage club
 // @author Sidious
 // @match https://bondageprojects.elementfx.com/*
@@ -18,7 +18,7 @@
 /// <reference path="./typedef.d.ts" />
 /* eslint-disable @typescript-eslint/no-floating-promises */
 
-const BCE_VERSION = "2.0.1";
+const BCE_VERSION = "2.0.2";
 
 /*
  * Bondage Club Mod Development Kit
@@ -836,11 +836,10 @@ const BCE_BC_MOD_SDK=function(){"use strict";const VERSION="1.0.1";function Thro
 	}
 
 	function beepImprovements() {
-		if (isFunctionOriginal("ServerAccountBeep")) {
-			// ServerAccountBeep patch for beep notification improvements in chat
-			SDK.patchFunction("ServerAccountBeep", {
-				// eslint-disable-next-line no-template-curly-in-string
-				'ChatRoomSendLocal(`<a onclick="ServerOpenFriendList()">(${ServerBeep.Message})</a>`);': `{
+		// ServerAccountBeep patch for beep notification improvements in chat
+		SDK.patchFunction("ServerAccountBeep", {
+			// eslint-disable-next-line no-template-curly-in-string
+			'ChatRoomSendLocal(`<a onclick="ServerOpenFriendList()">(${ServerBeep.Message})</a>`);': `{
 					const beepId = FriendListBeepLog.length - 1;
 					ChatRoomSendLocal(\`<a id="bce-beep-reply-\${beepId}">↩️</a><a class="bce-beep-link" id="bce-beep-\${beepId}">(\${ServerBeep.Message}\${ChatRoomHTMLEntities(data.Message ? \`: \${data.Message.length > 150 ? data.Message.substring(0, 150) + "..." : data.Message}\` : "")})</a>\`);
 					if (document.getElementById("bce-beep-reply-" + beepId)) {
@@ -859,8 +858,7 @@ const BCE_BC_MOD_SDK=function(){"use strict";const VERSION="1.0.1";function Thro
 						};
 					}
 				}`,
-			});
-		}
+		});
 	}
 
 	function friendlyActivityLabels() {
@@ -1653,14 +1651,11 @@ const BCE_BC_MOD_SDK=function(){"use strict";const VERSION="1.0.1";function Thro
 			},
 		];
 
-		// Only patch send chat if hash is expected one for compatibility with elis at the cost of whispers triggering shock collars
-		if (isFunctionOriginal("ChatRoomSendChat")) {
-			// Skip history patch for /w
-			SDK.patchFunction("ChatRoomSendChat", {
-				"ChatRoomSendChat()": `ChatRoomSendChat(skipHistory)`,
-				"ChatRoomLastMessage.push(msg);": `if (!skipHistory) ChatRoomLastMessage.push(msg);`,
-			});
-		}
+		// Skip history patch for /w
+		SDK.patchFunction("ChatRoomSendChat", {
+			"ChatRoomSendChat()": `ChatRoomSendChat(skipHistory)`,
+			"ChatRoomLastMessage.push(msg);": `if (!skipHistory) ChatRoomLastMessage.push(msg);`,
+		});
 
 		// Patch to allow /importlooks to exceed 1000 characters
 		w.InputChat?.removeAttribute("maxlength");
