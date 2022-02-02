@@ -3850,15 +3850,13 @@ const BCE_BC_MOD_SDK=function(){"use strict";const VERSION="1.0.1";function Thro
 					!isCharacter(C) ||
 					!isString(AssetGroup) ||
 					!isString(Expression) ||
-					!Number.isSafeInteger(Timer) ||
-					typeof Timer !== "number" ||
-					!isStringOrStringArray(Color) ||
 					!C.IsPlayer() ||
 					(!bceSettings.expressions && !bceSettings.activityExpressions)
 				) {
 					return next(args);
 				}
-				const duration = Timer ? Timer * 1000 : -1,
+				const duration =
+						typeof Timer === "number" && Timer > 0 ? Timer * 1000 : -1,
 					e = {},
 					types = [AssetGroup];
 				if (AssetGroup === "Eyes") {
@@ -3866,7 +3864,11 @@ const BCE_BC_MOD_SDK=function(){"use strict";const VERSION="1.0.1";function Thro
 				} else if (AssetGroup === "Eyes1") {
 					types[0] = "Eyes";
 				}
-				if (!Color || !w.CommonColorIsValid(Color)) {
+				if (
+					!Color ||
+					!isStringOrStringArray(Color) ||
+					!w.CommonColorIsValid(Color)
+				) {
 					// eslint-disable-next-line no-undefined
 					Color = undefined;
 				}
@@ -3895,7 +3897,7 @@ const BCE_BC_MOD_SDK=function(){"use strict";const VERSION="1.0.1";function Thro
 				let [C, Pose] = args;
 				if (
 					!isCharacter(C) ||
-					!isStringOrStringArray(Pose) ||
+					(!isStringOrStringArray(Pose) && Pose !== null) ||
 					!C.IsPlayer() ||
 					(!bceSettings.expressions && !bceSettings.activityExpressions)
 				) {
