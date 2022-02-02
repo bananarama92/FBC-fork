@@ -743,32 +743,21 @@ const BCE_BC_MOD_SDK=function(){"use strict";const VERSION="1.0.1";function Thro
 		);
 	}
 
-	async function functionIntegrityCheck() {
-		let possibleIncompatibility = false;
+	function functionIntegrityCheck() {
 		for (const [func, hash] of Object.entries(expectedHashes)) {
 			if (!w[func]) {
 				bceWarn(`Expected function ${func} not found.`);
-				possibleIncompatibility = true;
 				continue;
 			}
 			if (typeof w[func] !== "function") {
 				bceWarn(`Expected function ${func} is not a function.`);
-				possibleIncompatibility = true;
 				continue;
 			}
 			// eslint-disable-next-line
 			const actualHash = cyrb53(w[func].toString());
 			if (actualHash !== hash) {
 				bceWarn(`Function ${func} has been modified before BCE: ${actualHash}`);
-				possibleIncompatibility = true;
 			}
-		}
-		if (possibleIncompatibility) {
-			await waitFor(() => !!w.Player?.Name);
-			bceBeepNotify(
-				"Incompatibility warning",
-				"BCE has detected that game code has been modified before BCE was loaded. This may be caused by using an incompatible version of the club or running another addon. This may cause unexpected behavior and is unsupported.\n\nIf this was caused by another addon, please report this to that addon's developer. Alternatively, ensure BCE loads first."
-			);
 		}
 	}
 
