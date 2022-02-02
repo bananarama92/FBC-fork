@@ -831,6 +831,19 @@ const BCE_BC_MOD_SDK=function(){"use strict";const VERSION="1.0.1";function Thro
 		SDK.patchFunction("CommandExecute", {
 			"key.indexOf(CommandsKey + C.Tag) == 0)": `key.substring(1) === C.Tag)`,
 		});
+
+		// eslint-disable-next-line no-warning-comments
+		// TODO: Remove after R77
+		if (w.GameVersion === "R76") {
+			// Eat Status messages on R76
+			SDK.hookFunction("ChatRoomMessage", HOOK_PRIORITIES.Top, (args, next) => {
+				const [data] = args;
+				if (isChatMessage(data) && data.Type.toLowerCase() === "status") {
+					return null;
+				}
+				return next(args);
+			});
+		}
 	}
 
 	function beepImprovements() {
