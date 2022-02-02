@@ -3768,6 +3768,12 @@ const BCE_BC_MOD_SDK=function(){"use strict";const VERSION="1.0.1";function Thro
 			Tag: "anim",
 			Description: "['list' or name of emote]: run an animation",
 			Action: (_1, _2, args) => {
+				if (!bceSettings.activityExpressions) {
+					bceChatNotify(
+						"Activity expressions are not enabled in BCE settings. Unable to run animations."
+					);
+					return;
+				}
 				if (args[0] === "list") {
 					bceChatNotify(
 						`Available animations: ${Object.keys(w.bce_EventExpressions).join(
@@ -3800,6 +3806,11 @@ const BCE_BC_MOD_SDK=function(){"use strict";const VERSION="1.0.1";function Thro
 						bceChatNotify(`=> ${category}:\n${list.join("\n")}\n\n`);
 					}
 					return;
+				}
+				if (!bceSettings.expressions && !bceSettings.activityExpressions) {
+					bceChatNotify(
+						"Warning: both expression settings in BCE are disabled. Animation engine disabled. Pose may not be synchronized or set."
+					);
 				}
 				bceExpressionsQueue.forEach((e) => {
 					if (e.Type === MANUAL_OVERRIDE_EVENT_TYPE) {
