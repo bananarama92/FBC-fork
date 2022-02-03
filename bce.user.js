@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Bondage Club Enhancements
 // @namespace https://www.bondageprojects.com/
-// @version 2.1.1
+// @version 2.2.0
 // @description enhancements for the bondage club
 // @author Sidious
 // @match https://bondageprojects.elementfx.com/*
@@ -18,7 +18,7 @@
 /// <reference path="./typedef.d.ts" />
 /* eslint-disable @typescript-eslint/no-floating-promises */
 
-const BCE_VERSION = "2.1.1";
+const BCE_VERSION = "2.2.0";
 
 /*
  * Bondage Club Mod Development Kit
@@ -97,7 +97,7 @@ const BCE_BC_MOD_SDK=function(){"use strict";const VERSION="1.0.1";function Thro
 		Observe: 0,
 	});
 
-	const settingsVersion = 19;
+	const settingsVersion = 20;
 	/**
 	 * @type {Settings}
 	 */
@@ -345,6 +345,53 @@ const BCE_BC_MOD_SDK=function(){"use strict";const VERSION="1.0.1";function Thro
 				bceLog("chatColors", newValue);
 			},
 		},
+		fpsCounter: {
+			label: "Show FPS counter",
+			value: false,
+			sideEffects: (newValue) => {
+				bceLog("fpsCounter", newValue);
+			},
+		},
+		limitFPSInBackground: {
+			label: "Limit FPS in background",
+			value: false,
+			sideEffects: (newValue) => {
+				bceLog("limitFPSInBackground", newValue);
+			},
+		},
+		limitFPSTo15: {
+			label: "Limit FPS to ~15",
+			value: false,
+			sideEffects: (newValue) => {
+				bceLog("limitFPSTo15", newValue);
+				if (newValue) {
+					bceSettings.limitFPSTo30 = false;
+					bceSettings.limitFPSTo60 = false;
+				}
+			},
+		},
+		limitFPSTo30: {
+			label: "Limit FPS to ~30",
+			value: false,
+			sideEffects: (newValue) => {
+				bceLog("limitFPSTo30", newValue);
+				if (newValue) {
+					bceSettings.limitFPSTo15 = false;
+					bceSettings.limitFPSTo60 = false;
+				}
+			},
+		},
+		limitFPSTo60: {
+			label: "Limit FPS to ~60",
+			value: false,
+			sideEffects: (newValue) => {
+				bceLog("limitFPSTo60", newValue);
+				if (newValue) {
+					bceSettings.limitFPSTo30 = false;
+					bceSettings.limitFPSTo15 = false;
+				}
+			},
+		},
 	});
 
 	function settingsLoaded() {
@@ -535,20 +582,6 @@ const BCE_BC_MOD_SDK=function(){"use strict";const VERSION="1.0.1";function Thro
 		WardrobeRun: 2335336863253367,
 	});
 
-	/** @type {(name: string) => boolean} */
-	const isFunctionOriginal = (name) => {
-		if (
-			!(name in expectedHashes) ||
-			!(name in w) ||
-			// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-			typeof w[name] !== "function"
-		) {
-			return true;
-		}
-		// eslint-disable-next-line
-		return cyrb53(w[name].toString()) === expectedHashes[name];
-	};
-
 	/**
 	 * @type {(...args: any[]) => void}
 	 */
@@ -728,6 +761,7 @@ const BCE_BC_MOD_SDK=function(){"use strict";const VERSION="1.0.1";function Thro
 	accurateTimerInputs();
 	logCharacterUpdates();
 	forcedClubSlave();
+	fpsCounter();
 
 	await bcxLoad;
 
@@ -835,6 +869,37 @@ const BCE_BC_MOD_SDK=function(){"use strict";const VERSION="1.0.1";function Thro
 				return next(args);
 			});
 		}
+	}
+
+	function fpsCounter() {
+		const getSeconds = (time) => (time / 1000) | 0;
+
+		let frames = 0;
+		let lastPrint = 0;
+		let lastFPS = 0;
+
+		SDK.hookFunction("MainRun", HOOK_PRIORITIES.Observe, async (args, next) => {
+			if (bceSettings.limitFPSInBackground && !document.hasFocus()) {
+				await sleep(1000 / 10 - 5);
+			} else if (bceSettings.limitFPSTo15) {
+				await sleep(1000 / 15 - 5);
+			} else if (bceSettings.limitFPSTo30) {
+				await sleep(1000 / 30 - 5);
+			} else if (bceSettings.limitFPSTo60) {
+				await sleep(1000 / 60 - 5);
+			}
+			next(args);
+			if (bceSettings.fpsCounter) {
+				frames++;
+				const [time] = args;
+				if (typeof time === "number" && getSeconds(time) > lastPrint) {
+					lastPrint = getSeconds(time);
+					lastFPS = frames;
+					frames = 0;
+				}
+				w.DrawTextFit(lastFPS.toString(), 15, 12, 30, "white", "black");
+			}
+		});
 	}
 
 	function beepImprovements() {
@@ -4546,12 +4611,8 @@ const BCE_BC_MOD_SDK=function(){"use strict";const VERSION="1.0.1";function Thro
 				default:
 					break;
 			}
-			w.ElementCreateInput(
-				layerPriority,
-				"number",
-				initialValue.toString(),
-				"20"
-			);
+			w.ElementCreateInput(layerPriority, "number", "", "20");
+			w.ElementValue(layerPriority, initialValue.toString());
 		}
 		function prioritySubscreenExit() {
 			prioritySubscreen = false;
@@ -4643,28 +4704,30 @@ const BCE_BC_MOD_SDK=function(){"use strict";const VERSION="1.0.1";function Thro
 				}
 				const C = w.CharacterGetCurrent(),
 					focusItem = w.InventoryGet(C, C.FocusGroup?.Name);
-				if (prioritySubscreen) {
-					if (w.MouseIn(1815, 75, 90, 90)) {
-						prioritySubscreenExit();
-					} else if (w.MouseIn(900, 280, 90, 90)) {
-						savePrioritySubscreenChanges(C, focusItem);
+				if (focusItem) {
+					if (prioritySubscreen) {
+						if (w.MouseIn(1815, 75, 90, 90)) {
+							prioritySubscreenExit();
+						} else if (w.MouseIn(900, 280, 90, 90)) {
+							savePrioritySubscreenChanges(C, focusItem);
+						}
+						return null;
 					}
-					return null;
-				}
-				if (assetWorn(C, focusItem) && w.MouseIn(10, 890, 52, 52)) {
-					prioritySubscreenEnter(C, focusItem, FIELDS.Difficulty);
-					return null;
-				} else if (assetVisible(C, focusItem) && w.MouseIn(10, 948, 52, 52)) {
-					prioritySubscreenEnter(C, focusItem, FIELDS.Priority);
-					return null;
-				} else if (
-					assetWorn(C, focusItem) &&
-					w.MouseIn(10, 832, 52, 52) &&
-					colorCopiableAssets.includes(focusItem.Asset.Name) &&
-					w.Player.CanInteract()
-				) {
-					copyColors(C, focusItem);
-					return null;
+					if (assetWorn(C, focusItem) && w.MouseIn(10, 890, 52, 52)) {
+						prioritySubscreenEnter(C, focusItem, FIELDS.Difficulty);
+						return null;
+					} else if (assetVisible(C, focusItem) && w.MouseIn(10, 948, 52, 52)) {
+						prioritySubscreenEnter(C, focusItem, FIELDS.Priority);
+						return null;
+					} else if (
+						assetWorn(C, focusItem) &&
+						w.MouseIn(10, 832, 52, 52) &&
+						colorCopiableAssets.includes(focusItem.Asset.Name) &&
+						w.Player.CanInteract()
+					) {
+						copyColors(C, focusItem);
+						return null;
+					}
 				}
 				return next(args);
 			}
