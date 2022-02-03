@@ -2470,11 +2470,9 @@ const BCE_BC_MOD_SDK=function(){"use strict";const VERSION="1.0.1";function Thro
 			// eslint-disable-next-line camelcase
 			w.bce_ArousalExpressionStages = {
 				Blush: [
-					{ Expression: "Extreme", Limit: 100 },
-					{ Expression: "VeryHigh", Limit: 90 },
-					{ Expression: "High", Limit: 70 },
-					{ Expression: "Medium", Limit: 50 },
-					{ Expression: "Low", Limit: 20 },
+					{ Expression: "High", Limit: 100 },
+					{ Expression: "Medium", Limit: 60 },
+					{ Expression: "Low", Limit: 10 },
 					{ Expression: null, Limit: 0 },
 				],
 				Eyebrows: [
@@ -2484,32 +2482,22 @@ const BCE_BC_MOD_SDK=function(){"use strict";const VERSION="1.0.1";function Thro
 					{ Expression: null, Limit: 0 },
 				],
 				Fluids: [
-					{ Expression: "DroolMessy", Limit: 99 },
-					{ Expression: "DroolMedium", Limit: 90 },
-					{ Expression: "DroolSides", Limit: 80 },
-					{ Expression: "DroolLow", Limit: 50 },
+					{ Expression: "DroolMedium", Limit: 100 },
+					{ Expression: "DroolLow", Limit: 40 },
 					{ Expression: null, Limit: 0 },
 				],
 				Eyes: [
-					{ Expression: "VeryLewd", Limit: 100 },
-					{ Expression: "Lewd", Limit: 95 },
+					{ Expression: "Closed", Limit: 100 },
+					{ Expression: "Surprised", Limit: 90 },
 					{ Expression: "Horny", Limit: 70 },
-					{ Expression: "Sad", Limit: 20 },
+					{ Expression: "Dazed", Limit: 20 },
 					{ Expression: null, Limit: 0 },
 				],
 				Eyes2: [
-					{ Expression: "VeryLewd", Limit: 100 },
-					{ Expression: "Lewd", Limit: 95 },
+					{ Expression: "Closed", Limit: 100 },
+					{ Expression: "Surprised", Limit: 90 },
 					{ Expression: "Horny", Limit: 70 },
-					{ Expression: "Sad", Limit: 20 },
-					{ Expression: null, Limit: 0 },
-				],
-				Mouth: [
-					{ Expression: "Ahegao", Limit: 100 },
-					{ Expression: "Moan", Limit: 95 },
-					{ Expression: "HalfOpen", Limit: 90 },
-					{ Expression: "LipBite", Limit: 80 },
-					{ Expression: "HalfOpen", Limit: 40 },
+					{ Expression: "Dazed", Limit: 20 },
 					{ Expression: null, Limit: 0 },
 				],
 			};
