@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Bondage Club Enhancements
 // @namespace https://www.bondageprojects.com/
-// @version 2.1.0
+// @version 2.1.1
 // @description enhancements for the bondage club
 // @author Sidious
 // @match https://bondageprojects.elementfx.com/*
@@ -18,7 +18,7 @@
 /// <reference path="./typedef.d.ts" />
 /* eslint-disable @typescript-eslint/no-floating-promises */
 
-const BCE_VERSION = "2.1.0";
+const BCE_VERSION = "2.1.1";
 
 /*
  * Bondage Club Mod Development Kit
@@ -4385,6 +4385,27 @@ const BCE_BC_MOD_SDK=function(){"use strict";const VERSION="1.0.1";function Thro
 	async function layeringMenu() {
 		await waitFor(() => !!w.Player?.AppearanceLayers);
 
+		// Pseudo-items that we do not want to process for color copying
+		const ignoredColorCopiableAssets = [
+			"LeatherCrop",
+			"LeatherWhip",
+			"ShockCollarRemote",
+			"SpankingToys",
+			"VibratorRemote",
+		];
+		const colorCopiableAssets = w.Asset.filter(
+			(ass) =>
+				w.AssetGroup.filter(
+					(a) =>
+						a.Name.startsWith("Item") &&
+						!/\d$/u.test(a.Name) &&
+						a.Asset.find((b) => b.Name === ass.Name)
+				).length > 1
+		)
+			.filter((v, i, a) => a.findIndex((as) => as.Name === v.Name) === i)
+			.map((a) => a.Name)
+			.filter((a) => !ignoredColorCopiableAssets.includes(a));
+
 		let lastItem = null;
 		const layerPriority = "bce_LayerPriority";
 
@@ -4557,7 +4578,7 @@ const BCE_BC_MOD_SDK=function(){"use strict";const VERSION="1.0.1";function Thro
 							"Loosen or tighten (Cheat)"
 						);
 						if (
-							focusItem.Asset.Name === "Tentacles" &&
+							colorCopiableAssets.includes(focusItem.Asset.Name) &&
 							w.Player.CanInteract()
 						) {
 							w.DrawButton(
@@ -4568,7 +4589,7 @@ const BCE_BC_MOD_SDK=function(){"use strict";const VERSION="1.0.1";function Thro
 								"",
 								"White",
 								ICONS.PAINTBRUSH,
-								"Copy colors to other tentacles"
+								`Copy colors to other ${focusItem.Asset.Description.toLowerCase()}`
 							);
 						}
 					}
@@ -4639,7 +4660,7 @@ const BCE_BC_MOD_SDK=function(){"use strict";const VERSION="1.0.1";function Thro
 				} else if (
 					assetWorn(C, focusItem) &&
 					w.MouseIn(10, 832, 52, 52) &&
-					focusItem.Asset.Name === "Tentacles" &&
+					colorCopiableAssets.includes(focusItem.Asset.Name) &&
 					w.Player.CanInteract()
 				) {
 					copyColors(C, focusItem);
@@ -4651,7 +4672,6 @@ const BCE_BC_MOD_SDK=function(){"use strict";const VERSION="1.0.1";function Thro
 
 		/** @type {(C: Character, focusItem: Item) => void} */
 		function copyColors(C, focusItem) {
-			consistentSingleColor(focusItem);
 			for (const item of C.Appearance) {
 				copyColorTo(item);
 			}
@@ -4660,7 +4680,7 @@ const BCE_BC_MOD_SDK=function(){"use strict";const VERSION="1.0.1";function Thro
 				w.bceSendAction(
 					`${
 						w.Player.Name
-					}'s tentacle colors spread from her ${focusItem.Asset.Group.Description.toLowerCase()}`
+					}'s ${focusItem.Asset.Description.toLowerCase()} colors spread from her ${focusItem.Asset.Group.Description.toLowerCase()}`
 				);
 			} else {
 				w.CharacterRefresh(C);
@@ -4669,7 +4689,6 @@ const BCE_BC_MOD_SDK=function(){"use strict";const VERSION="1.0.1";function Thro
 			/** @type {(item: Item) => void} */
 			function copyColorTo(item) {
 				if (item.Asset.Name === focusItem.Asset.Name) {
-					consistentSingleColor(item);
 					if (Array.isArray(focusItem.Color)) {
 						if (Array.isArray(item.Color)) {
 							for (
@@ -4677,7 +4696,8 @@ const BCE_BC_MOD_SDK=function(){"use strict";const VERSION="1.0.1";function Thro
 								i < item.Color.length && i < focusItem.Color.length;
 								i++
 							) {
-								item.Color[i] = focusItem.Color[i];
+								item.Color[item.Color.length - (i + 1)] =
+									focusItem.Color[focusItem.Color.length - (i + 1)];
 							}
 						} else {
 							item.Color = focusItem.Color[focusItem.Color.length - 1];
@@ -4689,13 +4709,6 @@ const BCE_BC_MOD_SDK=function(){"use strict";const VERSION="1.0.1";function Thro
 					} else {
 						item.Color = [...focusItem.Color];
 					}
-				}
-			}
-
-			/** @type {(i: Item) => void} */
-			function consistentSingleColor(i) {
-				if (Array.isArray(i.Color) && i.Color.length === 1) {
-					[i.Color] = i.Color;
 				}
 			}
 		}
@@ -6162,6 +6175,7 @@ const BCE_BC_MOD_SDK=function(){"use strict";const VERSION="1.0.1";function Thro
  * @property {boolean} AllowNone
  * @property {boolean} BodyCosplay
  * @property {boolean} Clothing
+ * @property {Asset[]} Asset
  */
 
 /**
@@ -6527,6 +6541,8 @@ const BCE_BC_MOD_SDK=function(){"use strict";const VERSION="1.0.1";function Thro
  * @property {(data: Object) => void} ChatRoomMessage
  * @property {(data: { MemberNumber: number; Character?: Character; Pose: string | string[]; }) => void} ChatRoomSyncPose
  * @property {(skipHistory?: boolean) => void} ChatRoomSendChat
+ * @property {Asset[]} Asset
+ * @property {AssetGroup[]} AssetGroup
  *
  * @typedef {Window & WindowExtension} ExtendedWindow
  */
