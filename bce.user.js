@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Bondage Club Enhancements
 // @namespace https://www.bondageprojects.com/
-// @version 2.2.0
+// @version 2.2.1
 // @description enhancements for the bondage club
 // @author Sidious
 // @match https://bondageprojects.elementfx.com/*
@@ -18,7 +18,7 @@
 /// <reference path="./typedef.d.ts" />
 /* eslint-disable @typescript-eslint/no-floating-promises */
 
-const BCE_VERSION = "2.2.0";
+const BCE_VERSION = "2.2.1";
 
 /*
  * Bondage Club Mod Development Kit
@@ -4006,6 +4006,16 @@ const BCE_BC_MOD_SDK=function(){"use strict";const VERSION="1.0.1";function Thro
 			}
 		);
 
+		const faceComponents = [
+			"Eyes",
+			"Eyes2",
+			"Eyebrows",
+			"Mouth",
+			"Fluids",
+			"Emoticon",
+			"Blush",
+		];
+
 		let lastOrgasm = 0,
 			orgasmCount = 0,
 			wasDefault = false;
@@ -4030,15 +4040,7 @@ const BCE_BC_MOD_SDK=function(){"use strict";const VERSION="1.0.1";function Thro
 
 			// Reset everything when face is fully default
 			let isDefault = true;
-			for (const t of [
-				"Eyes",
-				"Eyes2",
-				"Eyebrows",
-				"Mouth",
-				"Fluids",
-				"Emoticon",
-				"Blush",
-			]) {
+			for (const t of faceComponents) {
 				if (expression(t)[0]) {
 					isDefault = false;
 				}
@@ -4329,9 +4331,12 @@ const BCE_BC_MOD_SDK=function(){"use strict";const VERSION="1.0.1";function Thro
 				}
 			}
 
-			for (const t of Object.keys(nextExpression)) {
+			for (const t of faceComponents) {
 				const [exp] = expression(t),
-					nextExp = nextExpression[t];
+					nextExp = nextExpression[t] || {
+						Duration: -1,
+						Expression: null,
+					};
 				if (
 					nextExp.Expression !== exp &&
 					typeof nextExp.Expression !== "undefined"
