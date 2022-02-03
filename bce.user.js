@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Bondage Club Enhancements
 // @namespace https://www.bondageprojects.com/
-// @version 2.2.1
+// @version 2.2.2
 // @description enhancements for the bondage club
 // @author Sidious
 // @match https://bondageprojects.elementfx.com/*
@@ -18,7 +18,7 @@
 /// <reference path="./typedef.d.ts" />
 /* eslint-disable @typescript-eslint/no-floating-promises */
 
-const BCE_VERSION = "2.2.1";
+const BCE_VERSION = "2.2.2";
 
 /*
  * Bondage Club Mod Development Kit
@@ -80,6 +80,8 @@ const BCE_BC_MOD_SDK=function(){"use strict";const VERSION="1.0.1";function Thro
 		}),
 		TIMER_INPUT_ID = "bce_timerInput",
 		WHISPER_CLASS = "bce-whisper-input";
+
+	let bcxType = "none";
 
 	if (typeof w.ChatRoomCharacter === "undefined") {
 		console.warn("Bondage Club not detected. Skipping BCE initialization.");
@@ -1434,12 +1436,20 @@ const BCE_BC_MOD_SDK=function(){"use strict";const VERSION="1.0.1";function Thro
 	async function loadBCX() {
 		await waitFor(settingsLoaded);
 
+		if (w.BCX_Loaded) {
+			bcxType = "external";
+			bceLog("BCX already loaded, skipping loadBCX()");
+			return;
+		}
+
 		/** @type {string} */
 		let source = null;
 		if (bceSettings.bcx) {
 			source = BCX_SOURCE;
+			bcxType = "stable";
 		} else if (bceSettings.bcxDevel) {
 			source = BCX_DEVEL_SOURCE;
+			bcxType = "devel";
 		} else {
 			return;
 		}
@@ -5976,12 +5986,6 @@ const BCE_BC_MOD_SDK=function(){"use strict";const VERSION="1.0.1";function Thro
 
 	(function () {
 		const sendHeartbeat = () => {
-			let bcxType = "none";
-			if (bceSettings.bcx) {
-				bcxType = "stable";
-			} else if (bceSettings.bcxDevel) {
-				bcxType = "devel";
-			}
 			w.ServerSend("AccountBeep", {
 				BeepType: "Leash",
 				// BCE statbot, which only collects anonymous aggregate version and usage data to justify supporting or dropping support for features
@@ -5990,7 +5994,11 @@ const BCE_BC_MOD_SDK=function(){"use strict";const VERSION="1.0.1";function Thro
 					Version: BCE_VERSION,
 					GameVersion: w.GameVersion,
 					BCX: bcxType,
+					// !! to avoid passing room name to statbot, only presence inside a room or not
+					InRoom: !!w.Player.LastChatRoom,
+					InPrivate: !!w.Player.LastChatRoomPrivate,
 				}),
+				// IsSecret: true to avoid passing room name to statbot
 				IsSecret: true,
 			});
 		};
@@ -6173,6 +6181,8 @@ const BCE_BC_MOD_SDK=function(){"use strict";const VERSION="1.0.1";function Thro
  * @property {number[]} BlackList
  * @property {number[]} GhostList
  * @property {number[]} FriendList
+ * @property {string} LastChatRoom
+ * @property {boolean} LastChatRoomPrivate
  * @property {Map<number, string>} FriendNames
  * @property {{ Name: string; MemberNumber: number; Start: number; Stage: number }} [Ownership]
  * @property {{ Function: string; NextStage: string; Option: string; Prerequisite: string; Result: string; Stage: string; Modded?: boolean }[]} [Dialog]
