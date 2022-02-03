@@ -4642,29 +4642,63 @@ const BCE_BC_MOD_SDK=function(){"use strict";const VERSION="1.0.1";function Thro
 					focusItem.Asset.Name === "Tentacles" &&
 					w.Player.CanInteract()
 				) {
-					for (const item of C.Appearance) {
-						if (
-							item.Asset.Name === "Tentacles" &&
-							Array.isArray(focusItem.Color)
-						) {
-							item.Color = [...focusItem.Color];
-						}
-					}
-					if (w.CurrentScreen === "ChatRoom") {
-						w.ChatRoomCharacterUpdate(C);
-						w.bceSendAction(
-							`${
-								w.Player.Name
-							}'s tentacle colors spread from her ${focusItem.Asset.Group.Description.toLowerCase()}`
-						);
-					} else {
-						w.CharacterRefresh(C);
-					}
+					copyColors(C, focusItem);
 					return null;
 				}
 				return next(args);
 			}
 		);
+
+		/** @type {(C: Character, focusItem: Item) => void} */
+		function copyColors(C, focusItem) {
+			consistentSingleColor(focusItem);
+			for (const item of C.Appearance) {
+				copyColorTo(item);
+			}
+			if (w.CurrentScreen === "ChatRoom") {
+				w.ChatRoomCharacterUpdate(C);
+				w.bceSendAction(
+					`${
+						w.Player.Name
+					}'s tentacle colors spread from her ${focusItem.Asset.Group.Description.toLowerCase()}`
+				);
+			} else {
+				w.CharacterRefresh(C);
+			}
+
+			/** @type {(item: Item) => void} */
+			function copyColorTo(item) {
+				if (item.Asset.Name === focusItem.Asset.Name) {
+					consistentSingleColor(item);
+					if (Array.isArray(focusItem.Color)) {
+						if (Array.isArray(item.Color)) {
+							for (
+								let i = 0;
+								i < item.Color.length && i < focusItem.Color.length;
+								i++
+							) {
+								item.Color[i] = focusItem.Color[i];
+							}
+						} else {
+							item.Color = focusItem.Color[focusItem.Color.length - 1];
+						}
+					} else if (Array.isArray(item.Color)) {
+						for (let i = 0; i < item.Color.length; i++) {
+							item.Color[i] = focusItem.Color;
+						}
+					} else {
+						item.Color = [...focusItem.Color];
+					}
+				}
+			}
+
+			/** @type {(i: Item) => void} */
+			function consistentSingleColor(i) {
+				if (Array.isArray(i.Color) && i.Color.length === 1) {
+					[i.Color] = i.Color;
+				}
+			}
+		}
 
 		/** @type {(C: Character, focusItem: Item) => void} */
 		function savePrioritySubscreenChanges(C, focusItem) {
