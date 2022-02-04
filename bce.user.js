@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Bondage Club Enhancements
 // @namespace https://www.bondageprojects.com/
-// @version 2.2.2
+// @version 2.3.0
 // @description enhancements for the bondage club
 // @author Sidious
 // @match https://bondageprojects.elementfx.com/*
@@ -18,7 +18,7 @@
 /// <reference path="./typedef.d.ts" />
 /* eslint-disable @typescript-eslint/no-floating-promises */
 
-const BCE_VERSION = "2.2.2";
+const BCE_VERSION = "2.3.0";
 
 /*
  * Bondage Club Mod Development Kit
@@ -893,34 +893,48 @@ const BCE_BC_MOD_SDK=function(){"use strict";const VERSION="1.0.1";function Thro
 	}
 
 	function fpsCounter() {
-		const getSeconds = (time) => (time / 1000) | 0;
+		let lastFrame = -1;
 
-		let frames = 0;
-		let lastPrint = 0;
-		let lastFPS = 0;
+		/** @type {(ms: number) => number} */
+		const expectedFrameTime = (ms) => (1000 / ms) | 0;
 
-		SDK.hookFunction("MainRun", HOOK_PRIORITIES.Observe, async (args, next) => {
-			if (bceSettings.limitFPSInBackground && !document.hasFocus()) {
-				await sleep(1000 / 10 - 5);
-			} else if (bceSettings.limitFPSTo15) {
-				await sleep(1000 / 15 - 5);
-			} else if (bceSettings.limitFPSTo30) {
-				await sleep(1000 / 30 - 5);
-			} else if (bceSettings.limitFPSTo60) {
-				await sleep(1000 / 60 - 5);
-			}
-			next(args);
-			if (bceSettings.fpsCounter) {
-				frames++;
+		SDK.hookFunction(
+			"MainRun",
+			HOOK_PRIORITIES.Observe,
+			/** @type {(args: DOMHighResTimeStamp[], next: (args: DOMHighResTimeStamp[]) => void) => void} */
+			(args, next) => {
 				const [time] = args;
-				if (typeof time === "number" && getSeconds(time) > lastPrint) {
-					lastPrint = getSeconds(time);
-					lastFPS = frames;
-					frames = 0;
+				if (lastFrame >= 0) {
+					let ftl = 0;
+					if (bceSettings.limitFPSInBackground && !document.hasFocus()) {
+						ftl = 10;
+					} else if (bceSettings.limitFPSTo15) {
+						ftl = 15;
+					} else if (bceSettings.limitFPSTo30) {
+						ftl = 30;
+					} else if (bceSettings.limitFPSTo60) {
+						ftl = 60;
+					}
+					if (lastFrame + expectedFrameTime(ftl) > time) {
+						requestAnimationFrame(w.MainRun);
+						return;
+					}
 				}
-				w.DrawTextFit(lastFPS.toString(), 15, 12, 30, "white", "black");
+				const frameTime = time - lastFrame;
+				lastFrame = time;
+				next(args);
+				if (bceSettings.fpsCounter) {
+					w.DrawTextFit(
+						(Math.round(10000 / frameTime) / 10).toString(),
+						15,
+						12,
+						30,
+						"white",
+						"black"
+					);
+				}
 			}
-		});
+		);
 	}
 
 	function beepImprovements() {
@@ -2212,7 +2226,7 @@ const BCE_BC_MOD_SDK=function(){"use strict";const VERSION="1.0.1";function Thro
 		// CTRL+Enter OOC implementation
 		SDK.patchFunction("ChatRoomKeyDown", {
 			"ChatRoomSendChat()":
-				'if ("bceSettingValue" in window && bceSettingValue("ctrlEnterOoc") && event.ctrlKey) ElementValue("InputChat", "(" + ElementValue("InputChat"));ChatRoomSendChat()',
+				'if ("bceSettingValue" in window && bceSettingValue("ctrlEnterOoc") && event.ctrlKey && ElementValue("InptuChat")?.trim()) ElementValue("InputChat", "(" + ElementValue("InputChat"));ChatRoomSendChat()',
 		});
 
 		// CommandParse patch for link OOC in whispers
