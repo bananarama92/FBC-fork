@@ -68,6 +68,8 @@ const BCE_BC_MOD_SDK=function(){"use strict";const VERSION="1.0.1";function Thro
 			FriendList: "FriendList",
 		}),
 		DARK_INPUT_CLASS = "bce-dark-input",
+		DEFAULT_WARDROBE_SIZE = 24,
+		EXPANDED_WARDROBE_SIZE = 96,
 		GAGBYPASSINDICATOR = "\uf123",
 		GLASSES_BLIND_CLASS = "bce-blind",
 		GLASSES_BLUR_TARGET = w.MainCanvas,
@@ -99,7 +101,7 @@ const BCE_BC_MOD_SDK=function(){"use strict";const VERSION="1.0.1";function Thro
 		Observe: 0,
 	});
 
-	const settingsVersion = 20;
+	const settingsVersion = 21;
 	/**
 	 * @type {Settings}
 	 */
@@ -391,6 +393,22 @@ const BCE_BC_MOD_SDK=function(){"use strict";const VERSION="1.0.1";function Thro
 				if (newValue) {
 					bceSettings.limitFPSTo30 = false;
 					bceSettings.limitFPSTo15 = false;
+				}
+			},
+		},
+		extendedWardrobe: {
+			label: "Extended wardrobe slots (96)",
+			value: false,
+			sideEffects: (newValue) => {
+				bceLog("extendedWardrobe", newValue);
+				if (newValue) {
+					w.WardrobeSize = EXPANDED_WARDROBE_SIZE;
+					loadExtendedWardrobe(w.Player.Wardrobe);
+				} else {
+					// Restore original size
+					w.WardrobeSize = DEFAULT_WARDROBE_SIZE;
+					w.WardrobeFixLength();
+					w.CharacterAppearanceWardrobeOffset = 0;
 				}
 			},
 		},
@@ -737,6 +755,7 @@ const BCE_BC_MOD_SDK=function(){"use strict";const VERSION="1.0.1";function Thro
 
 	functionIntegrityCheck();
 	bceStyles();
+	extendedWardrobe();
 	automaticReconnect();
 	hiddenMessageHandler();
 	await bceLoadSettings();
@@ -4995,10 +5014,6 @@ const BCE_BC_MOD_SDK=function(){"use strict";const VERSION="1.0.1";function Thro
 					targetCharacter = isCharacter(C) ? C : w.CharacterGetCurrent();
 					w.TextLoad("Wardrobe");
 					w.WardrobeLoad();
-					// Ensure all previews load by refreshing their rendering
-					w.WardrobeCharacter.forEach((a) =>
-						w.CharacterRefresh(a, false, false)
-					);
 					return null;
 				}
 				return next(args);
@@ -5018,6 +5033,21 @@ const BCE_BC_MOD_SDK=function(){"use strict";const VERSION="1.0.1";function Thro
 					return null;
 				}
 				return next(args);
+			}
+		);
+
+		SDK.hookFunction(
+			"WardrobeRun",
+			HOOK_PRIORITIES.AddBehaviour,
+			(args, next) => {
+				const ret = next(args);
+				w.DrawText(
+					`Page: ${((w.WardrobeOffset / 12) | 0) + 1}/${w.WardrobeSize / 12}`,
+					300,
+					35,
+					"White"
+				);
+				return ret;
 			}
 		);
 
@@ -5984,6 +6014,88 @@ const BCE_BC_MOD_SDK=function(){"use strict";const VERSION="1.0.1";function Thro
 		await patch;
 	}
 
+	async function extendedWardrobe() {
+		await waitFor(() => !!w.ServerSocket);
+
+		SDK.hookFunction(
+			"CharacterDecompressWardrobe",
+			HOOK_PRIORITIES.ModifyBehaviourMedium,
+			(args, next) => {
+				let wardrobe = next(args);
+				if (
+					isWardrobe(wardrobe) &&
+					bceSettings.expandedWardrobe &&
+					wardrobe.length < EXPANDED_WARDROBE_SIZE
+				) {
+					wardrobe = loadExtendedWardrobe(wardrobe);
+				}
+				return wardrobe;
+			}
+		);
+
+		SDK.hookFunction(
+			"CharacterCompressWardrobe",
+			HOOK_PRIORITIES.Top,
+			/** @type {(args: (ItemBundle[][] | string)[][], next: (args: (ItemBundle[][] | string)[][]) => string) => string} */
+			(args, next) => {
+				const [wardrobe] = args;
+				if (isWardrobe(wardrobe)) {
+					const additionalWardrobe = wardrobe.slice(DEFAULT_WARDROBE_SIZE);
+					if (additionalWardrobe.length > 0) {
+						w.Player.BCEWardrobe = w.LZString.compressToUTF16(
+							JSON.stringify(additionalWardrobe)
+						);
+						bceLog("saving", additionalWardrobe);
+						args[0] = wardrobe.slice(0, DEFAULT_WARDROBE_SIZE);
+						w.ServerAccountUpdate.QueueData({
+							BCEWardrobe: w.Player.BCEWardrobe,
+						});
+					}
+				}
+				return next(args);
+			}
+		);
+
+		SDK.hookFunction(
+			"LoginResponse",
+			HOOK_PRIORITIES.Top,
+			/** @type {(args: Character[], next: (args: Character[]) => void) => void} */
+			(args, next) => {
+				const [{ BCEWardrobe }] = args;
+				if (isString(BCEWardrobe)) {
+					w.Player.BCEWardrobe = BCEWardrobe;
+				}
+				return next(args);
+			}
+		);
+	}
+
+	/** @type {(wardrobe: ItemBundle[][]) => ItemBundle[][]} */
+	function loadExtendedWardrobe(wardrobe) {
+		if (bceSettings.extendedWardrobe) {
+			w.WardrobeSize = EXPANDED_WARDROBE_SIZE;
+			w.WardrobeFixLength();
+		}
+		if (w.Player.BCEWardrobe) {
+			/** @type {ItemBundle[][]} */
+			// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+			const additionalItemBundle = JSON.parse(
+				w.LZString.decompressFromUTF16(w.Player.BCEWardrobe)
+			);
+			bceLog("loading", additionalItemBundle);
+			if (isWardrobe(additionalItemBundle)) {
+				for (let i = DEFAULT_WARDROBE_SIZE; i < EXPANDED_WARDROBE_SIZE; i++) {
+					const additionalIdx = i - DEFAULT_WARDROBE_SIZE;
+					if (additionalIdx >= additionalItemBundle.length) {
+						break;
+					}
+					wardrobe[i] = additionalItemBundle[additionalIdx];
+				}
+			}
+		}
+		return wardrobe;
+	}
+
 	(function () {
 		const sendHeartbeat = () => {
 			w.ServerSend("AccountBeep", {
@@ -6068,6 +6180,29 @@ const BCE_BC_MOD_SDK=function(){"use strict";const VERSION="1.0.1";function Thro
 	/** @type {(c: unknown) => c is (string | string[])} */
 	function isStringOrStringArray(c) {
 		return isString(c) || (Array.isArray(c) && c.every(isString));
+	}
+
+	/** @type {(o: unknown) => o is ItemBundle[][]} */
+	function isWardrobe(o) {
+		return (
+			Array.isArray(o) && o.every((b) => isItemBundleArray(b) || b === null)
+		);
+	}
+
+	/** @type {(o: unknown) => o is ItemBundle[]} */
+	function isItemBundleArray(o) {
+		return Array.isArray(o) && o.every(isItemBundle);
+	}
+
+	/** @type {(o: unknown) => o is ItemBundle} */
+	function isItemBundle(o) {
+		return (
+			isNonNullObject(o) &&
+			// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+			typeof o.Name === "string" &&
+			// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+			typeof o.Group === "string"
+		);
 	}
 
 	// Confirm leaving the page to prevent accidental back button, refresh, or other navigation-related disruptions
@@ -6167,6 +6302,7 @@ const BCE_BC_MOD_SDK=function(){"use strict";const VERSION="1.0.1";function Thro
  * @property {number} Creation
  * @property {Item[]} Appearance
  * @property {ItemLayer[]} AppearanceLayers
+ * @property {ItemBundle[][]} Wardrobe
  * @property {AssetGroup} [FocusGroup]
  * @property {string[] | null} [ActivePose]
  * @property {string} [BCE]
@@ -6174,6 +6310,7 @@ const BCE_BC_MOD_SDK=function(){"use strict";const VERSION="1.0.1";function Thro
  * @property {string[]} [BCECapabilities]
  * @property {number} [BCEArousalProgress]
  * @property {number} [BCEEnjoyment]
+ * @property {string} [BCEWardrobe]
  * @property {() => boolean} IsPlayer
  * @property {() => boolean} IsOnline
  * @property {() => boolean} CanChange
@@ -6209,7 +6346,9 @@ const BCE_BC_MOD_SDK=function(){"use strict";const VERSION="1.0.1";function Thro
 /**
  * @typedef {Object} LZString
  * @property {(data: string) => string} compressToBase64
+ * @property {(data: string) => string} compressToUTF16
  * @property {(data: string) => string} decompressFromBase64
+ * @property {(data: string) => string} decompressFromUTF16
  */
 
 /**
@@ -6455,6 +6594,7 @@ const BCE_BC_MOD_SDK=function(){"use strict";const VERSION="1.0.1";function Thro
  * @property {(msg: string) => void} CommandParse
  * @property {Character} Player
  * @property {number} WardrobeSize
+ * @property {number} WardrobeOffset
  * @property {AccountUpdater} ServerAccountUpdate
  * @property {() => string} ChatRoomCurrentTime
  * @property {LZString} LZString
@@ -6609,6 +6749,10 @@ const BCE_BC_MOD_SDK=function(){"use strict";const VERSION="1.0.1";function Thro
  * @property {(skipHistory?: boolean) => void} ChatRoomSendChat
  * @property {Asset[]} Asset
  * @property {AssetGroup[]} AssetGroup
+ * @property {(wardrobe: ItemBundle[][] | string) => ItemBundle[][]} CharacterDecompressWardrobe
+ * @property {(wardrobe: ItemBundle[][]) => string} CharacterCompressWardrobe
+ * @property {number} CharacterAppearanceWardrobeOffset
+ * @property {(time: DOMHighResTimeStamp) => void} MainRun
  *
  * @typedef {Window & WindowExtension} ExtendedWindow
  */
