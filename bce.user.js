@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Bondage Club Enhancements
 // @namespace https://www.bondageprojects.com/
-// @version 2.3.0
+// @version 2.3.1
 // @description enhancements for the bondage club
 // @author Sidious
 // @match https://bondageprojects.elementfx.com/*
@@ -18,7 +18,7 @@
 /// <reference path="./typedef.d.ts" />
 /* eslint-disable @typescript-eslint/no-floating-promises */
 
-const BCE_VERSION = "2.3.0";
+const BCE_VERSION = "2.3.1";
 
 /*
  * Bondage Club Mod Development Kit
@@ -2226,7 +2226,7 @@ const BCE_BC_MOD_SDK=function(){"use strict";const VERSION="1.0.1";function Thro
 		// CTRL+Enter OOC implementation
 		SDK.patchFunction("ChatRoomKeyDown", {
 			"ChatRoomSendChat()":
-				'if ("bceSettingValue" in window && bceSettingValue("ctrlEnterOoc") && event.ctrlKey && ElementValue("InptuChat")?.trim()) ElementValue("InputChat", "(" + ElementValue("InputChat"));ChatRoomSendChat()',
+				'if ("bceSettingValue" in window && bceSettingValue("ctrlEnterOoc") && event.ctrlKey && ElementValue("InputChat")?.trim()) ElementValue("InputChat", "(" + ElementValue("InputChat"));ChatRoomSendChat()',
 		});
 
 		// CommandParse patch for link OOC in whispers
