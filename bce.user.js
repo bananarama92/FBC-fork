@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Bondage Club Enhancements
 // @namespace https://www.bondageprojects.com/
-// @version 2.4.4
+// @version 2.4.5
 // @description enhancements for the bondage club
 // @author Sidious
 // @match https://bondageprojects.elementfx.com/*
@@ -18,7 +18,7 @@
 /// <reference path="./typedef.d.ts" />
 /* eslint-disable @typescript-eslint/no-floating-promises */
 
-const BCE_VERSION = "2.4.4";
+const BCE_VERSION = "2.4.5";
 
 /*
  * Bondage Club Mod Development Kit
@@ -6077,7 +6077,8 @@ const BCE_BC_MOD_SDK=function(){"use strict";const VERSION="1.0.1";function Thro
 		rightContainer.appendChild(messageInput);
 		document.body.appendChild(container);
 
-		const storageKey = "bce-instant-messenger-state";
+		const storageKey = () =>
+			`bce-instant-messenger-state-${w.Player.AccountName.toLowerCase()}`;
 
 		/** @type {number | null} */
 		let activeChat = null;
@@ -6109,7 +6110,7 @@ const BCE_BC_MOD_SDK=function(){"use strict";const VERSION="1.0.1";function Thro
 						.join(""),
 				};
 			});
-			localStorage.setItem(storageKey, JSON.stringify(history));
+			localStorage.setItem(storageKey(), JSON.stringify(history));
 		};
 
 		/** @type {(friendId: number) => void} */
@@ -6208,17 +6209,18 @@ const BCE_BC_MOD_SDK=function(){"use strict";const VERSION="1.0.1";function Thro
 			if (container.classList.contains("bce-hidden")) {
 				unreadSinceOpened++;
 			}
-			processChatAugmentsForLine(message, () => null);
+			const noop = () => null;
+			processChatAugmentsForLine(
+				message,
+				scrolledToEnd ? scrollToBottom : noop
+			);
 
 			friend.history.appendChild(message);
 			if (scrolledToEnd) {
 				scrollToBottom();
 			}
 
-			if (
-				friendId !== activeChat ||
-				container.classList.contains("bce-hidden")
-			) {
+			if (!document.hasFocus()) {
 				if (w.Player.AudioSettings?.PlayBeeps) {
 					w.AudioPlayInstantSound("Audio/BeepAlarm.mp3");
 				}
@@ -6279,7 +6281,7 @@ const BCE_BC_MOD_SDK=function(){"use strict";const VERSION="1.0.1";function Thro
 				if (friend.handshake === "pending") {
 					setHandshakeStatus(friendId, false);
 				}
-			}, 5000);
+			}, 60000);
 		};
 
 		/** @type {(friendId: number, isResponse?: boolean) => void} */
@@ -6345,7 +6347,7 @@ const BCE_BC_MOD_SDK=function(){"use strict";const VERSION="1.0.1";function Thro
 
 		/** @type {{ [key: string]: { historyRaw: RawHistory[], historyHTML: string } }} */
 		// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-		const history = JSON.parse(localStorage.getItem(storageKey) || "{}");
+		const history = JSON.parse(localStorage.getItem(storageKey()) || "{}");
 		for (const [friendIdStr, friendHistory] of Object.entries(history)) {
 			const friendId = parseInt(friendIdStr);
 			const friend = handleUnseenFriend(friendId);
@@ -6440,6 +6442,9 @@ const BCE_BC_MOD_SDK=function(){"use strict";const VERSION="1.0.1";function Thro
 					if (!data.Result.some((f) => f.MemberNumber === activeChat)) {
 						// Disable input, current user is offline
 						messageInput.disabled = true;
+					} else {
+						// Enable input, current user is online
+						messageInput.disabled = false;
 					}
 				}
 			}
