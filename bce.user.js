@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Bondage Club Enhancements
 // @namespace https://www.bondageprojects.com/
-// @version 2.4.3
+// @version 2.4.4
 // @description enhancements for the bondage club
 // @author Sidious
 // @match https://bondageprojects.elementfx.com/*
@@ -18,7 +18,7 @@
 /// <reference path="./typedef.d.ts" />
 /* eslint-disable @typescript-eslint/no-floating-promises */
 
-const BCE_VERSION = "2.4.3";
+const BCE_VERSION = "2.4.4";
 
 /*
  * Bondage Club Mod Development Kit
@@ -2236,7 +2236,7 @@ const BCE_BC_MOD_SDK=function(){"use strict";const VERSION="1.0.1";function Thro
 			position: fixed;
 			width: 80%;
 			height: 70%;
-			top: 15%;
+			top: 5%;
 			left: 10%;
 			padding: 0;
 			margin: 0;
