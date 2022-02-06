@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Bondage Club Enhancements
 // @namespace https://www.bondageprojects.com/
-// @version 2.4.2
+// @version 2.4.3
 // @description enhancements for the bondage club
 // @author Sidious
 // @match https://bondageprojects.elementfx.com/*
@@ -18,7 +18,7 @@
 /// <reference path="./typedef.d.ts" />
 /* eslint-disable @typescript-eslint/no-floating-promises */
 
-const BCE_VERSION = "2.4.2";
+const BCE_VERSION = "2.4.3";
 
 /*
  * Bondage Club Mod Development Kit
@@ -2162,10 +2162,13 @@ const BCE_BC_MOD_SDK=function(){"use strict";const VERSION="1.0.1";function Thro
 			background-color: #481D64;
 			color: white;
 		}
+		.bce-img-link {
+			vertical-align: top;
+		}
 		.bce-img {
-			max-height:25rem;
-			max-width:90%;
-			display:block;
+			max-height: 25rem;
+			max-width: 90%;
+			display: inline;
 			border:1px solid red;
 			padding: 0.1rem;
 		}
@@ -2183,11 +2186,13 @@ const BCE_BC_MOD_SDK=function(){"use strict";const VERSION="1.0.1";function Thro
 		.${INPUT_WARN_CLASS} {
 			background-color: yellow !important;
 		}
-		#TextAreaChatLog a {
+		#TextAreaChatLog a,
+		.bce-message a {
 			color: #003f91;
 			cursor: pointer;
 		}
-		#TextAreaChatLog a:visited {
+		#TextAreaChatLog a:visited,
+		.bce-message a {
 			color: #380091;
 		}
 		.${BCE_COLOR_ADJUSTMENTS_CLASS_NAME} div.ChatMessageWhisper,
@@ -2199,11 +2204,13 @@ const BCE_BC_MOD_SDK=function(){"use strict";const VERSION="1.0.1";function Thro
 			color: #828282;
 		}
 		#TextAreaChatLog[data-colortheme="dark"] a,
-		#TextAreaChatLog[data-colortheme="dark2"] a {
+		#TextAreaChatLog[data-colortheme="dark2"] a,
+		.bce-message a {
 			color: #a9ceff;
 		}
 		#TextAreaChatLog[data-colortheme="dark"] a:visited,
-		#TextAreaChatLog[data-colortheme="dark2"] a:visited {
+		#TextAreaChatLog[data-colortheme="dark2"] a:visited,
+		.bce-message a {
 			color: #3d91ff;
 		}
 		.${GLASSES_BLIND_CLASS} {
@@ -2227,15 +2234,16 @@ const BCE_BC_MOD_SDK=function(){"use strict";const VERSION="1.0.1";function Thro
 			display: flex;
 			z-index: 100;
 			position: fixed;
-			width: 100%;
-			height: 100%;
-			top: 0px;
-			left: 0px;
+			width: 80%;
+			height: 70%;
+			top: 15%;
+			left: 10%;
 			padding: 0;
 			margin: 0;
 			flex-direction: row;
 			background-color: #111;
 			color: #eee;
+			border: 0.2em solid white;
 		}
 		#bce-friend-list {
 			width: 100%;
@@ -2266,6 +2274,7 @@ const BCE_BC_MOD_SDK=function(){"use strict";const VERSION="1.0.1";function Thro
 			width: 80%;
 			display: flex;
 			flex-direction: column;
+			border-left: 0.1em solid white;
 		}
 		#bce-message-input {
 			width: 100%;
@@ -2276,20 +2285,6 @@ const BCE_BC_MOD_SDK=function(){"use strict";const VERSION="1.0.1";function Thro
 			background-color: #222;
 			color: #eee;
 			font-size: 1.5rem;
-		}
-		#bce-message-exit {
-			z-index: 120;
-			position: fixed;
-			top: 5px;
-			right: 5px;
-			font-size: 2em;
-			color: white;
-			background-color: red;
-			border: 0;
-			border-radius: 0.2em;
-		}
-		#bce-message-exit:hover {
-			background-color: #800;
 		}
 		.bce-friend-list-unread {
 			background-color: #a22;
@@ -2302,7 +2297,7 @@ const BCE_BC_MOD_SDK=function(){"use strict";const VERSION="1.0.1";function Thro
 			padding: 0.2em 0.4em;
 			position: relative;
 		}
-		.bce-message::after {
+		.bce-message::before {
 			content: attr(data-time);
 			float: right;
 			color: gray;
@@ -3998,9 +3993,6 @@ const BCE_BC_MOD_SDK=function(){"use strict";const VERSION="1.0.1";function Thro
 					Duration: duration,
 					Expression: e,
 				};
-				if (duration < 0) {
-					bceLog("infinite manual expression", evt);
-				}
 				// @ts-ignore
 				pushEvent(evt);
 				return CustomArousalExpression();
@@ -6073,16 +6065,6 @@ const BCE_BC_MOD_SDK=function(){"use strict";const VERSION="1.0.1";function Thro
 		messageInput.id = "bce-message-input";
 		messageInput.setAttribute("maxlength", "2000");
 
-		const exitButton = document.createElement("button");
-		exitButton.id = "bce-message-exit";
-		exitButton.classList.add("bce-hidden");
-		exitButton.innerText = "X";
-		exitButton.onclick = () => {
-			exitButton.classList.add("bce-hidden");
-			container.classList.toggle("bce-hidden");
-		};
-		document.body.appendChild(exitButton);
-
 		const friendSearch = document.createElement("input");
 		friendSearch.id = "bce-friend-search";
 		friendSearch.setAttribute("placeholder", "Search for a friend");
@@ -6127,7 +6109,6 @@ const BCE_BC_MOD_SDK=function(){"use strict";const VERSION="1.0.1";function Thro
 						.join(""),
 				};
 			});
-			bceLog(history);
 			localStorage.setItem(storageKey, JSON.stringify(history));
 		};
 
@@ -6303,7 +6284,6 @@ const BCE_BC_MOD_SDK=function(){"use strict";const VERSION="1.0.1";function Thro
 
 		/** @type {(friendId: number, isResponse?: boolean) => void} */
 		const sendHandshake = (friendId, isResponse = false) => {
-			bceLog("Sending handshake", friendId, isResponse);
 			if (!isResponse) {
 				setHandshakeStatus(friendId, "pending");
 			} else {
@@ -6371,8 +6351,6 @@ const BCE_BC_MOD_SDK=function(){"use strict";const VERSION="1.0.1";function Thro
 			const friend = handleUnseenFriend(friendId);
 			friend.historyRaw = friendHistory.historyRaw;
 			friend.history.innerHTML = friendHistory.historyHTML;
-			bceLog(friendIdStr, friendId, friendHistory);
-			bceLog(friend.history);
 		}
 
 		messageInput.addEventListener("keydown", (e) => {
@@ -6530,7 +6508,6 @@ const BCE_BC_MOD_SDK=function(){"use strict";const VERSION="1.0.1";function Thro
 			(args, next) => {
 				if (bceSettings.instantMessenger && w.MouseIn(70, 905, 60, 60)) {
 					container.classList.toggle("bce-hidden");
-					exitButton.classList.remove("bce-hidden");
 					w.ServerSend("AccountQuery", { Query: "OnlineFriends" });
 					unreadSinceOpened = 0;
 					scrollToBottom();
@@ -6697,6 +6674,7 @@ const BCE_BC_MOD_SDK=function(){"use strict";const VERSION="1.0.1";function Thro
 					// Embed or link
 					/** @type {HTMLElement | Text} */
 					let domNode = null;
+					const linkNode = document.createElement("a");
 					switch (bceAllowedToEmbed(url)) {
 						case EMBED_TYPE.Image:
 							{
@@ -6705,6 +6683,7 @@ const BCE_BC_MOD_SDK=function(){"use strict";const VERSION="1.0.1";function Thro
 								imgNode.alt = url.href;
 								imgNode.onload = scrollToEnd;
 								imgNode.classList.add("bce-img");
+								linkNode.classList.add("bce-img-link");
 								domNode = imgNode;
 							}
 							break;
@@ -6712,7 +6691,6 @@ const BCE_BC_MOD_SDK=function(){"use strict";const VERSION="1.0.1";function Thro
 							domNode = document.createTextNode(url.href);
 							break;
 					}
-					const linkNode = document.createElement("a");
 					linkNode.href = url.href;
 					linkNode.title = url.href;
 					linkNode.target = "_blank";
