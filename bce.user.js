@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Bondage Club Enhancements
 // @namespace https://www.bondageprojects.com/
-// @version 2.4.0
+// @version 2.4.1
 // @description enhancements for the bondage club
 // @author Sidious
 // @match https://bondageprojects.elementfx.com/*
@@ -18,7 +18,7 @@
 /// <reference path="./typedef.d.ts" />
 /* eslint-disable @typescript-eslint/no-floating-promises */
 
-const BCE_VERSION = "2.4.0";
+const BCE_VERSION = "2.4.1";
 
 /*
  * Bondage Club Mod Development Kit
@@ -2259,7 +2259,7 @@ const BCE_BC_MOD_SDK=function(){"use strict";const VERSION="1.0.1";function Thro
 		#bce-message-container {
 			width: 100%;
 			height: 90%;
-			font-size: 1.8rem;
+			font-size: 1.5rem;
 			font-family: Arial, sans-serif;
 		}
 		#bce-message-right-container {
@@ -2275,7 +2275,7 @@ const BCE_BC_MOD_SDK=function(){"use strict";const VERSION="1.0.1";function Thro
 			margin: 0;
 			background-color: #222;
 			color: #eee;
-			font-size: 1.8rem;
+			font-size: 1.5rem;
 		}
 		#bce-message-exit {
 			z-index: 120;
@@ -2297,6 +2297,15 @@ const BCE_BC_MOD_SDK=function(){"use strict";const VERSION="1.0.1";function Thro
 		}
 		.bce-message {
 			padding: 0.2em 0.4em;
+			position: relative;
+		}
+		.bce-message::after {
+			content: attr(data-time);
+			float: right;
+			color: gray;
+			font-size: 0.5em;
+			margin-right: 0.2em;
+			font-style: italic;
 		}
 		.bce-message-sender {
 			text-shadow: 0.05em 0.05em #eee;
@@ -6068,6 +6077,13 @@ const BCE_BC_MOD_SDK=function(){"use strict";const VERSION="1.0.1";function Thro
 		/** @type {Map<number, IMFriendHistory>} */
 		const friendMessages = new Map();
 
+		const scrollToBottom = () => {
+			const friend = friendMessages.get(activeChat);
+			if (friend) {
+				friend.history.scrollTop = friend.history.scrollHeight;
+			}
+		};
+
 		/** @type {(friendId: number) => void} */
 		const changeActiveChat = (friendId) => {
 			const friend = friendMessages.get(friendId);
@@ -6094,6 +6110,7 @@ const BCE_BC_MOD_SDK=function(){"use strict";const VERSION="1.0.1";function Thro
 			}
 
 			activeChat = friendId;
+			scrollToBottom();
 		};
 
 		/** @type {(friendId: number, sent: boolean, beep: Beep) => void} */
@@ -6111,6 +6128,7 @@ const BCE_BC_MOD_SDK=function(){"use strict";const VERSION="1.0.1";function Thro
 			message.classList.add("bce-message");
 			message.classList.add(sent ? "bce-message-sent" : "bce-message-received");
 			message.classList.add(`bce-message-${beep.BeepType.messageType}`);
+			message.setAttribute("data-time", w.ChatRoomCurrentTime());
 
 			const author = sent ? w.Player.Name : beep.MemberName;
 
@@ -6158,7 +6176,7 @@ const BCE_BC_MOD_SDK=function(){"use strict";const VERSION="1.0.1";function Thro
 
 			friend.history.appendChild(message);
 			if (scrolledToEnd) {
-				friend.history.scrollTop = friend.history.scrollHeight;
+				scrollToBottom();
 			}
 		};
 
@@ -6320,7 +6338,13 @@ const BCE_BC_MOD_SDK=function(){"use strict";const VERSION="1.0.1";function Thro
 			/** @type {(args: Beep[], next: (args: Beep[]) => void) => void} */
 			(args, next) => {
 				const [beep] = args;
-				if (typeof beep.BeepType === "object" && bceSettings.instantMessenger) {
+				if (
+					beep &&
+					typeof beep === "object" &&
+					beep.BeepType &&
+					typeof beep.BeepType === "object" &&
+					bceSettings.instantMessenger
+				) {
 					handleUnseenFriend(beep.MemberNumber);
 					switch (beep.BeepType.type) {
 						case "BcuVersionRequest":
@@ -6375,6 +6399,7 @@ const BCE_BC_MOD_SDK=function(){"use strict";const VERSION="1.0.1";function Thro
 					exitButton.classList.remove("bce-hidden");
 					w.ServerSend("AccountQuery", { Query: "OnlineFriends" });
 					unreadSinceOpened = 0;
+					scrollToBottom();
 					return;
 				}
 				next(args);
