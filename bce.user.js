@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Bondage Club Enhancements
 // @namespace https://www.bondageprojects.com/
-// @version 2.4.1
+// @version 2.4.2
 // @description enhancements for the bondage club
 // @author Sidious
 // @match https://bondageprojects.elementfx.com/*
@@ -18,7 +18,7 @@
 /// <reference path="./typedef.d.ts" />
 /* eslint-disable @typescript-eslint/no-floating-promises */
 
-const BCE_VERSION = "2.4.1";
+const BCE_VERSION = "2.4.2";
 
 /*
  * Bondage Club Mod Development Kit
@@ -842,12 +842,12 @@ const BCE_BC_MOD_SDK=function(){"use strict";const VERSION="1.0.1";function Thro
 						"Update",
 						`Your version of BCE is outdated and may not be supported. Please update.
 
-						Your version: ${w.BCE_VERSION}
-						Latest version: ${latest}
+	Your version: ${w.BCE_VERSION}
+	Latest version: ${latest}
 
-						Changelog available on GitLab (raw) and Discord:
-						- https://gitlab.com/Sidiousious/bce/-/commits/main/
-						- ${DISCORD_INVITE_URL}`
+	Changelog available on GitLab (raw) and Discord:
+	- https://gitlab.com/Sidiousious/bce/-/commits/main/
+	- ${DISCORD_INVITE_URL}`
 					);
 				}
 			})
@@ -2238,7 +2238,7 @@ const BCE_BC_MOD_SDK=function(){"use strict";const VERSION="1.0.1";function Thro
 			color: #eee;
 		}
 		#bce-friend-list {
-			width: 20%;
+			width: 100%;
 			overflow-x: hidden;
 			overflow-y: scroll;
 		}
@@ -2288,6 +2288,9 @@ const BCE_BC_MOD_SDK=function(){"use strict";const VERSION="1.0.1";function Thro
 			border: 0;
 			border-radius: 0.2em;
 		}
+		#bce-message-exit:hover {
+			background-color: #800;
+		}
 		.bce-friend-list-unread {
 			background-color: #a22;
 		}
@@ -2322,6 +2325,25 @@ const BCE_BC_MOD_SDK=function(){"use strict";const VERSION="1.0.1";function Thro
 			overflow-y: scroll;
 			overflow-x: hidden;
 			height: 100%;
+		}
+		.bce-friend-list-handshake-false,
+		.bce-friend-list-handshake-pending {
+			text-decoration: line-through;
+			color: gray;
+		}
+		#bce-message-left-container {
+			display: flex;
+			flex-direction: column;
+			width: 20%;
+			height: 100%;
+		}
+		#bce-friend-search {
+			border: 0;
+			border-bottom: 0.1em solid white;
+			padding: 0.5em;
+			height: 1em;
+			background-color: #222;
+			color: #eee;
 		}
 		`;
 		const head = document.head || document.getElementsByTagName("head")[0];
@@ -5737,7 +5759,10 @@ const BCE_BC_MOD_SDK=function(){"use strict";const VERSION="1.0.1";function Thro
 		await waitFor(() => !!w.Player && w.ServerSocket && w.ServerIsConnected);
 
 		function checkFriends() {
-			if (!bceSettings.friendPresenceNotifications) {
+			if (
+				!bceSettings.friendPresenceNotifications &&
+				!bceSettings.instantMessenger
+			) {
 				return;
 			}
 			w.ServerSend("AccountQuery", { Query: "OnlineFriends" });
@@ -6036,6 +6061,8 @@ const BCE_BC_MOD_SDK=function(){"use strict";const VERSION="1.0.1";function Thro
 		const container = document.createElement("div");
 		container.classList.add("bce-hidden");
 		container.id = "bce-instant-messenger";
+		const leftContainer = document.createElement("div");
+		leftContainer.id = "bce-message-left-container";
 		const friendList = document.createElement("div");
 		friendList.id = "bce-friend-list";
 		const rightContainer = document.createElement("div");
@@ -6056,24 +6083,27 @@ const BCE_BC_MOD_SDK=function(){"use strict";const VERSION="1.0.1";function Thro
 		};
 		document.body.appendChild(exitButton);
 
-		container.appendChild(friendList);
+		const friendSearch = document.createElement("input");
+		friendSearch.id = "bce-friend-search";
+		friendSearch.setAttribute("placeholder", "Search for a friend");
+
+		container.appendChild(leftContainer);
 		container.appendChild(rightContainer);
+		leftContainer.appendChild(friendSearch);
+		leftContainer.appendChild(friendList);
 		rightContainer.appendChild(messageContainer);
 		rightContainer.appendChild(messageInput);
 		document.body.appendChild(container);
 
-		/**
-		 * TBD:
-		 * - name in messages
-		 * - style messages
-		 */
+		const storageKey = "bce-instant-messenger-state";
 
 		/** @type {number | null} */
 		let activeChat = null;
 
 		let unreadSinceOpened = 0;
 
-		/** @typedef {{ unread: number, listElement: HTMLElement, historyRaw: { type: "Emote" | "Action" | "Message", message: string }[], history: HTMLElement, handshake: false | "pending" | "completed" }} IMFriendHistory */
+		/** @typedef {{ author: string, authorId: number, type: "Emote" | "Action" | "Message", message: string }} RawHistory */
+		/** @typedef {{ unread: number, statusText: HTMLElement, listElement: HTMLElement, historyRaw: RawHistory[], history: HTMLElement, handshake: false | "pending" | "completed" }} IMFriendHistory */
 		/** @type {Map<number, IMFriendHistory>} */
 		const friendMessages = new Map();
 
@@ -6082,6 +6112,23 @@ const BCE_BC_MOD_SDK=function(){"use strict";const VERSION="1.0.1";function Thro
 			if (friend) {
 				friend.history.scrollTop = friend.history.scrollHeight;
 			}
+		};
+
+		const saveHistory = () => {
+			const history = {};
+			friendMessages.forEach((friend, id) => {
+				const historyLength = Math.min(friend.historyRaw.length, 20);
+				history[id] = {
+					historyRaw: friend.historyRaw.slice(-historyLength),
+					historyHTML: Array.from(
+						friend.history.querySelectorAll(".bce-message")
+					)
+						.map((e) => e.outerHTML)
+						.join(""),
+				};
+			});
+			bceLog(history);
+			localStorage.setItem(storageKey, JSON.stringify(history));
 		};
 
 		/** @type {(friendId: number) => void} */
@@ -6119,6 +6166,7 @@ const BCE_BC_MOD_SDK=function(){"use strict";const VERSION="1.0.1";function Thro
 			if (!friend || typeof beep.BeepType !== "object") {
 				return;
 			}
+
 			const scrolledToEnd =
 				friend.history.scrollHeight -
 					friend.history.scrollTop -
@@ -6128,9 +6176,16 @@ const BCE_BC_MOD_SDK=function(){"use strict";const VERSION="1.0.1";function Thro
 			message.classList.add("bce-message");
 			message.classList.add(sent ? "bce-message-sent" : "bce-message-received");
 			message.classList.add(`bce-message-${beep.BeepType.messageType}`);
-			message.setAttribute("data-time", w.ChatRoomCurrentTime());
+			message.setAttribute("data-time", new Date().toLocaleString());
 
 			const author = sent ? w.Player.Name : beep.MemberName;
+
+			friend.historyRaw.push({
+				author,
+				authorId: sent ? w.Player.MemberNumber : beep.MemberNumber,
+				message: beep.BeepType.message,
+				type: beep.BeepType.messageType,
+			});
 
 			switch (beep.BeepType.messageType) {
 				case "Emote":
@@ -6178,6 +6233,22 @@ const BCE_BC_MOD_SDK=function(){"use strict";const VERSION="1.0.1";function Thro
 			if (scrolledToEnd) {
 				scrollToBottom();
 			}
+
+			if (
+				friendId !== activeChat ||
+				container.classList.contains("bce-hidden")
+			) {
+				if (w.Player.AudioSettings?.PlayBeeps) {
+					w.AudioPlayInstantSound("Audio/BeepAlarm.mp3");
+				}
+				w.NotificationRaise("Beep", {
+					memberNumber: beep.MemberNumber,
+					characterName: beep.MemberName,
+					body: beep.BeepType.message,
+				});
+			}
+
+			saveHistory();
 		};
 
 		/** @type {(friendId: number, status: false | "pending" | "completed") => void} */
@@ -6193,17 +6264,46 @@ const BCE_BC_MOD_SDK=function(){"use strict";const VERSION="1.0.1";function Thro
 				);
 			}
 			friend.listElement.classList.add(
-				`bce-friend-list-entry-${status.toString()}`
+				`bce-friend-list-handshake-${status.toString()}`
 			);
-			if (status === "completed") {
-				if (!document.getElementById(`bce-friend-list-entry-${friendId}`)) {
-					friendList.appendChild(friend.listElement);
-				}
+			switch (status) {
+				case "completed":
+					friend.statusText.textContent = "Available";
+					break;
+				default:
+					friend.statusText.textContent = "Unavailable";
+					break;
 			}
+			[...friendList.children]
+				.sort((a, b) => {
+					const notA = !a.classList.contains(
+						"bce-friend-list-handshake-completed"
+					);
+					const notB = !b.classList.contains(
+						"bce-friend-list-handshake-completed"
+					);
+					if ((notA && notB) || (!notA && !notB)) {
+						return 0;
+					}
+					if (notA) {
+						return 1;
+					}
+					return -1;
+				})
+				.forEach((node) => {
+					friendList.removeChild(node);
+					friendList.appendChild(node);
+				});
+			setTimeout(() => {
+				if (friend.handshake === "pending") {
+					setHandshakeStatus(friendId, false);
+				}
+			}, 5000);
 		};
 
 		/** @type {(friendId: number, isResponse?: boolean) => void} */
 		const sendHandshake = (friendId, isResponse = false) => {
+			bceLog("Sending handshake", friendId, isResponse);
 			if (!isResponse) {
 				setHandshakeStatus(friendId, "pending");
 			} else {
@@ -6220,7 +6320,6 @@ const BCE_BC_MOD_SDK=function(){"use strict";const VERSION="1.0.1";function Thro
 					version: 0,
 				},
 			};
-			bceLog("Sent Beep", message);
 			w.ServerSend("AccountBeep", message);
 		};
 
@@ -6229,6 +6328,7 @@ const BCE_BC_MOD_SDK=function(){"use strict";const VERSION="1.0.1";function Thro
 			if (!friendMessages.has(friendId)) {
 				/** @type {IMFriendHistory} */
 				const friendData = {
+					statusText: document.createElement("span"),
 					listElement: document.createElement("div"),
 					historyRaw: [],
 					history: document.createElement("div"),
@@ -6253,13 +6353,30 @@ const BCE_BC_MOD_SDK=function(){"use strict";const VERSION="1.0.1";function Thro
 				memberNumber.textContent = friendId.toString();
 				friendData.listElement.appendChild(memberNumber);
 
+				friendData.listElement.appendChild(friendData.statusText);
+
+				friendList.appendChild(friendData.listElement);
+
 				friendMessages.set(friendId, friendData);
+				setHandshakeStatus(friendId, false);
 			}
 			return friendMessages.get(friendId);
 		};
 
+		/** @type {{ [key: string]: { historyRaw: RawHistory[], historyHTML: string } }} */
+		// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+		const history = JSON.parse(localStorage.getItem(storageKey) || "{}");
+		for (const [friendIdStr, friendHistory] of Object.entries(history)) {
+			const friendId = parseInt(friendIdStr);
+			const friend = handleUnseenFriend(friendId);
+			friend.historyRaw = friendHistory.historyRaw;
+			friend.history.innerHTML = friendHistory.historyHTML;
+			bceLog(friendIdStr, friendId, friendHistory);
+			bceLog(friend.history);
+		}
+
 		messageInput.addEventListener("keydown", (e) => {
-			if (e.key === "Enter") {
+			if (e.key === "Enter" && !e.shiftKey) {
 				e.preventDefault();
 				let messageText = messageInput.value;
 				if (messageText.trim() === "") {
@@ -6307,6 +6424,23 @@ const BCE_BC_MOD_SDK=function(){"use strict";const VERSION="1.0.1";function Thro
 			}
 		});
 
+		friendSearch.onkeyup = () => {
+			const search = friendSearch.value.toLowerCase();
+			for (const friendId of friendMessages.keys()) {
+				const friend = friendMessages.get(friendId);
+				const friendName = w.Player.FriendNames.get(friendId).toLowerCase();
+				if (search === "") {
+					friend.listElement.classList.remove("bce-hidden");
+					friend.listElement.style.display = "";
+				} else if (
+					!friendId.toString().includes(search) &&
+					!friendName.includes(search)
+				) {
+					friend.listElement.classList.add("bce-hidden");
+				}
+			}
+		};
+
 		w.ServerSocket.on(
 			"AccountQueryResult",
 			(
@@ -6314,14 +6448,15 @@ const BCE_BC_MOD_SDK=function(){"use strict";const VERSION="1.0.1";function Thro
 				data
 			) => {
 				if (data.Result && bceSettings.instantMessenger) {
-					friendList.innerHTML = "";
 					for (const friend of data.Result) {
 						const f = handleUnseenFriend(friend.MemberNumber);
 						if (!f.handshake) {
 							sendHandshake(friend.MemberNumber);
 						}
-						if (f.handshake === "completed") {
-							friendList.appendChild(f.listElement);
+					}
+					for (const fid of friendMessages.keys()) {
+						if (!data.Result.some((f) => f.MemberNumber === fid)) {
+							setHandshakeStatus(fid, false);
 						}
 					}
 					if (!data.Result.some((f) => f.MemberNumber === activeChat)) {
@@ -6360,7 +6495,6 @@ const BCE_BC_MOD_SDK=function(){"use strict";const VERSION="1.0.1";function Thro
 						default:
 							break;
 					}
-					bceLog("Beep", beep, friendMessages.get(beep.MemberNumber));
 					return;
 				}
 				next(args);
@@ -6400,6 +6534,7 @@ const BCE_BC_MOD_SDK=function(){"use strict";const VERSION="1.0.1";function Thro
 					w.ServerSend("AccountQuery", { Query: "OnlineFriends" });
 					unreadSinceOpened = 0;
 					scrollToBottom();
+					w.NotificationReset("Beep");
 					return;
 				}
 				next(args);
@@ -6438,7 +6573,6 @@ const BCE_BC_MOD_SDK=function(){"use strict";const VERSION="1.0.1";function Thro
 						w.Player.BCEWardrobe = w.LZString.compressToUTF16(
 							JSON.stringify(additionalWardrobe)
 						);
-						bceLog("saving", additionalWardrobe);
 						args[0] = wardrobe.slice(0, DEFAULT_WARDROBE_SIZE);
 						w.ServerAccountUpdate.QueueData({
 							BCEWardrobe: w.Player.BCEWardrobe,
@@ -6475,7 +6609,6 @@ const BCE_BC_MOD_SDK=function(){"use strict";const VERSION="1.0.1";function Thro
 			const additionalItemBundle = JSON.parse(
 				w.LZString.decompressFromUTF16(w.Player.BCEWardrobe)
 			);
-			bceLog("loading", additionalItemBundle);
 			if (isWardrobe(additionalItemBundle)) {
 				for (let i = DEFAULT_WARDROBE_SIZE; i < EXPANDED_WARDROBE_SIZE; i++) {
 					const additionalIdx = i - DEFAULT_WARDROBE_SIZE;
@@ -6804,6 +6937,7 @@ const BCE_BC_MOD_SDK=function(){"use strict";const VERSION="1.0.1";function Thro
  * @property {OnlineSettings} OnlineSettings
  * @property {OnlineSharedSettings} [OnlineSharedSettings]
  * @property {ChatSettings} [ChatSettings]
+ * @property {{ PlayBeeps?: boolean }} [AudioSettings]
  * @property {number} MemberNumber
  * @property {string} Name
  * @property {string} AccountName
@@ -7271,6 +7405,9 @@ const BCE_BC_MOD_SDK=function(){"use strict";const VERSION="1.0.1";function Thro
  * @property {(wardrobe: ItemBundle[][]) => string} CharacterCompressWardrobe
  * @property {number} CharacterAppearanceWardrobeOffset
  * @property {(time: DOMHighResTimeStamp) => void} MainRun
+ * @property {(eventType: "Beep", data: Object) => void} NotificationRaise
+ * @property {(eventType: "Beep") => void} NotificationReset
+ * @property {(src: string, volume?: number) => void} AudioPlayInstantSound
  *
  * @typedef {Window & WindowExtension} ExtendedWindow
  */
