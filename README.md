@@ -25,10 +25,11 @@ With Tampermonkey you can control when and if you want to update BCE and BCE wil
 
 ## Features
 
-At a glance, **everything is entirely optional**:
+At a glance, **everything is entirely optional, enable in settings** (profile -> preferences -> BCE Settings):
 
 - Improved automatic facial expressions that play nice with manual control
 - Automatic relogin after disconnect
+- FPS limiter: save your computer's resources
 - [BCX](https://github.com/Jomshir98/bondage-club-extended) loader for both stable and devel
 - Clickable links and embedded images from trusted websites in chat (e.g. imgur, Discord)
 - Lockpicking helper
@@ -45,12 +46,19 @@ At a glance, **everything is entirely optional**:
 - Clearer activity labels
 - Accurate timer inputs
 - Club slave as an option for owners under forced labor
+- Extended Wardrobe (more slots)
 
 ### Chat Links and Embeds
 
 ![](static/bceEmbeds.png)
 
 BCE allows clicking links posted in chat and embeds images from trusted domains, such as Discord, Imgur and Tenor. Additionally any links you send will always be inside OOC brackets to ensure stutter algorithms do not break your links.
+
+### Instant Messenger
+
+![](static/bceInstantMessenger.png)
+
+BCE includes an optional instant messenger that can be used to message with your friends. Compatible with friends who use BcUtil too, but they will not have BCE's clickable links and embeds.
 
 ### Require Glasses to See
 
@@ -121,6 +129,12 @@ BCE can automatically enter your password, when you lose connection to the game.
 ![](static/bceForceCS.png)
 
 BCE allows owners to send their submissives to work as club slaves, when both are running the same version of BCE.
+
+### Extended Wardrobe
+
+![](static/bceExtendedWardrobe.png)
+
+BCE allows expanding your wardrobe to 96 slots. Note that this will make the wardrobe open a bit slower.
 
 ### Layer-priority editor and ability to loosen/tighten restraints
 
