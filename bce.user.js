@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Bondage Club Enhancements
 // @namespace https://www.bondageprojects.com/
-// @version 2.4.5
+// @version 2.4.6
 // @description enhancements for the bondage club
 // @author Sidious
 // @match https://bondageprojects.elementfx.com/*
@@ -18,9 +18,12 @@
 /// <reference path="./typedef.d.ts" />
 /* eslint-disable @typescript-eslint/no-floating-promises */
 
-const BCE_VERSION = "2.4.5";
+const BCE_VERSION = "2.4.6";
 
-const bceChangelog = `2.4.5
+const bceChangelog = `2.4.6
+- fixed beep changelog triggering on every login until visiting settings
+
+2.4.5
 - fixed a bug in IMs where multiple accounts would share message history within the same browser
 - added /bcechangelog and the changelog notification
 
@@ -519,6 +522,7 @@ const BCE_BC_MOD_SDK=function(){"use strict";const VERSION="1.0.1";function Thro
 				defaultSettings[k].sideEffects(!!v);
 			}
 		}
+		bceSaveSettings();
 	}
 
 	// ICONS
