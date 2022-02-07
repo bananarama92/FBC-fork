@@ -20,6 +20,27 @@
 
 const BCE_VERSION = "2.4.5";
 
+const bceChangelog = `2.4.5
+- fixed a bug in IMs where multiple accounts would share message history within the same browser
+- added /bcechangelog and the changelog notification
+
+2.4.4
+- repositioned IM popup to prevent the toggle button from being covered when using certain window sizes
+
+2.4.3
+- styling fixes to BCE's custom components, particularly the instant messaging
+- removed unnecessary logging around instant messaging
+
+2.4.2
+- instant messaging:
+  - show unavailable discussions
+  - store last 20 messages between refreshes
+  - messages trigger notifications based on beep rules
+
+2.4.1
+- added instant messenger (you can talk to your friends who use bcutil without installing bcutil yourself, with BCE's chat augments)
+- possible fix to reply button encoding under rare circumstances`;
+
 /*
  * Bondage Club Mod Development Kit
  * For more info see: https://github.com/Jomshir98/bondage-club-mod-sdk
@@ -101,7 +122,7 @@ const BCE_BC_MOD_SDK=function(){"use strict";const VERSION="1.0.1";function Thro
 		Observe: 0,
 	});
 
-	const settingsVersion = 22;
+	const settingsVersion = 23;
 	/**
 	 * @type {Settings}
 	 */
@@ -467,6 +488,12 @@ const BCE_BC_MOD_SDK=function(){"use strict";const VERSION="1.0.1";function Thro
 					}
 					settings[setting] = defaultSettings[setting].value;
 				}
+			}
+			if (
+				typeof settings.version === "undefined" ||
+				settings.version < settingsVersion
+			) {
+				beepChangelog();
 			}
 			settings.version = settingsVersion;
 			bceSettings = settings;
@@ -1513,6 +1540,13 @@ const BCE_BC_MOD_SDK=function(){"use strict";const VERSION="1.0.1";function Thro
 
 		/** @type {Command[]} */
 		const cmds = [
+			{
+				Tag: "bcechangelog",
+				Description: "Show recent BCE changelog",
+				Action: () => {
+					bceChatNotify(bceChangelog);
+				},
+			},
 			{
 				Tag: "exportlooks",
 				Description:
@@ -6602,6 +6636,15 @@ const BCE_BC_MOD_SDK=function(){"use strict";const VERSION="1.0.1";function Thro
 			}
 		}
 		return wardrobe;
+	}
+
+	async function beepChangelog() {
+		await waitFor(() => !!w.Player?.AccountName);
+		await sleep(5000);
+		bceBeepNotify(
+			"BCE Changelog",
+			`BCE has received significant updates since you last used it:\n\n${bceChangelog}\n\nYou can use /bcechangelog to view this again.`
+		);
 	}
 
 	/** @type {(word: string) => URL | false} */
