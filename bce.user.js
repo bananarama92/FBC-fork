@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Bondage Club Enhancements
 // @namespace https://www.bondageprojects.com/
-// @version 2.4.6
+// @version 2.5.0
 // @description enhancements for the bondage club
 // @author Sidious
 // @match https://bondageprojects.elementfx.com/*
@@ -18,31 +18,16 @@
 /// <reference path="./typedef.d.ts" />
 /* eslint-disable @typescript-eslint/no-floating-promises */
 
-const BCE_VERSION = "2.4.6";
+const BCE_VERSION = "2.5.0";
 
-const bceChangelog = `2.4.6
-- fixed beep changelog triggering on every login until visiting settings
+const bceChangelog = `${BCE_VERSION}
+- settings page overhaul
+- cache clear refreshes character renders after it's done
 
-2.4.5
-- fixed a bug in IMs where multiple accounts would share message history within the same browser
-- added /bcechangelog and the changelog notification
-
-2.4.4
-- repositioned IM popup to prevent the toggle button from being covered when using certain window sizes
-
-2.4.3
-- styling fixes to BCE's custom components, particularly the instant messaging
-- removed unnecessary logging around instant messaging
-
-2.4.2
-- instant messaging:
-  - show unavailable discussions
-  - store last 20 messages between refreshes
-  - messages trigger notifications based on beep rules
-
-2.4.1
+2.4
 - added instant messenger (you can talk to your friends who use bcutil without installing bcutil yourself, with BCE's chat augments)
-- possible fix to reply button encoding under rare circumstances`;
+- possible fix to reply button encoding under rare circumstances
+- added /bcechangelog`;
 
 /*
  * Bondage Club Mod Development Kit
@@ -135,20 +120,6 @@ const BCE_BC_MOD_SDK=function(){"use strict";const VERSION="1.0.1";function Thro
 	 * @type {DefaultSettings}
 	 */
 	const defaultSettings = Object.freeze({
-		checkUpdates: {
-			label: "Check for updates",
-			sideEffects: (newValue) => {
-				bceLog("checkUpdates", newValue);
-			},
-			value: true,
-		},
-		relogin: {
-			label: "Automatic Relogin on Disconnect",
-			sideEffects: (newValue) => {
-				bceLog("relogin", newValue);
-			},
-			value: true,
-		},
 		expressions: {
 			label: "Automatic Arousal Expressions (Replaces Vanilla)",
 			sideEffects: (newValue) => {
@@ -159,6 +130,7 @@ const BCE_BC_MOD_SDK=function(){"use strict";const VERSION="1.0.1";function Thro
 				bceLog("expressions", newValue);
 			},
 			value: false,
+			category: "activities",
 		},
 		activityExpressions: {
 			label: "Activity Expressions",
@@ -170,109 +142,7 @@ const BCE_BC_MOD_SDK=function(){"use strict";const VERSION="1.0.1";function Thro
 				}
 				bceLog("activityExpressions", newValue);
 			},
-		},
-		privateWardrobe: {
-			label: "Use full wardrobe in clothing menu",
-			value: false,
-			sideEffects: (newValue) => {
-				bceLog("privateWardrobe", newValue);
-			},
-		},
-		layeringMenu: {
-			label: "Enable Layering Menus",
-			value: false,
-			sideEffects: (newValue) => {
-				bceLog("layeringMenu", newValue);
-			},
-		},
-		automateCacheClear: {
-			label: "Clear Drawing Cache Hourly",
-			value: false,
-			sideEffects: (newValue) => {
-				bceLog("automateCacheClear", newValue);
-			},
-		},
-		augmentChat: {
-			label: "Chat Links and Embeds",
-			value: false,
-			sideEffects: (newValue) => {
-				bceLog("augmentChat", newValue);
-			},
-		},
-		gagspeak: {
-			label: "(Cheat) Understand All Gagged and when Deafened",
-			value: false,
-			sideEffects: (newValue) => {
-				bceLog("gagspeak", newValue);
-			},
-		},
-		lockpick: {
-			label: "(Cheat) Reveal Lockpicking Order Based on Skill",
-			value: false,
-			sideEffects: (newValue) => {
-				bceLog("lockpick", newValue);
-			},
-		},
-		bcx: {
-			label: "Load BCX by Jomshir98 (requires refresh)",
-			value: false,
-			sideEffects: (newValue) => {
-				if (newValue) {
-					bceSettings.bcxDevel = false;
-				}
-				bceLog("bcx", newValue);
-			},
-		},
-		bcxDevel: {
-			label:
-				"Load BCX beta by Jomshir98 (requires refresh - not pinned by BCE)",
-			value: false,
-			sideEffects: (newValue) => {
-				if (newValue) {
-					bceSettings.bcx = false;
-				}
-				bceLog("bcxDevel", newValue);
-			},
-		},
-		antiAntiGarble: {
-			label: "Anti-Anti-Garble - no cheating your gag (limited)",
-			value: false,
-			sideEffects: (newValue) => {
-				if (newValue) {
-					bceSettings.antiAntiGarbleStrong = false;
-					bceSettings.antiAntiGarbleExtra = false;
-				}
-				bceLog("antiAntiGarble", newValue);
-			},
-		},
-		antiAntiGarbleStrong: {
-			label: "Anti-Anti-Garble - no cheating your gag (full)",
-			value: false,
-			sideEffects: (newValue) => {
-				if (newValue) {
-					bceSettings.antiAntiGarble = false;
-					bceSettings.antiAntiGarbleExtra = false;
-				}
-				bceLog("antiAntiGarbleStrong", newValue);
-			},
-		},
-		antiAntiGarbleExtra: {
-			label: "Anti-Anti-Garble - no cheating your gag (extra)",
-			value: false,
-			sideEffects: (newValue) => {
-				if (newValue) {
-					bceSettings.antiAntiGarble = false;
-					bceSettings.antiAntiGarbleStrong = false;
-				}
-				bceLog("antiAntiGarbleExtra", newValue);
-			},
-		},
-		showQuickAntiGarble: {
-			label: "Show Quick Anti-Anti-Garble in Chat",
-			value: false,
-			sideEffects: (newValue) => {
-				bceLog("showQuickAntiGarble", newValue);
-			},
+			category: "activities",
 		},
 		alternateArousal: {
 			label:
@@ -287,37 +157,7 @@ const BCE_BC_MOD_SDK=function(){"use strict";const VERSION="1.0.1";function Thro
 				);
 				bceLog("alternateArousal", newValue);
 			},
-		},
-		ghostNewUsers: {
-			label: "Automatically ghost+blocklist unnaturally new users",
-			value: false,
-			sideEffects: (newValue) => {
-				bceLog("ghostNewUsers", newValue);
-			},
-		},
-		blindWithoutGlasses: {
-			label: "Require glasses to see",
-			value: false,
-			sideEffects: (newValue) => {
-				if (!newValue) {
-					GLASSES_BLUR_TARGET.classList.remove(GLASSES_BLIND_CLASS);
-				}
-				bceLog("blindWithoutGlasses", newValue);
-			},
-		},
-		friendPresenceNotifications: {
-			label: "Show friend presence notifications",
-			value: false,
-			sideEffects: (newValue) => {
-				bceLog("friendPresenceNotifications", newValue);
-			},
-		},
-		friendOfflineNotifications: {
-			label: "Show friends going offline too (requires friend presence)",
-			value: false,
-			sideEffects: (newValue) => {
-				bceLog("friendOfflineNotifications", newValue);
-			},
+			category: "activities",
 		},
 		stutters: {
 			label: "Alternative speech stutter",
@@ -325,6 +165,7 @@ const BCE_BC_MOD_SDK=function(){"use strict";const VERSION="1.0.1";function Thro
 			sideEffects: (newValue) => {
 				bceLog("stutters", newValue);
 			},
+			category: "activities",
 		},
 		activityLabels: {
 			label: "Use clearer activity labels",
@@ -332,20 +173,66 @@ const BCE_BC_MOD_SDK=function(){"use strict";const VERSION="1.0.1";function Thro
 			sideEffects: (newValue) => {
 				bceLog("activityLabels", newValue);
 			},
+			category: "activities",
 		},
-		accurateTimerLocks: {
-			label: "Use accurate timer inputs",
+		layeringMenu: {
+			label: "Enable layering menus",
 			value: false,
 			sideEffects: (newValue) => {
-				bceLog("accurateTimerLocks", newValue);
+				bceLog("layeringMenu", newValue);
 			},
+			category: "appearance",
 		},
-		confirmLeave: {
-			label: "Confirm leaving the game",
-			value: true,
+		extendedWardrobe: {
+			label: "Extended wardrobe slots (96)",
+			value: false,
 			sideEffects: (newValue) => {
-				bceLog("confirmLeave", newValue);
+				bceLog("extendedWardrobe", newValue);
+				if (newValue) {
+					w.WardrobeSize = EXPANDED_WARDROBE_SIZE;
+					loadExtendedWardrobe(w.Player.Wardrobe);
+					// Call compress wardrobe to save existing outfits, if another addon has extended the wardrobe
+					w.CharacterCompressWardrobe(w.Player.Wardrobe);
+				} else {
+					// Restore original size
+					w.WardrobeSize = DEFAULT_WARDROBE_SIZE;
+					w.WardrobeFixLength();
+					w.CharacterAppearanceWardrobeOffset = 0;
+				}
 			},
+			category: "appearance",
+		},
+		privateWardrobe: {
+			label: "Replace wardrobe list with character previews",
+			value: false,
+			sideEffects: (newValue) => {
+				bceLog("privateWardrobe", newValue);
+			},
+			category: "appearance",
+		},
+		automateCacheClear: {
+			label: "Clear Drawing Cache Hourly",
+			value: false,
+			sideEffects: (newValue) => {
+				bceLog("automateCacheClear", newValue);
+			},
+			category: "performance",
+		},
+		instantMessenger: {
+			label: "Instant messenger (BcUtil compatible)",
+			value: false,
+			sideEffects: (newValue) => {
+				bceLog("instantMessenger", newValue);
+			},
+			category: "chat",
+		},
+		augmentChat: {
+			label: "Chat Links and Embeds",
+			value: false,
+			sideEffects: (newValue) => {
+				bceLog("augmentChat", newValue);
+			},
+			category: "chat",
 		},
 		ctrlEnterOoc: {
 			label: "Use Ctrl+Enter to OOC",
@@ -353,6 +240,7 @@ const BCE_BC_MOD_SDK=function(){"use strict";const VERSION="1.0.1";function Thro
 			sideEffects: (newValue) => {
 				bceLog("ctrlEnterOoc", newValue);
 			},
+			category: "chat",
 		},
 		whisperInput: {
 			label: "Use italics for input when whispering",
@@ -360,6 +248,7 @@ const BCE_BC_MOD_SDK=function(){"use strict";const VERSION="1.0.1";function Thro
 			sideEffects: (newValue) => {
 				bceLog("whisperInput", newValue);
 			},
+			category: "chat",
 		},
 		chatColors: {
 			label: "Improve colors for readability",
@@ -372,6 +261,158 @@ const BCE_BC_MOD_SDK=function(){"use strict";const VERSION="1.0.1";function Thro
 				}
 				bceLog("chatColors", newValue);
 			},
+			category: "chat",
+		},
+		friendPresenceNotifications: {
+			label: "Show friend presence notifications",
+			value: false,
+			sideEffects: (newValue) => {
+				bceLog("friendPresenceNotifications", newValue);
+			},
+			category: "chat",
+		},
+		friendOfflineNotifications: {
+			label: "Show friends going offline too (requires friend presence)",
+			value: false,
+			sideEffects: (newValue) => {
+				bceLog("friendOfflineNotifications", newValue);
+			},
+			category: "chat",
+		},
+		gagspeak: {
+			label: "(Cheat) Understand All Gagged and when Deafened",
+			value: false,
+			sideEffects: (newValue) => {
+				bceLog("gagspeak", newValue);
+			},
+			category: "cheats",
+		},
+		lockpick: {
+			label: "(Cheat) Reveal Lockpicking Order Based on Skill",
+			value: false,
+			sideEffects: (newValue) => {
+				bceLog("lockpick", newValue);
+			},
+			category: "cheats",
+		},
+		bcx: {
+			label: "Load BCX by Jomshir98 (requires refresh - no auto-update)",
+			value: false,
+			sideEffects: (newValue) => {
+				if (newValue) {
+					bceSettings.bcxDevel = false;
+				}
+				bceLog("bcx", newValue);
+			},
+			category: "addons",
+		},
+		bcxDevel: {
+			label:
+				"Load BCX beta (requires refresh - auto-updates, compatibility not guaranteed)",
+			value: false,
+			sideEffects: (newValue) => {
+				if (newValue) {
+					bceSettings.bcx = false;
+				}
+				bceLog("bcxDevel", newValue);
+			},
+			category: "addons",
+		},
+		antiAntiGarble: {
+			label: "Limited gag anti-cheat: cloth-gag equivalent garbling",
+			value: false,
+			sideEffects: (newValue) => {
+				if (newValue) {
+					bceSettings.antiAntiGarbleStrong = false;
+					bceSettings.antiAntiGarbleExtra = false;
+				}
+				bceLog("antiAntiGarble", newValue);
+			},
+			category: "immersion",
+		},
+		antiAntiGarbleStrong: {
+			label: "Full gag anti-cheat: use equipped gags to determine garbling",
+			value: false,
+			sideEffects: (newValue) => {
+				if (newValue) {
+					bceSettings.antiAntiGarble = false;
+					bceSettings.antiAntiGarbleExtra = false;
+				}
+				bceLog("antiAntiGarbleStrong", newValue);
+			},
+			category: "immersion",
+		},
+		antiAntiGarbleExtra: {
+			label:
+				"Extra gag anti-cheat: even more garbling for the most extreme gags",
+			value: false,
+			sideEffects: (newValue) => {
+				if (newValue) {
+					bceSettings.antiAntiGarble = false;
+					bceSettings.antiAntiGarbleStrong = false;
+				}
+				bceLog("antiAntiGarbleExtra", newValue);
+			},
+			category: "immersion",
+		},
+		blindWithoutGlasses: {
+			label: "Require glasses to see",
+			value: false,
+			sideEffects: (newValue) => {
+				if (!newValue) {
+					GLASSES_BLUR_TARGET.classList.remove(GLASSES_BLIND_CLASS);
+				}
+				bceLog("blindWithoutGlasses", newValue);
+			},
+			category: "immersion",
+		},
+		checkUpdates: {
+			label: "Check for updates",
+			sideEffects: (newValue) => {
+				bceLog("checkUpdates", newValue);
+			},
+			value: true,
+			category: "misc",
+		},
+		relogin: {
+			label: "Automatic Relogin on Disconnect",
+			sideEffects: (newValue) => {
+				bceLog("relogin", newValue);
+			},
+			value: true,
+			category: "misc",
+		},
+		showQuickAntiGarble: {
+			label: "Show gag cheat and anti-cheat options in chat",
+			value: false,
+			sideEffects: (newValue) => {
+				bceLog("showQuickAntiGarble", newValue);
+			},
+			category: "misc",
+		},
+		ghostNewUsers: {
+			label: "Automatically ghost+blocklist unnaturally new users",
+			value: false,
+			sideEffects: (newValue) => {
+				bceLog("ghostNewUsers", newValue);
+			},
+			category: "misc",
+		},
+		accurateTimerLocks: {
+			label: "Use accurate timer inputs",
+			value: false,
+			sideEffects: (newValue) => {
+				bceLog("accurateTimerLocks", newValue);
+			},
+			category: "misc",
+		},
+		confirmLeave: {
+			label: "Confirm leaving the game",
+			value: true,
+			sideEffects: (newValue) => {
+				bceLog("confirmLeave", newValue);
+			},
+			category: "misc",
 		},
 		fpsCounter: {
 			label: "Show FPS counter",
@@ -379,6 +420,7 @@ const BCE_BC_MOD_SDK=function(){"use strict";const VERSION="1.0.1";function Thro
 			sideEffects: (newValue) => {
 				bceLog("fpsCounter", newValue);
 			},
+			category: "performance",
 		},
 		limitFPSInBackground: {
 			label: "Limit FPS in background",
@@ -386,6 +428,7 @@ const BCE_BC_MOD_SDK=function(){"use strict";const VERSION="1.0.1";function Thro
 			sideEffects: (newValue) => {
 				bceLog("limitFPSInBackground", newValue);
 			},
+			category: "performance",
 		},
 		limitFPSTo15: {
 			label: "Limit FPS to ~15",
@@ -397,6 +440,7 @@ const BCE_BC_MOD_SDK=function(){"use strict";const VERSION="1.0.1";function Thro
 					bceSettings.limitFPSTo60 = false;
 				}
 			},
+			category: "performance",
 		},
 		limitFPSTo30: {
 			label: "Limit FPS to ~30",
@@ -408,6 +452,7 @@ const BCE_BC_MOD_SDK=function(){"use strict";const VERSION="1.0.1";function Thro
 					bceSettings.limitFPSTo60 = false;
 				}
 			},
+			category: "performance",
 		},
 		limitFPSTo60: {
 			label: "Limit FPS to ~60",
@@ -419,29 +464,7 @@ const BCE_BC_MOD_SDK=function(){"use strict";const VERSION="1.0.1";function Thro
 					bceSettings.limitFPSTo15 = false;
 				}
 			},
-		},
-		extendedWardrobe: {
-			label: "Extended wardrobe slots (96)",
-			value: false,
-			sideEffects: (newValue) => {
-				bceLog("extendedWardrobe", newValue);
-				if (newValue) {
-					w.WardrobeSize = EXPANDED_WARDROBE_SIZE;
-					loadExtendedWardrobe(w.Player.Wardrobe);
-				} else {
-					// Restore original size
-					w.WardrobeSize = DEFAULT_WARDROBE_SIZE;
-					w.WardrobeFixLength();
-					w.CharacterAppearanceWardrobeOffset = 0;
-				}
-			},
-		},
-		instantMessenger: {
-			label: "Instant messenger (BcUtil compatible)",
-			value: false,
-			sideEffects: (newValue) => {
-				bceLog("instantMessenger", newValue);
-			},
+			category: "performance",
 		},
 	});
 
@@ -974,6 +997,13 @@ const BCE_BC_MOD_SDK=function(){"use strict";const VERSION="1.0.1";function Thro
 	}
 
 	function beepImprovements() {
+		if (typeof w.StartBcUtil === "function") {
+			bceBeepNotify(
+				"Incompatibility",
+				"BCE is incompatible with BCUtil. Some functionality from BCE may not work. BCUtil's wardrobe, appearance, and instant messaging functionality are all available within BCE. Go to BCE settings and enable the relevant options, then disable BCUtil to migrate fully to BCE. This beep will appear every time BCE detects BCUtil as having loaded before BCE."
+			);
+			return;
+		}
 		// ServerAccountBeep patch for beep notification improvements in chat
 		SDK.patchFunction("ServerAccountBeep", {
 			// eslint-disable-next-line no-template-curly-in-string
@@ -1836,12 +1866,43 @@ const BCE_BC_MOD_SDK=function(){"use strict";const VERSION="1.0.1";function Thro
 			settingsYIncrement = 70,
 			settingsYStart = 225;
 
-		const settingsPageCount = Math.ceil(
-			Object.keys(defaultSettings).length / settingsPerPage
-		);
+		const settingsPageCount = (category) =>
+			Math.ceil(
+				Object.values(defaultSettings).filter((v) => v.category === category)
+					.length / settingsPerPage
+			);
 
 		const discordInvitePosition = [1650, 810, 250, 90];
 		let currentPageNumber = 0;
+
+		/** @type {SettingsCategory | null} */
+		let currentCategory = null;
+		/** @type {SettingsCategory[]} */
+		const settingsCategories = [
+			"chat",
+			"activities",
+			"appearance",
+			"immersion",
+			"performance",
+			"misc",
+			"cheats",
+			"addons",
+		];
+		const settingCategoryLabels = {
+			chat: "Chat & Social",
+			activities: "Activities & Arousal",
+			appearance: "Appearance & Wardrobe",
+			immersion: "Immersion & Anti-Cheat",
+			performance: "Performance",
+			misc: "Misc",
+			cheats: "Cheats",
+			addons: "Other Addons",
+		};
+
+		const currentDefaultSettings = (category) =>
+			Object.entries(defaultSettings).filter(
+				([, v]) => v.category === category
+			);
 
 		w.PreferenceSubscreenBCESettingsLoad = function () {
 			currentPageNumber = 0;
@@ -1867,48 +1928,83 @@ const BCE_BC_MOD_SDK=function(){"use strict";const VERSION="1.0.1";function Thro
 				"Black",
 				""
 			);
-			let y = settingsYStart;
-			for (const setting of Object.keys(defaultSettings).slice(
-				currentPageNumber * settingsPerPage,
-				currentPageNumber * settingsPerPage + settingsPerPage
-			)) {
-				w.DrawCheckbox(
-					300,
-					y,
-					64,
-					64,
-					defaultSettings[setting].label,
-					bceSettings[setting]
-				);
-				y += settingsYIncrement;
-			}
 			w.DrawButton(1815, 75, 90, 90, "", "White", "Icons/Exit.png");
-			w.DrawText(
-				`${currentPageNumber + 1} / ${settingsPageCount}`,
-				1700,
-				230,
-				"Black",
-				"Gray"
-			);
-			w.DrawButton(1815, 180, 90, 90, "", "White", "Icons/Next.png");
+
+			if (currentCategory) {
+				let y = settingsYStart;
+				for (const [settingName, defaultSetting] of currentDefaultSettings(
+					currentCategory
+				).slice(
+					currentPageNumber * settingsPerPage,
+					currentPageNumber * settingsPerPage + settingsPerPage
+				)) {
+					w.DrawCheckbox(
+						300,
+						y,
+						64,
+						64,
+						defaultSetting.label,
+						bceSettings[settingName]
+					);
+					y += settingsYIncrement;
+				}
+				w.DrawText(
+					`${currentPageNumber + 1} / ${settingsPageCount(currentCategory)}`,
+					1700,
+					230,
+					"Black",
+					"Gray"
+				);
+				w.DrawButton(1815, 180, 90, 90, "", "White", "Icons/Next.png");
+			} else {
+				let y = settingsYStart;
+				for (const category of settingsCategories) {
+					w.DrawButton(300, y, 400, 64, "", "White");
+					w.DrawTextFit(
+						settingCategoryLabels[category],
+						310,
+						y + 32,
+						380,
+						"Black"
+					);
+					y += settingsYIncrement;
+				}
+			}
 		};
 		w.PreferenceSubscreenBCESettingsClick = function () {
 			let y = settingsYStart;
 			if (w.MouseIn(1815, 75, 90, 90)) {
-				w.PreferenceSubscreenBCESettingsExit();
-			} else if (w.MouseIn(1815, 180, 90, 90)) {
-				currentPageNumber += 1;
-				currentPageNumber %= settingsPageCount;
+				if (currentCategory === null) {
+					w.PreferenceSubscreenBCESettingsExit();
+				} else {
+					currentCategory = null;
+				}
 			} else if (w.MouseIn.apply(null, discordInvitePosition)) {
 				w.open(DISCORD_INVITE_URL, "_blank");
+			} else if (currentCategory !== null) {
+				if (w.MouseIn(1815, 180, 90, 90)) {
+					currentPageNumber += 1;
+					currentPageNumber %= settingsPageCount(currentDefaultSettings);
+				} else {
+					for (const [settingName, defaultSetting] of currentDefaultSettings(
+						currentCategory
+					).slice(
+						currentPageNumber * settingsPerPage,
+						currentPageNumber * settingsPerPage + settingsPerPage
+					)) {
+						if (w.MouseIn(300, y, 64, 64)) {
+							bceSettings[settingName] = !bceSettings[settingName];
+							defaultSetting.sideEffects(bceSettings[settingName]);
+						}
+						y += settingsYIncrement;
+					}
+				}
 			} else {
-				for (const setting of Object.keys(defaultSettings).slice(
-					currentPageNumber * settingsPerPage,
-					currentPageNumber * settingsPerPage + settingsPerPage
-				)) {
-					if (w.MouseIn(300, y, 64, 64)) {
-						bceSettings[setting] = !bceSettings[setting];
-						defaultSettings[setting].sideEffects(bceSettings[setting]);
+				for (const category of settingsCategories) {
+					if (w.MouseIn(300, y, 400, 64)) {
+						currentCategory = category;
+						currentPageNumber = 0;
+						break;
 					}
 					y += settingsYIncrement;
 				}
@@ -4402,7 +4498,8 @@ const BCE_BC_MOD_SDK=function(){"use strict";const VERSION="1.0.1";function Thro
 			// Handle arousal-based expressions
 			outer: for (const t of Object.keys(w.bce_ArousalExpressionStages)) {
 				const [exp] = expression(t);
-				let chosenExpression = null;
+				// eslint-disable-next-line init-declarations
+				let chosenExpression;
 				for (const face of w.bce_ArousalExpressionStages[t]) {
 					const limit =
 						face.Limit - (direction === ArousalMeterDirection.Up ? 0 : 1);
@@ -4657,6 +4754,7 @@ const BCE_BC_MOD_SDK=function(){"use strict";const VERSION="1.0.1";function Thro
 							(a) => a.Asset.Group?.Name === C.FocusGroup?.Name
 						);
 						updateItemPriorityFromLayerPriorityInput(item);
+						w.CharacterRefresh(C, false);
 					}
 				}
 				return next(args);
@@ -4926,6 +5024,7 @@ const BCE_BC_MOD_SDK=function(){"use strict";const VERSION="1.0.1";function Thro
 				w.GLDrawCanvas.GL.textureCache.clear();
 			}
 			w.GLDrawResetCanvas();
+			w.Character.forEach((c) => w.CharacterRefresh(c, false, false));
 		};
 
 		if (!automatedCacheClearer && bceSettings.automateCacheClear) {
@@ -6906,10 +7005,15 @@ const BCE_BC_MOD_SDK=function(){"use strict";const VERSION="1.0.1";function Thro
  */
 
 /**
+ * @typedef {"performance" | "chat" | "activities" | "immersion" | "appearance" | "addons" | "misc" | "cheats"} SettingsCategory
+ */
+
+/**
  * @typedef {Object} DefaultSetting
  * @property {string} label
  * @property {boolean} value
  * @property {(newValue: boolean) => void} sideEffects
+ * @property {SettingsCategory} category
  */
 
 /**
