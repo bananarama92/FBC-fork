@@ -9,9 +9,9 @@ With Tampermonkey you can control when and if you want to update BCE and BCE wil
 ### Autoload with Tampermonkey
 
 1. Install [Tampermonkey](https://www.tampermonkey.net/) (available for most commonly used browsers).
-1. Choose your version: do you want the script to update every time you refresh?
-  a. Yes: use `https://sidiousious.gitlab.io/bce/bce-loader.user.js` ([click me and hit Install on the page that comes up](https://sidiousious.gitlab.io/bce/bce-loader.user.js))
-  b. No: use `https://sidiousious.gitlab.io/bce/bce.user.js` ([click me and hit Install on the page that comes up](https://sidiousious.gitlab.io/bce/bce.user.js))
+1. Choose your version: do you want the script to update every time you refresh?  
+  a. Yes: use `https://sidiousious.gitlab.io/bce/bce-loader.user.js` ([click me and hit Install on the page that comes up](https://sidiousious.gitlab.io/bce/bce-loader.user.js))  
+  b. No: use `https://sidiousious.gitlab.io/bce/bce.user.js` ([click me and hit Install on the page that comes up](https://sidiousious.gitlab.io/bce/bce.user.js))  
 
 If clicking the links above does not give you the option to install:
 1. Open Tampermonkey's dashboard from its button top-right, and go to the Utilities on the right.
