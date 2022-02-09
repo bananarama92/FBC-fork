@@ -9,10 +9,16 @@ With Tampermonkey you can control when and if you want to update BCE and BCE wil
 ### Autoload with Tampermonkey
 
 1. Install [Tampermonkey](https://www.tampermonkey.net/) (available for most commonly used browsers).
+1. Choose your version: do you want the script to update every time you refresh?
+  a. Yes: use `https://sidiousious.gitlab.io/bce/bce-loader.user.js` ([click me and hit Install on the page that comes up](https://sidiousious.gitlab.io/bce/bce-loader.user.js))
+  b. No: use `https://sidiousious.gitlab.io/bce/bce.user.js` ([click me and hit Install on the page that comes up](https://sidiousious.gitlab.io/bce/bce.user.js))
+
+If clicking the links above does not give you the option to install:
 1. Open Tampermonkey's dashboard from its button top-right, and go to the Utilities on the right.
-1. Paste `https://sidiousious.gitlab.io/bce/bce.user.js` into the "Install from URL" field, and click "Install". Tampermonkey should ask for a confirmation, and then the script will show up in its main view.
-1. Reload your BC tab (F5, Ctrl-R), as changes to the script are only picked up on a page refresh.
-   Then go to the preferences screen and click onto "BCE Settings" to enable (or disable) components you wish to use.
+1. Paste the URL into the "Install from URL" field, and click "Install". Tampermonkey should ask for a confirmation, and then the script will show up in its main view.
+
+Once the script has been installed reload your BC tab (F5, Ctrl-R), as changes to the script are only picked up on a page refresh. You should see a "SAVE (BCE)" button on the login screen. You do not need to use this, unless you want to use the automatic relogin feature.
+Then login and go to the preferences screen and click onto "BCE Settings" to enable (or disable) components you wish to use.
 
 ### Manual bookmark
 
