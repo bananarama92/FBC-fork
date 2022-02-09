@@ -481,6 +481,7 @@ declare global {
   };
   type OnlineSettings = {
     BCE: string;
+    BCEWardrobe: string;
   };
   type OnlineSharedSettings = {
     GameVersion: string;
@@ -512,7 +513,8 @@ declare global {
     BCECapabilities: string[];
     BCEArousalProgress: number;
     BCEEnjoyment: number;
-    BCEWardrobe: string;
+    /** @deprecated */
+    BCEWardrobe?: string;
     IsPlayer: () => boolean;
     IsOnline: () => boolean;
     CanChange?: () => boolean;

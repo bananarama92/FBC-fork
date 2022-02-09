@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Bondage Club Enhancements
 // @namespace https://www.bondageprojects.com/
-// @version 2.5.1
+// @version 2.5.2
 // @description enhancements for the bondage club
 // @author Sidious
 // @match https://bondageprojects.elementfx.com/*
@@ -20,9 +20,12 @@
 /* eslint-disable no-undef */
 /* eslint-disable no-implicit-globals */
 
-const BCE_VERSION = "2.5.1";
+const BCE_VERSION = "2.5.2";
 
 const bceChangelog = `${BCE_VERSION}
+- load extended wardrobe properly even when BCE is loaded after login
+
+2.5.1
 - R77Beta1 compatibility
 
 2.5.0
@@ -6698,12 +6701,12 @@ async function BondageClubEnhancements() {
 				if (isWardrobe(wardrobe)) {
 					const additionalWardrobe = wardrobe.slice(DEFAULT_WARDROBE_SIZE);
 					if (additionalWardrobe.length > 0) {
-						Player.BCEWardrobe = LZString.compressToUTF16(
+						Player.OnlineSettings.BCEWardrobe = LZString.compressToUTF16(
 							JSON.stringify(additionalWardrobe)
 						);
 						args[0] = wardrobe.slice(0, DEFAULT_WARDROBE_SIZE);
 						ServerAccountUpdate.QueueData({
-							BCEWardrobe: Player.BCEWardrobe,
+							OnlineSettings: Player.OnlineSettings,
 						});
 					}
 				}
@@ -6732,10 +6735,18 @@ async function BondageClubEnhancements() {
 			WardrobeFixLength();
 		}
 		if (Player.BCEWardrobe) {
+			Player.OnlineSettings.BCEWardrobe = Player.BCEWardrobe;
+			Player.BCEWardrobe = null;
+			ServerAccountUpdate.QueueData({
+				BCEWardrobe: null,
+				OnlineSettings: Player.OnlineSettings,
+			});
+		}
+		if (Player.OnlineSettings.BCEWardrobe) {
 			/** @type {ItemBundle[][]} */
 			// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
 			const additionalItemBundle = JSON.parse(
-				LZString.decompressFromUTF16(Player.BCEWardrobe)
+				LZString.decompressFromUTF16(Player.OnlineSettings.BCEWardrobe)
 			);
 			if (isWardrobe(additionalItemBundle)) {
 				for (let i = DEFAULT_WARDROBE_SIZE; i < EXPANDED_WARDROBE_SIZE; i++) {
