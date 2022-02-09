@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Bondage Club Enhancements
 // @namespace https://www.bondageprojects.com/
-// @version 2.5.0
+// @version 2.5.1
 // @description enhancements for the bondage club
 // @author Sidious
 // @match https://bondageprojects.elementfx.com/*
@@ -18,9 +18,12 @@
 /// <reference path="./typedef.d.ts" />
 /* eslint-disable @typescript-eslint/no-floating-promises */
 
-const BCE_VERSION = "2.5.0";
+const BCE_VERSION = "2.5.1";
 
 const bceChangelog = `${BCE_VERSION}
+- R77Beta1 compatibility
+
+2.5.0
 - settings page overhaul
 - cache clear refreshes character renders after it's done
 
@@ -43,7 +46,7 @@ const BCE_BC_MOD_SDK=function(){"use strict";const VERSION="1.0.1";function Thro
 (async function BondageClubEnhancements() {
 	"use strict";
 
-	const SUPPORTED_GAME_VERSIONS = ["R76"];
+	const SUPPORTED_GAME_VERSIONS = ["R76", "R77Beta1"];
 	const CAPABILITIES = ["clubslave"];
 
 	/**
@@ -110,7 +113,7 @@ const BCE_BC_MOD_SDK=function(){"use strict";const VERSION="1.0.1";function Thro
 		Observe: 0,
 	});
 
-	const settingsVersion = 23;
+	const settingsVersion = 24;
 	/**
 	 * @type {Settings}
 	 */
@@ -573,6 +576,7 @@ const BCE_BC_MOD_SDK=function(){"use strict";const VERSION="1.0.1";function Thro
 		AppearanceExit: 6043996746274230,
 		AppearanceLoad: 318038610585259,
 		AppearanceRun: 4447390256070365,
+		// R77: 4404723662523493
 		CharacterAppearanceWardrobeLoad: 1024487924475385,
 		CharacterBuildDialog: 8706482415251580,
 		CharacterGetCurrent: 2230431260459378,
@@ -584,13 +588,16 @@ const BCE_BC_MOD_SDK=function(){"use strict";const VERSION="1.0.1";function Thro
 		ChatRoomCharacterUpdate: 5847173315712178,
 		ChatRoomClearAllElements: 778126535107850,
 		ChatRoomClick: 1516540320485356,
+		// R77: 6903854306276396
 		ChatRoomCreateElement: 7478347692525566,
 		ChatRoomCurrentTime: 3364862637820289,
 		ChatRoomDrawCharacterOverlay: 5369638654189394,
 		ChatRoomKeyDown: 6879966488410200,
 		ChatRoomListManipulation: 218675230270,
+		// R77: 7935601657348235
 		ChatRoomMessage: 1275188464356568,
 		ChatRoomResize: 5251276321558043,
+		// R77: 3225020709247284
 		ChatRoomRun: 7692271367116918,
 		ChatRoomSendChat: 241594841543533,
 		ChatRoomStart: 8043968639468530,
@@ -600,6 +607,7 @@ const BCE_BC_MOD_SDK=function(){"use strict";const VERSION="1.0.1";function Thro
 		CommonSetScreen: 8974521323406298,
 		DialogClick: 798751755690754,
 		DialogDraw: 2868571887038145,
+		// R77: 4019927903072882 - REMOVE
 		DialogDrawActivityMenu: 3008968350523825,
 		DialogDrawItemMenu: 4334269354539712,
 		DialogLeave: 3752984272795167,
@@ -638,6 +646,7 @@ const BCE_BC_MOD_SDK=function(){"use strict";const VERSION="1.0.1";function Thro
 		LoginRun: 1357779450401958,
 		LoginSetSubmitted: 5037803792528296,
 		MouseIn: 2659797024552939,
+		// R77: 823739843279130
 		OnlineGameAllowChange: 2348135251117141,
 		ServerAccountBeep: 5229920216822273,
 		ServerAppearanceBundle: 5264433604010176,
@@ -649,17 +658,21 @@ const BCE_BC_MOD_SDK=function(){"use strict";const VERSION="1.0.1";function Thro
 		ServerSend: 5586025187389532,
 		SkillGetWithRatio: 6713266246379814,
 		SpeechGarbleByGagLevel: 3778741626096362,
+		// R77: 3018851959661477
 		SpeechGetTotalGagLevel: 1025002189598004,
 		StruggleDrawLockpickProgress: 433247500965714,
 		TextGet: 7879009445399078,
 		TextLoad: 5026399427354377,
 		TimerProcess: 2045761904827696,
+		// R77: 2432188612897127
 		WardrobeClick: 8554869702812786,
 		WardrobeExit: 3381167184862635,
 		WardrobeFastLoad: 2809338805039123,
 		WardrobeFastSave: 8247072197553189,
 		WardrobeFixLength: 2779616285888834,
+		// R77: 8572944049220745
 		WardrobeLoad: 2703505937355641,
+		// R77: 217395389842852
 		WardrobeRun: 2335336863253367,
 	});
 
@@ -1030,6 +1043,10 @@ const BCE_BC_MOD_SDK=function(){"use strict";const VERSION="1.0.1";function Thro
 	}
 
 	function friendlyActivityLabels() {
+		if (w.GameVersion !== "R76") {
+			return;
+		}
+
 		// Custom activity labels
 		const customActivityLabels = [
 			["Act-ChatSelf-ItemBoots-Kiss", "Kiss Foot"],
