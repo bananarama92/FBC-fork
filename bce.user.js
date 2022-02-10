@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Bondage Club Enhancements
 // @namespace https://www.bondageprojects.com/
-// @version 2.5.3
+// @version 2.5.4
 // @description enhancements for the bondage club
 // @author Sidious
 // @match https://bondageprojects.elementfx.com/*
@@ -20,9 +20,12 @@
 /* eslint-disable no-undef */
 /* eslint-disable no-implicit-globals */
 
-const BCE_VERSION = "2.5.3";
+const BCE_VERSION = "2.5.4";
 
 const bceChangelog = `${BCE_VERSION}
+- added /bcedebug
+
+2.5.3
 - update BCX stable
 
 2.5.2
@@ -1599,6 +1602,36 @@ async function BondageClubEnhancements() {
 
 		/** @type {Command[]} */
 		const cmds = [
+			{
+				Tag: "bcedebug",
+				Description: "Get debug information to share with developers.",
+				Action: async () => {
+					/** @type {Map<string, string>} */
+					const info = new Map();
+					info.set("Browser", navigator.userAgent);
+					info.set("Game Version", GameVersion);
+					info.set("WebGL Version", GLVersion);
+					info.set("BCE Version", BCE_VERSION);
+					info.set(
+						"BCE Enabled Settings",
+						`\n- ${Object.entries(bceSettings)
+							.filter(([k, v]) => v || k === "version")
+							.map(([k, v]) => `${k}: ${v.toString()}`)
+							.join("\n- ")}`
+					);
+					info.set(
+						"SDK Mods",
+						`\n- ${BCE_BC_MOD_SDK.getModsInfo()
+							.map((m) => `${m.name} @ ${m.version}`)
+							.join("\n- ")}`
+					);
+					const print = Array.from(info)
+						.map(([k, v]) => `${k}: ${v}`)
+						.join("\n");
+					bceChatNotify(`${print}\n\nCopied to clipboard`);
+					await navigator.clipboard.writeText(print);
+				},
+			},
 			{
 				Tag: "bcechangelog",
 				Description: "Show recent BCE changelog",

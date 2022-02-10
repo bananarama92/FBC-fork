@@ -166,6 +166,7 @@ declare global {
   var ServerBeep: ServerBeep;
   var ServerSend: (event: string, data: unknown) => void;
   var GameVersion: string;
+  var GLVersion: string;
   var InventoryItemMiscLoversTimerPadlockDraw: () => void;
   var InventoryItemMiscLoversTimerPadlockClick: () => void;
   var InventoryItemMiscLoversTimerPadlockExit: () => void;
