@@ -146,7 +146,6 @@ declare global {
   var bce_initializeDefaultExpression: () => void;
   var bceUpdatePasswordForReconnect: () => void;
   var bceMessageReplacements: (msg: string) => string;
-  var bceCustomArousalTimer: number;
   var bce_EventExpressions: { [key: string]: Expression };
   var bceClearPassword: (name: string) => void;
   var bceClearCaches: () => Promise<void>;

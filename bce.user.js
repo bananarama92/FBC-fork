@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Bondage Club Enhancements
 // @namespace https://www.bondageprojects.com/
-// @version 2.5.4
+// @version 2.5.5
 // @description enhancements for the bondage club
 // @author Sidious
 // @match https://bondageprojects.elementfx.com/*
@@ -20,9 +20,12 @@
 /* eslint-disable no-undef */
 /* eslint-disable no-implicit-globals */
 
-const BCE_VERSION = "2.5.4";
+const BCE_VERSION = "2.5.5";
 
 const bceChangelog = `${BCE_VERSION}
+- removed browser timers, making use of game's rendering functions instead
+
+2.5.4
 - added /bcedebug
 
 2.5.3
@@ -2177,128 +2180,126 @@ async function BondageClubEnhancements() {
 			localStorage.setItem(localStoragePasswordsKey, JSON.stringify(passwords));
 		};
 
-		let lastClick = Date.now(),
-			loginCheckDone = false;
+		let lastClick = Date.now();
 
-		function resetLoginCheck() {
-			loginCheckDone = false;
-		}
+		async function loginCheck() {
+			await waitFor(() => CurrentScreen === "Login");
 
-		function loginCheck() {
-			if (CurrentScreen === "Login" && !loginCheckDone) {
-				loginCheckDone = true;
+			/** @type {() => Passwords} */
+			const loadPasswords = () =>
+				// eslint-disable-next-line @typescript-eslint/no-unsafe-return
+				JSON.parse(localStorage.getItem(localStoragePasswordsKey));
 
-				/** @type {Passwords} */
-				// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-				let passwords = JSON.parse(
-					localStorage.getItem(localStoragePasswordsKey)
-				);
+			/** @type {{ passwords: Passwords, posMaps: Record<string, string> }} */
+			const loginData = {
+				passwords: loadPasswords() || {},
+				posMaps: {},
+			};
 
-				if (!passwords) {
-					passwords = {};
+			SDK.hookFunction("LoginRun", HOOK_PRIORITIES.Top, (args, next) => {
+				const ret = next(args);
+				if (Object.keys(loginData.passwords).length > 0) {
+					DrawText("Saved Logins (BCE)", 170, 35, "White", "Black");
 				}
+				DrawButton(1250, 385, 180, 60, "Save (BCE)", "White");
 
-				/** @type {{[key: string]: string}} */
-				const posMaps = {};
-
-				SDK.hookFunction("LoginRun", HOOK_PRIORITIES.Top, (args, next) => {
-					const ret = next(args);
-					if (Object.keys(passwords).length > 0) {
-						DrawText("Saved Logins (BCE)", 170, 35, "White", "Black");
+				let y = 60;
+				for (const user in loginData.passwords) {
+					if (
+						!Object.prototype.hasOwnProperty.call(loginData.passwords, user)
+					) {
+						continue;
 					}
-					DrawButton(1250, 385, 180, 60, "Save (BCE)", "White");
+					loginData.posMaps[y] = user;
+					DrawButton(10, y, 350, 60, user, "White");
+					DrawButton(355, y, 60, 60, "X", "White");
+					y += 70;
+				}
+				return ret;
+			});
 
-					let y = 60;
-					for (const user in passwords) {
-						if (!Object.prototype.hasOwnProperty.call(passwords, user)) {
-							continue;
-						}
-						posMaps[y] = user;
-						DrawButton(10, y, 350, 60, user, "White");
-						DrawButton(355, y, 60, 60, "X", "White");
-						y += 70;
-					}
+			SDK.hookFunction("LoginClick", HOOK_PRIORITIES.Top, (args, next) => {
+				const ret = next(args);
+				if (MouseIn(1250, 385, 180, 60)) {
+					bceUpdatePasswordForReconnect();
+					loginData.posMaps = {};
+					loginData.passwords = loadPasswords() || {};
+				}
+				const now = Date.now();
+				if (now - lastClick < 150) {
 					return ret;
-				});
+				}
+				lastClick = now;
+				for (const pos in loginData.posMaps) {
+					if (!Object.prototype.hasOwnProperty.call(loginData.posMaps, pos)) {
+						continue;
+					}
+					const idx = parseInt(pos);
+					if (MouseIn(10, idx, 350, 60)) {
+						ElementValue("InputName", loginData.posMaps[idx]);
+						ElementValue(
+							"InputPassword",
+							loginData.passwords[loginData.posMaps[idx]]
+						);
+					} else if (MouseIn(355, idx, 60, 60)) {
+						bceClearPassword(loginData.posMaps[idx]);
+						loginData.posMaps = {};
+						loginData.passwords = loadPasswords() || {};
+					}
+				}
+				return ret;
+			});
 
-				SDK.hookFunction("LoginClick", HOOK_PRIORITIES.Top, (args, next) => {
-					const ret = next(args);
-					if (MouseIn(1250, 385, 180, 60)) {
-						bceUpdatePasswordForReconnect();
-						resetLoginCheck();
-					}
-					const now = Date.now();
-					if (now - lastClick < 150) {
-						return ret;
-					}
-					lastClick = now;
-					for (const pos in posMaps) {
-						if (!Object.prototype.hasOwnProperty.call(posMaps, pos)) {
-							continue;
-						}
-						const idx = parseInt(pos);
-						if (MouseIn(10, idx, 350, 60)) {
-							ElementValue("InputName", posMaps[idx]);
-							ElementValue("InputPassword", passwords[posMaps[idx]]);
-						} else if (MouseIn(355, idx, 60, 60)) {
-							bceClearPassword(posMaps[idx]);
-							resetLoginCheck();
-						}
-					}
-					return ret;
-				});
-
-				CurrentScreenFunctions.Run = LoginRun;
-				CurrentScreenFunctions.Click = LoginClick;
-			}
+			CurrentScreenFunctions.Run = LoginRun;
+			CurrentScreenFunctions.Click = LoginClick;
 		}
-		setInterval(loginCheck, 100);
+		loginCheck();
 
 		let breakCircuit = false;
-		/** @type {number} */
-		let relogCheck = null;
 
 		async function relog() {
 			if (breakCircuit || !bceSettings.relogin) {
 				return;
 			}
-			if (Player.AccountName && ServerIsConnected && !LoginSubmitted) {
-				if (relogCheck) {
-					clearInterval(relogCheck);
-				}
-				/** @type {Passwords} */
-				// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-				let passwords = JSON.parse(
-					localStorage.getItem(localStoragePasswordsKey)
-				);
-				bceLog("Attempting to log in again as", Player.AccountName);
-				if (!passwords) {
-					passwords = {};
-				}
-				if (!passwords[Player.AccountName]) {
-					// eslint-disable-next-line no-alert
-					alert("Automatic reconnect failed!");
-					breakCircuit = true;
-					return;
-				}
-				LoginSetSubmitted();
-				ServerSend("AccountLogin", {
-					AccountName: Player.AccountName,
-					Password: passwords[Player.AccountName],
-				});
-				await waitFor(() => CurrentScreen !== "Relog");
-				await sleep(500);
-				SDK.callOriginal("ServerAccountBeep", [
-					{
-						MemberNumber: Player.MemberNumber,
-						MemberName: "VOID",
-						ChatRoomName: "VOID",
-						Private: true,
-						Message: "Reconnected!",
-						ChatRoomSpace: "",
-					},
-				]);
+			breakCircuit = true;
+			await waitFor(
+				() => Player.AccountName && ServerIsConnected && !LoginSubmitted
+			);
+			// eslint-disable-next-line require-atomic-updates
+			breakCircuit = false;
+			/** @type {Passwords} */
+			// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+			let passwords = JSON.parse(
+				localStorage.getItem(localStoragePasswordsKey)
+			);
+			bceLog("Attempting to log in again as", Player.AccountName);
+			if (!passwords) {
+				passwords = {};
 			}
+			if (!passwords[Player.AccountName]) {
+				// eslint-disable-next-line no-alert
+				alert("Automatic reconnect failed!");
+				// eslint-disable-next-line require-atomic-updates
+				breakCircuit = true;
+				return;
+			}
+			LoginSetSubmitted();
+			ServerSend("AccountLogin", {
+				AccountName: Player.AccountName,
+				Password: passwords[Player.AccountName],
+			});
+			await waitFor(() => CurrentScreen !== "Relog");
+			await sleep(500);
+			SDK.callOriginal("ServerAccountBeep", [
+				{
+					MemberNumber: Player.MemberNumber,
+					MemberName: "VOID",
+					ChatRoomName: "VOID",
+					Private: true,
+					Message: "Reconnected!",
+					ChatRoomSpace: "",
+				},
+			]);
 		}
 
 		SDK.hookFunction("ServerConnect", HOOK_PRIORITIES.Top, (args, next) => {
@@ -2324,7 +2325,7 @@ async function BondageClubEnhancements() {
 					]);
 					breakCircuit = true;
 				} else {
-					relogCheck = setInterval(relog, 100);
+					relog();
 				}
 			}
 			return next(args);
@@ -2704,7 +2705,8 @@ async function BondageClubEnhancements() {
 				}
 			}
 		}
-		setInterval(bceChatAugments, 500);
+
+		createTimer(bceChatAugments, 500);
 	}
 
 	async function automaticExpressions() {
@@ -4681,10 +4683,10 @@ async function BondageClubEnhancements() {
 			PreviousArousal = { ...Player.ArousalSettings };
 		};
 
-		if (typeof w.bceCustomArousalTimer !== "undefined") {
-			clearInterval(w.bceCustomArousalTimer);
-		}
-		w.bceCustomArousalTimer = setInterval(CustomArousalExpression, 250);
+		SDK.hookFunction("MainRun", 0, (args, next) => {
+			CustomArousalExpression();
+			return next(args);
+		});
 	}
 
 	async function layeringMenu() {
@@ -5048,8 +5050,6 @@ async function BondageClubEnhancements() {
 	}
 
 	function cacheClearer() {
-		/** @type {number} */
-		let automatedCacheClearer = null;
 		const cacheClearInterval = 1 * 60 * 60 * 1000;
 
 		w.bceClearCaches = async function () {
@@ -5064,8 +5064,6 @@ async function BondageClubEnhancements() {
 				return;
 			}
 			if (!bceSettings.automateCacheClear) {
-				bceLog("Cache clearing disabled");
-				clearInterval(automatedCacheClearer);
 				return;
 			}
 
@@ -5077,9 +5075,13 @@ async function BondageClubEnhancements() {
 			Character.forEach((c) => CharacterRefresh(c, false, false));
 		};
 
-		if (!automatedCacheClearer && bceSettings.automateCacheClear) {
-			automatedCacheClearer = setInterval(bceClearCaches, cacheClearInterval);
-		}
+		const clearCaches = () => {
+			if (bceSettings.automateCacheClear) {
+				w.bceClearCaches();
+			}
+		};
+
+		createTimer(clearCaches, cacheClearInterval);
 	}
 
 	function chatRoomOverlay() {
@@ -5891,7 +5893,7 @@ async function BondageClubEnhancements() {
 	async function blindWithoutGlasses() {
 		await waitFor(() => !!Player && !!Player.Appearance);
 
-		setInterval(() => {
+		function checkBlindness() {
 			if (!bceSettings.blindWithoutGlasses) {
 				return;
 			}
@@ -5929,7 +5931,12 @@ async function BondageClubEnhancements() {
 				GLASSES_BLUR_TARGET.classList.add(GLASSES_BLIND_CLASS);
 				bceChatNotify("Having lost your glasses your eyesight is impaired!");
 			}
-		}, 1000);
+		}
+
+		SDK.hookFunction("MainRun", HOOK_PRIORITIES.Observe, (args, next) => {
+			checkBlindness();
+			return next(args);
+		});
 	}
 
 	async function friendPresenceNotifications() {
@@ -5944,7 +5951,7 @@ async function BondageClubEnhancements() {
 			}
 			ServerSend("AccountQuery", { Query: "OnlineFriends" });
 		}
-		setInterval(checkFriends, 20000);
+		createTimer(checkFriends, 20000);
 
 		/** @type {Friend[]} */
 		let lastFriends = [];
@@ -6936,8 +6943,20 @@ async function BondageClubEnhancements() {
 		};
 		sendHeartbeat();
 		// 5 minutes
-		setInterval(sendHeartbeat, 1000 * 60 * 5);
+		createTimer(sendHeartbeat, 1000 * 60 * 5);
 	})();
+
+	/** @type {(cb: () => void, intval: number) => void} */
+	function createTimer(cb, intval) {
+		let lastTime = Date.now();
+		SDK.hookFunction("MainRun", HOOK_PRIORITIES.Top, (args, next) => {
+			if (Date.now() - lastTime > intval) {
+				lastTime = Date.now();
+				cb();
+			}
+			return next(args);
+		});
+	}
 
 	/** @type {(ms: number) => Promise<void>} */
 	function sleep(ms) {
