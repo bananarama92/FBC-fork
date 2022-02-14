@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Bondage Club Enhancements
 // @namespace https://www.bondageprojects.com/
-// @version 2.5.5
+// @version 2.5.6
 // @description enhancements for the bondage club
 // @author Sidious
 // @match https://bondageprojects.elementfx.com/*
@@ -20,9 +20,13 @@
 /* eslint-disable no-undef */
 /* eslint-disable no-implicit-globals */
 
-const BCE_VERSION = "2.5.5";
+const BCE_VERSION = "2.5.6";
 
 const bceChangelog = `${BCE_VERSION}
+- fix leaving layering menus with ESC
+- fix pagination button in settings
+
+2.5.5
 - removed browser timers, making use of game's rendering functions instead
 
 2.5.4
@@ -60,7 +64,7 @@ const BCE_BC_MOD_SDK=function(){"use strict";const VERSION="1.0.1";function Thro
 async function BondageClubEnhancements() {
 	"use strict";
 
-	const SUPPORTED_GAME_VERSIONS = ["R76", "R77Beta1"];
+	const SUPPORTED_GAME_VERSIONS = ["R76", "R77Beta2"];
 	const CAPABILITIES = ["clubslave"];
 
 	const w = window;
@@ -2037,7 +2041,7 @@ async function BondageClubEnhancements() {
 			} else if (currentCategory !== null) {
 				if (MouseIn(1815, 180, 90, 90)) {
 					currentPageNumber += 1;
-					currentPageNumber %= settingsPageCount(currentDefaultSettings);
+					currentPageNumber %= settingsPageCount(currentCategory);
 				} else {
 					for (const [settingName, defaultSetting] of currentDefaultSettings(
 						currentCategory
@@ -4683,10 +4687,7 @@ async function BondageClubEnhancements() {
 			PreviousArousal = { ...Player.ArousalSettings };
 		};
 
-		SDK.hookFunction("MainRun", 0, (args, next) => {
-			CustomArousalExpression();
-			return next(args);
-		});
+		createTimer(CustomArousalExpression, 250);
 	}
 
 	async function layeringMenu() {
@@ -4860,6 +4861,21 @@ async function BondageClubEnhancements() {
 			DialogFocusItem = null;
 		}
 
+		for (const func of ["DialogLeave", "DialogLeaveItemMenu"]) {
+			SDK.hookFunction(
+				func,
+				HOOK_PRIORITIES.OverrideBehaviour,
+				// eslint-disable-next-line no-loop-func
+				(args, next) => {
+					if (prioritySubscreen) {
+						prioritySubscreenExit();
+						return;
+					}
+					next(args);
+				}
+			);
+		}
+
 		SDK.hookFunction(
 			"DialogDrawItemMenu",
 			HOOK_PRIORITIES.AddBehaviour,
@@ -4915,21 +4931,26 @@ async function BondageClubEnhancements() {
 			"DialogDraw",
 			HOOK_PRIORITIES.OverrideBehaviour,
 			(args, next) => {
-				if (bceSettings.layeringMenu && prioritySubscreen) {
-					DrawText(`Set item ${priorityField}`, 950, 150, "White", "Black");
-					DrawButton(1815, 75, 90, 90, "", "White", "Icons/Exit.png");
-					ElementPosition(layerPriority, 950, 210, 100);
-					DrawButton(
-						900,
-						280,
-						90,
-						90,
-						"",
-						"White",
-						"Icons/Accept.png",
-						`Set ${priorityField}`
-					);
-					return null;
+				const C = CharacterGetCurrent(),
+					focusItem = InventoryGet(C, C.FocusGroup?.Name);
+				if (bceSettings.layeringMenu) {
+					if (prioritySubscreen && focusItem) {
+						DrawText(`Set item ${priorityField}`, 950, 150, "White", "Black");
+						DrawButton(1815, 75, 90, 90, "", "White", "Icons/Exit.png");
+						ElementPosition(layerPriority, 950, 210, 100);
+						DrawButton(
+							900,
+							280,
+							90,
+							90,
+							"",
+							"White",
+							"Icons/Accept.png",
+							`Set ${priorityField}`
+						);
+						return null;
+					}
+					prioritySubscreenExit();
 				}
 				return next(args);
 			}
