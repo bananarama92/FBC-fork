@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Bondage Club Enhancements
 // @namespace https://www.bondageprojects.com/
-// @version 2.5.6
+// @version 2.5.7
 // @description enhancements for the bondage club
 // @author Sidious
 // @match https://bondageprojects.elementfx.com/*
@@ -20,9 +20,12 @@
 /* eslint-disable no-undef */
 /* eslint-disable no-implicit-globals */
 
-const BCE_VERSION = "2.5.6";
+const BCE_VERSION = "2.5.7";
 
 const bceChangelog = `${BCE_VERSION}
+- fix inspecting locks and other advanced item properties
+
+2.5.6
 - fix leaving layering menus with ESC
 - fix pagination button in settings
 
@@ -4933,8 +4936,8 @@ async function BondageClubEnhancements() {
 			(args, next) => {
 				const C = CharacterGetCurrent(),
 					focusItem = InventoryGet(C, C.FocusGroup?.Name);
-				if (bceSettings.layeringMenu) {
-					if (prioritySubscreen && focusItem) {
+				if (bceSettings.layeringMenu && prioritySubscreen) {
+					if (focusItem) {
 						DrawText(`Set item ${priorityField}`, 950, 150, "White", "Black");
 						DrawButton(1815, 75, 90, 90, "", "White", "Icons/Exit.png");
 						ElementPosition(layerPriority, 950, 210, 100);
