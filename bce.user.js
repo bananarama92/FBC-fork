@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Bondage Club Enhancements
 // @namespace https://www.bondageprojects.com/
-// @version 2.5.7
+// @version 2.5.8
 // @description enhancements for the bondage club
 // @author Sidious
 // @match https://bondageprojects.elementfx.com/*
@@ -20,9 +20,12 @@
 /* eslint-disable no-undef */
 /* eslint-disable no-implicit-globals */
 
-const BCE_VERSION = "2.5.7";
+const BCE_VERSION = "2.5.8";
 
 const bceChangelog = `${BCE_VERSION}
+- escape as a hotkey to close the IM
+
+2.5.7
 - fix inspecting locks and other advanced item properties
 
 2.5.6
@@ -6732,6 +6735,21 @@ async function BondageClubEnhancements() {
 				next(args);
 			}
 		);
+
+		/** @type {(e: KeyboardEvent) => void} */
+		function keyHandler(e) {
+			if (!bceSettings.instantMessenger) {
+				return;
+			}
+			if (e.key === "Escape" && !container.classList.contains("bce-hidden")) {
+				container.classList.add("bce-hidden");
+				e.stopPropagation();
+				e.preventDefault();
+			}
+		}
+
+		document.addEventListener("keydown", keyHandler, true);
+		document.addEventListener("keypress", keyHandler, true);
 	}
 
 	async function extendedWardrobe() {
