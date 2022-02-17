@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Bondage Club Enhancements
 // @namespace https://www.bondageprojects.com/
-// @version 2.5.8
+// @version 2.5.9
 // @description enhancements for the bondage club
 // @author Sidious
 // @match https://bondageprojects.elementfx.com/*
@@ -20,9 +20,14 @@
 /* eslint-disable no-undef */
 /* eslint-disable no-implicit-globals */
 
-const BCE_VERSION = "2.5.8";
+const BCE_VERSION = "2.5.9";
 
 const bceChangelog = `${BCE_VERSION}
+- R77 compatibility
+- removed friendly activity labels (integrated with the game now)
+- improved compatibility with other addons
+
+2.5.8
 - escape as a hotkey to close the IM
 
 2.5.7
@@ -70,7 +75,7 @@ const BCE_BC_MOD_SDK=function(){"use strict";const VERSION="1.0.1";function Thro
 async function BondageClubEnhancements() {
 	"use strict";
 
-	const SUPPORTED_GAME_VERSIONS = ["R76", "R77Beta2"];
+	const SUPPORTED_GAME_VERSIONS = ["R77"];
 	const CAPABILITIES = ["clubslave"];
 
 	const w = window;
@@ -133,7 +138,7 @@ async function BondageClubEnhancements() {
 		Observe: 0,
 	});
 
-	const settingsVersion = 24;
+	const settingsVersion = 25;
 	/**
 	 * @type {Settings}
 	 */
@@ -187,14 +192,6 @@ async function BondageClubEnhancements() {
 			value: false,
 			sideEffects: (newValue) => {
 				bceLog("stutters", newValue);
-			},
-			category: "activities",
-		},
-		activityLabels: {
-			label: "Use clearer activity labels",
-			value: true,
-			sideEffects: (newValue) => {
-				bceLog("activityLabels", newValue);
 			},
 			category: "activities",
 		},
@@ -599,10 +596,9 @@ async function BondageClubEnhancements() {
 		ActivityTimerProgress: 3132257411270963,
 		AppearanceClick: 2577670695726505,
 		AppearanceExit: 6043996746274230,
-		AppearanceLoad: 318038610585259,
+		AppearanceLoad: 5167605648205811,
 		AppearanceRun: 4447390256070365,
-		// R77: 4404723662523493
-		CharacterAppearanceWardrobeLoad: 1024487924475385,
+		CharacterAppearanceWardrobeLoad: 4404723662523493,
 		CharacterBuildDialog: 8706482415251580,
 		CharacterGetCurrent: 2230431260459378,
 		CharacterRefresh: 6855166438178254,
@@ -613,17 +609,14 @@ async function BondageClubEnhancements() {
 		ChatRoomCharacterUpdate: 5847173315712178,
 		ChatRoomClearAllElements: 778126535107850,
 		ChatRoomClick: 1516540320485356,
-		// R77: 6903854306276396
-		ChatRoomCreateElement: 7478347692525566,
+		ChatRoomCreateElement: 8191626276531606,
 		ChatRoomCurrentTime: 3364862637820289,
 		ChatRoomDrawCharacterOverlay: 5369638654189394,
 		ChatRoomKeyDown: 6879966488410200,
 		ChatRoomListManipulation: 218675230270,
-		// R77: 7935601657348235
-		ChatRoomMessage: 1275188464356568,
+		ChatRoomMessage: 7639201391023296,
 		ChatRoomResize: 5251276321558043,
-		// R77: 3225020709247284
-		ChatRoomRun: 7692271367116918,
+		ChatRoomRun: 4993950642363970,
 		ChatRoomSendChat: 241594841543533,
 		ChatRoomStart: 8043968639468530,
 		CommandExecute: 6351113844499493,
@@ -632,8 +625,6 @@ async function BondageClubEnhancements() {
 		CommonSetScreen: 8974521323406298,
 		DialogClick: 798751755690754,
 		DialogDraw: 2868571887038145,
-		// R77: 4019927903072882 - REMOVE
-		DialogDrawActivityMenu: 3008968350523825,
 		DialogDrawItemMenu: 4334269354539712,
 		DialogLeave: 3752984272795167,
 		DrawBackNextButton: 5090331954030593,
@@ -671,8 +662,7 @@ async function BondageClubEnhancements() {
 		LoginRun: 1357779450401958,
 		LoginSetSubmitted: 5037803792528296,
 		MouseIn: 2659797024552939,
-		// R77: 823739843279130
-		OnlineGameAllowChange: 2348135251117141,
+		OnlineGameAllowChange: 823739843279130,
 		ServerAccountBeep: 5229920216822273,
 		ServerAppearanceBundle: 5264433604010176,
 		ServerAppearanceLoadFromBundle: 2356301037697152,
@@ -683,22 +673,18 @@ async function BondageClubEnhancements() {
 		ServerSend: 5586025187389532,
 		SkillGetWithRatio: 6713266246379814,
 		SpeechGarbleByGagLevel: 3778741626096362,
-		// R77: 3018851959661477
-		SpeechGetTotalGagLevel: 1025002189598004,
+		SpeechGetTotalGagLevel: 3018851959661477,
 		StruggleDrawLockpickProgress: 433247500965714,
 		TextGet: 7879009445399078,
 		TextLoad: 5026399427354377,
 		TimerProcess: 2045761904827696,
-		// R77: 2432188612897127
-		WardrobeClick: 8554869702812786,
+		WardrobeClick: 2432188612897127,
 		WardrobeExit: 3381167184862635,
 		WardrobeFastLoad: 2809338805039123,
 		WardrobeFastSave: 8247072197553189,
 		WardrobeFixLength: 2779616285888834,
-		// R77: 8572944049220745
-		WardrobeLoad: 2703505937355641,
-		// R77: 217395389842852
-		WardrobeRun: 2335336863253367,
+		WardrobeLoad: 8572944049220745,
+		WardrobeRun: 217395389842852,
 	});
 
 	/**
@@ -720,6 +706,27 @@ async function BondageClubEnhancements() {
 	 */
 	const bceError = (...args) => {
 		console.error("BCE", `${w.BCE_VERSION}:`, ...args);
+	};
+
+	/** @type {string[]} */
+	const deviatingHashes = [];
+	/** @type {string[]} */
+	const skippedFunctionality = [];
+
+	/** @type {(functionName: string, patches: Record<string,string>, affectedFunctionality: string) => void} */
+	const patchFunction = (functionName, patches, affectedFunctionality) => {
+		// Guard against patching a function that has been modified by another addon not using the shared SDK on supported versions.
+		if (
+			deviatingHashes.includes(functionName) &&
+			SUPPORTED_GAME_VERSIONS.includes(GameVersion)
+		) {
+			bceError(
+				`Skipping patching of ${functionName} due to detected deviation. Impact: ${affectedFunctionality}\n\nSee /bcedebug in a chatroom for more information.`
+			);
+			skippedFunctionality.push(affectedFunctionality);
+			return;
+		}
+		SDK.patchFunction(functionName, patches);
 	};
 
 	/**
@@ -859,7 +866,6 @@ async function BondageClubEnhancements() {
 	bceLog(bceSettings);
 	commonPatches();
 	const bcxLoad = loadBCX();
-	friendlyActivityLabels();
 	beepImprovements();
 	settingsPage();
 	alternateArousal();
@@ -910,7 +916,17 @@ async function BondageClubEnhancements() {
 			// eslint-disable-next-line
 			const actualHash = cyrb53(w[func].toString());
 			if (actualHash !== hash) {
-				bceWarn(`Function ${func} has been modified before BCE: ${actualHash}`);
+				// eslint-disable-next-line
+				if (w[func].toString().includes("sdkApi.errorReporterHooks")) {
+					bceLog(
+						`Function ${func} has been modified before BCE by another SDK mod: ${actualHash}`
+					);
+				} else {
+					bceError(
+						`Function ${func} has been modified before BCE, potential incompatibility: ${actualHash}`
+					);
+					deviatingHashes.push(func);
+				}
 			}
 		}
 	}
@@ -964,29 +980,24 @@ async function BondageClubEnhancements() {
 
 	function commonPatches() {
 		// DrawBackNextButton patch to allow overriding hover text position
-		SDK.patchFunction("DrawBackNextButton", {
-			"Disabled, ArrowWidth": "Disabled, ArrowWidth, tooltipPosition",
-			"DrawButtonHover(Left, Top, Width, Height,":
-				"DrawButtonHover(tooltipPosition?.X || Left, tooltipPosition?.Y || Top, tooltipPosition?.Width || Width, tooltipPosition?.Height || Height,",
-		});
+		patchFunction(
+			"DrawBackNextButton",
+			{
+				"Disabled, ArrowWidth": "Disabled, ArrowWidth, tooltipPosition",
+				"DrawButtonHover(Left, Top, Width, Height,":
+					"DrawButtonHover(tooltipPosition?.X || Left, tooltipPosition?.Y || Top, tooltipPosition?.Width || Width, tooltipPosition?.Height || Height,",
+			},
+			"Tooltip positions may be incorrect."
+		);
 
 		// CommandExecute patch to fix /whitelistadd and /whitelistremove
-		SDK.patchFunction("CommandExecute", {
-			"key.indexOf(CommandsKey + C.Tag) == 0)": `key.substring(1) === C.Tag)`,
-		});
-
-		// eslint-disable-next-line no-warning-comments
-		// TODO: Remove after R77
-		if (GameVersion === "R76") {
-			// Eat Status messages on R76
-			SDK.hookFunction("ChatRoomMessage", HOOK_PRIORITIES.Top, (args, next) => {
-				const [data] = args;
-				if (isChatMessage(data) && data.Type.toLowerCase() === "status") {
-					return null;
-				}
-				return next(args);
-			});
-		}
+		patchFunction(
+			"CommandExecute",
+			{
+				"key.indexOf(CommandsKey + C.Tag) == 0)": `key.substring(1) === C.Tag)`,
+			},
+			"Whitelist commands will not work."
+		);
 	}
 
 	function fpsCounter() {
@@ -1043,9 +1054,11 @@ async function BondageClubEnhancements() {
 			return;
 		}
 		// ServerAccountBeep patch for beep notification improvements in chat
-		SDK.patchFunction("ServerAccountBeep", {
-			// eslint-disable-next-line no-template-curly-in-string
-			'ChatRoomSendLocal(`<a onclick="ServerOpenFriendList()">(${ServerBeep.Message})</a>`);': `{
+		patchFunction(
+			"ServerAccountBeep",
+			{
+				// eslint-disable-next-line no-template-curly-in-string
+				'ChatRoomSendLocal(`<a onclick="ServerOpenFriendList()">(${ServerBeep.Message})</a>`);': `{
 					const beepId = FriendListBeepLog.length - 1;
 					ChatRoomSendLocal(\`<a id="bce-beep-reply-\${beepId}">\u21a9\ufe0f</a><a class="bce-beep-link" id="bce-beep-\${beepId}">(\${ServerBeep.Message}\${ChatRoomHTMLEntities(data.Message ? \`: \${data.Message.length > 150 ? data.Message.substring(0, 150) + "..." : data.Message}\` : "")})</a>\`);
 					if (document.getElementById("bce-beep-reply-" + beepId)) {
@@ -1064,352 +1077,81 @@ async function BondageClubEnhancements() {
 						};
 					}
 				}`,
-		});
-	}
-
-	function friendlyActivityLabels() {
-		if (GameVersion !== "R76") {
-			return;
-		}
-
-		// Custom activity labels
-		const customActivityLabels = [
-			["Act-ChatSelf-ItemBoots-Kiss", "Kiss Foot"],
-			["Act-ChatSelf-ItemBoots-PoliteKiss", "Polite Kiss on Foot"],
-			["Act-ChatSelf-ItemBoots-Lick", "Lick Feet"],
-			["Act-ChatSelf-ItemBoots-Suck", "Suck Big Toe"],
-			["Act-ChatSelf-ItemBoots-Nibble", "Nibble Feet"],
-			["Act-ChatSelf-ItemBoots-Tickle", "Tickle Feet"],
-			["Act-ChatSelf-ItemBoots-MassageHands", "Massage Feet"],
-			["Act-ChatSelf-ItemBoots-TakeCare", "Polish Toenails"],
-			["Act-ChatSelf-ItemBoots-Bite", "Bite Foot"],
-			["Act-ChatSelf-ItemBoots-Wiggle", "Wiggle Feet"],
-			["Act-ChatOther-ItemBoots-Bite", "Bite Foot"],
-			["Act-ChatOther-ItemBoots-Kiss", "Kiss Foot"],
-			["Act-ChatOther-ItemBoots-PoliteKiss", "Polite Kiss on Foot"],
-			["Act-ChatOther-ItemBoots-GaggedKiss", "Touch Foot with Gag"],
-			["Act-ChatOther-ItemBoots-Lick", "Lick Feet"],
-			["Act-ChatOther-ItemBoots-Suck", "Suck Big Toe"],
-			["Act-ChatOther-ItemBoots-Nibble", "Nibble Feet"],
-			["Act-ChatOther-ItemBoots-Tickle", "Tickle Sole"],
-			["Act-ChatOther-ItemBoots-Spank", "Spank Sole"],
-			["Act-ChatOther-ItemBoots-MassageHands", "Massage Feet"],
-			["Act-ChatOther-ItemBoots-MassageFeet", "Play with Feet"],
-			["Act-ChatOther-ItemBoots-TakeCare", "Polish Toenails"],
-			["Act-ChatSelf-ItemFeet-Tickle", "Tickle Feet"],
-			["Act-ChatSelf-ItemFeet-Spank", "Spank Leg"],
-			["Act-ChatSelf-ItemFeet-Caress", "Caress Legs"],
-			["Act-ChatSelf-ItemFeet-MassageHands", "Massage Legs"],
-			["Act-ChatSelf-ItemFeet-Bite", "Bite Leg"],
-			["Act-ChatSelf-ItemFeet-Wiggle", "Wiggle Legs"],
-			["Act-ChatOther-ItemFeet-Bite", "Bite Leg"],
-			["Act-ChatOther-ItemFeet-Kiss", "Kiss Leg"],
-			["Act-ChatOther-ItemFeet-GaggedKiss", "Touch Leg with Gag"],
-			["Act-ChatOther-ItemFeet-Lick", "Lick Leg"],
-			["Act-ChatOther-ItemFeet-Nibble", "Nibble Leg"],
-			["Act-ChatOther-ItemFeet-Tickle", "Tickle Leg"],
-			["Act-ChatOther-ItemFeet-Spank", "Spank Leg"],
-			["Act-ChatOther-ItemFeet-Caress", "Caress Leg"],
-			["Act-ChatOther-ItemFeet-MassageHands", "Massage Leg"],
-			["Act-ChatOther-ItemFeet-Grope", "Grope Leg"],
-			["Act-ChatSelf-ItemLegs-Tickle", "Tickle Thighs"],
-			["Act-ChatSelf-ItemLegs-Spank", "Spank Thigh"],
-			["Act-ChatSelf-ItemLegs-Caress", "Caress Thighs"],
-			["Act-ChatSelf-ItemLegs-MassageHands", "Massage Thighs"],
-			["Act-ChatSelf-ItemLegs-Bite", "Bite Thigh"],
-			["Act-ChatSelf-ItemLegs-Wiggle", "Rub Thighs Together"],
-			["Act-ChatSelf-ItemLegs-StruggleLegs", "Thrash in Bondage"],
-			["Act-ChatOther-ItemLegs-Bite", "Bite Thigh"],
-			["Act-ChatOther-ItemLegs-Kiss", "Kiss Thigh"],
-			["Act-ChatOther-ItemLegs-GaggedKiss", "Rub Gag on Thighs"],
-			["Act-ChatOther-ItemLegs-Lick", "Lick Thigh"],
-			["Act-ChatOther-ItemLegs-Nibble", "Nibble Thighs"],
-			["Act-ChatOther-ItemLegs-Tickle", "Tickle Thighs"],
-			["Act-ChatOther-ItemLegs-Spank", "Spank Thighs"],
-			["Act-ChatOther-ItemLegs-Caress", "Caress Thighs"],
-			["Act-ChatOther-ItemLegs-MassageHands", "Massage Thighs"],
-			["Act-ChatOther-ItemLegs-Grope", "Grope Thigh"],
-			["Act-ChatOther-ItemLegs-Sit", "Sit in Lap"],
-			["Act-ChatOther-ItemLegs-RestHead", "Rest Head in Lap"],
-			["Act-ChatSelf-ItemVulva-MasturbateHand", "Masturbate Pussy"],
-			["Act-ChatSelf-ItemVulva-Caress", "Caress Pussy"],
-			["Act-ChatOther-ItemVulva-MasturbateHand", "Finger Pussy"],
-			["Act-ChatOther-ItemVulva-MasturbateFist", "Fist Pussy"],
-			["Act-ChatOther-ItemVulva-MasturbateFoot", "Foot Masturbate Pussy"],
-			["Act-ChatOther-ItemVulva-MasturbateTongue", "Tongue Masturbate Pussy"],
-			["Act-ChatOther-ItemVulva-Caress", "Caress Pussy"],
-			["Act-ChatOther-ItemVulva-Slap", "Slap Pussy Lips"],
-			["Act-ChatOther-ItemVulva-Kiss", "Kiss Pussy Lips"],
-			["Act-ChatOther-ItemVulva-GaggedKiss", "Push Gag in Pussy"],
-			["Act-ChatOther-ItemVulva-Lick", "Lick Pussy Lips"],
-			["Act-ChatOther-ItemVulva-Nibble", "Nibble Pussy Lips"],
-			["Act-ChatOther-ItemVulva-MasturbateItem", "Device on Clit"],
-			["Act-ChatOther-ItemVulva-PenetrateSlow", "Slow Penetration"],
-			["Act-ChatOther-ItemVulva-PenetrateFast", "Fast Penetration"],
-			["Act-ChatSelf-ItemButt-MasturbateHand", "Finger Ass"],
-			["Act-ChatSelf-ItemButt-Spank", "Spank Butt"],
-			["Act-ChatSelf-ItemButt-Caress", "Caress Butt"],
-			["Act-ChatSelf-ItemButt-Grope", "Grope Butt"],
-			["Act-ChatSelf-ItemButt-Wiggle", "Wiggle Butt"],
-			["Act-ChatOther-ItemButt-Bite", "Bite Butt"],
-			["Act-ChatOther-ItemButt-Kiss", "Kiss Butt"],
-			["Act-ChatOther-ItemButt-GaggedKiss", "Rub Gag on Butt"],
-			["Act-ChatOther-ItemButt-MasturbateHand", "Finger Ass"],
-			["Act-ChatOther-ItemButt-MasturbateFist", "Fist Ass"],
-			["Act-ChatOther-ItemButt-MasturbateTongue", "Tongue Masturbate Ass"],
-			["Act-ChatOther-ItemButt-Spank", "Spank Butt"],
-			["Act-ChatOther-ItemButt-Caress", "Caress Butt"],
-			["Act-ChatOther-ItemButt-Grope", "Grope Butt"],
-			["Act-ChatOther-ItemButt-PenetrateSlow", "Slow Penetration"],
-			["Act-ChatOther-ItemButt-PenetrateFast", "Fast Penetration"],
-			["Act-ChatOther-ItemButt-Step", "Press Foot in Ass"],
-			["Act-ChatSelf-ItemPelvis-Tickle", "Tickle Tummy"],
-			["Act-ChatSelf-ItemPelvis-Spank", "Spank Tummy"],
-			["Act-ChatSelf-ItemPelvis-Caress", "Caress Tummy"],
-			["Act-ChatSelf-ItemPelvis-Pinch", "Pinch Tummy"],
-			["Act-ChatSelf-ItemPelvis-MassageHands", "Massage Tummy"],
-			["Act-ChatSelf-ItemPelvis-Wiggle", "Wiggle Hips"],
-			["Act-ChatOther-ItemPelvis-Kiss", "Kiss Tummy"],
-			["Act-ChatOther-ItemPelvis-GaggedKiss", "Gag Kiss Tummy"],
-			["Act-ChatOther-ItemPelvis-Lick", "Lick Tummy"],
-			["Act-ChatOther-ItemPelvis-Nibble", "Nibble Tummy"],
-			["Act-ChatOther-ItemPelvis-Tickle", "Tickle Tummy"],
-			["Act-ChatOther-ItemPelvis-Spank", "Spank Tummy"],
-			["Act-ChatOther-ItemPelvis-Caress", "Caress Tummy"],
-			["Act-ChatOther-ItemPelvis-Pinch", "Pinch Tummy"],
-			["Act-ChatOther-ItemPelvis-MassageHands", "Massage Tummy"],
-			["Act-ChatOther-ItemPelvis-Grope", "Grope Tummy"],
-			["Act-ChatSelf-ItemTorso-Tickle", "Tickle Ribs"],
-			["Act-ChatSelf-ItemTorso-Spank", "Spank Ribs"],
-			["Act-ChatSelf-ItemTorso-Caress", "Caress Ribs"],
-			["Act-ChatSelf-ItemTorso-MassageHands", "Massage Back"],
-			["Act-ChatSelf-ItemTorso-Wiggle", "Wiggle Body"],
-			["Act-ChatOther-ItemTorso-Bite", "Bite Back"],
-			["Act-ChatOther-ItemTorso-Kiss", "Kiss Back"],
-			["Act-ChatOther-ItemTorso-GaggedKiss", "Gag Kiss Back"],
-			["Act-ChatOther-ItemTorso-Lick", "Lick Back"],
-			["Act-ChatOther-ItemTorso-Nibble", "Nibble Ribs"],
-			["Act-ChatOther-ItemTorso-Tickle", "Tickle Ribs"],
-			["Act-ChatOther-ItemTorso-Spank", "Spank Back"],
-			["Act-ChatOther-ItemTorso-Caress", "Caress Back"],
-			["Act-ChatOther-ItemTorso-MassageHands", "Massage Back"],
-			["Act-ChatOther-ItemTorso-MassageFeet", "Foot Massage Back"],
-			["Act-ChatOther-ItemTorso-Rub", "Rub Bodies"],
-			["Act-ChatSelf-ItemNipples-Kiss", "Kiss Nipple"],
-			["Act-ChatSelf-ItemNipples-Lick", "Lick Nipple"],
-			["Act-ChatSelf-ItemNipples-Suck", "Suck Nipple"],
-			["Act-ChatSelf-ItemNipples-Nibble", "Nibble Nipple"],
-			["Act-ChatSelf-ItemNipples-Pinch", "Pinch Nipple"],
-			["Act-ChatSelf-ItemNipples-Caress", "Caress Nipple"],
-			["Act-ChatSelf-ItemNipples-Pull", "Pull Nipples"],
-			["Act-ChatOther-ItemNipples-Bite", "Bite Nipple"],
-			["Act-ChatOther-ItemNipples-Pull", "Pull Nipples"],
-			["Act-ChatOther-ItemNipples-Kiss", "Kiss Nipple"],
-			["Act-ChatOther-ItemNipples-GaggedKiss", "Press Gag on Nipple"],
-			["Act-ChatOther-ItemNipples-Lick", "Lick Nipple"],
-			["Act-ChatOther-ItemNipples-Suck", "Suck Nipple"],
-			["Act-ChatOther-ItemNipples-Nibble", "Nibble Nipple"],
-			["Act-ChatOther-ItemNipples-Pinch", "Pinch Nipple"],
-			["Act-ChatOther-ItemNipples-Caress", "Caress Nipples"],
-			["Act-ChatSelf-ItemBreast-Kiss", "Kiss Breast"],
-			["Act-ChatSelf-ItemBreast-Lick", "Lick Breast"],
-			["Act-ChatSelf-ItemBreast-Tickle", "Tickle Breast"],
-			["Act-ChatSelf-ItemBreast-Slap", "Slap Breast"],
-			["Act-ChatSelf-ItemBreast-Caress", "Caress Breast"],
-			["Act-ChatSelf-ItemBreast-MasturbateHand", "Masturbate Breast"],
-			["Act-ChatSelf-ItemBreast-Grope", "Grope Breast"],
-			["Act-ChatSelf-ItemBreast-Wiggle", "Shake Breasts"],
-			["Act-ChatOther-ItemBreast-Bite", "Bite Breast"],
-			["Act-ChatOther-ItemBreast-Kiss", "Kiss Breast"],
-			["Act-ChatOther-ItemBreast-GaggedKiss", "Press Gag on Breast"],
-			["Act-ChatOther-ItemBreast-Lick", "Lick Breast"],
-			["Act-ChatOther-ItemBreast-Tickle", "Tickle Breast"],
-			["Act-ChatOther-ItemBreast-Slap", "Slap Breast"],
-			["Act-ChatOther-ItemBreast-Caress", "Caress Breast"],
-			["Act-ChatOther-ItemBreast-MasturbateHand", "Masturbate Breast"],
-			["Act-ChatOther-ItemBreast-Grope", "Grope Breast"],
-			["Act-ChatOther-ItemBreast-Step", "Step on Breast"],
-			["Act-ChatOther-ItemBreast-RestHead", "Rest Head on Breast"],
-			["Act-ChatSelf-ItemArms-Kiss", "Kiss Arm"],
-			["Act-ChatSelf-ItemArms-Lick", "Lick Arm"],
-			["Act-ChatSelf-ItemArms-Nibble", "Nibble Arm"],
-			["Act-ChatSelf-ItemArms-Tickle", "Tickle Arm"],
-			["Act-ChatSelf-ItemArms-Spank", "Spank Arm"],
-			["Act-ChatSelf-ItemArms-Pinch", "Pinch Upper Arm"],
-			["Act-ChatSelf-ItemArms-Caress", "Caress Arms"],
-			["Act-ChatSelf-ItemArms-MassageHands", "Massage Arms"],
-			["Act-ChatSelf-ItemArms-Bite", "Bite Arm"],
-			["Act-ChatSelf-ItemArms-Wiggle", "Wiggle Shoulders"],
-			["Act-ChatSelf-ItemArms-StruggleArms", "Struggle against Binds"],
-			["Act-ChatOther-ItemArms-Bite", "Bite Arm"],
-			["Act-ChatOther-ItemArms-Kiss", "Kiss Arm"],
-			["Act-ChatOther-ItemArms-GaggedKiss", "Rub Gag on Arm"],
-			["Act-ChatOther-ItemArms-Lick", "Lick Arm"],
-			["Act-ChatOther-ItemArms-Nibble", "Nibble Arm"],
-			["Act-ChatOther-ItemArms-Tickle", "Tickle Arms"],
-			["Act-ChatOther-ItemArms-Spank", "Spank Arm"],
-			["Act-ChatOther-ItemArms-Pinch", "Pinch Upper Arm"],
-			["Act-ChatOther-ItemArms-Caress", "Caress Arms"],
-			["Act-ChatOther-ItemArms-MassageHands", "Massage Arms"],
-			["Act-ChatOther-ItemArms-Grope", "Grab Arm"],
-			["Act-ChatOther-ItemArms-Cuddle", "Cuddle"],
-			["Act-ChatSelf-ItemHands-Kiss", "Kiss Hand"],
-			["Act-ChatSelf-ItemHands-PoliteKiss", "Small Kiss on Hand"],
-			["Act-ChatSelf-ItemHands-Lick", "Lick Back of Hand"],
-			["Act-ChatSelf-ItemHands-Suck", "Suck Fingers"],
-			["Act-ChatSelf-ItemHands-Nibble", "Nibble Hand"],
-			["Act-ChatSelf-ItemHands-Spank", "Spank Hand with the Other"],
-			["Act-ChatSelf-ItemHands-Caress", "Rub Hands Together"],
-			["Act-ChatSelf-ItemHands-TakeCare", "Polish Nails"],
-			["Act-ChatSelf-ItemHands-Bite", "Bite Hand"],
-			["Act-ChatSelf-ItemHands-Wiggle", "Wiggle Fingers"],
-			["Act-ChatOther-ItemHands-Bite", "Bite Hand"],
-			["Act-ChatOther-ItemHands-Kiss", "Kiss Hand"],
-			["Act-ChatOther-ItemHands-GaggedKiss", "Touch Hand with Gag"],
-			["Act-ChatOther-ItemHands-PoliteKiss", "Polite Kiss on Hand"],
-			["Act-ChatOther-ItemHands-Lick", "Lick Hand"],
-			["Act-ChatOther-ItemHands-Suck", "Suck Fingers"],
-			["Act-ChatOther-ItemHands-Nibble", "Nibble Hand"],
-			["Act-ChatOther-ItemHands-Spank", "Spank Hand"],
-			["Act-ChatOther-ItemHands-Caress", "Caress Hand"],
-			["Act-ChatOther-ItemHands-TakeCare", "Polish Nails"],
-			["Act-ChatSelf-ItemNeck-Caress", "Caress Neck"],
-			["Act-ChatSelf-ItemNeck-MassageHands", "Massage Neck"],
-			["Act-ChatSelf-ItemNeck-Choke", "Choke Self"],
-			["Act-ChatOther-ItemNeck-Bite", "Bite Neck"],
-			["Act-ChatOther-ItemNeck-Kiss", "Kiss Neck"],
-			["Act-ChatOther-ItemNeck-GaggedKiss", "Touch Neck with Gag"],
-			["Act-ChatOther-ItemNeck-Lick", "Lick Neck"],
-			["Act-ChatOther-ItemNeck-Nibble", "Nibble Neck"],
-			["Act-ChatOther-ItemNeck-Caress", "Caress Neck"],
-			["Act-ChatOther-ItemNeck-MassageHands", "Massage Neck"],
-			["Act-ChatOther-ItemNeck-Choke", "Choke Neck"],
-			["Act-ChatOther-ItemNeck-Step", "Gently Foot on Neck"],
-			["Act-ChatOther-ItemNeck-Tickle", "Tickle Neck"],
-			["Act-ChatSelf-ItemMouth-Lick", "Lick Lips"],
-			["Act-ChatSelf-ItemMouth-Nibble", "Nibble Lips"],
-			["Act-ChatSelf-ItemMouth-Caress", "Clean Mouth"],
-			["Act-ChatSelf-ItemMouth-Bite", "Bite Lips"],
-			["Act-ChatSelf-ItemMouth-HandGag", "Clamp Hand over Mouth"],
-			["Act-ChatSelf-ItemMouth-MoanGag", "Moan"],
-			["Act-ChatSelf-ItemMouth-MoanGagWhimper", "Whimper Pleadingly"],
-			["Act-ChatSelf-ItemMouth-MoanGagAngry", "Scream Furiously"],
-			["Act-ChatSelf-ItemMouth-MoanGagGroan", "Groan Desperately"],
-			["Act-ChatSelf-ItemMouth-MoanGagGiggle", "Giggle"],
-			["Act-ChatSelf-ItemMouth-MoanGagTalk", "Mumble Incoherently"],
-			["Act-ChatOther-ItemMouth-GagKiss", "Kiss on Gag"],
-			["Act-ChatOther-ItemMouth-Bite", "Bite Lips"],
-			["Act-ChatOther-ItemMouth-Kiss", "Kiss Lips"],
-			["Act-ChatOther-ItemMouth-FrenchKiss", "French Kiss"],
-			["Act-ChatOther-ItemMouth-PoliteKiss", "Kiss on Cheek"],
-			["Act-ChatOther-ItemMouth-GaggedKiss", "Gag Kiss on Cheek"],
-			["Act-ChatOther-ItemMouth-Lick", "Lick Lips"],
-			["Act-ChatOther-ItemMouth-Nibble", "Nibble Lips"],
-			["Act-ChatOther-ItemMouth-Caress", "Clean Mouth"],
-			["Act-ChatOther-ItemMouth-HandGag", "Clamp Hand over Mouth"],
-			["Act-ChatOther-ItemMouth-PenetrateSlow", "Slow Penetration"],
-			["Act-ChatOther-ItemMouth-PenetrateFast", "Fast Penetration"],
-			["Act-ChatSelf-ItemHead-Slap", "Slap Face"],
-			["Act-ChatSelf-ItemHead-Caress", "Caress Face"],
-			["Act-ChatSelf-ItemHead-TakeCare", "Brush Hair"],
-			["Act-ChatSelf-ItemHead-Pull", "Pull Hair"],
-			["Act-ChatSelf-ItemHead-Pet", "Pet Head"],
-			["Act-ChatSelf-ItemHead-Wiggle", "Shake Head"],
-			["Act-ChatSelf-ItemHead-Nod", "Nod"],
-			["Act-ChatOther-ItemHead-Kiss", "Kiss Forehead"],
-			["Act-ChatOther-ItemHead-GaggedKiss", "Gag Kiss Forehead"],
-			["Act-ChatOther-ItemHead-Slap", "Slap Face"],
-			["Act-ChatOther-ItemHead-Caress", "Caress Face"],
-			["Act-ChatOther-ItemHead-TakeCare", "Brush Hair"],
-			["Act-ChatOther-ItemHead-Pull", "Pull Hair"],
-			["Act-ChatOther-ItemHead-Pet", "Pet Head"],
-			["Act-ChatOther-ItemHead-Rub", "Rub Breast on Face"],
-			["Act-ChatOther-ItemHead-Bite", "Bite Hair"],
-			["Act-ChatOther-ItemHead-Step", "Rub Foot on Face"],
-			["Act-ChatOther-ItemNose-Cuddle", "Nose-nuzzle"],
-			["Act-ChatOther-ItemNose-Pet", "Boop Nose"],
-			["Act-ChatOther-ItemNose-Kiss", "Kiss Nose"],
-			["Act-ChatOther-ItemNose-GaggedKiss", "Bump Gag on Nose"],
-			["Act-ChatOther-ItemNose-Pinch", "Pinch Nose"],
-			["Act-ChatOther-ItemNose-Caress", "Caress Nose"],
-			["Act-ChatOther-ItemNose-Pull", "Pull Nose"],
-			["Act-ChatOther-ItemNose-Rub", "Rub Nose"],
-			["Act-ChatOther-ItemNose-Nibble", "Nibble Nose"],
-			["Act-ChatOther-ItemNose-Choke", "Pinch Nostrils Shut"],
-			["Act-ChatOther-ItemNose-Lick", "Lick Nose"],
-			["Act-ChatOther-ItemNose-Bite", "Bite Nose"],
-			["Act-ChatOther-ItemNose-Step", "Force to Smell Feet"],
-			["Act-ChatSelf-ItemNose-Pinch", "Pinch Nose"],
-			["Act-ChatSelf-ItemNose-Caress", "Caress Nose"],
-			["Act-ChatSelf-ItemNose-Pet", "Boop Nose"],
-			["Act-ChatSelf-ItemNose-Pull", "Pull Nose"],
-			["Act-ChatSelf-ItemNose-Rub", "Rub Nose"],
-			["Act-ChatSelf-ItemNose-Choke", "Pinch Nostrils Shut"],
-			["Act-ChatSelf-ItemNose-Wiggle", "Wiggle Nose"],
-			["Act-ChatSelf-ItemEars-Pinch", "Pinch Ear"],
-			["Act-ChatSelf-ItemEars-Caress", "Caress Ear"],
-			["Act-ChatSelf-ItemEars-Wiggle", "Wiggle Ears"],
-			["Act-ChatOther-ItemEars-Bite", "Bite Ear"],
-			["Act-ChatOther-ItemEars-Kiss", "Kiss Ear"],
-			["Act-ChatOther-ItemEars-GaggedKiss", "Gag Kiss on Ear"],
-			["Act-ChatOther-ItemEars-Lick", "Lick Ear"],
-			["Act-ChatOther-ItemEars-Nibble", "Nibble Ear"],
-			["Act-ChatOther-ItemEars-Pinch", "Pinch Ear"],
-			["Act-ChatOther-ItemEars-Caress", "Caress Ear"],
-			["Act-ChatOther-ItemEars-Whisper", "Whisper in Ear"],
-			["Act-ChatOther-ItemPelvis-Step", "Press Foot on Chest"],
-			["Act-ChatOther-ItemTorso-Step", "Rest Feet on Back"],
-		];
-
-		ActivityDictionary.push(...customActivityLabels);
-
-		// DialogDrawActivityMenu patch to display friendlier labels - TODO: remove after R77
-		SDK.patchFunction("DialogDrawActivityMenu", {
-			'DrawTextFit(ActivityDictionaryText("Activity" + Act.Name)': `DrawTextFit(ActivityDictionaryText("bceSettingValue" in window && bceSettingValue("activityLabels") ? \`Act-\${(
-					CharacterGetCurrent().IsPlayer() ? "ChatSelf" : "ChatOther")
-				}-\${ActivityGetGroupOrMirror(CharacterGetCurrent()?.AssetFamily ?? Player.AssetFamily, Player.FocusGroup?.Name ?? CharacterGetCurrent()?.FocusGroup?.Name).Name}-\${Act.Name}\` : "Activity" + Act.Name)`,
-			"// Prepares": "\n// Prepares",
-		});
+			},
+			"Beeps are not enhanced by BCE."
+		);
 	}
 
 	function accurateTimerInputs() {
 		const timerInputElement = `ElementPosition("${TIMER_INPUT_ID}", 1400, 930, 250, 70);document.getElementById('${TIMER_INPUT_ID}').disabled = false;`;
 
 		// Lover locks
-		SDK.patchFunction("InventoryItemMiscLoversTimerPadlockDraw", {
-			"// Draw buttons to add/remove time if available": `if (bceSettingValue("accurateTimerLocks") && Player.CanInteract() && (C.IsLoverOfPlayer() || C.IsOwnedByPlayer())) {${timerInputElement}} else`,
-		});
-		SDK.patchFunction("InventoryItemMiscLoversTimerPadlockClick", {
-			"InventoryItemMiscLoversTimerPadlockAdd(LoverTimerChooseList[LoverTimerChooseIndex] * 3600);":
-				'if (!bceSettingValue("accurateTimerLocks")) InventoryItemMiscLoversTimerPadlockAdd(LoverTimerChooseList[LoverTimerChooseIndex] * 3600);',
-		});
+		patchFunction(
+			"InventoryItemMiscLoversTimerPadlockDraw",
+			{
+				"// Draw buttons to add/remove time if available": `if (bceSettingValue("accurateTimerLocks") && Player.CanInteract() && (C.IsLoverOfPlayer() || C.IsOwnedByPlayer())) {${timerInputElement}} else`,
+			},
+			"Accurate timer inputs are not available for lover locks."
+		);
+		patchFunction(
+			"InventoryItemMiscLoversTimerPadlockClick",
+			{
+				"InventoryItemMiscLoversTimerPadlockAdd(LoverTimerChooseList[LoverTimerChooseIndex] * 3600);":
+					'if (!bceSettingValue("accurateTimerLocks")) InventoryItemMiscLoversTimerPadlockAdd(LoverTimerChooseList[LoverTimerChooseIndex] * 3600);',
+			},
+			"Accurate timer inputs are not available for lover locks."
+		);
 
 		// Mistress locks
-		SDK.patchFunction("InventoryItemMiscMistressTimerPadlockDraw", {
-			"// Draw buttons to add/remove time if available": `if (bceSettingValue("accurateTimerLocks") && Player.CanInteract() && (LogQuery("ClubMistress", "Management") || (Player.MemberNumber == DialogFocusSourceItem.Property.LockMemberNumber))) {${timerInputElement}} else`,
-		});
-		SDK.patchFunction("InventoryItemMiscMistressTimerPadlockClick", {
-			"InventoryItemMiscMistressTimerPadlockAdd(MistressTimerChooseList[MistressTimerChooseIndex] * 60, false);":
-				'if (!bceSettingValue("accurateTimerLocks")) InventoryItemMiscMistressTimerPadlockAdd(MistressTimerChooseList[MistressTimerChooseIndex] * 60, false);',
-		});
+		patchFunction(
+			"InventoryItemMiscMistressTimerPadlockDraw",
+			{
+				"// Draw buttons to add/remove time if available": `if (bceSettingValue("accurateTimerLocks") && Player.CanInteract() && (LogQuery("ClubMistress", "Management") || (Player.MemberNumber == DialogFocusSourceItem.Property.LockMemberNumber))) {${timerInputElement}} else`,
+			},
+			"Accurate timer inputs are not available for mistress locks."
+		);
+		patchFunction(
+			"InventoryItemMiscMistressTimerPadlockClick",
+			{
+				"InventoryItemMiscMistressTimerPadlockAdd(MistressTimerChooseList[MistressTimerChooseIndex] * 60, false);":
+					'if (!bceSettingValue("accurateTimerLocks")) InventoryItemMiscMistressTimerPadlockAdd(MistressTimerChooseList[MistressTimerChooseIndex] * 60, false);',
+			},
+			"Accurate timer inputs are not available for mistress locks."
+		);
 
 		// Owner locks
-		SDK.patchFunction("InventoryItemMiscOwnerTimerPadlockDraw", {
-			"// Draw buttons to add/remove time if available": `if (bceSettingValue("accurateTimerLocks") && Player.CanInteract() && C.IsOwnedByPlayer()) {${timerInputElement}} else`,
-		});
-		SDK.patchFunction("InventoryItemMiscOwnerTimerPadlockClick", {
-			"InventoryItemMiscOwnerTimerPadlockAdd(OwnerTimerChooseList[OwnerTimerChooseIndex] * 3600);":
-				'if (!bceSettingValue("accurateTimerLocks")) InventoryItemMiscOwnerTimerPadlockAdd(OwnerTimerChooseList[OwnerTimerChooseIndex] * 3600);',
-		});
+		patchFunction(
+			"InventoryItemMiscOwnerTimerPadlockDraw",
+			{
+				"// Draw buttons to add/remove time if available": `if (bceSettingValue("accurateTimerLocks") && Player.CanInteract() && C.IsOwnedByPlayer()) {${timerInputElement}} else`,
+			},
+			"Accurate timer inputs are not available for owner locks."
+		);
+		patchFunction(
+			"InventoryItemMiscOwnerTimerPadlockClick",
+			{
+				"InventoryItemMiscOwnerTimerPadlockAdd(OwnerTimerChooseList[OwnerTimerChooseIndex] * 3600);":
+					'if (!bceSettingValue("accurateTimerLocks")) InventoryItemMiscOwnerTimerPadlockAdd(OwnerTimerChooseList[OwnerTimerChooseIndex] * 3600);',
+			},
+			"Accurate timer inputs are not available for owner locks."
+		);
 
 		// Password timer
-		SDK.patchFunction("InventoryItemMiscTimerPasswordPadlockDraw", {
-			"// Draw buttons to add/remove time if available": `if (bceSettingValue("accurateTimerLocks") && Player.CanInteract() && Player.MemberNumber == Property.LockMemberNumber) {${timerInputElement}} else`,
-		});
-		SDK.patchFunction("InventoryItemMiscTimerPasswordPadlockClick", {
-			"InventoryItemMiscTimerPasswordPadlockAdd(PasswordTimerChooseList[PasswordTimerChooseIndex] * 60, false);":
-				'if (!bceSettingValue("accurateTimerLocks")) InventoryItemMiscTimerPasswordPadlockAdd(PasswordTimerChooseList[PasswordTimerChooseIndex] * 60, false);',
-		});
+		patchFunction(
+			"InventoryItemMiscTimerPasswordPadlockDraw",
+			{
+				"// Draw buttons to add/remove time if available": `if (bceSettingValue("accurateTimerLocks") && Player.CanInteract() && Player.MemberNumber == Property.LockMemberNumber) {${timerInputElement}} else`,
+			},
+			"Accurate timer inputs are not available for password locks."
+		);
+		patchFunction(
+			"InventoryItemMiscTimerPasswordPadlockClick",
+			{
+				"InventoryItemMiscTimerPasswordPadlockAdd(PasswordTimerChooseList[PasswordTimerChooseIndex] * 60, false);":
+					'if (!bceSettingValue("accurateTimerLocks")) InventoryItemMiscTimerPasswordPadlockAdd(PasswordTimerChooseList[PasswordTimerChooseIndex] * 60, false);',
+			},
+			"Accurate timer inputs are not available for password locks."
+		);
 
 		const loadLockTimerInput = () => {
 			let defaultValue = "0d0h5m0s";
@@ -1638,11 +1380,21 @@ async function BondageClubEnhancements() {
 							.map((m) => `${m.name} @ ${m.version}`)
 							.join("\n- ")}`
 					);
+					info.set("Modified Functions (non-SDK)", deviatingHashes.join(", "));
+					info.set(
+						"Skipped Functionality for Compatibility",
+						`\n- ${skippedFunctionality.join("\n- ")}`
+					);
 					const print = Array.from(info)
 						.map(([k, v]) => `${k}: ${v}`)
 						.join("\n");
-					bceChatNotify(`${print}\n\nCopied to clipboard`);
+					bceChatNotify(`${print}\n\nThis has been copied to your clipboard.`);
 					await navigator.clipboard.writeText(print);
+					if (skippedFunctionality.length > 0) {
+						bceChatNotify(
+							"If you are running another addon that modifies the game, but is not listed above, please tell its developer to use https://github.com/Jomshir98/bondage-club-mod-sdk to hook into the game instead. This is a very cheap and easy way for addon developers to almost guarantee compatibility with other addons."
+						);
+					}
 				},
 			},
 			{
@@ -1903,17 +1655,25 @@ async function BondageClubEnhancements() {
 		];
 
 		// Skip history patch for /w
-		SDK.patchFunction("ChatRoomSendChat", {
-			"ChatRoomSendChat()": `ChatRoomSendChat(skipHistory)`,
-			"ChatRoomLastMessage.push(msg);": `if (!skipHistory) ChatRoomLastMessage.push(msg);`,
-		});
+		patchFunction(
+			"ChatRoomSendChat",
+			{
+				"ChatRoomSendChat()": `ChatRoomSendChat(skipHistory)`,
+				"ChatRoomLastMessage.push(msg);": `if (!skipHistory) ChatRoomLastMessage.push(msg);`,
+			},
+			"Whispers sent via /w will trigger items such as the automated shock collar and futuristic training belt."
+		);
 
 		// Patch to allow /importlooks to exceed 1000 characters
 		w.InputChat?.removeAttribute("maxlength");
-		SDK.patchFunction("ChatRoomCreateElement", {
-			'document.getElementById("InputChat").setAttribute("maxLength", 1000);':
-				"",
-		});
+		patchFunction(
+			"ChatRoomCreateElement",
+			{
+				'document.getElementById("InputChat").setAttribute("maxLength", 1000);':
+					"",
+			},
+			"You may be unable to /importlooks due to the chat input being limited in length."
+		);
 
 		for (const c of cmds) {
 			if (Commands.some((a) => a.Tag === c.Tag)) {
@@ -2544,17 +2304,26 @@ async function BondageClubEnhancements() {
 
 	function chatAugments() {
 		// CTRL+Enter OOC implementation
-		SDK.patchFunction("ChatRoomKeyDown", {
-			"ChatRoomSendChat()":
-				'if ("bceSettingValue" in window && bceSettingValue("ctrlEnterOoc") && event.ctrlKey && ElementValue("InputChat")?.trim()) ElementValue("InputChat", "(" + ElementValue("InputChat"));ChatRoomSendChat()',
-		});
+		patchFunction(
+			"ChatRoomKeyDown",
+			{
+				"ChatRoomSendChat()":
+					'if ("bceSettingValue" in window && bceSettingValue("ctrlEnterOoc") && event.ctrlKey && ElementValue("InputChat")?.trim()) ElementValue("InputChat", "(" + ElementValue("InputChat"));ChatRoomSendChat()',
+			},
+			"No OOC on CTRL+Enter."
+		);
 
 		// CommandParse patch for link OOC in whispers
-		SDK.patchFunction("CommandParse", {
-			"// Regular chat": "// Regular chat\nmsg = bceMessageReplacements(msg);",
-			"// The whispers get sent to the server and shown on the client directly":
-				"// The whispers get sent to the server and shown on the client directly\nmsg = bceMessageReplacements(msg);",
-		});
+		patchFunction(
+			"CommandParse",
+			{
+				"// Regular chat":
+					"// Regular chat\nmsg = bceMessageReplacements(msg);",
+				"// The whispers get sent to the server and shown on the client directly":
+					"// The whispers get sent to the server and shown on the client directly\nmsg = bceMessageReplacements(msg);",
+			},
+			"No link or OOC parsing for sent whispers."
+		);
 
 		const startSounds = ["..", "--"];
 		const endSounds = ["...", "~", "~..", "~~", "..~"];
@@ -5351,8 +5120,10 @@ async function BondageClubEnhancements() {
 		await waitFor(() => !!SpeechGarbleByGagLevel);
 
 		// Antigarble patch for message printing
-		SDK.patchFunction("ChatRoomMessage", {
-			"div.innerHTML = msg;": `div.innerHTML = msg;
+		patchFunction(
+			"ChatRoomMessage",
+			{
+				"div.innerHTML = msg;": `div.innerHTML = msg;
 				if (data.Type === "Whisper") {
 					let repl = document.createElement("a");
 					repl.href = "#";
@@ -5365,8 +5136,8 @@ async function BondageClubEnhancements() {
 					repl.textContent = '\u21a9\ufe0f';
 					div.prepend(repl);
 				}`,
-			"const chatMsg": `const clientGagged = data.Content.endsWith('\\uf123');data.Content = data.Content.replace(/[\\uE000-\\uF8FF]/gu, '');const chatMsg`,
-			"msg += chatMsg;": `msg += chatMsg;
+				"const chatMsg": `const clientGagged = data.Content.endsWith('\\uf123');data.Content = data.Content.replace(/[\\uE000-\\uF8FF]/gu, '');const chatMsg`,
+				"msg += chatMsg;": `msg += chatMsg;
 			if (bceSettingValue("gagspeak") && SpeechGetTotalGagLevel(SenderCharacter) > 0 && !clientGagged) {
 				let original = data.Content;
 				if (data.Type === "Whisper" && data.Dictionary?.some(d => d.Tag === "${BCX_ORIGINAL_MESSAGE}")) {
@@ -5377,7 +5148,9 @@ async function BondageClubEnhancements() {
 					msg += \` (\${original})\`
 				}
 			}`,
-		});
+			},
+			"No anti-garbling."
+		);
 
 		// ServerSend hook for client-side gagspeak, priority lower than BCX's whisper dictionary hook
 		SDK.hookFunction("ServerSend", 0, (args, next) => {
@@ -5694,8 +5467,10 @@ async function BondageClubEnhancements() {
 			}
 		);
 
-		SDK.patchFunction("ActivitySetArousalTimer", {
-			"if ((Progress > 0) && (C.ArousalSettings.Progress + Progress > Max)) Progress = (Max - C.ArousalSettings.Progress >= 0) ? Max - C.ArousalSettings.Progress : 0;": `
+		patchFunction(
+			"ActivitySetArousalTimer",
+			{
+				"if ((Progress > 0) && (C.ArousalSettings.Progress + Progress > Max)) Progress = (Max - C.ArousalSettings.Progress >= 0) ? Max - C.ArousalSettings.Progress : 0;": `
 			if (Max === 100) Max = 105;
 			const fromMax = Max - (C.BCEArousal ? C.BCEArousalProgress : C.ArousalSettings.Progress);
 			if (Progress > 0 && fromMax < Progress) {
@@ -5708,10 +5483,13 @@ async function BondageClubEnhancements() {
 				}
 			}
 			`,
-			"if (Progress < -25) Progress = -25;":
-				"if (Progress < -20) Progress = -20;",
-			"if (Progress > 25) Progress = 25;": "if (Progress > 20) Progress = 20;",
-		});
+				"if (Progress < -25) Progress = -25;":
+					"if (Progress < -20) Progress = -20;",
+				"if (Progress > 25) Progress = 25;":
+					"if (Progress > 20) Progress = 20;",
+			},
+			"Alternate arousal algorithm will be incorrect."
+		);
 
 		SDK.hookFunction(
 			"ActivityChatRoomArousalSync",
@@ -5798,8 +5576,10 @@ async function BondageClubEnhancements() {
 			}
 		);
 
-		SDK.patchFunction("TimerProcess", {
-			"// If the character is egged, we find the highest intensity factor and affect the progress, low and medium vibrations have a cap\n\t\t\t\t\t\t\tlet Factor = -1;": `
+		patchFunction(
+			"TimerProcess",
+			{
+				"// If the character is egged, we find the highest intensity factor and affect the progress, low and medium vibrations have a cap\n\t\t\t\t\t\t\tlet Factor = -1;": `
 				let Factor = -1;
 				if (Character[C].BCEArousal) {
 					let maxIntensity = 0;
@@ -5870,16 +5650,18 @@ async function BondageClubEnhancements() {
 					}
 				} else {
 				`,
-			"if ((Factor == -1)) {ActivityVibratorLevel(Character[C], 0);}\n\n\t\t\t\t\t\t}": `if (Factor == -1) {
+				"if ((Factor == -1)) {ActivityVibratorLevel(Character[C], 0);}\n\n\t\t\t\t\t\t}": `if (Factor == -1) {
 						ActivityVibratorLevel(Character[C], 0);
 					}
 				}
 			} else {
 				ActivityVibratorLevel(Character[C], 0);
 			}`,
-			"// No decay if there's a vibrating item running": `// No decay if there's a vibrating item running
+				"// No decay if there's a vibrating item running": `// No decay if there's a vibrating item running
 			Character[C].BCEEnjoyment = 1;`,
-		});
+			},
+			"Alternative arousal algorithm will be incorrect."
+		);
 	}
 
 	async function autoGhostBroadcast() {
@@ -6313,13 +6095,14 @@ async function BondageClubEnhancements() {
 		const saveHistory = () => {
 			const history = {};
 			friendMessages.forEach((friend, id) => {
-				const historyLength = Math.min(friend.historyRaw.length, 20);
+				const historyLength = Math.min(friend.historyRaw.length, 100);
 				history[id] = {
 					historyRaw: friend.historyRaw.slice(-historyLength),
 					historyHTML: Array.from(
 						friend.history.querySelectorAll(".bce-message")
 					)
 						.map((e) => e.outerHTML)
+						.slice(-historyLength)
 						.join(""),
 				};
 			});
