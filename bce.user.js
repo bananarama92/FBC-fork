@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Bondage Club Enhancements
 // @namespace https://www.bondageprojects.com/
-// @version 2.5.10
+// @version 2.5.11
 // @description enhancements for the bondage club
 // @author Sidious
 // @match https://bondageprojects.elementfx.com/*
@@ -20,9 +20,12 @@
 /* eslint-disable no-undef */
 /* eslint-disable no-implicit-globals */
 
-const BCE_VERSION = "2.5.10";
+const BCE_VERSION = "2.5.11";
 
 const bceChangelog = `${BCE_VERSION}
+- update stable bcx
+
+2.5.10
 - mod sdk 1.0.2
 
 2.5.9
@@ -97,7 +100,7 @@ async function BondageClubEnhancements() {
 	const BCX_DEVEL_SOURCE =
 			"https://jomshir98.github.io/bondage-club-extended/devel/bcx.js",
 		BCX_SOURCE =
-			"https://raw.githubusercontent.com/Jomshir98/bondage-club-extended/ba7b3e633ff7b713721bc81e591b2dff1fd7aed0/bcx.js";
+			"https://raw.githubusercontent.com/Jomshir98/bondage-club-extended/d9d868650266127f734abb987ac5d7521ef9e5a0/bcx.js";
 
 	const BCE_COLOR_ADJUSTMENTS_CLASS_NAME = "bce-colors",
 		BCE_MAX_AROUSAL = 99.6,
