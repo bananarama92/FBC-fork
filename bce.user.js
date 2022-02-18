@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Bondage Club Enhancements
 // @namespace https://www.bondageprojects.com/
-// @version 2.5.12
+// @version 2.5.13
 // @description enhancements for the bondage club
 // @author Sidious
 // @match https://bondageprojects.elementfx.com/*
@@ -20,9 +20,13 @@
 /* eslint-disable no-undef */
 /* eslint-disable no-implicit-globals */
 
-const BCE_VERSION = "2.5.12";
+const BCE_VERSION = "2.5.13";
 
 const bceChangelog = `${BCE_VERSION}
+- fix alternate arousal messing with normal arousal
+- update stable bcx
+
+2.5.12
 - update stable bcx
 
 2.5.10
@@ -100,7 +104,7 @@ async function BondageClubEnhancements() {
 	const BCX_DEVEL_SOURCE =
 			"https://jomshir98.github.io/bondage-club-extended/devel/bcx.js",
 		BCX_SOURCE =
-			"https://raw.githubusercontent.com/Jomshir98/bondage-club-extended/bf25659a91450168b0cf8fdafaa2159c2a400f9b/bcx.js";
+			"https://raw.githubusercontent.com/Jomshir98/bondage-club-extended/fe83ac4068413ce0fd03c298dddb2b22dad04fb8/bcx.js";
 
 	const BCE_COLOR_ADJUSTMENTS_CLASS_NAME = "bce-colors",
 		BCE_MAX_AROUSAL = 99.6,
@@ -5470,22 +5474,34 @@ async function BondageClubEnhancements() {
 			"ActivitySetArousalTimer",
 			{
 				"if ((Progress > 0) && (C.ArousalSettings.Progress + Progress > Max)) Progress = (Max - C.ArousalSettings.Progress >= 0) ? Max - C.ArousalSettings.Progress : 0;": `
-			if (Max === 100) Max = 105;
-			const fromMax = Max - (C.BCEArousal ? C.BCEArousalProgress : C.ArousalSettings.Progress);
-			if (Progress > 0 && fromMax < Progress) {
-				if (fromMax <= 0) {
-					Progress = 0;
-				} else if (C.BCEArousal) {
-					Progress = Math.floor(fromMax / ${enjoymentMultiplier} / C.BCEEnjoyment);
+				if (!C.BCEArousal) {
+					if ((Progress > 0) && (C.ArousalSettings.Progress + Progress > Max)) Progress = (Max - C.ArousalSettings.Progress >= 0) ? Max - C.ArousalSettings.Progress : 0;
 				} else {
-					Progress = fromMax;
+					if (Max === 100) Max = 105;
+					const fromMax = Max - (C.BCEArousal ? C.BCEArousalProgress : C.ArousalSettings.Progress);
+					if (Progress > 0 && fromMax < Progress) {
+						if (fromMax <= 0) {
+							Progress = 0;
+						} else if (C.BCEArousal) {
+							Progress = Math.floor(fromMax / ${enjoymentMultiplier} / C.BCEEnjoyment);
+						} else {
+							Progress = fromMax;
+						}
+					}
 				}
-			}
 			`,
-				"if (Progress < -25) Progress = -25;":
-					"if (Progress < -20) Progress = -20;",
-				"if (Progress > 25) Progress = 25;":
-					"if (Progress > 20) Progress = 20;",
+				"if (Progress < -25) Progress = -25;": `
+				if (!C.BCEArousal) {
+					if (Progress < -25) Progress = -25;
+				} else {
+					if (Progress < -20) Progress = -20;
+				}`,
+				"if (Progress > 25) Progress = 25;": `
+				if (!C.BCEArousal) {
+					if (Progress > 25) Progress = 25;
+				} else {
+					if (Progress > 20) Progress = 20;
+				}`,
 			},
 			"Alternate arousal algorithm will be incorrect."
 		);
