@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Bondage Club Enhancements Loader
 // @namespace https://www.bondageprojects.com/
-// @version 1.0.0
+// @version 1.0.1
 // @description enhancements for the bondage club
 // @author Sidious
 // @match https://bondageprojects.elementfx.com/*
@@ -18,6 +18,8 @@
 	"use strict";
 
 	const script = document.createElement("script");
-	script.src = "https://sidiousious.gitlab.io/bce/bce.user.js";
+	script.src = `https://sidiousious.gitlab.io/bce/bce.user.js?v=${(
+		Date.now() / 10000
+	).toFixed(0)}`;
 	document.head.appendChild(script);
 })();
