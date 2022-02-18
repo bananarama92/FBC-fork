@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Bondage Club Enhancements
 // @namespace https://www.bondageprojects.com/
-// @version 2.5.11
+// @version 2.5.12
 // @description enhancements for the bondage club
 // @author Sidious
 // @match https://bondageprojects.elementfx.com/*
@@ -20,7 +20,7 @@
 /* eslint-disable no-undef */
 /* eslint-disable no-implicit-globals */
 
-const BCE_VERSION = "2.5.11";
+const BCE_VERSION = "2.5.12";
 
 const bceChangelog = `${BCE_VERSION}
 - update stable bcx
@@ -100,7 +100,7 @@ async function BondageClubEnhancements() {
 	const BCX_DEVEL_SOURCE =
 			"https://jomshir98.github.io/bondage-club-extended/devel/bcx.js",
 		BCX_SOURCE =
-			"https://raw.githubusercontent.com/Jomshir98/bondage-club-extended/d9d868650266127f734abb987ac5d7521ef9e5a0/bcx.js";
+			"https://raw.githubusercontent.com/Jomshir98/bondage-club-extended/bf25659a91450168b0cf8fdafaa2159c2a400f9b/bcx.js";
 
 	const BCE_COLOR_ADJUSTMENTS_CLASS_NAME = "bce-colors",
 		BCE_MAX_AROUSAL = 99.6,
@@ -593,104 +593,104 @@ async function BondageClubEnhancements() {
 
 	const DEVS = [23476];
 	/**
-	 * @type {Readonly<{ [key: string]: number }>}
+	 * @type {Readonly<{ [key: string]: string }>}
 	 */
 	const expectedHashes = Object.freeze({
-		ActivityChatRoomArousalSync: 2971455460369990,
-		ActivitySetArousal: 7357117347936900,
-		ActivitySetArousalTimer: 1908330478975498,
-		ActivityTimerProgress: 3132257411270963,
-		AppearanceClick: 2577670695726505,
-		AppearanceExit: 6043996746274230,
-		AppearanceLoad: 5167605648205811,
-		AppearanceRun: 4447390256070365,
-		CharacterAppearanceWardrobeLoad: 4404723662523493,
-		CharacterBuildDialog: 8706482415251580,
-		CharacterGetCurrent: 2230431260459378,
-		CharacterRefresh: 6855166438178254,
-		CharacterSetActivePose: 5864479931338055,
-		CharacterSetCurrent: 4182108976295837,
-		CharacterSetFacialExpression: 3628440184167461,
-		ChatRoomCharacterItemUpdate: 3554937737739171,
-		ChatRoomCharacterUpdate: 5847173315712178,
-		ChatRoomClearAllElements: 778126535107850,
-		ChatRoomClick: 1516540320485356,
-		ChatRoomCreateElement: 8191626276531606,
-		ChatRoomCurrentTime: 3364862637820289,
-		ChatRoomDrawCharacterOverlay: 5369638654189394,
-		ChatRoomKeyDown: 6879966488410200,
-		ChatRoomListManipulation: 218675230270,
-		ChatRoomMessage: 7639201391023296,
-		ChatRoomResize: 5251276321558043,
-		ChatRoomRun: 4993950642363970,
-		ChatRoomSendChat: 241594841543533,
-		ChatRoomStart: 8043968639468530,
-		CommandExecute: 6351113844499493,
-		CommandParse: 6084545049509320,
-		CommonColorIsValid: 4855710632415704,
-		CommonSetScreen: 8974521323406298,
-		DialogClick: 798751755690754,
-		DialogDraw: 2868571887038145,
-		DialogDrawItemMenu: 4334269354539712,
-		DialogLeave: 3752984272795167,
-		DrawBackNextButton: 5090331954030593,
-		DrawButton: 7168900912842990,
-		DrawCheckbox: 2662604878239790,
-		DrawImageResize: 6394177784434117,
-		DrawText: 1950095674535445,
-		DrawTextFit: 3488730873625659,
-		ElementCreateInput: 6525906267998974,
-		ElementIsScrolledToEnd: 99667124835273,
-		ElementPosition: 3742615981238775,
-		ElementRemove: 4658399954293931,
-		ElementScrollToEnd: 4878179843157650,
-		ElementValue: 7486291396850287,
-		FriendListShowBeep: 6702069602772700,
-		GLDrawResetCanvas: 3663201061885078,
-		InventoryGet: 6142134266866859,
-		InventoryItemMiscLoversTimerPadlockClick: 8107057910877884,
-		InventoryItemMiscLoversTimerPadlockDraw: 8057727141390318,
-		InventoryItemMiscLoversTimerPadlockExit: 8323898828202853,
-		InventoryItemMiscLoversTimerPadlockLoad: 5510659662853517,
-		InventoryItemMiscMistressTimerPadlockClick: 5599362305459123,
-		InventoryItemMiscMistressTimerPadlockDraw: 3812085209143196,
-		InventoryItemMiscMistressTimerPadlockExit: 160093519056734,
-		InventoryItemMiscMistressTimerPadlockLoad: 7342410949249994,
-		InventoryItemMiscOwnerTimerPadlockClick: 1052668154354233,
-		InventoryItemMiscOwnerTimerPadlockDraw: 5697779387273422,
-		InventoryItemMiscOwnerTimerPadlockExit: 4844944911225709,
-		InventoryItemMiscOwnerTimerPadlockLoad: 1456740187902217,
-		InventoryItemMiscTimerPasswordPadlockClick: 3359312753176763,
-		InventoryItemMiscTimerPasswordPadlockDraw: 5350489452603323,
-		InventoryItemMiscTimerPasswordPadlockExit: 7104890308123556,
-		InventoryItemMiscTimerPasswordPadlockLoad: 6516661389502762,
-		LoginClick: 3972006254666793,
-		LoginRun: 1357779450401958,
-		LoginSetSubmitted: 5037803792528296,
-		MouseIn: 2659797024552939,
-		OnlineGameAllowChange: 823739843279130,
-		ServerAccountBeep: 5229920216822273,
-		ServerAppearanceBundle: 5264433604010176,
-		ServerAppearanceLoadFromBundle: 2356301037697152,
-		ServerClickBeep: 4732162325239203,
-		ServerConnect: 8341437351224791,
-		ServerDisconnect: 7623652804225244,
-		ServerOpenFriendList: 7598438006135932,
-		ServerSend: 5586025187389532,
-		SkillGetWithRatio: 6713266246379814,
-		SpeechGarbleByGagLevel: 3778741626096362,
-		SpeechGetTotalGagLevel: 3018851959661477,
-		StruggleDrawLockpickProgress: 433247500965714,
-		TextGet: 7879009445399078,
-		TextLoad: 5026399427354377,
-		TimerProcess: 2045761904827696,
-		WardrobeClick: 2432188612897127,
-		WardrobeExit: 3381167184862635,
-		WardrobeFastLoad: 2809338805039123,
-		WardrobeFastSave: 8247072197553189,
-		WardrobeFixLength: 2779616285888834,
-		WardrobeLoad: 8572944049220745,
-		WardrobeRun: 217395389842852,
+		ActivityChatRoomArousalSync: "21318CAF",
+		ActivitySetArousal: "3AE28123",
+		ActivitySetArousalTimer: "A034E6C0",
+		ActivityTimerProgress: "6CD388A7",
+		AppearanceClick: "0D1455A9",
+		AppearanceExit: "AA300341",
+		AppearanceLoad: "A14CB302",
+		AppearanceRun: "6DDA14A1",
+		CharacterAppearanceWardrobeLoad: "A5B63A03",
+		CharacterBuildDialog: "E69E1DFE",
+		CharacterGetCurrent: "A4EA6438",
+		CharacterRefresh: "5BF9DA5A",
+		CharacterSetActivePose: "0339D069",
+		CharacterSetCurrent: "FD267B9B",
+		CharacterSetFacialExpression: "D66B4515",
+		ChatRoomCharacterItemUpdate: "4EB70443",
+		ChatRoomCharacterUpdate: "9D0EEA39",
+		ChatRoomClearAllElements: "C49AA2C1",
+		ChatRoomClick: "79E651EB",
+		ChatRoomCreateElement: "AD7CBE68",
+		ChatRoomCurrentTime: "A462DD3A",
+		ChatRoomDrawCharacterOverlay: "4AE4AD9E",
+		ChatRoomKeyDown: "33C77F12",
+		ChatRoomListManipulation: "75D28A8B",
+		ChatRoomMessage: "3041CEA5",
+		ChatRoomResize: "9D52CF52",
+		ChatRoomRun: "07117155",
+		ChatRoomSendChat: "7F540ED0",
+		ChatRoomStart: "9CB3783A",
+		CommandExecute: "12B2BAA4",
+		CommandParse: "12DC018B",
+		CommonColorIsValid: "390A2CE4",
+		CommonSetScreen: "17692CD7",
+		DialogClick: "CE16B270",
+		DialogDraw: "302268CE",
+		DialogDrawItemMenu: "A6FE3967",
+		DialogLeave: "354CBC00",
+		DrawBackNextButton: "0DE5491B",
+		DrawButton: "63FDE2B2",
+		DrawCheckbox: "00FD87EB",
+		DrawImageResize: "8CF55F04",
+		DrawText: "C1BF0F50",
+		DrawTextFit: "F9A1B11E",
+		ElementCreateInput: "2B2603E4",
+		ElementIsScrolledToEnd: "D28B0638",
+		ElementPosition: "CC4E3C82",
+		ElementRemove: "60809E60",
+		ElementScrollToEnd: "1AC45575",
+		ElementValue: "B647E0E6",
+		FriendListShowBeep: "6C0449BB",
+		GLDrawResetCanvas: "EDF1631A",
+		InventoryGet: "E666F671",
+		InventoryItemMiscLoversTimerPadlockClick: "B8F431EB",
+		InventoryItemMiscLoversTimerPadlockDraw: "87818D41",
+		InventoryItemMiscLoversTimerPadlockExit: "D316C21B",
+		InventoryItemMiscLoversTimerPadlockLoad: "6931D8FF",
+		InventoryItemMiscMistressTimerPadlockClick: "7DCDC57B",
+		InventoryItemMiscMistressTimerPadlockDraw: "DC5D4BB4",
+		InventoryItemMiscMistressTimerPadlockExit: "479A8F6F",
+		InventoryItemMiscMistressTimerPadlockLoad: "8B23B841",
+		InventoryItemMiscOwnerTimerPadlockClick: "B36A6AD3",
+		InventoryItemMiscOwnerTimerPadlockDraw: "2E431407",
+		InventoryItemMiscOwnerTimerPadlockExit: "4A0243F9",
+		InventoryItemMiscOwnerTimerPadlockLoad: "06E1141F",
+		InventoryItemMiscTimerPasswordPadlockClick: "CB736461",
+		InventoryItemMiscTimerPasswordPadlockDraw: "953C9EF8",
+		InventoryItemMiscTimerPasswordPadlockExit: "7323E56D",
+		InventoryItemMiscTimerPasswordPadlockLoad: "304BC9DE",
+		LoginClick: "8A3B973F",
+		LoginRun: "B40EF142",
+		LoginSetSubmitted: "C88F4A8E",
+		MouseIn: "CA8B839E",
+		OnlineGameAllowChange: "3779F42C",
+		ServerAccountBeep: "D93AD698",
+		ServerAppearanceBundle: "94A27A29",
+		ServerAppearanceLoadFromBundle: "76D1CC95",
+		ServerClickBeep: "3E6277BE",
+		ServerConnect: "845E50A6",
+		ServerDisconnect: "0D4630FA",
+		ServerOpenFriendList: "25665C3F",
+		ServerSend: "90A61F57",
+		SkillGetWithRatio: "16620445",
+		SpeechGarbleByGagLevel: "A07EE53B",
+		SpeechGetTotalGagLevel: "E8051EA2",
+		StruggleDrawLockpickProgress: "A9C2DBBC",
+		TextGet: "4DDE5794",
+		TextLoad: "ADF7C890",
+		TimerProcess: "19F09E1E",
+		WardrobeClick: "D388FE7D",
+		WardrobeExit: "EE83FF29",
+		WardrobeFastLoad: "545CB8FD",
+		WardrobeFastSave: "B62385C1",
+		WardrobeFixLength: "CA3334C6",
+		WardrobeLoad: "C343A4C7",
+		WardrobeRun: "9616EB3A",
 	});
 
 	/**
@@ -920,19 +920,12 @@ async function BondageClubEnhancements() {
 				continue;
 			}
 			// eslint-disable-next-line
-			const actualHash = cyrb53(w[func].toString());
+			const actualHash = SDK.getOriginalHash(func);
 			if (actualHash !== hash) {
-				// eslint-disable-next-line
-				if (w[func].toString().includes("sdkApi.errorReporterHooks")) {
-					bceLog(
-						`Function ${func} has been modified before BCE by another SDK mod: ${actualHash}`
-					);
-				} else {
-					bceError(
-						`Function ${func} has been modified before BCE, potential incompatibility: ${actualHash}`
-					);
-					deviatingHashes.push(func);
-				}
+				bceError(
+					`Function ${func} has been modified before BCE, potential incompatibility: ${actualHash}`
+				);
+				deviatingHashes.push(func);
 			}
 		}
 	}
@@ -6793,31 +6786,6 @@ async function BondageClubEnhancements() {
 	function sleep(ms) {
 		// eslint-disable-next-line no-promise-executor-return
 		return new Promise((resolve) => setTimeout(resolve, ms));
-	}
-
-	/**
-	 * @type {(s: string) => number}
-	 */
-	// eslint-disable-next-line
-	// prettier-ignore
-	function cyrb53(str, seed = 0) {
-		// Bryc https://stackoverflow.com/a/52171480/1780502
-		// eslint-disable-next-line
-		let h1 = 0xdeadbeef ^ seed, h2 = 0x41c6ce57 ^ seed; str = str.replace(/\r/gu, '');
-		// eslint-disable-next-line
-		for (let i = 0, ch; i < str.length; i++) {
-				ch = str.charCodeAt(i);
-		// eslint-disable-next-line
-				h1 = Math.imul(h1 ^ ch, 2654435761);
-		// eslint-disable-next-line
-				h2 = Math.imul(h2 ^ ch, 1597334677);
-		}
-		// eslint-disable-next-line
-		h1 = Math.imul(h1 ^ (h1>>>16), 2246822507) ^ Math.imul(h2 ^ (h2>>>13), 3266489909);
-		// eslint-disable-next-line
-		h2 = Math.imul(h2 ^ (h2>>>16), 2246822507) ^ Math.imul(h1 ^ (h1>>>13), 3266489909);
-		// eslint-disable-next-line
-		return 4294967296 * (2097151 & h2) + (h1>>>0);
 	}
 
 	/** @type {(s: unknown) => s is string} */
