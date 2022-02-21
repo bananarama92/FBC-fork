@@ -4880,7 +4880,15 @@ async function BondageClubEnhancements() {
 				GLDrawCanvas.GL.textureCache.clear();
 			}
 			GLDrawResetCanvas();
-			Character.forEach((c) => CharacterRefresh(c, false, false));
+			const oldOnlineCharacters = Character.filter(
+				(c) =>
+					c.IsOnline?.() &&
+					!ChatRoomCharacter.some((cc) => cc.MemberNumber === c.MemberNumber)
+			);
+			oldOnlineCharacters.forEach((c) => CharacterDelete(c.AccountName));
+			Character.filter((c) => c.IsOnline?.()).forEach((c) =>
+				CharacterRefresh(c, false, false)
+			);
 		};
 
 		const clearCaches = () => {
