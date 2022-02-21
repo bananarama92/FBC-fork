@@ -1635,24 +1635,30 @@ async function BondageClubEnhancements() {
 				Description:
 					"show versions of the club, BCE, and BCX in use by players",
 				Action: () => {
-					bceChatNotify(
-						ChatRoomCharacter.map(
-							(a) =>
-								`${a.Name} (${a.MemberNumber}) club ${
-									a.OnlineSharedSettings?.GameVersion
-								}${
-									bcx?.getCharacterVersion(a.MemberNumber)
-										? ` BCX ${bcx.getCharacterVersion(a.MemberNumber)}`
-										: ""
-								}${
-									a.BCE
-										? `\nBCE v${a.BCE} Alt Arousal: ${a.BCEArousal?.toString()}`
-										: ""
-								}`
-						)
+					/** @type {(chars: Character[]) => string} */
+					const versionOutput = (chars) =>
+						chars
+							.map(
+								(a) =>
+									`${a.Name} (${a.MemberNumber}) club ${
+										a.OnlineSharedSettings?.GameVersion
+									}${
+										bcx?.getCharacterVersion(a.MemberNumber)
+											? ` BCX ${bcx.getCharacterVersion(a.MemberNumber)}`
+											: ""
+									}${
+										a.BCE
+											? `\nBCE v${
+													a.BCE
+											  } Alt Arousal: ${a.BCEArousal?.toString()}`
+											: ""
+									}`
+							)
 							.filter((a) => a)
-							.join("\n\n")
-					);
+							.join("\n\n");
+
+					bceChatNotify(versionOutput(ChatRoomCharacterDrawlist));
+					bceLog(versionOutput(ChatRoomCharacter));
 				},
 			},
 		];

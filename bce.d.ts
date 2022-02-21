@@ -204,7 +204,9 @@ declare global {
   var ChatRoomCharacterUpdate: (C: Character) => void;
   var ChatRoomCreateElement: () => void;
   var CharacterGetCurrent: () => Character;
+  var CharacterDelete: (AccountName: string) => void;
   var ChatRoomCharacter: Character[];
+  var ChatRoomCharacterDrawlist: Character[];
   var Character: Character[];
   var ChatRoomTargetMemberNumber: number;
   var bcx: { getCharacterVersion: (memberNumber: number) => string };
