@@ -3560,6 +3560,9 @@ async function BondageClubEnhancements() {
 						{
 							Tester:
 								/^(TriggerShock|(ShockCollar|Collar(Auto)?ShockUnit|(LoveChastityBelt|SciFiPleasurePanties)Shock)Trigger)0$/u,
+							Criteria: {
+								TargetIsPlayer: true,
+							},
 						},
 					],
 				},
