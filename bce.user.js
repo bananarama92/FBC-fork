@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Bondage Club Enhancements
 // @namespace https://www.bondageprojects.com/
-// @version 2.5.13
+// @version 2.5.14
 // @description enhancements for the bondage club
 // @author Sidious
 // @match https://bondageprojects.elementfx.com/*
@@ -20,9 +20,14 @@
 /* eslint-disable no-undef */
 /* eslint-disable no-implicit-globals */
 
-const BCE_VERSION = "2.5.13";
+const BCE_VERSION = "2.5.14";
 
 const bceChangelog = `${BCE_VERSION}
+- fix light shock animation triggering on you when you're the one triggering it on someone else
+- /versions no longer lists characters you cannot see
+- fix vibrators being twice as effective as intended with alt arousal enabled
+
+2.5.13
 - fix alternate arousal messing with normal arousal
 - update stable bcx
 
