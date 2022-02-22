@@ -5650,21 +5650,22 @@ async function BondageClubEnhancements() {
 							maxProgress = vibes === 0 || vibes > noOrgasmVibes ? 100 : 95;
 							break;
 					}
-					let stepInterval = 1;
+					const topStepInterval = 2;
+					let stepInterval = topStepInterval;
 					if (Factor < 0) {
 						ActivityVibratorLevel(Character[C], 0);
 					} else {
 						if (Factor < 1) {
 							ActivityVibratorLevel(Character[C], 1);
 							maxProgress = Math.min(maxProgress, 35);
-							stepInterval = 6;
+							stepInterval = 5;
 						} else if (Factor < 2) {
 							ActivityVibratorLevel(Character[C], 1);
 							maxProgress = Math.min(maxProgress, 65);
 							stepInterval = 4;
 						} else if (Factor < 3) {
 							maxProgress = Math.min(maxProgress, 95);
-							stepInterval = 2;
+							stepInterval = 3;
 							ActivityVibratorLevel(Character[C], 2);
 						} else {
 							ActivityVibratorLevel(Character[C], Math.min(4, Math.floor(Factor)));
@@ -5674,9 +5675,7 @@ async function BondageClubEnhancements() {
 						}
 						let maxIncrease = maxProgress - Character[C].ArousalSettings.Progress;
 						if (TimerLastArousalProgressCount % stepInterval === 0 && maxIncrease > 0) {
-							if (stepInterval === 1) {
-								Character[C].BCEEnjoyment = 1 + (Factor > 1 ? Math.round(1.5*Math.log2(Factor)) : 0);
-							}
+							Character[C].BCEEnjoyment = 1 + (Factor > 1 ? Math.round(1.5*Math.log2(Factor)) : 0);
 							ActivityTimerProgress(Character[C], 1);
 						}
 					}
