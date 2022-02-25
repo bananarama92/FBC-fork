@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Bondage Club Enhancements
 // @namespace https://www.bondageprojects.com/
-// @version 2.5.14
+// @version 2.5.15
 // @description enhancements for the bondage club
 // @author Sidious
 // @match https://bondageprojects.elementfx.com/*
@@ -20,9 +20,13 @@
 /* eslint-disable no-undef */
 /* eslint-disable no-implicit-globals */
 
-const BCE_VERSION = "2.5.14";
+const BCE_VERSION = "2.5.15";
 
 const bceChangelog = `${BCE_VERSION}
+- add puu.sh to allowed embed sites
+- fix a parsing error in sending whispers
+
+2.5.14
 - fix light shock animation triggering on you when you're the one triggering it on someone else
 - /versions no longer lists characters you cannot see
 - fix vibrators being twice as effective as intended with alt arousal enabled
@@ -1006,6 +1010,17 @@ async function BondageClubEnhancements() {
 			},
 			"Whitelist commands will not work."
 		);
+
+		// CommandParse patch for R77
+		if (GameVersion === "R77") {
+			patchFunction(
+				"CommandParse",
+				{
+					'div.innerHTML = TextGet("WhisperTo")': `div.textContent = TextGet("WhisperTo")`,
+				},
+				"Possible crash in sending whispers."
+			);
+		}
 	}
 
 	function fpsCounter() {
@@ -5978,6 +5993,7 @@ async function BondageClubEnhancements() {
 							(v[4].trim().substring(0, 6) === "Dialog" ? "" : "ChatRoom") +
 							v[4],
 						Prerequisite: v[5],
+						Modded: true,
 					}))
 				);
 			};
@@ -6695,8 +6711,10 @@ async function BondageClubEnhancements() {
 				"cdn.discordapp.com",
 				"media.discordapp.com",
 				"i.imgur.com",
+				"tenor.com",
 				"c.tenor.com",
 				"i.redd.it",
+				"puu.sh",
 			].includes(url.host) &&
 			/\/[^/]+\.(png|jpe?g|gif)$/u.test(url.pathname)
 		) {
