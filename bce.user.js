@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Bondage Club Enhancements
 // @namespace https://www.bondageprojects.com/
-// @version 2.5.15
+// @version 2.5.16
 // @description enhancements for the bondage club
 // @author Sidious
 // @match https://bondageprojects.elementfx.com/*
@@ -20,9 +20,13 @@
 /* eslint-disable no-undef */
 /* eslint-disable no-implicit-globals */
 
-const BCE_VERSION = "2.5.15";
+const BCE_VERSION = "2.5.16";
 
 const bceChangelog = `${BCE_VERSION}
+- fix esc leaving wardrobe with previews in a bad state
+- fix esc leaving BCE settings in a bad state
+
+2.5.15
 - add puu.sh to allowed embed sites
 - fix a parsing error in sending whispers
 
@@ -1894,6 +1898,18 @@ async function BondageClubEnhancements() {
 			}
 		);
 		PreferenceSubscreenList.push("BCESettings");
+
+		/** @type {(e: KeyboardEvent) => void} */
+		function keyHandler(e) {
+			if (e.key === "Escape" && currentCategory !== null) {
+				currentCategory = null;
+				e.stopPropagation();
+				e.preventDefault();
+			}
+		}
+
+		document.addEventListener("keydown", keyHandler, true);
+		document.addEventListener("keypress", keyHandler, true);
 	}
 
 	async function lockpickHelp() {
@@ -5154,6 +5170,21 @@ async function BondageClubEnhancements() {
 				return next(args);
 			}
 		);
+
+		/** @type {(e: KeyboardEvent) => void} */
+		function keyHandler(e) {
+			if (!bceSettings.privateWardrobe) {
+				return;
+			}
+			if (e.key === "Escape" && inCustomWardrobe) {
+				WardrobeExit();
+				e.stopPropagation();
+				e.preventDefault();
+			}
+		}
+
+		document.addEventListener("keydown", keyHandler, true);
+		document.addEventListener("keypress", keyHandler, true);
 	}
 
 	async function antiGarbling() {
