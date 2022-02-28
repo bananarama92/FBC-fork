@@ -213,6 +213,7 @@ declare global {
   var PreferenceSubscreenList: string[];
   var PreferenceSubscreen: string;
   var PreferenceMessage: string;
+  var NotificationGetTotalCount: (type: 0 | 1 | 2 | 3) => number;
   var MainCanvas: HTMLCanvasElement;
   var DrawText: (
     text: string,

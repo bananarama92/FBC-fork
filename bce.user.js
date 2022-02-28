@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Bondage Club Enhancements
 // @namespace https://www.bondageprojects.com/
-// @version 2.5.16
+// @version 2.6.0
 // @description enhancements for the bondage club
 // @author Sidious
 // @match https://bondageprojects.elementfx.com/*
@@ -20,64 +20,15 @@
 /* eslint-disable no-undef */
 /* eslint-disable no-implicit-globals */
 
-const BCE_VERSION = "2.5.16";
+const BCE_VERSION = "2.6.0";
 
 const bceChangelog = `${BCE_VERSION}
-- fix esc leaving wardrobe with previews in a bad state
-- fix esc leaving BCE settings in a bad state
+- added discreet mode, which disables rendering kinky parts of the club
 
-2.5.15
-- add puu.sh to allowed embed sites
-- fix a parsing error in sending whispers
-
-2.5.14
-- fix light shock animation triggering on you when you're the one triggering it on someone else
-- /versions no longer lists characters you cannot see
-- fix vibrators being twice as effective as intended with alt arousal enabled
-
-2.5.13
-- fix alternate arousal messing with normal arousal
-- update stable bcx
-
-2.5.12
-- update stable bcx
-
-2.5.10
-- mod sdk 1.0.2
-
-2.5.9
-- R77 compatibility
-- removed friendly activity labels (integrated with the game now)
-- improved compatibility with other addons
-
-2.5.8
-- escape as a hotkey to close the IM
-
-2.5.7
-- fix inspecting locks and other advanced item properties
-
-2.5.6
-- fix leaving layering menus with ESC
-- fix pagination button in settings
-
-2.5.5
-- removed browser timers, making use of game's rendering functions instead
-
-2.5.4
-- added /bcedebug
-
-2.5.3
-- update BCX stable
-
-2.5.2
-- load extended wardrobe properly even when BCE is loaded after login
-
-2.5.1
-- R77Beta1 compatibility
-
-2.5.0
+2.5
 - settings page overhaul
 - cache clear refreshes character renders after it's done
+- added /bcedebug
 
 2.4
 - added instant messenger (you can talk to your friends who use bcutil without installing bcutil yourself, with BCE's chat augments)
@@ -161,7 +112,7 @@ async function BondageClubEnhancements() {
 		Observe: 0,
 	});
 
-	const settingsVersion = 25;
+	const settingsVersion = 26;
 	/**
 	 * @type {Settings}
 	 */
@@ -454,6 +405,21 @@ async function BondageClubEnhancements() {
 			value: true,
 			sideEffects: (newValue) => {
 				bceLog("confirmLeave", newValue);
+			},
+			category: "misc",
+		},
+		discreetMode: {
+			label: "Discreet mode (disable drawing)",
+			value: false,
+			sideEffects: (newValue) => {
+				bceLog("discreetMode", newValue);
+				if (newValue) {
+					bceSettings.showQuickAntiGarble = false;
+					/** @type {HTMLLinkElement} */
+					(document.getElementById("favicon")).href =
+						"https://www.bing.com/sa/simg/favicon-2x.ico";
+					document.title = "OnlineChat";
+				}
 			},
 			category: "misc",
 		},
@@ -887,6 +853,7 @@ async function BondageClubEnhancements() {
 	await bceLoadSettings();
 	postSettings();
 	bceLog(bceSettings);
+	discreetMode();
 	commonPatches();
 	const bcxLoad = loadBCX();
 	beepImprovements();
@@ -6831,6 +6798,70 @@ async function BondageClubEnhancements() {
 		for (const child of newChildren) {
 			chatMessageElement.appendChild(child);
 		}
+	}
+
+	function discreetMode() {
+		/** @type {(args: [unknown], next: (args: [unknown]) => unknown) => unknown} */
+		const discreetModeHook = (args, next) => {
+			if (bceSettings.discreetMode) {
+				return;
+			}
+			// eslint-disable-next-line consistent-return
+			return next(args);
+		};
+
+		SDK.hookFunction(
+			"ChatRoomDrawBackground",
+			HOOK_PRIORITIES.Top,
+			discreetModeHook
+		);
+
+		SDK.hookFunction("DrawCharacter", HOOK_PRIORITIES.Top, discreetModeHook);
+		SDK.hookFunction(
+			"NotificationDrawFavicon",
+			HOOK_PRIORITIES.Top,
+			discreetModeHook
+		);
+
+		SDK.hookFunction(
+			"DrawImageEx",
+			HOOK_PRIORITIES.Top,
+			/** @type {(args: [string | HTMLImageElement | HTMLCanvasElement], next: (args: [string | HTMLImageElement | HTMLCanvasElement]) => boolean) => boolean} */
+			(args, next) => {
+				if (bceSettings.discreetMode) {
+					if (!args) {
+						return false;
+					}
+					const ignoredImages =
+						/(^Backgrounds\/|\b(Kneel|Arousal|Activity|Asylum|Cage|Cell|ChangeLayersMouth|Diaper|Kidnap|Logo|Player|Remote|Restriction|SpitOutPacifier|Struggle|Therapy|Orgasm\d|Poses|HouseVincula|Seducer\w+)\b|^data:|^Assets\/)/u;
+					if (isString(args[0]) && ignoredImages.test(args[0])) {
+						return false;
+					}
+					// @ts-ignore
+					// eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+					if (args[0]?.src && ignoredImages.test(args[0].src)) {
+						return false;
+					}
+				}
+				return next(args);
+			}
+		);
+
+		SDK.hookFunction(
+			"NotificationTitleUpdate",
+			HOOK_PRIORITIES.Top,
+			(args, next) => {
+				if (bceSettings.discreetMode) {
+					const notificationCount = NotificationGetTotalCount(1);
+					document.title = `${
+						notificationCount > 0 ? `(${notificationCount}) ` : ""
+					}OnlineChat`;
+					return;
+				}
+				// eslint-disable-next-line consistent-return
+				return next(args);
+			}
+		);
 	}
 
 	(function () {
