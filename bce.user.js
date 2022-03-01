@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Bondage Club Enhancements
 // @namespace https://www.bondageprojects.com/
-// @version 2.6.0
+// @version 2.6.1
 // @description enhancements for the bondage club
 // @author Sidious
 // @match https://bondageprojects.elementfx.com/*
@@ -20,9 +20,12 @@
 /* eslint-disable no-undef */
 /* eslint-disable no-implicit-globals */
 
-const BCE_VERSION = "2.6.0";
+const BCE_VERSION = "2.6.1";
 
 const bceChangelog = `${BCE_VERSION}
+- fix crash upon entering security settings with IM enabled
+
+2.6.0
 - added discreet mode, which disables rendering kinky parts of the club
 
 2.5
@@ -6473,6 +6476,9 @@ async function BondageClubEnhancements() {
 				/** @type {{ Query: string; Result: Friend[] }} */
 				data
 			) => {
+				if (data.Query !== "OnlineFriends") {
+					return;
+				}
 				if (data.Result && bceSettings.instantMessenger) {
 					for (const friend of data.Result) {
 						const f = handleUnseenFriend(friend.MemberNumber);
