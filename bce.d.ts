@@ -214,6 +214,7 @@ declare global {
   var PreferenceSubscreen: string;
   var PreferenceMessage: string;
   var NotificationGetTotalCount: (type: 0 | 1 | 2 | 3) => number;
+  var InventoryGroupIsBlocked: (C: Character, group?: string) => boolean;
   var MainCanvas: HTMLCanvasElement;
   var DrawText: (
     text: string,
