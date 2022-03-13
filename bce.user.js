@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Bondage Club Enhancements
 // @namespace https://www.bondageprojects.com/
-// @version 2.7.1
+// @version 2.7.2
 // @description enhancements for the bondage club
 // @author Sidious
 // @match https://bondageprojects.elementfx.com/*
@@ -20,9 +20,12 @@
 /* eslint-disable no-undef */
 /* eslint-disable no-implicit-globals */
 
-const BCE_VERSION = "2.7.1";
+const BCE_VERSION = "2.7.2";
 
 const bceChangelog = `${BCE_VERSION}
+- fix exportlooks overriding lock member numbers
+
+2.7.1
 - allow some emoticon icons to show up in discreet mode
 - R78Beta1 compatibility
 
@@ -122,7 +125,7 @@ async function BondageClubEnhancements() {
 		Observe: 0,
 	});
 
-	const settingsVersion = 26;
+	const settingsVersion = 27;
 	/**
 	 * @type {Settings}
 	 */
@@ -1495,15 +1498,16 @@ async function BondageClubEnhancements() {
 					const looks = (
 						total === "true" ? targetMember.Appearance : appearance
 					).map((i) => {
-						if (i.Property?.LockMemberNumber) {
-							i.Property.LockMemberNumber = Player.MemberNumber;
+						const property = i.Property ? { ...i.Property } : {};
+						if (property?.LockMemberNumber) {
+							property.LockMemberNumber = Player.MemberNumber;
 						}
 						return {
 							Group: i.Asset.Group.Name,
 							Name: i.Asset.Name,
 							Color: i.Color,
 							Difficulty: i.Difficulty,
-							Property: i.Property,
+							Property: property,
 						};
 					});
 
