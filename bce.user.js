@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Bondage Club Enhancements
 // @namespace https://www.bondageprojects.com/
-// @version 2.7.0
+// @version 2.7.1
 // @description enhancements for the bondage club
 // @author Sidious
 // @match https://bondageprojects.elementfx.com/*
@@ -20,9 +20,13 @@
 /* eslint-disable no-undef */
 /* eslint-disable no-implicit-globals */
 
-const BCE_VERSION = "2.7.0";
+const BCE_VERSION = "2.7.1";
 
 const bceChangelog = `${BCE_VERSION}
+- allow some emoticon icons to show up in discreet mode
+- R78Beta1 compatibility
+
+2.7.0
 - added tab activity workaround to hopefully prevent browsers from killing the connection to the server
 - disabled layering menus when player is bound or target group is blocked
 - added separate cheat setting to restore old behavior
@@ -55,7 +59,7 @@ const BCE_BC_MOD_SDK=function(){"use strict";const o="1.0.2";function e(o){alert
 async function BondageClubEnhancements() {
 	"use strict";
 
-	const SUPPORTED_GAME_VERSIONS = ["R77"];
+	const SUPPORTED_GAME_VERSIONS = ["R77", "R78Beta1"];
 	const CAPABILITIES = ["clubslave"];
 
 	const w = window;
@@ -597,105 +601,128 @@ async function BondageClubEnhancements() {
 
 	const DEVS = [23476];
 	/**
-	 * @type {Readonly<{ [key: string]: string }>}
+	 * @type {(gameVersion: string) => Readonly<{ [key: string]: string }>}
 	 */
-	const expectedHashes = Object.freeze({
-		ActivityChatRoomArousalSync: "21318CAF",
-		ActivitySetArousal: "3AE28123",
-		ActivitySetArousalTimer: "A034E6C0",
-		ActivityTimerProgress: "6CD388A7",
-		AppearanceClick: "0D1455A9",
-		AppearanceExit: "AA300341",
-		AppearanceLoad: "A14CB302",
-		AppearanceRun: "6DDA14A1",
-		CharacterAppearanceWardrobeLoad: "A5B63A03",
-		CharacterBuildDialog: "E69E1DFE",
-		CharacterGetCurrent: "A4EA6438",
-		CharacterRefresh: "5BF9DA5A",
-		CharacterSetActivePose: "0339D069",
-		CharacterSetCurrent: "FD267B9B",
-		CharacterSetFacialExpression: "D66B4515",
-		ChatRoomCharacterItemUpdate: "4EB70443",
-		ChatRoomCharacterUpdate: "9D0EEA39",
-		ChatRoomClearAllElements: "C49AA2C1",
-		ChatRoomClick: "79E651EB",
-		ChatRoomCreateElement: "AD7CBE68",
-		ChatRoomCurrentTime: "A462DD3A",
-		ChatRoomDrawCharacterOverlay: "4AE4AD9E",
-		ChatRoomKeyDown: "33C77F12",
-		ChatRoomListManipulation: "75D28A8B",
-		ChatRoomMessage: "3041CEA5",
-		ChatRoomResize: "9D52CF52",
-		ChatRoomRun: "07117155",
-		ChatRoomSendChat: "7F540ED0",
-		ChatRoomStart: "9CB3783A",
-		CommandExecute: "12B2BAA4",
-		CommandParse: "12DC018B",
-		CommonColorIsValid: "390A2CE4",
-		CommonSetScreen: "17692CD7",
-		DialogClick: "CE16B270",
-		DialogDraw: "302268CE",
-		DialogDrawItemMenu: "A6FE3967",
-		DialogLeave: "354CBC00",
-		DrawBackNextButton: "0DE5491B",
-		DrawButton: "63FDE2B2",
-		DrawCheckbox: "00FD87EB",
-		DrawImageResize: "8CF55F04",
-		DrawText: "C1BF0F50",
-		DrawTextFit: "F9A1B11E",
-		ElementCreateInput: "2B2603E4",
-		ElementIsScrolledToEnd: "D28B0638",
-		ElementPosition: "CC4E3C82",
-		ElementRemove: "60809E60",
-		ElementScrollToEnd: "1AC45575",
-		ElementValue: "B647E0E6",
-		FriendListShowBeep: "6C0449BB",
-		GLDrawResetCanvas: "EDF1631A",
-		InventoryGet: "E666F671",
-		InventoryItemMiscLoversTimerPadlockClick: "B8F431EB",
-		InventoryItemMiscLoversTimerPadlockDraw: "87818D41",
-		InventoryItemMiscLoversTimerPadlockExit: "D316C21B",
-		InventoryItemMiscLoversTimerPadlockLoad: "6931D8FF",
-		InventoryItemMiscMistressTimerPadlockClick: "7DCDC57B",
-		InventoryItemMiscMistressTimerPadlockDraw: "DC5D4BB4",
-		InventoryItemMiscMistressTimerPadlockExit: "479A8F6F",
-		InventoryItemMiscMistressTimerPadlockLoad: "8B23B841",
-		InventoryItemMiscOwnerTimerPadlockClick: "B36A6AD3",
-		InventoryItemMiscOwnerTimerPadlockDraw: "2E431407",
-		InventoryItemMiscOwnerTimerPadlockExit: "4A0243F9",
-		InventoryItemMiscOwnerTimerPadlockLoad: "06E1141F",
-		InventoryItemMiscTimerPasswordPadlockClick: "CB736461",
-		InventoryItemMiscTimerPasswordPadlockDraw: "953C9EF8",
-		InventoryItemMiscTimerPasswordPadlockExit: "7323E56D",
-		InventoryItemMiscTimerPasswordPadlockLoad: "304BC9DE",
-		LoginClick: "8A3B973F",
-		LoginRun: "B40EF142",
-		LoginSetSubmitted: "C88F4A8E",
-		MouseIn: "CA8B839E",
-		OnlineGameAllowChange: "3779F42C",
-		ServerAccountBeep: "D93AD698",
-		ServerAppearanceBundle: "94A27A29",
-		ServerAppearanceLoadFromBundle: "76D1CC95",
-		ServerClickBeep: "3E6277BE",
-		ServerConnect: "845E50A6",
-		ServerDisconnect: "0D4630FA",
-		ServerOpenFriendList: "25665C3F",
-		ServerSend: "90A61F57",
-		SkillGetWithRatio: "16620445",
-		SpeechGarbleByGagLevel: "A07EE53B",
-		SpeechGetTotalGagLevel: "E8051EA2",
-		StruggleDrawLockpickProgress: "A9C2DBBC",
-		TextGet: "4DDE5794",
-		TextLoad: "ADF7C890",
-		TimerProcess: "19F09E1E",
-		WardrobeClick: "D388FE7D",
-		WardrobeExit: "EE83FF29",
-		WardrobeFastLoad: "545CB8FD",
-		WardrobeFastSave: "B62385C1",
-		WardrobeFixLength: "CA3334C6",
-		WardrobeLoad: "C343A4C7",
-		WardrobeRun: "9616EB3A",
-	});
+	const expectedHashes = (gameVersion) => {
+		const hashes = {
+			ActivityChatRoomArousalSync: "21318CAF",
+			ActivitySetArousal: "3AE28123",
+			ActivitySetArousalTimer: "A034E6C0",
+			ActivityTimerProgress: "6CD388A7",
+			AppearanceClick: "0D1455A9",
+			AppearanceExit: "AA300341",
+			AppearanceLoad: "A14CB302",
+			AppearanceRun: "6DDA14A1",
+			CharacterAppearanceWardrobeLoad: "A5B63A03",
+			CharacterBuildDialog: "E69E1DFE",
+			CharacterCompressWardrobe: "8D3B1AB1",
+			CharacterDecompressWardrobe: "A9FD29CC",
+			CharacterGetCurrent: "A4EA6438",
+			CharacterRefresh: "5BF9DA5A",
+			CharacterSetActivePose: "0339D069",
+			CharacterSetCurrent: "FD267B9B",
+			CharacterSetFacialExpression: "D66B4515",
+			ChatRoomCharacterItemUpdate: "4EB70443",
+			ChatRoomCharacterUpdate: "9D0EEA39",
+			ChatRoomClearAllElements: "C49AA2C1",
+			ChatRoomClick: "79E651EB",
+			ChatRoomCreateElement: "AD7CBE68",
+			ChatRoomCurrentTime: "A462DD3A",
+			ChatRoomDrawBackground: "898C1B12",
+			ChatRoomDrawCharacterOverlay: "4AE4AD9E",
+			ChatRoomKeyDown: "33C77F12",
+			ChatRoomListManipulation: "75D28A8B",
+			ChatRoomMessage: "3041CEA5",
+			ChatRoomResize: "9D52CF52",
+			ChatRoomRun: "07117155",
+			ChatRoomSendChat: "7F540ED0",
+			ChatRoomStart: "9CB3783A",
+			CommandExecute: "12B2BAA4",
+			CommandParse: "12DC018B",
+			CommonClick: "1F6DF7CB",
+			CommonColorIsValid: "390A2CE4",
+			CommonSetScreen: "17692CD7",
+			DialogClick: "CE16B270",
+			DialogDraw: "302268CE",
+			DialogDrawItemMenu: "A6FE3967",
+			DialogLeave: "354CBC00",
+			DrawBackNextButton: "0DE5491B",
+			DrawButton: "63FDE2B2",
+			DrawCheckbox: "00FD87EB",
+			DrawImageEx: "3D3D74F5",
+			DrawImageResize: "8CF55F04",
+			DrawProcess: "053C046E",
+			DrawText: "C1BF0F50",
+			DrawTextFit: "F9A1B11E",
+			ElementCreateInput: "2B2603E4",
+			ElementIsScrolledToEnd: "D28B0638",
+			ElementPosition: "CC4E3C82",
+			ElementRemove: "60809E60",
+			ElementScrollToEnd: "1AC45575",
+			ElementValue: "B647E0E6",
+			FriendListShowBeep: "6C0449BB",
+			GLDrawResetCanvas: "EDF1631A",
+			InventoryGet: "E666F671",
+			InventoryItemMiscLoversTimerPadlockClick: "B8F431EB",
+			InventoryItemMiscLoversTimerPadlockDraw: "87818D41",
+			InventoryItemMiscLoversTimerPadlockExit: "D316C21B",
+			InventoryItemMiscLoversTimerPadlockLoad: "6931D8FF",
+			InventoryItemMiscMistressTimerPadlockClick: "7DCDC57B",
+			InventoryItemMiscMistressTimerPadlockDraw: "DC5D4BB4",
+			InventoryItemMiscMistressTimerPadlockExit: "479A8F6F",
+			InventoryItemMiscMistressTimerPadlockLoad: "8B23B841",
+			InventoryItemMiscOwnerTimerPadlockClick: "B36A6AD3",
+			InventoryItemMiscOwnerTimerPadlockDraw: "2E431407",
+			InventoryItemMiscOwnerTimerPadlockExit: "4A0243F9",
+			InventoryItemMiscOwnerTimerPadlockLoad: "06E1141F",
+			InventoryItemMiscTimerPasswordPadlockClick: "CB736461",
+			InventoryItemMiscTimerPasswordPadlockDraw: "953C9EF8",
+			InventoryItemMiscTimerPasswordPadlockExit: "7323E56D",
+			InventoryItemMiscTimerPasswordPadlockLoad: "304BC9DE",
+			LoginClick: "8A3B973F",
+			LoginRun: "B40EF142",
+			LoginSetSubmitted: "C88F4A8E",
+			MainRun: "B09F3B95",
+			MouseIn: "CA8B839E",
+			NotificationDrawFavicon: "AB88656B",
+			NotificationTitleUpdate: "0E92F3ED",
+			OnlineGameAllowChange: "3779F42C",
+			ServerAccountBeep: "D93AD698",
+			ServerAppearanceBundle: "94A27A29",
+			ServerAppearanceLoadFromBundle: "76D1CC95",
+			ServerClickBeep: "3E6277BE",
+			ServerConnect: "845E50A6",
+			ServerDisconnect: "0D4630FA",
+			ServerOpenFriendList: "25665C3F",
+			ServerSend: "90A61F57",
+			SkillGetWithRatio: "16620445",
+			SpeechGarbleByGagLevel: "A07EE53B",
+			SpeechGetTotalGagLevel: "E8051EA2",
+			StruggleDrawLockpickProgress: "A9C2DBBC",
+			TextGet: "4DDE5794",
+			TextLoad: "ADF7C890",
+			TimerProcess: "19F09E1E",
+			WardrobeClick: "D388FE7D",
+			WardrobeExit: "EE83FF29",
+			WardrobeFastLoad: "545CB8FD",
+			WardrobeFastSave: "B62385C1",
+			WardrobeFixLength: "CA3334C6",
+			WardrobeLoad: "C343A4C7",
+			WardrobeRun: "9616EB3A",
+		};
+
+		switch (gameVersion) {
+			case "R78Beta1":
+				hashes.ChatRoomMessage = "D355B2C4";
+				hashes.CommandParse = "534545CD";
+				hashes.InventoryItemMiscTimerPasswordPadlockLoad = "D7F9CCA4";
+				break;
+			default:
+				break;
+		}
+
+		return Object.freeze(hashes);
+	};
 
 	/**
 	 * @type {(...args: unknown[]) => void}
@@ -866,7 +893,7 @@ async function BondageClubEnhancements() {
 		return date.getTime();
 	};
 
-	functionIntegrityCheck();
+	await functionIntegrityCheck();
 	bceStyles();
 	extendedWardrobe();
 	automaticReconnect();
@@ -915,8 +942,9 @@ async function BondageClubEnhancements() {
 		);
 	}
 
-	function functionIntegrityCheck() {
-		for (const [func, hash] of Object.entries(expectedHashes)) {
+	async function functionIntegrityCheck() {
+		await waitFor(() => GameVersion !== "R0");
+		for (const [func, hash] of Object.entries(expectedHashes(GameVersion))) {
 			if (!w[func]) {
 				bceWarn(`Expected function ${func} not found.`);
 				continue;
@@ -6874,7 +6902,7 @@ async function BondageClubEnhancements() {
 						return false;
 					}
 					const ignoredImages =
-						/(^Backgrounds\/(?!Sheet(White)?|grey|White\.)|\b(Kneel|Arousal|Activity|Asylum|Cage|Cell|ChangeLayersMouth|Diaper|Kidnap|Logo|Player|Remote|Restriction|SpitOutPacifier|Struggle|Therapy|Orgasm\d|Poses|HouseVincula|Seducer\w+)\b|^data:|^Assets\/)/u;
+						/(^Backgrounds\/(?!Sheet(White)?|grey|White\.)|\b(Kneel|Arousal|Activity|Asylum|Cage|Cell|ChangeLayersMouth|Diaper|Kidnap|Logo|Player|Remote|Restriction|SpitOutPacifier|Struggle|Therapy|Orgasm\d|Poses|HouseVincula|Seducer\w+)\b|^data:|^Assets\/(?!Female3DCG\/Emoticon\/(Afk|Sleep|Read|Gaming|Hearing|Thumbs(Up|Down))\/))/u;
 					if (isString(args[0]) && ignoredImages.test(args[0])) {
 						return false;
 					}
