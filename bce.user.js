@@ -23,6 +23,9 @@
 const BCE_VERSION = "2.8.3";
 
 const bceChangelog = `${BCE_VERSION}
+- fix facial animations getting stuck when "struggling" with items that do not pose a challenge
+
+2.8.2
 - added a missing chinese text for settings
 
 2.8.1
