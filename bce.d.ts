@@ -178,6 +178,8 @@ declare global {
   var StruggleStrength: (Reverse: boolean) => void;
   var StruggleFlexibility: (Reverse: boolean, Hover?: boolean) => void;
   var StruggleDexterity: (Reverse: boolean) => void;
+  var StruggleProgressAuto: number;
+  var StruggleProgressChallenge: number;
   var DialogAllowBlush: boolean;
   var DialogAllowEyebrows: boolean;
   var DialogAllowFluids: boolean;

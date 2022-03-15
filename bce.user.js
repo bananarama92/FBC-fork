@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Bondage Club Enhancements
 // @namespace https://www.bondageprojects.com/
-// @version 2.8.2
+// @version 2.8.3
 // @description enhancements for the bondage club
 // @author Sidious
 // @match https://bondageprojects.elementfx.com/*
@@ -20,7 +20,7 @@
 /* eslint-disable no-undef */
 /* eslint-disable no-implicit-globals */
 
-const BCE_VERSION = "2.8.2";
+const BCE_VERSION = "2.8.3";
 
 const bceChangelog = `${BCE_VERSION}
 - added a missing chinese text for settings
@@ -7205,6 +7205,16 @@ async function BondageClubEnhancements() {
 
 	function autoStruggle() {
 		const allowAllDialogExpressions = () => {
+			if (!(bceSettings.expressions || bceSettings.activityExpressions)) {
+				return;
+			}
+			if (
+				StruggleProgressAuto >= 0 ||
+				StruggleProgressChallenge <= 0 ||
+				!CharacterGetCurrent()?.IsPlayer()
+			) {
+				return;
+			}
 			DialogAllowBlush = true;
 			DialogAllowEyebrows = true;
 			DialogAllowFluids = true;
@@ -7220,15 +7230,11 @@ async function BondageClubEnhancements() {
 			}
 
 			if (StruggleProgressCurrentMinigame === "Strength") {
-				if (bceSettings.expressions || bceSettings.activityExpressions) {
-					allowAllDialogExpressions();
-				}
+				allowAllDialogExpressions();
 				StruggleStrength(false);
 			} else if (StruggleProgressCurrentMinigame === "Flexibility") {
 				if (StruggleProgressFlexCircles?.length > 0) {
-					if (bceSettings.expressions || bceSettings.activityExpressions) {
-						allowAllDialogExpressions();
-					}
+					allowAllDialogExpressions();
 					StruggleFlexibility(false, true);
 					StruggleProgressFlexCircles.splice(0, 1);
 				}
@@ -7257,9 +7263,7 @@ async function BondageClubEnhancements() {
 					)
 				);
 				if (distMult > 0.5) {
-					if (bceSettings.expressions || bceSettings.activityExpressions) {
-						allowAllDialogExpressions();
-					}
+					allowAllDialogExpressions();
 					StruggleDexterity(false);
 				}
 			}
