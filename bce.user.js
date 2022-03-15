@@ -24,7 +24,7 @@ const BCE_VERSION = "2.8.0";
 
 const bceChangelog = `${BCE_VERSION}
 - add chinese translation (by 洛星臣)
-- add autostruggle for brute force minigame
+- add autostruggle cheat
 
 2.7.0
 - added tab activity workaround to hopefully prevent browsers from killing the connection to the server
@@ -1986,6 +1986,7 @@ async function BondageClubEnhancements() {
 					y += settingsYIncrement;
 				}
 			}
+			w.MainCanvas.getContext("2d").textAlign = "center";
 		};
 		w.PreferenceSubscreenBCESettingsClick = function () {
 			let y = settingsYStart;
