@@ -149,6 +149,10 @@ declare global {
   var bce_EventExpressions: { [key: string]: Expression };
   var bceClearPassword: (name: string) => void;
   var bceClearCaches: () => Promise<void>;
+  var bceDisplayText: (
+    original: string,
+    replacements?: Record<string, string>
+  ) => string;
   var bce_ArousalExpressionStages: ArousalExpressionStages;
   var bce_ActivityTriggers: ActivityTrigger[];
   var ActivityDictionary: string[][];
@@ -216,6 +220,7 @@ declare global {
   var NotificationGetTotalCount: (type: 0 | 1 | 2 | 3) => number;
   var InventoryGroupIsBlocked: (C: Character, group?: string) => boolean;
   var MainCanvas: HTMLCanvasElement;
+  var TranslationLanguage: string;
   var DrawText: (
     text: string,
     x: number,

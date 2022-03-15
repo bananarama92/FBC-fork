@@ -261,7 +261,8 @@ This is for the purposes of customizing [`bce-custom-expressions-example.user.js
 
 [View source code and contribute on GitLab](https://gitlab.com/Sidiousious/bce)
 
-[Credits](https://gitlab.com/Sidiousious/bce/-/graphs/main)
+[Credits](https://gitlab.com/Sidiousious/bce/-/graphs/main), and:
+- Chinese localization by 洛星臣
 
 [custom]: https://sidiousious.gitlab.io/bce/bce-custom-expressions-example.user.js
 [bookmarklet]: javascript:(()%3D%3E%7Bfetch('https%3A%2F%2Fsidiousious.gitlab.io%2Fbce%2Fbce.user.js').then(r%3D%3Er.text()).then(r%3D%3Eeval(r))%3B%7D)()%3B
