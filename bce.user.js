@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Bondage Club Enhancements
 // @namespace https://www.bondageprojects.com/
-// @version 2.7.3
+// @version 2.8.0
 // @description enhancements for the bondage club
 // @author Sidious
 // @match https://bondageprojects.elementfx.com/*
@@ -20,17 +20,11 @@
 /* eslint-disable no-undef */
 /* eslint-disable no-implicit-globals */
 
-const BCE_VERSION = "2.7.3";
+const BCE_VERSION = "2.8.0";
 
 const bceChangelog = `${BCE_VERSION}
 - add chinese translation (by 洛星臣)
-
-2.7.2
-- fix exportlooks overriding lock member numbers
-
-2.7.1
-- allow some emoticon icons to show up in discreet mode
-- R78Beta1 compatibility
+- add autostruggle for brute force minigame
 
 2.7.0
 - added tab activity workaround to hopefully prevent browsers from killing the connection to the server
@@ -128,7 +122,7 @@ async function BondageClubEnhancements() {
 		Observe: 0,
 	});
 
-	const settingsVersion = 27;
+	const settingsVersion = 28;
 	/**
 	 * @type {Settings}
 	 */
@@ -310,6 +304,14 @@ async function BondageClubEnhancements() {
 			value: false,
 			sideEffects: (newValue) => {
 				bceLog("allowLayeringWhileBound", newValue);
+			},
+			category: "cheats",
+		},
+		autoStruggle: {
+			label: "Make automatic progress while struggling",
+			value: false,
+			sideEffects: (newValue) => {
+				bceLog("autoStruggle", newValue);
 			},
 			category: "cheats",
 		},
@@ -791,7 +793,10 @@ async function BondageClubEnhancements() {
 			SkillGetWithRatio: "16620445",
 			SpeechGarbleByGagLevel: "A07EE53B",
 			SpeechGetTotalGagLevel: "E8051EA2",
+			StruggleDexterity: "95812A41",
 			StruggleDrawLockpickProgress: "A9C2DBBC",
+			StruggleFlexibility: "148CEB8F",
+			StruggleStrength: "7980C89B",
 			TextGet: "4DDE5794",
 			TextLoad: "ADF7C890",
 			TimerProcess: "19F09E1E",
@@ -1026,6 +1031,7 @@ async function BondageClubEnhancements() {
 	fpsCounter();
 	instantMessenger();
 	tabActivityWorkaround();
+	autoStruggle();
 
 	await bcxLoad;
 
@@ -2697,7 +2703,56 @@ async function BondageClubEnhancements() {
 	async function automaticExpressions() {
 		await waitFor(() => CurrentScreen === "ChatRoom");
 
-		bceLog("Started arousal faces");
+		patchFunction(
+			"StruggleStrength",
+			{
+				'CharacterSetFacialExpression(Player, "Blush", "Low");':
+					'CharacterSetFacialExpression(Player, "Blush", "Low", 10);',
+				'CharacterSetFacialExpression(Player, "Blush", "Medium");':
+					'CharacterSetFacialExpression(Player, "Blush", "Medium", 10);',
+				'CharacterSetFacialExpression(Player, "Blush", "High");':
+					'CharacterSetFacialExpression(Player, "Blush", "High", 10);',
+				'CharacterSetFacialExpression(Player, "Fluids", "DroolMessy");':
+					'CharacterSetFacialExpression(Player, "Fluids", "DroolMessy", 10);',
+				'CharacterSetFacialExpression(Player, "Eyebrows", (StruggleProgress >= 50) ? "Angry" : null);':
+					'CharacterSetFacialExpression(Player, "Eyebrows", (StruggleProgress >= 50) ? "Angry" : null, 10);',
+			},
+			"Resetting blush, fluids and eyebrows after brute force struggling"
+		);
+
+		patchFunction(
+			"StruggleFlexibility",
+			{
+				'CharacterSetFacialExpression(Player, "Blush", "Low");':
+					'CharacterSetFacialExpression(Player, "Blush", "Low", 10);',
+				'CharacterSetFacialExpression(Player, "Blush", "Medium");':
+					'CharacterSetFacialExpression(Player, "Blush", "Medium", 10);',
+				'CharacterSetFacialExpression(Player, "Blush", "High");':
+					'CharacterSetFacialExpression(Player, "Blush", "High", 10);',
+				'CharacterSetFacialExpression(Player, "Eyes2", "Closed");':
+					'CharacterSetFacialExpression(Player, "Eyes2", "Closed", 10);',
+				'CharacterSetFacialExpression(Player, "Eyebrows", (StruggleProgress >= 50) ? "Angry" : null);':
+					'CharacterSetFacialExpression(Player, "Eyebrows", (StruggleProgress >= 50) ? "Angry" : null, 10);',
+			},
+			"Resetting blush, eyes2 and eyebrows after flexibility struggling"
+		);
+
+		patchFunction(
+			"StruggleDexterity",
+			{
+				'CharacterSetFacialExpression(Player, "Blush", "Low");':
+					'CharacterSetFacialExpression(Player, "Blush", "Low", 10);',
+				'CharacterSetFacialExpression(Player, "Blush", "Medium");':
+					'CharacterSetFacialExpression(Player, "Blush", "Medium", 10);',
+				'CharacterSetFacialExpression(Player, "Blush", "High");':
+					'CharacterSetFacialExpression(Player, "Blush", "High", 10);',
+				'CharacterSetFacialExpression(Player, "Eyes", "Dazed");':
+					'CharacterSetFacialExpression(Player, "Eyes", "Dazed", 10);',
+				'CharacterSetFacialExpression(Player, "Eyebrows", (StruggleProgress >= 50) ? "Angry" : null);':
+					'CharacterSetFacialExpression(Player, "Eyebrows", (StruggleProgress >= 50) ? "Angry" : null, 10);',
+			},
+			"Resetting blush, eyes and eyebrows after dexterity struggling"
+		);
 
 		if (!w.bce_ArousalExpressionStages) {
 			// eslint-disable-next-line camelcase
@@ -7135,6 +7190,54 @@ async function BondageClubEnhancements() {
 		// Set to almost muted
 		el.volume = 0.000001;
 		document.body.appendChild(el);
+	}
+
+	function autoStruggle() {
+		createTimer(() => {
+			if (!bceSettings.autoStruggle) {
+				return;
+			}
+
+			if (typeof StruggleProgress !== "number" || StruggleProgress < 0) {
+				return;
+			}
+
+			if (StruggleProgressCurrentMinigame === "Strength") {
+				StruggleStrength(false);
+			} else if (StruggleProgressCurrentMinigame === "Flexibility") {
+				if (StruggleProgressFlexCircles?.length > 0) {
+					StruggleFlexibility(false, true);
+					StruggleProgressFlexCircles.splice(0, 1);
+				}
+			}
+		}, 60);
+
+		createTimer(() => {
+			if (!bceSettings.autoStruggle) {
+				return;
+			}
+
+			if (typeof StruggleProgress !== "number" || StruggleProgress < 0) {
+				return;
+			}
+			if (StruggleProgressCurrentMinigame === "Dexterity") {
+				// Duplicated logic from StruggleDexterity
+				const distMult = Math.max(
+					-0.5,
+					Math.min(
+						1,
+						(85 -
+							Math.abs(
+								StruggleProgressDexTarget - StruggleProgressDexCurrent
+							)) /
+							75
+					)
+				);
+				if (distMult > 0.5) {
+					StruggleDexterity(false);
+				}
+			}
+		}, 0);
 	}
 
 	(function () {

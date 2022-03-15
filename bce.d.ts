@@ -170,6 +170,14 @@ declare global {
   var ServerSend: (event: string, data: unknown) => void;
   var GameVersion: string;
   var GLVersion: string;
+  var StruggleProgress: number;
+  var StruggleProgressCurrentMinigame: "Strength" | "Flexibility" | "Dexterity";
+  var StruggleProgressDexTarget: number;
+  var StruggleProgressDexCurrent: number;
+  var StruggleProgressFlexCircles: unknown[];
+  var StruggleStrength: (Reverse: boolean) => void;
+  var StruggleFlexibility: (Reverse: boolean, Hover?: boolean) => void;
+  var StruggleDexterity: (Reverse: boolean) => void;
   var InventoryItemMiscLoversTimerPadlockDraw: () => void;
   var InventoryItemMiscLoversTimerPadlockClick: () => void;
   var InventoryItemMiscLoversTimerPadlockExit: () => void;
