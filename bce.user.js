@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Bondage Club Enhancements
 // @namespace https://www.bondageprojects.com/
-// @version 2.8.1
+// @version 2.8.2
 // @description enhancements for the bondage club
 // @author Sidious
 // @match https://bondageprojects.elementfx.com/*
@@ -20,14 +20,17 @@
 /* eslint-disable no-undef */
 /* eslint-disable no-implicit-globals */
 
-const BCE_VERSION = "2.8.1";
+const BCE_VERSION = "2.8.2";
 
 const bceChangelog = `${BCE_VERSION}
+- added a missing chinese text for settings
+
+2.8.1
 - fix struggle facial expressions
 
 2.8.0
-- add chinese translation (by 洛星臣)
-- add autostruggle cheat
+- added chinese translation (by 洛星臣)
+- added autostruggle cheat
 
 2.7.0
 - added tab activity workaround to hopefully prevent browsers from killing the connection to the server
