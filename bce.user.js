@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Bondage Club Enhancements
 // @namespace https://www.bondageprojects.com/
-// @version 2.8.0
+// @version 2.8.1
 // @description enhancements for the bondage club
 // @author Sidious
 // @match https://bondageprojects.elementfx.com/*
@@ -20,9 +20,12 @@
 /* eslint-disable no-undef */
 /* eslint-disable no-implicit-globals */
 
-const BCE_VERSION = "2.8.0";
+const BCE_VERSION = "2.8.1";
 
 const bceChangelog = `${BCE_VERSION}
+- fix struggle facial expressions
+
+2.8.0
 - add chinese translation (by 洛星臣)
 - add autostruggle cheat
 
@@ -2717,6 +2720,7 @@ async function BondageClubEnhancements() {
 					'CharacterSetFacialExpression(Player, "Fluids", "DroolMessy", 10);',
 				'CharacterSetFacialExpression(Player, "Eyebrows", (StruggleProgress >= 50) ? "Angry" : null);':
 					'CharacterSetFacialExpression(Player, "Eyebrows", (StruggleProgress >= 50) ? "Angry" : null, 10);',
+				"StruggleProgressStruggleCount ==": "StruggleProgressStruggleCount >=",
 			},
 			"Resetting blush, fluids and eyebrows after brute force struggling"
 		);
@@ -2734,6 +2738,7 @@ async function BondageClubEnhancements() {
 					'CharacterSetFacialExpression(Player, "Eyes2", "Closed", 10);',
 				'CharacterSetFacialExpression(Player, "Eyebrows", (StruggleProgress >= 50) ? "Angry" : null);':
 					'CharacterSetFacialExpression(Player, "Eyebrows", (StruggleProgress >= 50) ? "Angry" : null, 10);',
+				"StruggleProgressStruggleCount ==": "StruggleProgressStruggleCount >=",
 			},
 			"Resetting blush, eyes2 and eyebrows after flexibility struggling"
 		);
@@ -2751,6 +2756,7 @@ async function BondageClubEnhancements() {
 					'CharacterSetFacialExpression(Player, "Eyes", "Dazed", 10);',
 				'CharacterSetFacialExpression(Player, "Eyebrows", (StruggleProgress >= 50) ? "Angry" : null);':
 					'CharacterSetFacialExpression(Player, "Eyebrows", (StruggleProgress >= 50) ? "Angry" : null, 10);',
+				"StruggleProgressStruggleCount ==": "StruggleProgressStruggleCount >=",
 			},
 			"Resetting blush, eyes and eyebrows after dexterity struggling"
 		);
@@ -7194,6 +7200,12 @@ async function BondageClubEnhancements() {
 	}
 
 	function autoStruggle() {
+		const allowAllDialogExpressions = () => {
+			DialogAllowBlush = true;
+			DialogAllowEyebrows = true;
+			DialogAllowFluids = true;
+		};
+
 		createTimer(() => {
 			if (!bceSettings.autoStruggle) {
 				return;
@@ -7204,9 +7216,15 @@ async function BondageClubEnhancements() {
 			}
 
 			if (StruggleProgressCurrentMinigame === "Strength") {
+				if (bceSettings.expressions || bceSettings.activityExpressions) {
+					allowAllDialogExpressions();
+				}
 				StruggleStrength(false);
 			} else if (StruggleProgressCurrentMinigame === "Flexibility") {
 				if (StruggleProgressFlexCircles?.length > 0) {
+					if (bceSettings.expressions || bceSettings.activityExpressions) {
+						allowAllDialogExpressions();
+					}
 					StruggleFlexibility(false, true);
 					StruggleProgressFlexCircles.splice(0, 1);
 				}
@@ -7235,6 +7253,9 @@ async function BondageClubEnhancements() {
 					)
 				);
 				if (distMult > 0.5) {
+					if (bceSettings.expressions || bceSettings.activityExpressions) {
+						allowAllDialogExpressions();
+					}
 					StruggleDexterity(false);
 				}
 			}

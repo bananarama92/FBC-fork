@@ -178,6 +178,9 @@ declare global {
   var StruggleStrength: (Reverse: boolean) => void;
   var StruggleFlexibility: (Reverse: boolean, Hover?: boolean) => void;
   var StruggleDexterity: (Reverse: boolean) => void;
+  var DialogAllowBlush: boolean;
+  var DialogAllowEyebrows: boolean;
+  var DialogAllowFluids: boolean;
   var InventoryItemMiscLoversTimerPadlockDraw: () => void;
   var InventoryItemMiscLoversTimerPadlockClick: () => void;
   var InventoryItemMiscLoversTimerPadlockExit: () => void;
