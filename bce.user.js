@@ -671,8 +671,7 @@ async function BondageClubEnhancements() {
 				"Limit FPS to ~15": "限制 FPS 最高为 ~15",
 				"Limit FPS to ~30": "限制 FPS 最高为 ~30",
 				"Limit FPS to ~60": "限制 FPS 最高为 ~60",
-				"Make automatic progress while struggling":
-					"在挣扎时自动增加进度"
+				"Make automatic progress while struggling": "在挣扎时自动增加进度",
 				"Chat & Social": "聊天 & 社交",
 				"Activities & Arousal": "活动 & 欲望",
 				"Appearance & Wardrobe": "外观 & 衣柜",
