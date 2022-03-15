@@ -918,7 +918,15 @@ async function BondageClubEnhancements() {
 			Content: "Beep",
 			Type: "Action",
 			Dictionary: [
+				// EN
 				{ Tag: "Beep", Text: "msg" },
+				// CN
+				{ Tag: "发送私聊", Text: "msg" },
+				// DE
+				{ Tag: "Biep", Text: "msg" },
+				// FR
+				{ Tag: "Sonner", Text: "msg" },
+				// Message itself
 				{ Tag: "msg", Text: text },
 			],
 		});
