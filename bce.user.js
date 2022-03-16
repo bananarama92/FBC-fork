@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Bondage Club Enhancements
 // @namespace https://www.bondageprojects.com/
-// @version 2.9.0b1
+// @version 2.9.0
 // @description enhancements for the bondage club
 // @author Sidious
 // @match https://bondageprojects.elementfx.com/*
@@ -20,7 +20,7 @@
 /* eslint-disable no-undef */
 /* eslint-disable no-implicit-globals */
 
-const BCE_VERSION = "2.9.0b1";
+const BCE_VERSION = "2.9.0";
 
 const bceChangelog = `${BCE_VERSION}
 - added the ability to give yourself a nickname visible to other users of BCE
@@ -302,10 +302,19 @@ async function BondageClubEnhancements() {
 				bceLog("nicknames", newValue);
 				if (!newValue) {
 					bceSettings.nickname = "";
-					if (Player.BCEOriginalName) {
-						Player.Name = Player.BCEOriginalName;
+					for (const c of Character) {
+						if (c.BCEOriginalName) {
+							if (c.IsPlayer()) {
+								setOwnNickname(c.BCEOriginalName);
+							} else {
+								c.Name = c.BCEOriginalName;
+							}
+						}
 					}
 					sendHello();
+				} else if (isString(bceSettings.nickname)) {
+					setOwnNickname(bceSettings.nickname);
+					sendHello(null, true);
 				}
 			},
 			category: "chat",
@@ -5306,6 +5315,7 @@ async function BondageClubEnhancements() {
 
 		ServerSocket.on(
 			"ChatRoomMessage",
+			// eslint-disable-next-line complexity
 			(
 				/** @type {BCEChatMessage} */
 				data
@@ -5329,11 +5339,17 @@ async function BondageClubEnhancements() {
 								message.nick.length <= 20 &&
 								bceSettings.nicknames
 							) {
-								if (!sender.BCEOriginalName) {
-									sender.BCEOriginalName = sender.Name;
-								}
-								sender.Name = removeNonPrintables(message.nick);
-								if (sender.BCEOriginalName === sender.Name) {
+								const newName = removeNonPrintables(message.nick);
+								if (newName) {
+									if (!sender.BCEOriginalName) {
+										sender.BCEOriginalName = sender.Name;
+									}
+									sender.Name = newName;
+									if (sender.BCEOriginalName === sender.Name) {
+										delete sender.BCEOriginalName;
+									}
+								} else if (sender.BCEOriginalName) {
+									sender.Name = sender.BCEOriginalName;
 									delete sender.BCEOriginalName;
 								}
 							}
@@ -7319,9 +7335,8 @@ async function BondageClubEnhancements() {
 	}
 
 	function nicknames() {
-		if (bceSettings.nickname && isString(bceSettings.nickname)) {
-			Player.BCEOriginalName = Player.Name;
-			Player.Name = bceSettings.nickname;
+		if (isString(bceSettings.nickname)) {
+			setOwnNickname(bceSettings.nickname);
 		}
 
 		/** @type {[number, number, number, number]} */
@@ -7344,12 +7359,8 @@ async function BondageClubEnhancements() {
 			if (!Player.BCEOriginalName) {
 				Player.BCEOriginalName = Player.Name;
 			}
-			bceSettings.nickname = removeNonPrintables(ElementValue(nickInputName));
-			if (bceSettings.nickname) {
-				Player.Name = bceSettings.nickname;
-			} else {
-				Player.Name = Player.BCEOriginalName;
-			}
+			bceSettings.nickname = ElementValue(nickInputName);
+			setOwnNickname(bceSettings.nickname);
 			bceSaveSettings();
 			ElementRemove(nickInputName);
 			nickInputVisible = false;
@@ -7377,7 +7388,7 @@ async function BondageClubEnhancements() {
 							"black",
 							"black"
 						);
-						ElementPosition(nickInputName, 1000, 500, 200);
+						ElementPosition(nickInputName, 1000, 500, 500);
 						return;
 					}
 					if (
@@ -7448,6 +7459,31 @@ async function BondageClubEnhancements() {
 		document.addEventListener("keypress", keyHandler, true);
 	}
 
+	/** @type {(newName: string) => void} */
+	function setOwnNickname(newName) {
+		if (!Player.BCEOriginalName) {
+			Player.BCEOriginalName = Player.Name;
+		}
+		if (!newName) {
+			newName = Player.BCEOriginalName;
+		}
+		if (newName !== Player.BCEOriginalName) {
+			newName = removeNonPrintables(newName);
+		}
+		if (newName !== Player.Name) {
+			bceSendAction(
+				displayText("$OldName is now known as $NewName", {
+					$OldName: Player.Name,
+					$NewName: newName,
+				})
+			);
+		}
+		Player.Name = newName;
+		if (Player.Name === Player.BCEOriginalName) {
+			delete Player.BCEOriginalName;
+		}
+	}
+
 	(function () {
 		const sendHeartbeat = () => {
 			ServerSend("AccountBeep", {
@@ -7474,7 +7510,7 @@ async function BondageClubEnhancements() {
 	/** @type {(s: string) => string} */
 	function removeNonPrintables(s) {
 		return s
-			.replace(/\p{C}/gu, "")
+			.replace(/[^\p{L}\p{Z}'-]/gu, "")
 			.replace(/[\n\r\p{Z}]/gu, " ")
 			.trim();
 	}
