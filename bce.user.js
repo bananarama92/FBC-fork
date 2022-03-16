@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Bondage Club Enhancements
 // @namespace https://www.bondageprojects.com/
-// @version 2.9.1
+// @version 2.9.2
 // @description enhancements for the bondage club
 // @author Sidious
 // @match https://bondageprojects.elementfx.com/*
@@ -38,9 +38,12 @@
  *  along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-const BCE_VERSION = "2.9.1";
+const BCE_VERSION = "2.9.2";
 
 const bceChangelog = `${BCE_VERSION}
+- fix nickname button and original name being shown within BCX menus
+
+2.9.1
 - added license
 - fix resetting nickname not resetting for others
 
@@ -7400,28 +7403,10 @@ async function BondageClubEnhancements() {
 
 		SDK.hookFunction(
 			"InformationSheetRun",
-			HOOK_PRIORITIES.OverrideBehaviour,
+			HOOK_PRIORITIES.AddBehaviour,
 			/** @type {(args: unknown[], next: (args: unknown[]) => unknown) => unknown} */
 			(args, next) => {
 				if (bceSettings.nicknames) {
-					if (nickInputVisible) {
-						DrawButton(
-							...exitButtonPosition,
-							"",
-							"white",
-							"Icons/Accept.png",
-							displayText("Save this nickname")
-						);
-						DrawText(
-							displayText("Set your nickname here. Leave empty to reset."),
-							1000,
-							400,
-							"black",
-							"black"
-						);
-						ElementPosition(nickInputName, 1000, 500, 500);
-						return;
-					}
 					if (
 						InformationSheetSelection?.BCEOriginalName &&
 						InformationSheetSelection.BCEOriginalName !==
@@ -7454,23 +7439,60 @@ async function BondageClubEnhancements() {
 		);
 
 		SDK.hookFunction(
+			"InformationSheetRun",
+			HOOK_PRIORITIES.OverrideBehaviour,
+			/** @type {(args: unknown[], next: (args: unknown[]) => unknown) => unknown} */
+			(args, next) => {
+				if (bceSettings.nicknames && nickInputVisible) {
+					DrawButton(
+						...exitButtonPosition,
+						"",
+						"white",
+						"Icons/Accept.png",
+						displayText("Save this nickname")
+					);
+					DrawText(
+						displayText("Set your nickname here. Leave empty to reset."),
+						1000,
+						400,
+						"black",
+						"black"
+					);
+					ElementPosition(nickInputName, 1000, 500, 500);
+					return;
+				}
+				// eslint-disable-next-line consistent-return
+				return next(args);
+			}
+		);
+
+		SDK.hookFunction(
+			"InformationSheetClick",
+			HOOK_PRIORITIES.AddBehaviour,
+			/** @type {(args: unknown[], next: (args: unknown[]) => unknown) => unknown} */
+			(args, next) => {
+				if (
+					bceSettings.nicknames &&
+					InformationSheetSelection?.IsPlayer() &&
+					MouseIn(...nickButtonPosition)
+				) {
+					showNickInput();
+				}
+				// eslint-disable-next-line consistent-return
+				return next(args);
+			}
+		);
+
+		SDK.hookFunction(
 			"InformationSheetClick",
 			HOOK_PRIORITIES.OverrideBehaviour,
 			/** @type {(args: unknown[], next: (args: unknown[]) => unknown) => unknown} */
 			(args, next) => {
-				if (bceSettings.nicknames) {
-					if (nickInputVisible) {
-						if (MouseIn(...exitButtonPosition)) {
-							hideNickInput();
-						}
-						return;
+				if (bceSettings.nicknames && nickInputVisible) {
+					if (MouseIn(...exitButtonPosition)) {
+						hideNickInput();
 					}
-					if (
-						InformationSheetSelection?.IsPlayer() &&
-						MouseIn(...nickButtonPosition)
-					) {
-						showNickInput();
-					}
+					return;
 				}
 				// eslint-disable-next-line consistent-return
 				return next(args);
