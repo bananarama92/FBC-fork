@@ -53,6 +53,8 @@ At a glance, **everything is entirely optional, enable in settings** (profile ->
 - Accurate timer inputs
 - Club slave as an option for owners under forced labor
 - Extended Wardrobe (more slots)
+- Modify outfit layering
+- Change your nickname
 
 ### Chat Links and Embeds
 

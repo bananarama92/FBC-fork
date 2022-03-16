@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Bondage Club Enhancements
 // @namespace https://www.bondageprojects.com/
-// @version 2.8.3
+// @version 2.9.0b1
 // @description enhancements for the bondage club
 // @author Sidious
 // @match https://bondageprojects.elementfx.com/*
@@ -20,9 +20,12 @@
 /* eslint-disable no-undef */
 /* eslint-disable no-implicit-globals */
 
-const BCE_VERSION = "2.8.3";
+const BCE_VERSION = "2.9.0b1";
 
 const bceChangelog = `${BCE_VERSION}
+- added the ability to give yourself a nickname visible to other users of BCE
+
+2.8.3
 - fix facial animations getting stuck when "struggling" with items that do not pose a challenge
 
 2.8.2
@@ -131,7 +134,7 @@ async function BondageClubEnhancements() {
 		Observe: 0,
 	});
 
-	const settingsVersion = 28;
+	const settingsVersion = 29;
 	/**
 	 * @type {Settings}
 	 */
@@ -171,7 +174,7 @@ async function BondageClubEnhancements() {
 			value: false,
 			sideEffects: (newValue) => {
 				sendHello();
-				Player.BCEArousal = newValue;
+				Player.BCEArousal = !!newValue;
 				Player.BCEArousalProgress = Math.min(
 					BCE_MAX_AROUSAL,
 					Player.ArousalSettings.Progress
@@ -289,6 +292,21 @@ async function BondageClubEnhancements() {
 			value: false,
 			sideEffects: (newValue) => {
 				bceLog("friendOfflineNotifications", newValue);
+			},
+			category: "chat",
+		},
+		nicknames: {
+			label: "Show nicknames",
+			value: true,
+			sideEffects: (newValue) => {
+				bceLog("nicknames", newValue);
+				if (!newValue) {
+					bceSettings.nickname = "";
+					if (Player.BCEOriginalName) {
+						Player.Name = Player.BCEOriginalName;
+					}
+					sendHello();
+				}
 			},
 			category: "chat",
 		},
@@ -516,6 +534,14 @@ async function BondageClubEnhancements() {
 				}
 			},
 			category: "performance",
+		},
+		nickname: {
+			label: "Nickname",
+			value: "",
+			sideEffects: (newValue) => {
+				bceLog("nickname", newValue);
+			},
+			category: "hidden",
 		},
 	});
 
@@ -1042,6 +1068,7 @@ async function BondageClubEnhancements() {
 	instantMessenger();
 	tabActivityWorkaround();
 	autoStruggle();
+	nicknames();
 
 	await bcxLoad;
 
@@ -1903,7 +1930,10 @@ async function BondageClubEnhancements() {
 
 		/** @type {SettingsCategory | null} */
 		let currentCategory = null;
-		/** @type {SettingsCategory[]} */
+		/**
+		 * Excludes hidden
+		 * @type {SettingsCategory[]}
+		 */
 		const settingsCategories = [
 			"chat",
 			"activities",
@@ -1923,11 +1953,12 @@ async function BondageClubEnhancements() {
 			misc: "Misc",
 			cheats: "Cheats",
 			addons: "Other Addons",
+			hidden: "",
 		};
 
 		const currentDefaultSettings = (category) =>
 			Object.entries(defaultSettings).filter(
-				([, v]) => v.category === category
+				([, v]) => v.category === category && v.value === !!v.value
 			);
 
 		w.PreferenceSubscreenBCESettingsLoad = function () {
@@ -1970,7 +2001,7 @@ async function BondageClubEnhancements() {
 						64,
 						64,
 						displayText(defaultSetting.label),
-						bceSettings[settingName]
+						!!bceSettings[settingName]
 					);
 					y += settingsYIncrement;
 				}
@@ -5254,9 +5285,10 @@ async function BondageClubEnhancements() {
 				message: {
 					type: MESSAGE_TYPES.Hello,
 					version: BCE_VERSION,
-					alternateArousal: bceSettings.alternateArousal,
+					alternateArousal: !!bceSettings.alternateArousal,
 					replyRequested: requestReply,
 					capabilities: CAPABILITIES,
+					nick: Player.BCEOriginalName ? Player.Name : null,
 				},
 			},
 		};
@@ -5292,6 +5324,19 @@ async function BondageClubEnhancements() {
 							sender.BCE = message.version;
 							sender.BCEArousal = message.alternateArousal || false;
 							sender.BCECapabilities = message.capabilities;
+							if (
+								message.nick &&
+								message.nick.length <= 20 &&
+								bceSettings.nicknames
+							) {
+								if (!sender.BCEOriginalName) {
+									sender.BCEOriginalName = sender.Name;
+								}
+								sender.Name = removeNonPrintables(message.nick);
+								if (sender.BCEOriginalName === sender.Name) {
+									delete sender.BCEOriginalName;
+								}
+							}
 							if (message.replyRequested) {
 								sendHello(sender.MemberNumber);
 							}
@@ -7273,6 +7318,136 @@ async function BondageClubEnhancements() {
 		}, 0);
 	}
 
+	function nicknames() {
+		if (bceSettings.nickname && isString(bceSettings.nickname)) {
+			Player.BCEOriginalName = Player.Name;
+			Player.Name = bceSettings.nickname;
+		}
+
+		/** @type {[number, number, number, number]} */
+		const nickButtonPosition = [475, 100, 60, 60];
+		/** @type {[number, number, number, number]} */
+		const exitButtonPosition = [1815, 75, 90, 90];
+		let nickInputVisible = false;
+		const nickInputName = "bce-nick-input";
+
+		function showNickInput() {
+			nickInputVisible = true;
+			let name = "";
+			if (isString(bceSettings.nickname)) {
+				name = bceSettings.nickname;
+			}
+			ElementCreateInput(nickInputName, "text", name, "20");
+		}
+
+		function hideNickInput() {
+			if (!Player.BCEOriginalName) {
+				Player.BCEOriginalName = Player.Name;
+			}
+			bceSettings.nickname = removeNonPrintables(ElementValue(nickInputName));
+			if (bceSettings.nickname) {
+				Player.Name = bceSettings.nickname;
+			} else {
+				Player.Name = Player.BCEOriginalName;
+			}
+			bceSaveSettings();
+			ElementRemove(nickInputName);
+			nickInputVisible = false;
+			sendHello();
+		}
+
+		SDK.hookFunction(
+			"InformationSheetRun",
+			HOOK_PRIORITIES.OverrideBehaviour,
+			/** @type {(args: unknown[], next: (args: unknown[]) => unknown) => unknown} */
+			(args, next) => {
+				if (bceSettings.nicknames) {
+					if (nickInputVisible) {
+						DrawButton(
+							...exitButtonPosition,
+							"",
+							"white",
+							"Icons/Accept.png",
+							displayText("Save this nickname")
+						);
+						DrawText(
+							displayText("Set your nickname here. Leave empty to reset."),
+							1000,
+							400,
+							"black",
+							"black"
+						);
+						ElementPosition(nickInputName, 1000, 500, 200);
+						return;
+					}
+					if (
+						InformationSheetSelection?.BCEOriginalName &&
+						InformationSheetSelection.BCEOriginalName !==
+							InformationSheetSelection.Name
+					) {
+						w.MainCanvas.getContext("2d").textAlign = "left";
+						DrawText(
+							displayText("Official Name: ") +
+								InformationSheetSelection.BCEOriginalName,
+							550,
+							75,
+							"grey",
+							"black"
+						);
+						w.MainCanvas.getContext("2d").textAlign = "center";
+					}
+					if (InformationSheetSelection?.IsPlayer()) {
+						DrawButton(
+							...nickButtonPosition,
+							"",
+							"white",
+							"Icons/Small/Preference.png",
+							displayText("Change your nickname")
+						);
+					}
+				}
+				// eslint-disable-next-line consistent-return
+				return next(args);
+			}
+		);
+
+		SDK.hookFunction(
+			"InformationSheetClick",
+			HOOK_PRIORITIES.OverrideBehaviour,
+			/** @type {(args: unknown[], next: (args: unknown[]) => unknown) => unknown} */
+			(args, next) => {
+				if (bceSettings.nicknames) {
+					if (nickInputVisible) {
+						if (MouseIn(...exitButtonPosition)) {
+							hideNickInput();
+						}
+						return;
+					}
+					if (
+						InformationSheetSelection?.IsPlayer() &&
+						MouseIn(...nickButtonPosition)
+					) {
+						showNickInput();
+					}
+				}
+				// eslint-disable-next-line consistent-return
+				return next(args);
+			}
+		);
+
+		/** @type {(e: KeyboardEvent) => void} */
+		function keyHandler(e) {
+			if (e.key === "Escape" && nickInputVisible) {
+				hideNickInput();
+				e.stopPropagation();
+				e.preventDefault();
+			}
+		}
+
+		document.addEventListener("keydown", keyHandler, true);
+		document.addEventListener("keypress", keyHandler, true);
+	}
+
 	(function () {
 		const sendHeartbeat = () => {
 			ServerSend("AccountBeep", {
@@ -7295,6 +7470,14 @@ async function BondageClubEnhancements() {
 		// 5 minutes
 		createTimer(sendHeartbeat, 1000 * 60 * 5);
 	})();
+
+	/** @type {(s: string) => string} */
+	function removeNonPrintables(s) {
+		return s
+			.replace(/\p{C}/gu, "")
+			.replace(/[\n\r\p{Z}]/gu, " ")
+			.trim();
+	}
 
 	/** @type {(cb: () => void, intval: number) => void} */
 	function createTimer(cb, intval) {

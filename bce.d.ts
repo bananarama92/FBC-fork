@@ -142,7 +142,7 @@ export {};
 declare global {
   var BCE_VERSION: string;
   var bceSendAction: (text: string) => void;
-  var bceSettingValue: (key: string) => boolean | number;
+  var bceSettingValue: (key: string) => boolean | number | string;
   var bce_initializeDefaultExpression: () => void;
   var bceUpdatePasswordForReconnect: () => void;
   var bceMessageReplacements: (msg: string) => string;
@@ -183,6 +183,7 @@ declare global {
   var DialogAllowBlush: boolean;
   var DialogAllowEyebrows: boolean;
   var DialogAllowFluids: boolean;
+  var InformationSheetSelection: Character | null;
   var InventoryItemMiscLoversTimerPadlockDraw: () => void;
   var InventoryItemMiscLoversTimerPadlockClick: () => void;
   var InventoryItemMiscLoversTimerPadlockExit: () => void;
@@ -471,7 +472,7 @@ declare global {
     MainCanvas: HTMLCanvasElement;
   }
   type Passwords = Record<string, string>;
-  type Settings = Record<string, boolean> & { version?: number };
+  type Settings = Record<string, boolean | string> & { version?: number };
   type SettingsCategory =
     | "performance"
     | "chat"
@@ -480,13 +481,24 @@ declare global {
     | "appearance"
     | "addons"
     | "misc"
-    | "cheats";
-  type DefaultSetting = {
+    | "cheats"
+    | "hidden";
+  type DefaultSettingBase = {
     label: string;
-    value: boolean;
-    sideEffects: (newValue: boolean) => void;
+    type?: "boolean" | "string";
+    sideEffects: (newValue: boolean | string) => void;
     category: SettingsCategory;
   };
+
+  type DefaultSettingBoolean = DefaultSettingBase & {
+    value: boolean;
+  };
+
+  type DefaultSettingString = DefaultSettingBase & {
+    value: string;
+  };
+
+  type DefaultSetting = DefaultSettingBoolean | DefaultSettingString;
 
   type DefaultSettings = Readonly<Record<string, DefaultSetting>>;
   type Duration = {
@@ -535,6 +547,7 @@ declare global {
     BCECapabilities: string[];
     BCEArousalProgress: number;
     BCEEnjoyment: number;
+    BCEOriginalName?: string;
     /** @deprecated */
     BCEWardrobe?: string;
     IsPlayer: () => boolean;
@@ -769,6 +782,7 @@ declare global {
     progress?: number;
     enjoyment?: number;
     activity?: BCEActivity;
+    nick?: string;
   };
   type ChatMessageDictionary = {
     Tag?: string;
