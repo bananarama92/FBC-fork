@@ -2024,7 +2024,7 @@ async function BondageClubEnhancements() {
 			);
 			DrawButton(...licensePosition, "", "White", "");
 			DrawText(
-				displayText("GPL3 Licensed"),
+				displayText("License"),
 				licensePosition[0] + 20,
 				licensePosition[1] + licensePosition[3] / 2,
 				"Black",
