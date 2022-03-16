@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Bondage Club Enhancements
 // @namespace https://www.bondageprojects.com/
-// @version 2.9.0
+// @version 2.9.1
 // @description enhancements for the bondage club
 // @author Sidious
 // @match https://bondageprojects.elementfx.com/*
@@ -20,7 +20,25 @@
 /* eslint-disable no-undef */
 /* eslint-disable no-implicit-globals */
 
-const BCE_VERSION = "2.9.0";
+/**
+ *     BCE
+ *  Copyright (C) 2022  Sid
+ *
+ *  This program is free software: you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation, either version 3 of the License, or
+ *  (at your option) any later version.
+ *
+ *  This program is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ *
+ *  You should have received a copy of the GNU General Public License
+ *  along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ */
+
+const BCE_VERSION = "2.9.1";
 
 const bceChangelog = `${BCE_VERSION}
 - added the ability to give yourself a nickname visible to other users of BCE
@@ -93,6 +111,7 @@ async function BondageClubEnhancements() {
 			"https://raw.githubusercontent.com/Jomshir98/bondage-club-extended/fe83ac4068413ce0fd03c298dddb2b22dad04fb8/bcx.js";
 
 	const BCE_COLOR_ADJUSTMENTS_CLASS_NAME = "bce-colors",
+		BCE_LICENSE = "https://gitlab.com/Sidiousious/bce/-/blob/main/LICENSE",
 		BCE_MAX_AROUSAL = 99.6,
 		BCE_MSG = "BCEMsg",
 		BCX_ORIGINAL_MESSAGE = "BCX_ORIGINAL_MESSAGE",
@@ -1934,7 +1953,9 @@ async function BondageClubEnhancements() {
 			);
 
 		/** @type {[number, number, number, number]} */
-		const discordInvitePosition = [1650, 810, 250, 90];
+		const discordInvitePosition = [1650, 810, 250, 50];
+		/** @type {[number, number, number, number]} */
+		const licensePosition = [1650, 870, 250, 50];
 		let currentPageNumber = 0;
 
 		/** @type {SettingsCategory | null} */
@@ -1994,6 +2015,14 @@ async function BondageClubEnhancements() {
 				"Black",
 				""
 			);
+			DrawButton(...licensePosition, "", "White", "");
+			DrawText(
+				displayText("GPL3 Licensed"),
+				licensePosition[0] + 20,
+				licensePosition[1] + licensePosition[3] / 2,
+				"Black",
+				""
+			);
 			DrawButton(1815, 75, 90, 90, "", "White", "Icons/Exit.png");
 
 			if (currentCategory) {
@@ -2046,6 +2075,8 @@ async function BondageClubEnhancements() {
 				} else {
 					currentCategory = null;
 				}
+			} else if (MouseIn(...licensePosition)) {
+				open(BCE_LICENSE, "_blank");
 			} else if (MouseIn(...discordInvitePosition)) {
 				open(DISCORD_INVITE_URL, "_blank");
 			} else if (currentCategory !== null) {
