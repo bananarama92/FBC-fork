@@ -41,6 +41,10 @@
 const BCE_VERSION = "2.9.1";
 
 const bceChangelog = `${BCE_VERSION}
+- added license
+- fix resetting nickname not resetting for others
+
+2.9.0
 - added the ability to give yourself a nickname visible to other users of BCE
 
 2.8.3
@@ -5365,13 +5369,9 @@ async function BondageClubEnhancements() {
 							sender.BCE = message.version;
 							sender.BCEArousal = message.alternateArousal || false;
 							sender.BCECapabilities = message.capabilities;
-							if (
-								message.nick &&
-								message.nick.length <= 20 &&
-								bceSettings.nicknames
-							) {
+							if (bceSettings.nicknames) {
 								const newName = removeNonPrintables(message.nick);
-								if (newName) {
+								if (newName && newName.length <= 20) {
 									if (!sender.BCEOriginalName) {
 										sender.BCEOriginalName = sender.Name;
 									}
@@ -7540,6 +7540,9 @@ async function BondageClubEnhancements() {
 
 	/** @type {(s: string) => string} */
 	function removeNonPrintables(s) {
+		if (!s) {
+			return "";
+		}
 		return s
 			.replace(/[^\p{L}\p{Z}'-]/gu, "")
 			.replace(/[\n\r\p{Z}]/gu, " ")
