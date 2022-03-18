@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Bondage Club Enhancements
 // @namespace https://www.bondageprojects.com/
-// @version 2.9.2
+// @version 2.9.3
 // @description enhancements for the bondage club
 // @author Sidious
 // @match https://bondageprojects.elementfx.com/*
@@ -38,9 +38,13 @@
  *  along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-const BCE_VERSION = "2.9.2";
+const BCE_VERSION = "2.9.3";
 
 const bceChangelog = `${BCE_VERSION}
+- mark r78b2 compatible
+- update chinese translations
+
+2.9.2
 - fix nickname button and original name being shown within BCX menus
 
 2.9.1
@@ -96,7 +100,7 @@ const BCE_BC_MOD_SDK=function(){"use strict";const o="1.0.2";function e(o){alert
 async function BondageClubEnhancements() {
 	"use strict";
 
-	const SUPPORTED_GAME_VERSIONS = ["R77", "R78Beta1"];
+	const SUPPORTED_GAME_VERSIONS = ["R77", "R78Beta1", "R78Beta2"];
 	const CAPABILITIES = ["clubslave"];
 
 	const w = window;
@@ -747,6 +751,8 @@ async function BondageClubEnhancements() {
 				Misc: "杂项",
 				Cheats: "作弊",
 				"Other Addons": "其他插件",
+				"Show nicknames": "修改你的昵称",
+				"Change your nickname": "修改你的昵称",
 			},
 		});
 
@@ -882,6 +888,7 @@ async function BondageClubEnhancements() {
 
 		switch (gameVersion) {
 			case "R78Beta1":
+			case "R78Beta2":
 				hashes.ChatRoomMessage = "D355B2C4";
 				hashes.CommandParse = "534545CD";
 				hashes.InventoryItemMiscTimerPasswordPadlockLoad = "D7F9CCA4";
@@ -1113,15 +1120,6 @@ async function BondageClubEnhancements() {
 	Player.BCE = BCE_VERSION;
 	if (bceSettings.checkUpdates) {
 		checkUpdate();
-	}
-	if (!SUPPORTED_GAME_VERSIONS.includes(GameVersion)) {
-		bceBeepNotify(
-			displayText("Warning"),
-			displayText(
-				`Unknown game version: GameVersion. Things may break. Check for updates.`,
-				{ GameVersion }
-			)
-		);
 	}
 
 	async function functionIntegrityCheck() {
@@ -1598,7 +1596,14 @@ async function BondageClubEnhancements() {
 					/** @type {Map<string, string>} */
 					const info = new Map();
 					info.set("Browser", navigator.userAgent);
-					info.set("Game Version", GameVersion);
+					info.set(
+						"Game Version",
+						`${GameVersion}${
+							SUPPORTED_GAME_VERSIONS.includes(GameVersion)
+								? ""
+								: " (unsupported)"
+						}`
+					);
 					info.set("WebGL Version", GLVersion);
 					info.set("BCE Version", BCE_VERSION);
 					info.set(
