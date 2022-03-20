@@ -1,5 +1,7 @@
 # Android
 
+⚠️ Firefox for Android does not support bookmarklets. Use Chrome.
+
 [Video Guide](static/bce-android.mp4)
 
 1. Copy the bookmarklet (`javascript:(()=>{fetch('https://sidiousious.gitlab.io/bce/bce.user.js').then(r=>r.text()).then(r=>eval(r));})();`, or [this link][bookmarklet])
