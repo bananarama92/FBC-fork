@@ -3,7 +3,7 @@ pages:
   stage: deploy
   script:
     - mkdir public
-    - cp -r *.js *.html *.md static public/
+    - cp -r *.js *.css *.html *.md static public/
   artifacts:
     paths:
       - public

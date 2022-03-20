@@ -29,6 +29,10 @@ Then login and go to the preferences screen and click onto "BCE Settings" to ena
 - Android (Chrome) or iOS (Safari): search for your bookmark in the navigation bar, _not in the bookmarks menu_!
 - Others: this should work in any browser that supports the club and [bookmarklets](https://en.wikipedia.org/wiki/Bookmarklet).
 
+### Mobile
+
+[See detailed guide here](mobile.html)
+
 ## Features
 
 At a glance, **everything is entirely optional, enable in settings** (profile -> preferences -> BCE Settings):

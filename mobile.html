@@ -3,7 +3,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/showdown/2.0.3/showdown.min.js"></script>
 <script>
 	const converter = new showdown.Converter();
-	const text = fetch('README.md').then(response => response.text()).then(text => {
+	const text = fetch('MOBILE.md').then(response => response.text()).then(text => {
 		document.getElementById('content').innerHTML = converter.makeHtml(text);
 	});
 </script>
