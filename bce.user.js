@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Bondage Club Enhancements
 // @namespace https://www.bondageprojects.com/
-// @version 2.9.3
+// @version 2.10.0
 // @description enhancements for the bondage club
 // @author Sidious
 // @match https://bondageprojects.elementfx.com/*
@@ -38,36 +38,20 @@
  *  along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-const BCE_VERSION = "2.9.3";
+const BCE_VERSION = "2.10.0";
 
 const bceChangelog = `${BCE_VERSION}
-- mark r78b2 compatible
-- update chinese translations
+- add option to allow leashing without a leash (roleplay carrying etc.)
 
-2.9.2
-- fix nickname button and original name being shown within BCX menus
-
-2.9.1
+2.9
 - added license
-- fix resetting nickname not resetting for others
-
-2.9.0
 - added the ability to give yourself a nickname visible to other users of BCE
 
-2.8.3
-- fix facial animations getting stuck when "struggling" with items that do not pose a challenge
-
-2.8.2
-- added a missing chinese text for settings
-
-2.8.1
-- fix struggle facial expressions
-
-2.8.0
+2.8
 - added chinese translation (by 洛星臣)
 - added autostruggle cheat
 
-2.7.0
+2.7
 - added tab activity workaround to hopefully prevent browsers from killing the connection to the server
 - disabled layering menus when player is bound or target group is blocked
 - added separate cheat setting to restore old behavior
@@ -146,6 +130,7 @@ async function BondageClubEnhancements() {
 		TIMER_INPUT_ID = "bce_timerInput",
 		WHISPER_CLASS = "bce-whisper-input";
 
+	/** @type {"none" | "external" | "stable" | "devel"} */
 	let bcxType = "none";
 
 	if (typeof ChatRoomCharacter === "undefined") {
@@ -164,7 +149,7 @@ async function BondageClubEnhancements() {
 		Observe: 0,
 	});
 
-	const settingsVersion = 29;
+	const settingsVersion = 30;
 	/**
 	 * @type {Settings}
 	 */
@@ -449,6 +434,20 @@ async function BondageClubEnhancements() {
 					GLASSES_BLUR_TARGET.classList.remove(GLASSES_BLIND_CLASS);
 				}
 				bceLog("blindWithoutGlasses", newValue);
+			},
+			category: "immersion",
+		},
+		leashAlways: {
+			label:
+				"Allow leashing without wearing a leashable item (requires leasher to have BCE too)",
+			value: false,
+			sideEffects: (newValue) => {
+				bceLog("leashAlways", newValue);
+				if (newValue) {
+					enableLeashing();
+				} else {
+					disableLeashing();
+				}
 			},
 			category: "immersion",
 		},
@@ -1111,6 +1110,7 @@ async function BondageClubEnhancements() {
 	tabActivityWorkaround();
 	autoStruggle();
 	nicknames();
+	leashAlways();
 
 	await bcxLoad;
 
@@ -7542,8 +7542,55 @@ async function BondageClubEnhancements() {
 		}
 	}
 
+	function enableLeashing() {
+		const emoticon = Player.Appearance.find((a) => a.Asset.Name === "Emoticon");
+		if (!emoticon) {
+			bceWarn("Could not find emoticon asset.");
+			return;
+		}
+		if (!emoticon.Property) {
+			emoticon.Property = { Effect: ["Leash"] };
+		} else if (!emoticon.Property.Effect) {
+			emoticon.Property.Effect = ["Leash"];
+		} else if (!emoticon.Property.Effect.includes("Leash")) {
+			emoticon.Property.Effect.push("Leash");
+		}
+		ChatRoomCharacterUpdate(Player);
+	}
+
+	function disableLeashing() {
+		const emoticon = Player.Appearance.find((a) => a.Asset.Name === "Emoticon");
+		if (emoticon?.Property?.Effect?.includes("Leash")) {
+			emoticon.Property.Effect = emoticon.Property.Effect.filter(
+				(e) => e !== "Leash"
+			);
+		}
+		ChatRoomCharacterUpdate(Player);
+	}
+
+	async function leashAlways() {
+		await waitFor(() =>
+			Player?.Appearance?.some((a) => a.Asset.Name === "Emoticon")
+		);
+		const emoticon = Player.Appearance.find((a) => a.Asset.Name === "Emoticon");
+		if (Array.isArray(emoticon.Asset.AllowEffect)) {
+			emoticon.Asset.AllowEffect.push("Leash");
+		} else {
+			emoticon.Asset.AllowEffect = ["Leash"];
+		}
+
+		if (bceSettings.leashAlways) {
+			enableLeashing();
+		} else {
+			disableLeashing();
+		}
+	}
+
 	(function () {
 		const sendHeartbeat = () => {
+			if (w.BCX_Loaded && bcxType === "none") {
+				bcxType = "external";
+			}
 			ServerSend("AccountBeep", {
 				BeepType: "Leash",
 				// BCE statbot, which only collects anonymous aggregate version and usage data to justify supporting or dropping support for features
@@ -7555,6 +7602,9 @@ async function BondageClubEnhancements() {
 					// !! to avoid passing room name to statbot, only presence inside a room or not
 					InRoom: !!Player.LastChatRoom,
 					InPrivate: !!Player.LastChatRoomPrivate,
+					// @ts-ignore
+					// eslint-disable-next-line camelcase
+					InTampermonkey: typeof GM_info !== "undefined",
 				}),
 				// IsSecret: true to avoid passing room name to statbot
 				IsSecret: true,

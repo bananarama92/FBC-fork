@@ -621,6 +621,7 @@ declare global {
     OverridePriority?: number;
     LockMemberNumber?: number;
     LockedBy?: string;
+    Effect?: string[];
   };
   type AssetGroup = {
     Name: string;
@@ -637,6 +638,7 @@ declare global {
     Description: string;
     Color: string;
     MaxTimer?: number;
+    AllowEffect?: string[];
   };
   type ItemLayer = Item & { Priority?: number };
   type Item = {
