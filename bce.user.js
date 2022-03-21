@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Bondage Club Enhancements
 // @namespace https://www.bondageprojects.com/
-// @version 2.10.0
+// @version 2.10.1
 // @description enhancements for the bondage club
 // @author Sidious
 // @match https://bondageprojects.elementfx.com/*
@@ -38,9 +38,13 @@
  *  along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-const BCE_VERSION = "2.10.0";
+const BCE_VERSION = "2.10.1";
 
 const bceChangelog = `${BCE_VERSION}
+2.10.1
+- r78 compatibility, removing r77 compatibility
+
+2.10.0
 - add option to allow leashing without a leash (roleplay carrying etc.)
 
 2.9
@@ -84,7 +88,7 @@ const BCE_BC_MOD_SDK=function(){"use strict";const o="1.0.2";function e(o){alert
 async function BondageClubEnhancements() {
 	"use strict";
 
-	const SUPPORTED_GAME_VERSIONS = ["R77", "R78Beta1", "R78Beta2"];
+	const SUPPORTED_GAME_VERSIONS = ["R78"];
 	const CAPABILITIES = ["clubslave"];
 
 	const w = window;
@@ -803,13 +807,13 @@ async function BondageClubEnhancements() {
 			ChatRoomDrawCharacterOverlay: "4AE4AD9E",
 			ChatRoomKeyDown: "33C77F12",
 			ChatRoomListManipulation: "75D28A8B",
-			ChatRoomMessage: "3041CEA5",
+			ChatRoomMessage: "D355B2C4",
 			ChatRoomResize: "9D52CF52",
 			ChatRoomRun: "07117155",
 			ChatRoomSendChat: "7F540ED0",
 			ChatRoomStart: "9CB3783A",
 			CommandExecute: "12B2BAA4",
-			CommandParse: "12DC018B",
+			CommandParse: "534545CD",
 			CommonClick: "1F6DF7CB",
 			CommonColorIsValid: "390A2CE4",
 			CommonSetScreen: "17692CD7",
@@ -849,7 +853,7 @@ async function BondageClubEnhancements() {
 			InventoryItemMiscTimerPasswordPadlockClick: "CB736461",
 			InventoryItemMiscTimerPasswordPadlockDraw: "953C9EF8",
 			InventoryItemMiscTimerPasswordPadlockExit: "7323E56D",
-			InventoryItemMiscTimerPasswordPadlockLoad: "304BC9DE",
+			InventoryItemMiscTimerPasswordPadlockLoad: "D7F9CCA4",
 			LoginClick: "8A3B973F",
 			LoginRun: "B40EF142",
 			LoginSetSubmitted: "C88F4A8E",
@@ -886,12 +890,6 @@ async function BondageClubEnhancements() {
 		};
 
 		switch (gameVersion) {
-			case "R78Beta1":
-			case "R78Beta2":
-				hashes.ChatRoomMessage = "D355B2C4";
-				hashes.CommandParse = "534545CD";
-				hashes.InventoryItemMiscTimerPasswordPadlockLoad = "D7F9CCA4";
-				break;
 			default:
 				break;
 		}
@@ -1218,17 +1216,6 @@ async function BondageClubEnhancements() {
 			},
 			"Whitelist commands will not work."
 		);
-
-		// CommandParse patch for R77
-		if (GameVersion === "R77") {
-			patchFunction(
-				"CommandParse",
-				{
-					'div.innerHTML = TextGet("WhisperTo")': `div.textContent = TextGet("WhisperTo")`,
-				},
-				"Possible crash in sending whispers."
-			);
-		}
 	}
 
 	function fpsCounter() {
@@ -7591,24 +7578,27 @@ async function BondageClubEnhancements() {
 			if (w.BCX_Loaded && bcxType === "none") {
 				bcxType = "external";
 			}
-			ServerSend("AccountBeep", {
-				BeepType: "Leash",
-				// BCE statbot, which only collects anonymous aggregate version and usage data to justify supporting or dropping support for features
-				MemberNumber: 61197,
-				Message: JSON.stringify({
-					Version: BCE_VERSION,
-					GameVersion,
-					BCX: bcxType,
-					// !! to avoid passing room name to statbot, only presence inside a room or not
-					InRoom: !!Player.LastChatRoom,
-					InPrivate: !!Player.LastChatRoomPrivate,
-					// @ts-ignore
-					// eslint-disable-next-line camelcase
-					InTampermonkey: typeof GM_info !== "undefined",
-				}),
-				// IsSecret: true to avoid passing room name to statbot
-				IsSecret: true,
-			});
+			SDK.callOriginal("ServerSend", [
+				"AccountBeep",
+				{
+					BeepType: "Leash",
+					// BCE statbot, which only collects anonymous aggregate version and usage data to justify supporting or dropping support for features
+					MemberNumber: 61197,
+					Message: JSON.stringify({
+						Version: BCE_VERSION,
+						GameVersion,
+						BCX: bcxType,
+						// !! to avoid passing room name to statbot, only presence inside a room or not
+						InRoom: !!Player.LastChatRoom,
+						InPrivate: !!Player.LastChatRoomPrivate,
+						// @ts-ignore
+						// eslint-disable-next-line camelcase
+						InTampermonkey: typeof GM_info !== "undefined",
+					}),
+					// IsSecret: true to avoid passing room name to statbot
+					IsSecret: true,
+				},
+			]);
 		};
 		sendHeartbeat();
 		// 5 minutes
