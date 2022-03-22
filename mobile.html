@@ -5,6 +5,16 @@
 	const converter = new showdown.Converter();
 	const text = fetch('MOBILE.md').then(response => response.text()).then(text => {
 		document.getElementById('content').innerHTML = converter.makeHtml(text);
+		for (const header of ['h1', 'h2', 'h3', 'h4', 'h5', 'h6']) {
+			const headerElements = Array.from(document.querySelectorAll(header));
+			for (const headerElement of headerElements) {
+				const link = document.createElement('a');
+				link.href = '#' + headerElement.id;
+				link.textContent = headerElement.textContent;
+				headerElement.innerHTML = '';
+				headerElement.appendChild(link);
+			}
+		}
 	});
 </script>
 <div id="content"></div>
