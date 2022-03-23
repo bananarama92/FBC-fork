@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Bondage Club Enhancements
 // @namespace https://www.bondageprojects.com/
-// @version 2.10.1
+// @version 2.10.2
 // @description enhancements for the bondage club
 // @author Sidious
 // @match https://bondageprojects.elementfx.com/*
@@ -38,9 +38,11 @@
  *  along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-const BCE_VERSION = "2.10.1";
+const BCE_VERSION = "2.10.2";
 
 const bceChangelog = `${BCE_VERSION}
+- fix facial animations sometimes getting stuck after the game's item expressions
+
 2.10.1
 - r78 compatibility, removing r77 compatibility
 
@@ -879,6 +881,7 @@ async function BondageClubEnhancements() {
 			StruggleStrength: "7980C89B",
 			TextGet: "4DDE5794",
 			TextLoad: "ADF7C890",
+			TimerInventoryRemove: "FE03BE6F",
 			TimerProcess: "19F09E1E",
 			WardrobeClick: "D388FE7D",
 			WardrobeExit: "EE83FF29",
@@ -1014,6 +1017,9 @@ async function BondageClubEnhancements() {
 
 	w.bceSettingValue = (key) =>
 		key in bceSettings ? bceSettings[key] : defaultSettings[key].value;
+
+	w.bceAnimationEngineEnabled = () =>
+		!!bceSettings.expressions || !!bceSettings.activityExpressions;
 
 	// Expressions init method for custom expressions
 	// eslint-disable-next-line camelcase
@@ -2601,7 +2607,7 @@ async function BondageClubEnhancements() {
 			"ChatRoomKeyDown",
 			{
 				"ChatRoomSendChat()":
-					'if ("bceSettingValue" in window && bceSettingValue("ctrlEnterOoc") && event.ctrlKey && ElementValue("InputChat")?.trim()) ElementValue("InputChat", "(" + ElementValue("InputChat"));ChatRoomSendChat()',
+					'if (bceSettingValue("ctrlEnterOoc") && event.ctrlKey && ElementValue("InputChat")?.trim()) ElementValue("InputChat", "(" + ElementValue("InputChat"));ChatRoomSendChat()',
 			},
 			"No OOC on CTRL+Enter."
 		);
@@ -4243,7 +4249,7 @@ async function BondageClubEnhancements() {
 					}
 					return;
 				}
-				if (!bceSettings.expressions && !bceSettings.activityExpressions) {
+				if (!bceAnimationEngineEnabled()) {
 					bceChatNotify(
 						displayText(
 							"Warning: both expression settings in BCE are disabled. Animation engine disabled. Pose may not be synchronized or set."
@@ -4278,6 +4284,14 @@ async function BondageClubEnhancements() {
 			},
 		});
 
+		patchFunction(
+			"TimerInventoryRemove",
+			{
+				CharacterSetFacialExpression: `if (!bceAnimationEngineEnabled()) CharacterSetFacialExpression`,
+			},
+			"Facial features resetting after item or struggle events"
+		);
+
 		SDK.hookFunction(
 			"CharacterSetFacialExpression",
 			HOOK_PRIORITIES.OverrideBehaviour,
@@ -4289,7 +4303,7 @@ async function BondageClubEnhancements() {
 					!isString(AssetGroup) ||
 					(!isString(Expression) && Expression !== null) ||
 					!C.IsPlayer() ||
-					(!bceSettings.expressions && !bceSettings.activityExpressions)
+					!bceAnimationEngineEnabled()
 				) {
 					return next(args);
 				}
@@ -4334,7 +4348,7 @@ async function BondageClubEnhancements() {
 					!isCharacter(C) ||
 					(!isStringOrStringArray(Pose) && Pose !== null) ||
 					!C.IsPlayer() ||
-					(!bceSettings.expressions && !bceSettings.activityExpressions)
+					!bceAnimationEngineEnabled()
 				) {
 					return next(args);
 				}
@@ -4363,7 +4377,7 @@ async function BondageClubEnhancements() {
 				if (data === null || typeof data !== "object") {
 					return;
 				}
-				if (!(bceSettings.expressions || bceSettings.activityExpressions)) {
+				if (!bceAnimationEngineEnabled()) {
 					return;
 				}
 				if (data.MemberNumber === Player.MemberNumber) {
@@ -4381,7 +4395,7 @@ async function BondageClubEnhancements() {
 				if (data === null || typeof data !== "object") {
 					return;
 				}
-				if (!(bceSettings.expressions || bceSettings.activityExpressions)) {
+				if (!bceAnimationEngineEnabled()) {
 					return;
 				}
 				if (data.Character?.MemberNumber === Player.MemberNumber) {
@@ -4407,10 +4421,7 @@ async function BondageClubEnhancements() {
 		// This is called once per interval to check for expression changes
 		// eslint-disable-next-line complexity
 		const CustomArousalExpression = () => {
-			if (
-				!(bceSettings.expressions || bceSettings.activityExpressions) ||
-				!Player?.AppearanceLayers
-			) {
+			if (!bceAnimationEngineEnabled() || !Player?.AppearanceLayers) {
 				return;
 			}
 			Player.ArousalSettings.AffectExpression = false;
@@ -7295,7 +7306,7 @@ async function BondageClubEnhancements() {
 
 	function autoStruggle() {
 		const allowAllDialogExpressions = () => {
-			if (!(bceSettings.expressions || bceSettings.activityExpressions)) {
+			if (!bceAnimationEngineEnabled()) {
 				return;
 			}
 			if (

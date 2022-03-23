@@ -143,6 +143,7 @@ declare global {
   var BCE_VERSION: string;
   var bceSendAction: (text: string) => void;
   var bceSettingValue: (key: string) => boolean | number | string;
+  var bceAnimationEngineEnabled: () => boolean;
   var bce_initializeDefaultExpression: () => void;
   var bceUpdatePasswordForReconnect: () => void;
   var bceMessageReplacements: (msg: string) => string;
