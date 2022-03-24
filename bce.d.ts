@@ -820,4 +820,5 @@ declare global {
     };
     Source: number;
   };
+  type BCECharacterState = { clamped: number };
 }
