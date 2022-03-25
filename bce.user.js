@@ -2665,6 +2665,17 @@ async function BondageClubEnhancements() {
 		.bce-hidden {
 			display: none !important;
 		}
+		.bce-false-hidden {
+			position: absolute;
+			border: 0;
+			margin: 0;
+			padding: 0;
+			top: 0;
+			left: 0;
+			width: 0.1px;
+			height: 0.1px;
+			opacity: 0.01;
+		}
 		#bce-instant-messenger {
 			display: flex;
 			z-index: 100;
@@ -7826,17 +7837,22 @@ async function BondageClubEnhancements() {
 		}
 
 		const frame = document.createElement("iframe");
+		frame.src = "./changelog.html";
+		frame.classList.add("bce-false-hidden");
 		const script = document.createElement("script");
+		const notifierScript = document.createElement("script");
+		frame.onload = () => {
+			frame.contentDocument.head.appendChild(notifierScript);
+			frame.contentDocument.head.appendChild(script);
+		};
 		bceLog("Loading buttplug.io");
 
-		script.onload = async () => {
+		const onload = async () => {
 			bceLog("Loaded Buttplug.io");
 			/** @type {import('./types/buttplug.io.1.0.17')} */
 			// @ts-ignore
 			// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
 			const bp = frame.contentWindow.Buttplug;
-
-			await bp.buttplugInit();
 
 			/** @type {import('./types/buttplug.io.1.0.17').ButtplugClient} */
 			const client = new bp.ButtplugClient("BceToySync");
@@ -7922,10 +7938,34 @@ async function BondageClubEnhancements() {
 			await client.startScanning();
 		};
 
+		window.onmessage = (
+			/** @type {MessageEvent<unknown>} */
+			e
+		) => {
+			if (e.data === "buttplug-loaded") {
+				onload();
+			}
+		};
+
+		notifierScript.textContent = `
+		function sleep(ms) {
+			return new Promise((resolve) => setTimeout(resolve, ms));
+		}
+
+		(async function () {
+			while (typeof Buttplug !== "object") {
+				await sleep(10);
+			}
+
+			await Buttplug.buttplugInit();
+
+			window.top.postMessage("buttplug-loaded", "${window.location.origin}");
+		})();
+		`;
+
 		script.src =
 			"https://cdn.jsdelivr.net/npm/buttplug@1.0.17/dist/web/buttplug.min.js";
-		document.head.appendChild(frame);
-		frame.contentDocument.head.appendChild(script);
+		document.body.appendChild(frame);
 	}
 
 	(function () {
