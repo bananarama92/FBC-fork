@@ -37,6 +37,7 @@ Then login and go to the preferences screen and click onto "BCE Settings" to ena
 
 At a glance, **everything is entirely optional, enable in settings** (profile -> preferences -> BCE Settings):
 
+- Integration with remote controlled sex toys that work with [buttplug.io](https://buttplug.io) ([Instructions](toys.html))
 - Improved automatic facial expressions that play nice with manual control
 - Automatic relogin after disconnect
 - FPS limiter: save your computer's resources
