@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Bondage Club Enhancements
 // @namespace https://www.bondageprojects.com/
-// @version 2.10.3
+// @version 2.11.0
 // @description enhancements for the bondage club
 // @author Sidious
 // @match https://bondageprojects.elementfx.com/*
@@ -38,18 +38,13 @@
  *  along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-const BCE_VERSION = "2.10.3";
+const BCE_VERSION = "2.11.0";
 
 const bceChangelog = `${BCE_VERSION}
+- add support for syncing buttplug.io-compatible vibrators
+
+2.10
 - hand clamp gags you for 15 seconds
-
-2.10.2
-- fix facial animations sometimes getting stuck after the game's item expressions
-
-2.10.1
-- r78 compatibility, removing r77 compatibility
-
-2.10.0
 - add option to allow leashing without a leash (roleplay carrying etc.)
 
 2.9
@@ -83,7 +78,7 @@ const bceChangelog = `${BCE_VERSION}
  * Bondage Club Mod Development Kit
  * For more info see: https://github.com/Jomshir98/bondage-club-mod-sdk
  */
-/** @type {import('./bce').ModSDKGlobalAPI} */
+/** @type {import('./types/bcModSdk').ModSDKGlobalAPI} */
 // eslint-disable-next-line capitalized-comments, multiline-comment-style
 // prettier-ignore
 // @ts-ignore
@@ -148,7 +143,12 @@ async function BondageClubEnhancements() {
 	}
 
 	/** @type {Map<number, BCECharacterState>} */
-	const state = new Map();
+	const characterStates = new Map();
+
+	/** @type {ToySyncState} */
+	const toySyncState = {
+		deviceSettings: new Map(),
+	};
 
 	/** @type {Readonly<{Top: 11; OverrideBehaviour: 10; ModifyBehaviourHigh: 6; ModifyBehaviourMedium: 5; ModifyBehaviourLow: 4; AddBehaviour: 3; Observe: 0}>} */
 	const HOOK_PRIORITIES = {
@@ -401,6 +401,14 @@ async function BondageClubEnhancements() {
 			},
 			category: "addons",
 		},
+		toySync: {
+			label: "Enable buttplug.io (requires refresh)",
+			value: false,
+			sideEffects: (newValue) => {
+				bceLog("toySync", newValue);
+			},
+			category: "buttplug",
+		},
 		antiAntiGarble: {
 			label: "Limited gag anti-cheat: cloth-gag equivalent garbling",
 			value: false,
@@ -593,6 +601,30 @@ async function BondageClubEnhancements() {
 			},
 			category: "hidden",
 		},
+		buttplugDevices: {
+			label: "Buttplug Devices",
+			value: "",
+			sideEffects: (newValue) => {
+				bceLog("buttplugDevices", newValue);
+				try {
+					if (!isString(newValue)) {
+						throw new Error("expected string for buttplugDevices");
+					}
+					/** @type {ToySetting[]} */
+					// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+					const devices = JSON.parse(newValue);
+					if (!Array.isArray(devices)) {
+						throw new Error("expected array for devices");
+					}
+					for (const device of devices) {
+						toySyncState.deviceSettings.set(device.Name, device);
+					}
+				} catch (ex) {
+					bceError(ex);
+				}
+			},
+			category: "hidden",
+		},
 	});
 
 	function settingsLoaded() {
@@ -656,6 +688,11 @@ async function BondageClubEnhancements() {
 	};
 
 	const bceSaveSettings = () => {
+		if (toySyncState.deviceSettings.size > 0) {
+			bceSettings.buttplugDevices = JSON.stringify(
+				Array.from(toySyncState.deviceSettings.values())
+			);
+		}
 		localStorage.setItem(bceSettingKey(), JSON.stringify(bceSettings));
 		Player.OnlineSettings.BCE = LZString.compressToBase64(
 			JSON.stringify(bceSettings)
@@ -669,7 +706,8 @@ async function BondageClubEnhancements() {
 		bceLog("handling settings side effects");
 		for (const [k, v] of Object.entries(bceSettings)) {
 			if (k in defaultSettings) {
-				defaultSettings[k].sideEffects(!!v);
+				// @ts-ignore
+				defaultSettings[k].sideEffects(v);
 			}
 		}
 		bceSaveSettings();
@@ -1123,6 +1161,7 @@ async function BondageClubEnhancements() {
 	nicknames();
 	leashAlways();
 	clampGag();
+	toySync();
 
 	await bcxLoad;
 
@@ -1614,6 +1653,14 @@ async function BondageClubEnhancements() {
 							.map(([k, v]) => `${k}: ${v.toString()}`)
 							.join("\n- ")}`
 					);
+					if (toySyncState.client?.Connected) {
+						info.set(
+							"Buttplug.io Devices",
+							toySyncState.client.Devices.map(
+								(d) => `${d.Name} (${d.AllowedMessages.join(",")})`
+							).join(", ")
+						);
+					}
 					info.set(
 						"SDK Mods",
 						`\n- ${BCE_BC_MOD_SDK.getModsInfo()
@@ -1986,6 +2033,7 @@ async function BondageClubEnhancements() {
 			"misc",
 			"cheats",
 			"addons",
+			"buttplug",
 		];
 		const settingCategoryLabels = {
 			chat: "Chat & Social",
@@ -1996,8 +2044,20 @@ async function BondageClubEnhancements() {
 			misc: "Misc",
 			cheats: "Cheats",
 			addons: "Other Addons",
+			buttplug: "Buttplug.io Toys",
 			hidden: "",
 		};
+
+		const vibratingSlots = [
+			"None",
+			...new Set(
+				Asset.filter(
+					(a) =>
+						a.AllowEffect?.includes("Vibrating") ||
+						a.AllowEffect?.includes("Egged")
+				).map((a) => a.Group.Name)
+			),
+		];
 
 		const currentDefaultSettings = (category) =>
 			Object.entries(defaultSettings).filter(
@@ -2008,6 +2068,7 @@ async function BondageClubEnhancements() {
 			currentPageNumber = 0;
 		};
 		w.PreferenceSubscreenBCESettingsExit = function () {
+			bceSaveSettings();
 			PreferenceSubscreen = "";
 			PreferenceMessage = "";
 		};
@@ -2056,14 +2117,93 @@ async function BondageClubEnhancements() {
 					);
 					y += settingsYIncrement;
 				}
-				DrawText(
-					`${currentPageNumber + 1} / ${settingsPageCount(currentCategory)}`,
-					1700,
-					230,
-					"Black",
-					"Gray"
-				);
-				DrawButton(1815, 180, 90, 90, "", "White", "Icons/Next.png");
+				if (currentCategory === "buttplug") {
+					DrawText(
+						displayText(
+							"This page allows configuration of the synchronization of bluetooth connected toys."
+						),
+						300,
+						350,
+						"Black",
+						"Gray"
+					);
+					if (bceSettings.toySync) {
+						if (!toySyncState.client?.Connected) {
+							DrawText(
+								displayText("Still connecting or connection failed..."),
+								300,
+								450,
+								"Black",
+								"Gray"
+							);
+						} else {
+							DrawText(displayText("Device Name"), 300, 420, "Black", "Gray");
+							DrawText(
+								displayText("Synchronized Slot"),
+								800,
+								420,
+								"Black",
+								"Gray"
+							);
+							y = 500;
+							for (const d of toySyncState.client.Devices.filter((dev) =>
+								dev.AllowedMessages.includes(0)
+							)) {
+								let deviceSettings = toySyncState.deviceSettings.get(d.Name);
+								if (!deviceSettings) {
+									deviceSettings = {
+										Name: d.Name,
+										SlotName: "None",
+									};
+									toySyncState.deviceSettings.set(d.Name, deviceSettings);
+								}
+								const currentIdx = vibratingSlots.indexOf(
+									deviceSettings.SlotName
+								);
+								let nextIdx = 0,
+									previousIdx = 0;
+								if (currentIdx <= 0) {
+									previousIdx = vibratingSlots.length - 1;
+								} else {
+									previousIdx = currentIdx - 1;
+								}
+								if (currentIdx === vibratingSlots.length - 1) {
+									nextIdx = 0;
+								} else {
+									nextIdx = currentIdx + 1;
+								}
+								DrawText(d.Name, 300, y, "Black", "Gray");
+
+								w.MainCanvas.getContext("2d").textAlign = "center";
+								DrawBackNextButton(
+									800,
+									y - 32,
+									450,
+									64,
+									displayText(deviceSettings.SlotName),
+									"white",
+									"",
+									() => displayText(vibratingSlots[previousIdx]),
+									() => displayText(vibratingSlots[nextIdx])
+								);
+								w.MainCanvas.getContext("2d").textAlign = "left";
+								y += settingsYIncrement;
+								if (y > 950) {
+									break;
+								}
+							}
+						}
+					}
+				} else {
+					DrawText(
+						`${currentPageNumber + 1} / ${settingsPageCount(currentCategory)}`,
+						1700,
+						230,
+						"Black",
+						"Gray"
+					);
+					DrawButton(1815, 180, 90, 90, "", "White", "Icons/Next.png");
+				}
 			} else {
 				let y = settingsYStart;
 				for (const category of settingsCategories) {
@@ -2093,7 +2233,7 @@ async function BondageClubEnhancements() {
 			} else if (MouseIn(...discordInvitePosition)) {
 				open(DISCORD_INVITE_URL, "_blank");
 			} else if (currentCategory !== null) {
-				if (MouseIn(1815, 180, 90, 90)) {
+				if (MouseIn(1815, 180, 90, 90) && currentCategory !== "buttplug") {
 					currentPageNumber += 1;
 					currentPageNumber %= settingsPageCount(currentCategory);
 				} else {
@@ -2110,6 +2250,41 @@ async function BondageClubEnhancements() {
 						y += settingsYIncrement;
 					}
 				}
+				if (currentCategory === "buttplug" && toySyncState.client?.Connected) {
+					y = 500;
+					for (const d of toySyncState.client.Devices.filter((dev) =>
+						dev.AllowedMessages.includes(0)
+					)) {
+						if (!MouseIn(800, y - 32, 450, 64)) {
+							continue;
+						}
+						const deviceSettings = toySyncState.deviceSettings.get(d.Name);
+						const currentIdx = vibratingSlots.indexOf(deviceSettings.SlotName);
+						let nextIdx = 0,
+							previousIdx = 0;
+						if (currentIdx <= 0) {
+							previousIdx = vibratingSlots.length - 1;
+						} else {
+							previousIdx = currentIdx - 1;
+						}
+						if (currentIdx === vibratingSlots.length - 1) {
+							nextIdx = 0;
+						} else {
+							nextIdx = currentIdx + 1;
+						}
+
+						if (MouseX < 800 + 450 / 2) {
+							deviceSettings.SlotName = vibratingSlots[previousIdx];
+						} else {
+							deviceSettings.SlotName = vibratingSlots[nextIdx];
+						}
+
+						y += settingsYIncrement;
+						if (y > 950) {
+							break;
+						}
+					}
+				}
 			} else {
 				for (const category of settingsCategories) {
 					if (MouseIn(300, y, 400, 64)) {
@@ -2120,8 +2295,6 @@ async function BondageClubEnhancements() {
 					y += settingsYIncrement;
 				}
 			}
-
-			bceSaveSettings();
 		};
 
 		SDK.hookFunction(
@@ -5326,7 +5499,10 @@ async function BondageClubEnhancements() {
 						DEVS.includes(C.MemberNumber) ? "#b33cfa" : "White",
 						"Black"
 					);
-					if (C.BCE && state.get(C.MemberNumber)?.clamped > Date.now()) {
+					if (
+						C.BCE &&
+						characterStates.get(C.MemberNumber)?.clamped > Date.now()
+					) {
 						DrawImageResize(
 							ICONS.MUTE,
 							CharX + 75 * Zoom,
@@ -7617,14 +7793,14 @@ async function BondageClubEnhancements() {
 					data?.Content === "ChatOther-ItemMouth-HandGag" &&
 					targetMemberNumber
 				) {
-					let s = state.get(targetMemberNumber);
+					let s = characterStates.get(targetMemberNumber);
 					if (!s) {
 						s = {
 							clamped: 0,
 						};
 					}
 					s.clamped = Date.now() + 15000;
-					state.set(targetMemberNumber, s);
+					characterStates.set(targetMemberNumber, s);
 				}
 			}
 		);
@@ -7635,12 +7811,121 @@ async function BondageClubEnhancements() {
 			/** @type {(args: [Character, boolean], next: (args: [Character, boolean]) => number) => number} */
 			(args, next) => {
 				let level = next(args);
-				if (state.get(args[0].MemberNumber)?.clamped > Date.now()) {
+				if (characterStates.get(args[0].MemberNumber)?.clamped > Date.now()) {
 					level += 2;
 				}
 				return level;
 			}
 		);
+	}
+
+	function toySync() {
+		// Handles synchronizing in-game vibrators with real bluetooth devices via buttplut.io
+		if (!bceSettings.toySync) {
+			return;
+		}
+
+		const frame = document.createElement("iframe");
+		const script = document.createElement("script");
+		bceLog("Loading buttplug.io");
+
+		script.onload = async () => {
+			bceLog("Loaded Buttplug.io");
+			/** @type {import('./types/buttplug.io.1.0.17')} */
+			// @ts-ignore
+			// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+			const bp = frame.contentWindow.Buttplug;
+
+			await bp.buttplugInit();
+
+			/** @type {import('./types/buttplug.io.1.0.17').ButtplugClient} */
+			const client = new bp.ButtplugClient("BceToySync");
+			client.addListener("deviceadded", (device) => {
+				bceLog("Device connected", device);
+			});
+			client.addListener("deviceremoved", (device) => {
+				bceLog("Device disconnected", device);
+			});
+
+			const connector = new bp.ButtplugWebsocketConnectorOptions();
+			connector.Address = "ws://127.0.0.1:12345";
+			try {
+				await client.connect(connector);
+				bceLog("Connected buttplug.io");
+			} catch (ex) {
+				if (ex) {
+					// eslint-disable-next-line no-alert
+					alert(
+						displayText(
+							"buttplug.io is enabled, but server could not be contacted at ws://127.0.0.1:12345. Is Intiface Desktop running? Is another client connected to it?"
+						)
+					);
+					bceError("buttplug.io could not connect to server", ex);
+					return;
+				}
+			}
+
+			toySyncState.client = client;
+
+			let lastSync = 0;
+			// Sync vibrations from slots
+			createTimer(() => {
+				if (lastSync > Date.now() - 1000) {
+					// Don't change vibes more than once per second
+					return;
+				}
+
+				// 0 is VibrateCmd
+				for (const d of client.Devices.filter((dev) =>
+					dev.AllowedMessages.includes(0)
+				)) {
+					const deviceSettings = toySyncState.deviceSettings?.get(d.Name);
+					if (!deviceSettings) {
+						continue;
+					}
+
+					const slot = deviceSettings.SlotName;
+					const intensity = Player.Appearance.find(
+						(a) => a.Asset.Group.Name === slot
+					)?.Property?.Intensity;
+
+					if (deviceSettings.LastIntensity === intensity) {
+						continue;
+					}
+					deviceSettings.LastIntensity = intensity;
+
+					lastSync = Date.now();
+					if (typeof intensity !== "number" || intensity < 0) {
+						d.vibrate(0);
+					} else {
+						switch (intensity) {
+							case 0:
+								d.vibrate(0.1);
+								break;
+							case 1:
+								d.vibrate(0.4);
+								break;
+							case 2:
+								d.vibrate(0.75);
+								break;
+							case 3:
+								d.vibrate(1.0);
+								break;
+							default:
+								bceWarn("Invalid intensity in ", slot, ":", intensity);
+								break;
+						}
+					}
+				}
+			}, 0);
+
+			await client.startScanning();
+		};
+
+		script.src =
+			"https://cdn.jsdelivr.net/npm/buttplug@1.0.17/dist/web/buttplug.min.js";
+		document.head.appendChild(frame);
+		frame.contentDocument.head.appendChild(script);
 	}
 
 	(function () {
@@ -7763,6 +8048,14 @@ async function BondageClubEnhancements() {
 	w.addEventListener(
 		"beforeunload",
 		(e) => {
+			if (toySyncState.client?.Connected) {
+				// Stop vibrating toys
+				for (const device of toySyncState.client.Devices.filter((d) =>
+					d.AllowedMessages.includes(0)
+				)) {
+					device.vibrate(0);
+				}
+			}
 			if (bceSettings.confirmLeave) {
 				e.preventDefault();
 				// The connection is closed, this call gets you relogin immediately

@@ -19,6 +19,10 @@
         "tsconfigRootDir": ".",
         "project": "./tsconfig.json"
     },
+    "ignorePatterns": [
+        "node_modules/**/*.*",
+        "types/**/*.d.ts"
+    ],
     "rules": {
         "accessor-pairs": "error",
         "array-bracket-newline": "off",
