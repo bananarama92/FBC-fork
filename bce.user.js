@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Bondage Club Enhancements
 // @namespace https://www.bondageprojects.com/
-// @version 2.11.0
+// @version 2.11.1
 // @description enhancements for the bondage club
 // @author Sidious
 // @match https://bondageprojects.elementfx.com/*
@@ -38,9 +38,12 @@
  *  along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-const BCE_VERSION = "2.11.0";
+const BCE_VERSION = "2.11.1";
 
 const bceChangelog = `${BCE_VERSION}
+- fix last intensity on device added
+
+2.11.0
 - add support for syncing buttplug.io-compatible vibrators
 
 2.10
@@ -7856,9 +7859,19 @@ async function BondageClubEnhancements() {
 
 			/** @type {import('./types/buttplug.io.1.0.17').ButtplugClient} */
 			const client = new bp.ButtplugClient("BceToySync");
-			client.addListener("deviceadded", (device) => {
-				bceLog("Device connected", device);
-			});
+			client.addListener(
+				"deviceadded",
+				(
+					/** @type {import('./types/buttplug.io.1.0.17').ButtplugClientDevice} */
+					device
+				) => {
+					bceLog("Device connected", device);
+					const deviceSettings = toySyncState.deviceSettings.get(device.Name);
+					if (deviceSettings) {
+						delete deviceSettings.LastIntensity;
+					}
+				}
+			);
 			client.addListener("deviceremoved", (device) => {
 				bceLog("Device disconnected", device);
 			});
