@@ -42,7 +42,7 @@ const BCE_VERSION = "2.11.2";
 
 const bceChangelog = `${BCE_VERSION}
 - chat notifications for device (dis)connected
-- 
+- add /toyscan and scan button in buttplug.io settings
 
 2.11.1
 - fix last intensity on device added
@@ -2135,9 +2135,9 @@ async function BondageClubEnhancements() {
 							DrawButton(
 								...scanButtonPosition,
 								"Scan",
-								"White",
+								toySyncState.client.isScanning ? "Grey" : "White",
 								"",
-								null,
+								toySyncState.client.isScanning ? "Already scanning" : null,
 								toySyncState.client.isScanning
 							);
 							w.MainCanvas.getContext("2d").textAlign = "left";
