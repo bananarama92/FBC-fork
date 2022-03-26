@@ -774,6 +774,11 @@ async function BondageClubEnhancements() {
 				"Limit FPS to ~30": "限制 FPS 最高为 ~30",
 				"Limit FPS to ~60": "限制 FPS 最高为 ~60",
 				"Make automatic progress while struggling": "在挣扎时自动增加进度",
+				"Allow leashing without wearing a leashable item (requires leasher to have BCE too)":
+					"允许在不佩戴牵引绳的情况下也可以进行牵引（需要牵引者也安装有BCE）",
+				"Enable buttplug.io (requires refresh)": "启用buttplug.io（需要刷新网页)",
+				"This page allows configuration of the synchronization of bluetooth connected toys.":
+					"此页面允许设置由蓝牙连接控制的玩具",
 				"Chat & Social": "聊天 & 社交",
 				"Activities & Arousal": "活动 & 欲望",
 				"Appearance & Wardrobe": "外观 & 衣柜",
