@@ -2044,6 +2044,9 @@ async function BondageClubEnhancements() {
 			),
 		];
 
+		/** @type {[number, number, number, number]} */
+		const scanButtonPosition = [1650, 225, 250, 50];
+
 		const currentDefaultSettings = (category) =>
 			Object.entries(defaultSettings).filter(
 				([, v]) => v.category === category && v.value === !!v.value
@@ -2122,6 +2125,14 @@ async function BondageClubEnhancements() {
 								"Gray"
 							);
 						} else {
+							DrawButton(
+								...scanButtonPosition,
+								"Scan",
+								"White",
+								"",
+								null,
+								toySyncState.client.isScanning
+							);
 							DrawText(displayText("Device Name"), 300, 420, "Black", "Gray");
 							DrawText(
 								displayText("Synchronized Slot"),
@@ -2205,6 +2216,7 @@ async function BondageClubEnhancements() {
 			}
 			w.MainCanvas.getContext("2d").textAlign = "center";
 		};
+		// eslint-disable-next-line complexity
 		w.PreferenceSubscreenBCESettingsClick = function () {
 			let y = settingsYStart;
 			if (MouseIn(1815, 75, 90, 90)) {
@@ -2236,6 +2248,12 @@ async function BondageClubEnhancements() {
 					}
 				}
 				if (currentCategory === "buttplug" && toySyncState.client?.Connected) {
+					if (MouseIn(...scanButtonPosition)) {
+						if (!toySyncState.client.isScanning) {
+							toySyncState.client.startScanning();
+						}
+						return;
+					}
 					y = 500;
 					for (const d of toySyncState.client.Devices.filter((dev) =>
 						dev.AllowedMessages.includes(0)
@@ -7955,8 +7973,9 @@ async function BondageClubEnhancements() {
 
 			Commands.push({
 				Tag: "toybatteries",
-				Description:
-					"Shows the battery status of all connected buttplug.io toys",
+				Description: displayText(
+					"Shows the battery status of all connected buttplug.io toys"
+				),
 				Action: async () => {
 					if (!client.Connected) {
 						bceChatNotify("buttplug.io is not connected");
@@ -7978,6 +7997,25 @@ async function BondageClubEnhancements() {
 						const battery = batteryStatus[i] * 100;
 						bceChatNotify(`${batteryDevices[i].Name}: ${battery}%`);
 					}
+				},
+			});
+
+			Commands.push({
+				Tag: "toyscan",
+				Description: displayText("Scans for connected buttplug.io toys"),
+				Action: () => {
+					if (!client.Connected) {
+						bceChatNotify(displayText("buttplug.io is not connected"));
+						return;
+					}
+
+					if (client.isScanning) {
+						bceChatNotify(displayText("Already scanning"));
+						return;
+					}
+
+					client.startScanning();
+					bceChatNotify(displayText("Scanning for toys"));
 				},
 			});
 
