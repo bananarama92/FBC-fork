@@ -42,6 +42,7 @@ const BCE_VERSION = "2.11.1";
 
 const bceChangelog = `${BCE_VERSION}
 - fix last intensity on device added
+- add /toybatteries command
 
 2.11.0
 - add support for syncing buttplug.io-compatible vibrators
@@ -51,31 +52,8 @@ const bceChangelog = `${BCE_VERSION}
 - add option to allow leashing without a leash (roleplay carrying etc.)
 
 2.9
-- added license
-- added the ability to give yourself a nickname visible to other users of BCE
-
-2.8
-- added chinese translation (by 洛星臣)
-- added autostruggle cheat
-
-2.7
-- added tab activity workaround to hopefully prevent browsers from killing the connection to the server
-- disabled layering menus when player is bound or target group is blocked
-- added separate cheat setting to restore old behavior
-
-2.6
-- added discreet mode, which disables rendering kinky parts of the club
-- fix crash upon entering security settings with IM enabled
-
-2.5
-- settings page overhaul
-- cache clear refreshes character renders after it's done
-- added /bcedebug
-
-2.4
-- added instant messenger (you can talk to your friends who use bcutil without installing bcutil yourself, with BCE's chat augments)
-- possible fix to reply button encoding under rare circumstances
-- added /bcechangelog`;
+- add license
+- add the ability to give yourself a nickname visible to other users of BCE`;
 
 /*
  * Bondage Club Mod Development Kit
@@ -7947,6 +7925,34 @@ async function BondageClubEnhancements() {
 					}
 				}
 			}, 0);
+
+			Commands.push({
+				Tag: "toybatteries",
+				Description:
+					"Shows the battery status of all connected buttplug.io toys",
+				Action: async () => {
+					if (!client.Connected) {
+						bceChatNotify("buttplug.io is not connected");
+						return;
+					}
+
+					const batteryDevices = client.Devices.filter((dev) =>
+						dev.AllowedMessages.includes(8)
+					);
+					if (batteryDevices.length === 0) {
+						bceChatNotify("No battery devices connected");
+						return;
+					}
+
+					const batteryStatus = await Promise.all(
+						batteryDevices.map((dev) => dev.batteryLevel())
+					);
+					for (let i = 0; i < batteryDevices.length; i++) {
+						const battery = batteryStatus[i] * 100;
+						bceChatNotify(`${batteryDevices[i].Name}: ${battery}%`);
+					}
+				},
+			});
 
 			await client.startScanning();
 		};
