@@ -780,7 +780,8 @@ async function BondageClubEnhancements() {
 				"Make automatic progress while struggling": "在挣扎时自动增加进度",
 				"Allow leashing without wearing a leashable item (requires leasher to have BCE too)":
 					"允许在不佩戴牵引绳的情况下也可以进行牵引（需要牵引者也安装有BCE）",
-				"Enable buttplug.io (requires refresh)": "启用buttplug.io（需要刷新网页)",
+				"Enable buttplug.io (requires refresh)":
+					"启用buttplug.io（需要刷新网页)",
 				"This page allows configuration of the synchronization of bluetooth connected toys.":
 					"此页面允许配置将BC震动器状态同步到蓝牙连接的玩具",
 				"Chat & Social": "聊天 & 社交",
@@ -2050,7 +2051,7 @@ async function BondageClubEnhancements() {
 		];
 
 		/** @type {[number, number, number, number]} */
-		const scanButtonPosition = [1650, 225, 250, 50];
+		const scanButtonPosition = [1650, 225, 150, 50];
 
 		const currentDefaultSettings = (category) =>
 			Object.entries(defaultSettings).filter(
@@ -2130,6 +2131,7 @@ async function BondageClubEnhancements() {
 								"Gray"
 							);
 						} else {
+							w.MainCanvas.getContext("2d").textAlign = "center";
 							DrawButton(
 								...scanButtonPosition,
 								"Scan",
@@ -2138,6 +2140,7 @@ async function BondageClubEnhancements() {
 								null,
 								toySyncState.client.isScanning
 							);
+							w.MainCanvas.getContext("2d").textAlign = "left";
 							DrawText(displayText("Device Name"), 300, 420, "Black", "Gray");
 							DrawText(
 								displayText("Synchronized Slot"),
