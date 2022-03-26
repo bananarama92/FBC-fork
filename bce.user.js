@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Bondage Club Enhancements
 // @namespace https://www.bondageprojects.com/
-// @version 2.11.1
+// @version 2.11.2
 // @description enhancements for the bondage club
 // @author Sidious
 // @match https://bondageprojects.elementfx.com/*
@@ -38,9 +38,13 @@
  *  along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-const BCE_VERSION = "2.11.1";
+const BCE_VERSION = "2.11.2";
 
 const bceChangelog = `${BCE_VERSION}
+- chat notifications for device (dis)connected
+- 
+
+2.11.1
 - fix last intensity on device added
 - add /toybatteries command
 
@@ -7844,14 +7848,33 @@ async function BondageClubEnhancements() {
 					device
 				) => {
 					bceLog("Device connected", device);
+					bceChatNotify(
+						displayText(`Vibrator connected: $DeviceName`, {
+							$DeviceName: device.Name,
+						})
+					);
 					const deviceSettings = toySyncState.deviceSettings.get(device.Name);
 					if (deviceSettings) {
 						delete deviceSettings.LastIntensity;
 					}
 				}
 			);
-			client.addListener("deviceremoved", (device) => {
-				bceLog("Device disconnected", device);
+			client.addListener(
+				"deviceremoved",
+				(
+					/** @type {import('./types/buttplug.io.1.0.17').ButtplugClientDevice} */
+					device
+				) => {
+					bceLog("Device disconnected", device);
+					bceChatNotify(
+						displayText(`Vibrator disconnected: $DeviceName`, {
+							$DeviceName: device.Name,
+						})
+					);
+				}
+			);
+			client.addListener("scanningfinished", (data) => {
+				bceLog("Scanning finished", data);
 			});
 
 			const connector = new bp.ButtplugWebsocketConnectorOptions();
@@ -7877,8 +7900,8 @@ async function BondageClubEnhancements() {
 			let lastSync = 0;
 			// Sync vibrations from slots
 			createTimer(() => {
-				if (lastSync > Date.now() - 1000) {
-					// Don't change vibes more than once per second
+				if (lastSync > Date.now() - 3000) {
+					// Don't change vibes more than once per 3 seconds
 					return;
 				}
 
@@ -7908,15 +7931,19 @@ async function BondageClubEnhancements() {
 						switch (intensity) {
 							case 0:
 								d.vibrate(0.1);
+								bceLog(d.Name, slot, "intensity 0.1");
 								break;
 							case 1:
 								d.vibrate(0.4);
+								bceLog(d.Name, slot, "intensity 0.4");
 								break;
 							case 2:
 								d.vibrate(0.75);
+								bceLog(d.Name, slot, "intensity 0.75");
 								break;
 							case 3:
 								d.vibrate(1.0);
+								bceLog(d.Name, slot, "intensity 1");
 								break;
 							default:
 								bceWarn("Invalid intensity in ", slot, ":", intensity);
