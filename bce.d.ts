@@ -87,6 +87,8 @@ declare global {
   var ChatRoomCreateElement: () => void;
   var CharacterGetCurrent: () => Character;
   var CharacterDelete: (AccountName: string) => void;
+  var CharacterAppearanceStringify: (C: Character) => string;
+  var CharacterAppearanceBackup: string;
   var ChatRoomCharacter: Character[];
   var ChatRoomCharacterDrawlist: Character[];
   var Character: Character[];

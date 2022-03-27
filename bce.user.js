@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Bondage Club Enhancements
 // @namespace https://www.bondageprojects.com/
-// @version 2.11.2
+// @version 2.11.3
 // @description enhancements for the bondage club
 // @author Sidious
 // @match https://bondageprojects.elementfx.com/*
@@ -38,9 +38,12 @@
  *  along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-const BCE_VERSION = "2.11.2";
+const BCE_VERSION = "2.11.3";
 
 const bceChangelog = `${BCE_VERSION}
+- fix wardrobe import/export interaction with BCX 0.8
+
+2.11.2
 - chat notifications for device (dis)connected
 - add /toyscan and scan button in buttplug.io settings
 
@@ -5656,17 +5659,18 @@ async function BondageClubEnhancements() {
 			/** @type {Character} */
 			targetCharacter = null;
 
+		/** @type {string} */
+		let appearanceBackup = null;
+
 		SDK.hookFunction(
 			"CharacterAppearanceWardrobeLoad",
 			HOOK_PRIORITIES.OverrideBehaviour,
 			(args, next) => {
 				const [C] = args;
 				if (bceSettings.privateWardrobe && CurrentScreen === "Appearance") {
-					WardrobeBackground = ChatRoomData.Background;
 					inCustomWardrobe = true;
 					targetCharacter = isCharacter(C) ? C : CharacterGetCurrent();
-					TextLoad("Wardrobe");
-					WardrobeLoad();
+					CommonSetScreen("Character", "Wardrobe");
 					return null;
 				}
 				return next(args);
@@ -5674,17 +5678,22 @@ async function BondageClubEnhancements() {
 		);
 
 		SDK.hookFunction(
-			"AppearanceRun",
-			HOOK_PRIORITIES.OverrideBehaviour,
+			"AppearanceLoad",
+			HOOK_PRIORITIES.AddBehaviour,
 			(args, next) => {
+				const ret = next(args);
 				if (inCustomWardrobe) {
-					const player = Player;
-					// Replace Player with target character in rendering
-					Player = targetCharacter;
-					WardrobeRun();
-					Player = player;
-					return null;
+					CharacterAppearanceBackup = appearanceBackup;
 				}
+				return ret;
+			}
+		);
+
+		SDK.hookFunction(
+			"WardrobeLoad",
+			HOOK_PRIORITIES.AddBehaviour,
+			(args, next) => {
+				appearanceBackup = CharacterAppearanceBackup;
 				return next(args);
 			}
 		);
@@ -5693,7 +5702,15 @@ async function BondageClubEnhancements() {
 			"WardrobeRun",
 			HOOK_PRIORITIES.AddBehaviour,
 			(args, next) => {
+				const playerBackup = Player;
+				if (inCustomWardrobe) {
+					// Replace Player with target character in rendering
+					Player = targetCharacter;
+				}
 				const ret = next(args);
+				if (inCustomWardrobe) {
+					Player = playerBackup;
+				}
 				DrawText(
 					`Page: ${((WardrobeOffset / 12) | 0) + 1}/${WardrobeSize / 12}`,
 					300,
@@ -5705,27 +5722,14 @@ async function BondageClubEnhancements() {
 		);
 
 		SDK.hookFunction(
-			"AppearanceClick",
-			HOOK_PRIORITIES.OverrideBehaviour,
-			(args, next) => {
-				if (inCustomWardrobe) {
-					WardrobeClick();
-					return null;
-				}
-				return next(args);
-			}
-		);
-
-		SDK.hookFunction(
 			"WardrobeExit",
 			HOOK_PRIORITIES.OverrideBehaviour,
 			(args, next) => {
 				if (!inCustomWardrobe) {
 					return next(args);
 				}
+				CommonSetScreen("Character", "Appearance");
 				inCustomWardrobe = false;
-				WardrobeBackground = "Private";
-				TextLoad();
 				return null;
 			}
 		);
