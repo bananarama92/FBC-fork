@@ -1,3 +1,5 @@
+[About](.) | [Mobile](mobile.html) | [Toys](toys.html)
+
 # BCE - Bondage Club Enhancements
 
 This addon to [Bondage Club](https://www.bondageprojects.com/club_game/) offers various mostly small improvements to the game experience. Making the game easier, safer and, in some cases, more immersive for certain types of people. See features below for more details.

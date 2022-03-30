@@ -1,3 +1,5 @@
+[About](.) | [Mobile](mobile.html) | [Toys](toys.html)
+
 # Buttplug.io compatible toy support
 
 BCE supports synchronizing vibrating toys inside the club to your real remote controlled toys via [buttplug.io](https://buttplug.io). See the details behind the link for which toys are supported.

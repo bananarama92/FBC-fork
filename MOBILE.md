@@ -1,3 +1,5 @@
+[About](.) | [Mobile](mobile.html) | [Toys](toys.html)
+
 # Android
 
 ⚠️ Firefox for Android does not support bookmarklets. Use Chrome.
