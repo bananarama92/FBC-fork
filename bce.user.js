@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Bondage Club Enhancements
 // @namespace https://www.bondageprojects.com/
-// @version 2.11.3
+// @version 2.11.4
 // @description enhancements for the bondage club
 // @author Sidious
 // @match https://bondageprojects.elementfx.com/*
@@ -38,9 +38,12 @@
  *  along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-const BCE_VERSION = "2.11.3";
+const BCE_VERSION = "2.11.4";
 
 const bceChangelog = `${BCE_VERSION}
+- fix unnecessary character updates from removetimers on expressions
+
+2.11.3
 - fix wardrobe import/export interaction with BCX 0.8
 
 2.11.2
@@ -4630,6 +4633,15 @@ async function BondageClubEnhancements() {
 			if (!bceAnimationEngineEnabled() || !Player?.AppearanceLayers) {
 				return;
 			}
+
+			// Ensure none of the expressions have remove timers on them; we handle timers here
+			Player.Appearance.filter(
+				(a) =>
+					faceComponents.includes(a.Asset.Group.Name) && a.Property?.RemoveTimer
+			).forEach((a) => {
+				delete a.Property.RemoveTimer;
+			});
+
 			Player.ArousalSettings.AffectExpression = false;
 
 			if (orgasmCount < Player.ArousalSettings.OrgasmCount) {
