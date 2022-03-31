@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Bondage Club Enhancements
 // @namespace https://www.bondageprojects.com/
-// @version 2.12.0
+// @version 2.12.1
 // @description enhancements for the bondage club
 // @author Sidious
 // @match https://bondageprojects.elementfx.com/*
@@ -38,9 +38,12 @@
  *  along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-const BCE_VERSION = "2.12.0";
+const BCE_VERSION = "2.12.1";
 
 const bceChangelog = `${BCE_VERSION}
+- add notes to profiles, when past profile saving is enabled
+
+2.12.0
 - add profile saving and viewing past profiles
 
 2.11
@@ -871,6 +874,7 @@ async function BondageClubEnhancements() {
 			DrawText: "C1BF0F50",
 			DrawTextFit: "F9A1B11E",
 			ElementCreateInput: "2B2603E4",
+			ElementCreateTextArea: "9A16F87A",
 			ElementIsScrolledToEnd: "D28B0638",
 			ElementPosition: "CC4E3C82",
 			ElementRemove: "60809E60",
@@ -878,6 +882,7 @@ async function BondageClubEnhancements() {
 			ElementValue: "B647E0E6",
 			FriendListShowBeep: "6C0449BB",
 			GLDrawResetCanvas: "EDF1631A",
+			InformationSheetRun: "1079019C",
 			InventoryGet: "E666F671",
 			InventoryItemMiscLoversTimerPadlockClick: "B8F431EB",
 			InventoryItemMiscLoversTimerPadlockDraw: "87818D41",
@@ -903,6 +908,10 @@ async function BondageClubEnhancements() {
 			NotificationDrawFavicon: "AB88656B",
 			NotificationTitleUpdate: "0E92F3ED",
 			OnlineGameAllowChange: "3779F42C",
+			OnlineProfileClick: "9EF4F64F",
+			OnlineProfileExit: "53E58C94",
+			OnlineProfileLoad: "04F6A136",
+			OnlineProfileRun: "8388DFE2",
 			ServerAccountBeep: "D93AD698",
 			ServerAppearanceBundle: "94A27A29",
 			ServerAppearanceLoadFromBundle: "76D1CC95",
@@ -8102,7 +8111,7 @@ async function BondageClubEnhancements() {
 		}
 
 		const scriptEl = document.createElement("script");
-		scriptEl.src = "https://unpkg.com/dexie/dist/dexie.js";
+		scriptEl.src = "https://unpkg.com/dexie@3.2.1/dist/dexie.js";
 		document.body.appendChild(scriptEl);
 
 		await waitFor(
@@ -8110,11 +8119,20 @@ async function BondageClubEnhancements() {
 		);
 
 		const db = new Dexie("bce-past-profiles");
-		db.version(1).stores({
+		db.version(2).stores({
 			profiles: "memberNumber, name, lastNick, seen, characterBundle",
+			notes: "memberNumber, note",
 		});
 
+		ElementCreateTextArea("bceNoteInput");
+		/** @type {HTMLTextAreaElement} */
+		// @ts-ignore
+		const noteInput = document.getElementById("bceNoteInput");
+		noteInput.maxLength = 10000;
+		noteInput.classList.add("bce-hidden");
+
 		const profiles = db.table("profiles");
+		const notes = db.table("notes");
 
 		/** @type {(characterBundle: Character) => Promise<void>} */
 		async function saveProfile(characterBundle) {
@@ -8272,6 +8290,80 @@ async function BondageClubEnhancements() {
 				bceChatNotify([header, ...lines, footer]);
 			},
 		});
+
+		SDK.hookFunction(
+			"OnlineProfileExit",
+			HOOK_PRIORITIES.AddBehaviour,
+			(args, next) => {
+				noteInput.classList.add("bce-hidden");
+				return next(args);
+			}
+		);
+
+		SDK.hookFunction(
+			"OnlineProfileLoad",
+			HOOK_PRIORITIES.AddBehaviour,
+			(args, next) => {
+				next(args);
+				noteInput.classList.remove("bce-hidden");
+				noteInput.value = "Loading...";
+				notes
+					.get(InformationSheetSelection.MemberNumber)
+					.then((note) => {
+						// eslint-disable-next-line
+						noteInput.value = note?.note || "";
+					})
+					.catch((reason) => {
+						noteInput.value = "";
+						bceError("getting note", reason);
+					});
+			}
+		);
+
+		SDK.hookFunction(
+			"OnlineProfileRun",
+			HOOK_PRIORITIES.AddBehaviour,
+			(args, next) => {
+				const ret = next(args);
+				ElementPositionFix("DescriptionInput", 36, 100, 160, 1790, 400);
+				ElementPositionFix("bceNoteInput", 36, 100, 160 + 450, 1790, 300);
+				// Always draw the accept button; normal method shows it when is player
+				if (!InformationSheetSelection.IsPlayer()) {
+					DrawButton(
+						1720,
+						60,
+						90,
+						90,
+						"",
+						"White",
+						"Icons/Accept.png",
+						TextGet("LeaveSave")
+					);
+				}
+				return ret;
+			}
+		);
+
+		SDK.hookFunction(
+			"OnlineProfileClick",
+			HOOK_PRIORITIES.AddBehaviour,
+			(args, next) => {
+				if (MouseIn(1720, 60, 90, 90)) {
+					// Save note
+					notes.put({
+						memberNumber: InformationSheetSelection.MemberNumber,
+						note: noteInput.value,
+					});
+					if (InformationSheetSelection.IsPlayer()) {
+						OnlineProfileExit(true);
+					} else {
+						OnlineProfileExit(false);
+					}
+					return;
+				}
+				next(args);
+			}
+		);
 	}
 
 	(function () {

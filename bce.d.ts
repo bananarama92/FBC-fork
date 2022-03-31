@@ -73,6 +73,8 @@ declare global {
   var ServerInit: () => void;
   var DialogFocusSourceItem: Item | null;
   var DialogFocusItem: Item | null;
+  var OnlineProfileExit: (save: boolean) => void;
+  var ElementCreateTextArea: (id: string) => HTMLTextAreaElement;
   var ElementCreateInput: (
     id: string,
     type: string,
@@ -81,6 +83,14 @@ declare global {
   ) => HTMLInputElement;
   var ElementPosition: (
     id: string,
+    x: number,
+    y: number,
+    w: number,
+    h?: number
+  ) => void;
+  var ElementPositionFix: (
+    id: string,
+    fontSize: number,
     x: number,
     y: number,
     w: number,
