@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Bondage Club Enhancements
 // @namespace https://www.bondageprojects.com/
-// @version 2.12.2
+// @version 2.12.3
 // @description enhancements for the bondage club
 // @author Sidious
 // @match https://bondageprojects.elementfx.com/*
@@ -38,9 +38,12 @@
  *  along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-const BCE_VERSION = "2.12.2";
+const BCE_VERSION = "2.12.3";
 
 const bceChangelog = `${BCE_VERSION}
+- fix storage persistence
+
+2.12.2
 - fix scrolling in profile descriptions
 
 2.12.1
@@ -8382,6 +8385,15 @@ async function BondageClubEnhancements() {
 				next(args);
 			}
 		);
+
+		if (
+			navigator.storage?.persisted &&
+			!(await navigator.storage.persisted())
+		) {
+			if (!(await navigator.storage.persist())) {
+				bceWarn("Profile storage may not be persistent.");
+			}
+		}
 	}
 
 	(function () {
