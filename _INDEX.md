@@ -62,6 +62,7 @@ At a glance, **everything is entirely optional, enable in settings** (profile ->
 - Extended Wardrobe (more slots)
 - Modify outfit layering
 - Change your nickname
+- Save and review profiles of, and add notes to, players you have seen before (incompatible with incognito/private browsing due to saving in browser storage)
 
 ### Chat Links and Embeds
 
