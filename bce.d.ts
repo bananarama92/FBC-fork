@@ -3,6 +3,7 @@
 export {};
 
 declare global {
+  var Dexie: import("dexie").DexieConstructor;
   var BCE_VERSION: string;
   var bceSendAction: (text: string) => void;
   var bceSettingValue: (key: string) => boolean | number | string;
@@ -48,6 +49,11 @@ declare global {
   var DialogAllowEyebrows: boolean;
   var DialogAllowFluids: boolean;
   var InformationSheetSelection: Character | null;
+  var InformationSheetLoadCharacter: (C: Character) => void;
+  var CharacterLoadOnline: (
+    data: Record<string, unknown>,
+    sourceMemberNumber: number
+  ) => Character;
   var InventoryItemMiscLoversTimerPadlockDraw: () => void;
   var InventoryItemMiscLoversTimerPadlockClick: () => void;
   var InventoryItemMiscLoversTimerPadlockExit: () => void;
@@ -64,6 +70,7 @@ declare global {
   var InventoryItemMiscTimerPasswordPadlockClick: () => void;
   var InventoryItemMiscTimerPasswordPadlockExit: () => void;
   var InventoryItemMiscTimerPasswordPadlockLoad: () => void;
+  var ServerInit: () => void;
   var DialogFocusSourceItem: Item | null;
   var DialogFocusItem: Item | null;
   var ElementCreateInput: (
@@ -85,6 +92,8 @@ declare global {
   var ChatRoomCharacterItemUpdate: (C: Character, group: string) => void;
   var ChatRoomCharacterUpdate: (C: Character) => void;
   var ChatRoomCreateElement: () => void;
+  var ChatRoomChatHidden: boolean;
+  var ChatRoomBackground: string;
   var CharacterGetCurrent: () => Character;
   var CharacterDelete: (AccountName: string) => void;
   var CharacterAppearanceStringify: (C: Character) => string;
@@ -417,6 +426,7 @@ declare global {
     BCEOriginalName?: string;
     /** @deprecated */
     BCEWardrobe?: string;
+    BCESeen: number;
     IsPlayer: () => boolean;
     IsOnline: () => boolean;
     CanChange?: () => boolean;
@@ -678,6 +688,10 @@ declare global {
     Character?: Character;
     SourceMemberNumber: number;
   };
+  type ChatRoomSyncEvent = {
+    Character: Character[];
+    SourceMemberNumber: number;
+  };
   type ChatRoomSyncItemEvent = {
     Item: {
       Name: string;
@@ -696,5 +710,13 @@ declare global {
   type ToySyncState = {
     client?: import("./types/buttplug.io.1.0.17").ButtplugClient;
     deviceSettings: Map<string, ToySetting>;
+  };
+
+  type SavedProfile = {
+    memberNumber: number;
+    name: string;
+    lastNick?: string;
+    seen: number;
+    characterBundle: string;
   };
 }

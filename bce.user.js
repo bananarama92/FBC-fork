@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Bondage Club Enhancements
 // @namespace https://www.bondageprojects.com/
-// @version 2.11.4
+// @version 2.12.0
 // @description enhancements for the bondage club
 // @author Sidious
 // @match https://bondageprojects.elementfx.com/*
@@ -38,23 +38,12 @@
  *  along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-const BCE_VERSION = "2.11.4";
+const BCE_VERSION = "2.12.0";
 
 const bceChangelog = `${BCE_VERSION}
-- fix unnecessary character updates from removetimers on expressions
+- add profile saving and viewing past profiles
 
-2.11.3
-- fix wardrobe import/export interaction with BCX 0.8
-
-2.11.2
-- chat notifications for device (dis)connected
-- add /toyscan and scan button in buttplug.io settings
-
-2.11.1
-- fix last intensity on device added
-- add /toybatteries command
-
-2.11.0
+2.11
 - add support for syncing buttplug.io-compatible vibrators
 
 2.10
@@ -334,6 +323,14 @@ async function BondageClubEnhancements() {
 					setOwnNickname(bceSettings.nickname);
 					sendHello(null, true);
 				}
+			},
+			category: "chat",
+		},
+		pastProfiles: {
+			label: "Save & browse seen profiles (requires refresh)",
+			value: false,
+			sideEffects: (newValue) => {
+				bceLog("pastProfiles", newValue);
 			},
 			category: "chat",
 		},
@@ -912,6 +909,7 @@ async function BondageClubEnhancements() {
 			ServerClickBeep: "3E6277BE",
 			ServerConnect: "845E50A6",
 			ServerDisconnect: "0D4630FA",
+			ServerInit: "BBE09687",
 			ServerOpenFriendList: "25665C3F",
 			ServerSend: "90A61F57",
 			SkillGetWithRatio: "16620445",
@@ -985,7 +983,7 @@ async function BondageClubEnhancements() {
 	};
 
 	/**
-	 * @type {(node: HTMLElement | string) => void}
+	 * @type {(node: HTMLElement | HTMLElement[] | string) => void}
 	 */
 	const bceChatNotify = (node) => {
 		const div = document.createElement("div");
@@ -994,6 +992,8 @@ async function BondageClubEnhancements() {
 		div.setAttribute("data-sender", Player.MemberNumber.toString());
 		if (typeof node === "string") {
 			div.appendChild(document.createTextNode(node));
+		} else if (Array.isArray(node)) {
+			div.append(...node);
 		} else {
 			div.appendChild(node);
 		}
@@ -1159,6 +1159,7 @@ async function BondageClubEnhancements() {
 	leashAlways();
 	clampGag();
 	toySync();
+	pastProfiles();
 
 	await bcxLoad;
 
@@ -2456,6 +2457,22 @@ async function BondageClubEnhancements() {
 				posMaps: {},
 			};
 
+			SDK.hookFunction(
+				"ServerDisconnect",
+				HOOK_PRIORITIES.Observe,
+				/** @type {(args: [unknown, boolean], next: (args: [unknown, boolean]) => void) => void} */
+				(args, next) => {
+					const ret = next(args);
+					if (args[0] === "ErrorRateLimited" && args[1]) {
+						// Reconnect after 3-6 seconds if rate limited
+						setTimeout(() => {
+							ServerSocket.io.connect();
+						}, 3000 + Math.round(Math.random() * 3000));
+					}
+					return ret;
+				}
+			);
+
 			SDK.hookFunction("LoginRun", HOOK_PRIORITIES.Top, (args, next) => {
 				const ret = next(args);
 				if (Object.keys(loginData.passwords).length > 0) {
@@ -2802,6 +2819,9 @@ async function BondageClubEnhancements() {
 			height: 1em;
 			background-color: #222;
 			color: #eee;
+		}
+		.bce-profile-open {
+			margin-right: 0.5em;
 		}
 		`;
 		const head = document.head || document.getElementsByTagName("head")[0];
@@ -8074,6 +8094,184 @@ async function BondageClubEnhancements() {
 		script.src =
 			"https://cdn.jsdelivr.net/npm/buttplug@1.0.17/dist/web/buttplug.min.js";
 		document.body.appendChild(frame);
+	}
+
+	async function pastProfiles() {
+		if (!bceSettings.pastProfiles) {
+			return;
+		}
+
+		const scriptEl = document.createElement("script");
+		scriptEl.src = "https://unpkg.com/dexie/dist/dexie.js";
+		document.body.appendChild(scriptEl);
+
+		await waitFor(
+			() => typeof Dexie !== "undefined" && ServerSocket && ServerIsConnected
+		);
+
+		const db = new Dexie("bce-past-profiles");
+		db.version(1).stores({
+			profiles: "memberNumber, name, lastNick, seen, characterBundle",
+		});
+
+		const profiles = db.table("profiles");
+
+		/** @type {(characterBundle: Character) => Promise<void>} */
+		async function saveProfile(characterBundle) {
+			let name = characterBundle.Name;
+			let nick = null;
+			const C = Character.find(
+				(c) => c.MemberNumber === characterBundle.MemberNumber
+			);
+			if (C?.BCEOriginalName) {
+				nick = C.Name;
+				name = C.BCEOriginalName;
+			}
+			try {
+				await profiles.put({
+					memberNumber: characterBundle.MemberNumber,
+					name,
+					lastNick: nick,
+					seen: Date.now(),
+					characterBundle: JSON.stringify(characterBundle),
+				});
+			} catch (e) {
+				bceError("saving profile", e);
+			}
+		}
+
+		ServerSocket.on(
+			"ChatRoomSync",
+			(
+				/** @type {ChatRoomSyncEvent} */
+				data
+			) => {
+				if (!data?.Character?.length) {
+					return;
+				}
+				for (const char of data.Character) {
+					saveProfile(char);
+				}
+			}
+		);
+
+		ServerSocket.on(
+			"ChatRoomSyncSingle",
+			(
+				/** @type {ChatRoomSyncSingleEvent} */
+				data
+			) => {
+				if (!data?.Character?.MemberNumber) {
+					return;
+				}
+				saveProfile(data.Character);
+			}
+		);
+
+		SDK.hookFunction(
+			"InformationSheetRun",
+			HOOK_PRIORITIES.AddBehaviour,
+			/** @type {(args: unknown[], next: (args: unknown[]) => unknown) => unknown} */
+			(args, next) => {
+				if (InformationSheetSelection.BCESeen) {
+					w.MainCanvas.getContext("2d").textAlign = "left";
+					DrawText(
+						displayText("Last seen: ") +
+							new Date(InformationSheetSelection.BCESeen).toLocaleString(),
+						1200,
+						75,
+						"grey",
+						"black"
+					);
+					w.MainCanvas.getContext("2d").textAlign = "center";
+				}
+				// eslint-disable-next-line consistent-return
+				return next(args);
+			}
+		);
+
+		/** @type {(memberNumber: number) => Promise<void>} */
+		async function openCharacter(memberNumber) {
+			try {
+				/** @type {SavedProfile} */
+				// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+				const profile = await profiles.get(memberNumber);
+				const C = CharacterLoadOnline(
+					// eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+					JSON.parse(profile.characterBundle),
+					memberNumber
+				);
+				C.BCESeen = profile.seen;
+				if (profile.lastNick) {
+					C.Name = profile.lastNick;
+					C.BCEOriginalName = profile.name;
+				}
+				if (CurrentScreen === "ChatRoom") {
+					document.getElementById("InputChat").style.display = "none";
+					document.getElementById("TextAreaChatLog").style.display = "none";
+					ChatRoomChatHidden = true;
+					ChatRoomBackground = ChatRoomData.Background;
+				}
+				InformationSheetLoadCharacter(C);
+			} catch (e) {
+				bceChatNotify(displayText("No profile found"));
+				bceError("reading profile", e);
+			}
+		}
+
+		Commands.push({
+			Tag: "profiles",
+			Description: displayText(
+				"<filter> - List seen profiles, optionally searching by member number or name"
+			),
+			Action: async (args) => {
+				/** @type {SavedProfile[]} */
+				let list = await profiles.toArray();
+				list = list.filter(
+					(p) =>
+						!args ||
+						p.name.toLowerCase().includes(args) ||
+						p.memberNumber.toString().includes(args) ||
+						p.lastNick?.toLowerCase().includes(args)
+				);
+				list.sort(
+					(a, b) => -(b.lastNick ?? b.name).localeCompare(a.lastNick ?? a.name)
+				);
+				const lines = list.map((p) => {
+					const div = document.createElement("div");
+					div.textContent = displayText(
+						`$nickAndName ($memberNumber) - Seen: $seen`,
+						{
+							$nickAndName: p.lastNick ? `${p.lastNick} / ${p.name}` : p.name,
+							$memberNumber: p.memberNumber.toString(),
+							$seen: new Date(p.seen).toLocaleDateString(),
+						}
+					);
+					const link = document.createElement("a");
+					link.textContent = displayText("Open");
+					link.href = `#`;
+					link.classList.add("bce-profile-open");
+					link.addEventListener("click", (e) => {
+						e.preventDefault();
+						e.stopPropagation();
+						openCharacter(p.memberNumber);
+					});
+					div.prepend(link);
+					return div;
+				});
+				const header = document.createElement("h3");
+				header.textContent = displayText("Saved Profiles");
+				header.style.marginTop = "0";
+				const footer = document.createElement("div");
+				footer.textContent = displayText(
+					"$num total profiles matching search",
+					{
+						$num: list.length.toLocaleString(),
+					}
+				);
+				bceChatNotify([header, ...lines, footer]);
+			},
+		});
 	}
 
 	(function () {
