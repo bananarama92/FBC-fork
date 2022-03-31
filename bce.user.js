@@ -147,7 +147,7 @@ async function BondageClubEnhancements() {
 		Observe: 0,
 	};
 
-	const settingsVersion = 31;
+	const settingsVersion = 32;
 	/**
 	 * @type {Settings}
 	 */
