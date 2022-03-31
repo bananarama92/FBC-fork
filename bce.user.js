@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Bondage Club Enhancements
 // @namespace https://www.bondageprojects.com/
-// @version 2.12.1
+// @version 2.12.2
 // @description enhancements for the bondage club
 // @author Sidious
 // @match https://bondageprojects.elementfx.com/*
@@ -38,9 +38,12 @@
  *  along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-const BCE_VERSION = "2.12.1";
+const BCE_VERSION = "2.12.2";
 
 const bceChangelog = `${BCE_VERSION}
+- fix scrolling in profile descriptions
+
+2.12.1
 - add notes to profiles, when past profile saving is enabled
 
 2.12.0
@@ -8326,7 +8329,14 @@ async function BondageClubEnhancements() {
 			(args, next) => {
 				const ret = next(args);
 				ElementPositionFix("DescriptionInput", 36, 100, 160, 1790, 400);
-				ElementPositionFix("bceNoteInput", 36, 100, 160 + 450, 1790, 300);
+				DrawText(
+					displayText("Personal notes (only you can read these):"),
+					910,
+					160 + 455,
+					"Black",
+					"Gray"
+				);
+				ElementPositionFix("bceNoteInput", 36, 100, 160 + 500, 1790, 250);
 				// Always draw the accept button; normal method shows it when is player
 				if (!InformationSheetSelection.IsPlayer()) {
 					DrawButton(
@@ -8342,6 +8352,14 @@ async function BondageClubEnhancements() {
 				}
 				return ret;
 			}
+		);
+
+		patchFunction(
+			"OnlineProfileRun",
+			{
+				ElementPositionFix: "// ElementPositionFix",
+			},
+			"Scrolling in profile descriptions"
 		);
 
 		SDK.hookFunction(
