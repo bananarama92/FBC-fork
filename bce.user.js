@@ -41,6 +41,9 @@
 const BCE_VERSION = "2.12.4";
 
 const bceChangelog = `${BCE_VERSION}
+- fix rate limit relogin
+
+2.12.3
 - fix storage persistence
 
 2.12.2
