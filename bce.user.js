@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Bondage Club Enhancements
 // @namespace https://www.bondageprojects.com/
-// @version 2.12.3
+// @version 2.12.4
 // @description enhancements for the bondage club
 // @author Sidious
 // @match https://bondageprojects.elementfx.com/*
@@ -38,7 +38,7 @@
  *  along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-const BCE_VERSION = "2.12.3";
+const BCE_VERSION = "2.12.4";
 
 const bceChangelog = `${BCE_VERSION}
 - fix storage persistence
@@ -2474,15 +2474,25 @@ async function BondageClubEnhancements() {
 
 			SDK.hookFunction(
 				"ServerDisconnect",
-				HOOK_PRIORITIES.Observe,
+				HOOK_PRIORITIES.ModifyBehaviourHigh,
 				/** @type {(args: [unknown, boolean], next: (args: [unknown, boolean]) => void) => void} */
 				(args, next) => {
+					const [, force] = args;
+					args[1] = false;
 					const ret = next(args);
-					if (args[0] === "ErrorRateLimited" && args[1]) {
-						// Reconnect after 3-6 seconds if rate limited
-						setTimeout(() => {
-							ServerSocket.io.connect();
-						}, 3000 + Math.round(Math.random() * 3000));
+					if (force) {
+						if (
+							isString(args[0]) &&
+							["ErrorRateLimited", "ErrorDuplicatedLogin"].includes(args[0])
+						) {
+							// Reconnect after 3-6 seconds if rate limited
+							ServerSocket.io.disconnect();
+							setTimeout(() => {
+								ServerSocket.io.connect();
+							}, 3000 + Math.round(Math.random() * 3000));
+						} else {
+							ServerSocket.disconnect();
+						}
 					}
 					return ret;
 				}

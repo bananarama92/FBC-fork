@@ -640,6 +640,7 @@ declare global {
         | "AccountLovership",
       data: unknown
     ) => void;
+    disconnect: () => void;
     io: { connect: () => void; disconnect: () => void };
   };
   type Command = {
