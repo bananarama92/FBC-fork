@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Bondage Club Enhancements
 // @namespace https://www.bondageprojects.com/
-// @version 2.12.4
+// @version 2.12.5
 // @description enhancements for the bondage club
 // @author Sidious
 // @match https://bondageprojects.elementfx.com/*
@@ -38,9 +38,13 @@
  *  along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-const BCE_VERSION = "2.12.4";
+const BCE_VERSION = "2.12.5";
 
 const bceChangelog = `${BCE_VERSION}
+- update stable bcx to 0.8.1
+- logging changes
+
+2.12.4
 - fix rate limit relogin
 
 2.12.3
@@ -99,7 +103,7 @@ async function BondageClubEnhancements() {
 	const BCX_DEVEL_SOURCE =
 			"https://jomshir98.github.io/bondage-club-extended/devel/bcx.js",
 		BCX_SOURCE =
-			"https://raw.githubusercontent.com/Jomshir98/bondage-club-extended/fe83ac4068413ce0fd03c298dddb2b22dad04fb8/bcx.js";
+			"https://raw.githubusercontent.com/Jomshir98/bondage-club-extended/ddf94017f40e10892b9ef4774f9eb8886eb8f401/bcx.js";
 
 	const BCE_COLOR_ADJUSTMENTS_CLASS_NAME = "bce-colors",
 		BCE_LICENSE = "https://gitlab.com/Sidiousious/bce/-/blob/main/LICENSE",
@@ -606,6 +610,10 @@ async function BondageClubEnhancements() {
 			value: "",
 			sideEffects: (newValue) => {
 				bceLog("buttplugDevices", newValue);
+				// Don't handle empty string
+				if (newValue === "") {
+					return;
+				}
 				try {
 					if (!isString(newValue)) {
 						throw new Error("expected string for buttplugDevices");
@@ -962,7 +970,14 @@ async function BondageClubEnhancements() {
 	 * @type {(...args: unknown[]) => void}
 	 */
 	const bceLog = (...args) => {
-		console.log("BCE", `${w.BCE_VERSION}:`, ...args);
+		console.debug("BCE", `${w.BCE_VERSION}:`, ...args);
+	};
+
+	/**
+	 * @type {(...args: unknown[]) => void}
+	 */
+	const bceInfo = (...args) => {
+		console.info("BCE", `${w.BCE_VERSION}:`, ...args);
 	};
 
 	/**
@@ -1621,7 +1636,7 @@ async function BondageClubEnhancements() {
 		} else {
 			return;
 		}
-		bceLog("Loading BCX from", source);
+		bceInfo("Loading BCX from", source);
 		// Allow BCX to read where it was loaded from
 		w.BCX_SOURCE = source;
 		await fetch(source)
@@ -1634,7 +1649,7 @@ async function BondageClubEnhancements() {
 				bceLog(resp);
 				eval(resp);
 			});
-		bceLog("Loaded BCX");
+		bceInfo("Loaded BCX");
 	}
 
 	async function commands() {
@@ -1724,7 +1739,7 @@ async function BondageClubEnhancements() {
 						);
 					}
 					if (!targetMember) {
-						bceLog("Could not find member", target);
+						bceInfo("Could not find member", target);
 						return;
 					}
 					const includeBinds = includeBindsArg === "true";
@@ -1787,15 +1802,17 @@ async function BondageClubEnhancements() {
 				),
 				Action: (_, command) => {
 					if (!Player.CanChange() || !OnlineGameAllowChange()) {
-						bceLog(
-							"You cannot change your appearance while bound or during online games, such as LARP."
+						bceChatNotify(
+							displayText(
+								"You cannot change your appearance while bound or during online games, such as LARP."
+							)
 						);
 						return;
 					}
 
 					const [, bundleString] = command.split(" ");
 					if (!bundleString) {
-						bceLog("No looks string provided");
+						bceChatNotify(displayText("No looks string provided"));
 						return;
 					}
 					try {
@@ -7920,10 +7937,10 @@ async function BondageClubEnhancements() {
 			frame.contentDocument.head.appendChild(notifierScript);
 			frame.contentDocument.head.appendChild(script);
 		};
-		bceLog("Loading buttplug.io");
+		bceInfo("Loading buttplug.io");
 
 		const onload = async () => {
-			bceLog("Loaded Buttplug.io");
+			bceInfo("Loaded Buttplug.io");
 			/** @type {import('./types/buttplug.io.1.0.17')} */
 			// @ts-ignore
 			// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
@@ -7971,7 +7988,7 @@ async function BondageClubEnhancements() {
 			connector.Address = "ws://127.0.0.1:12345";
 			try {
 				await client.connect(connector);
-				bceLog("Connected buttplug.io");
+				bceInfo("Connected buttplug.io");
 			} catch (ex) {
 				if (ex) {
 					// eslint-disable-next-line no-alert
