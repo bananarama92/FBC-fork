@@ -821,6 +821,15 @@ async function BondageClubEnhancements() {
 				"Other Addons": "其他插件",
 				"Show nicknames": "修改你的昵称",
 				"Change your nickname": "修改你的昵称",
+				"ah": '啊',
+				'aah': '啊❤',
+				'mnm': '唔姆',
+				'nn': '嗯啊',
+				"mnh": '嗯哈',
+				"mngh": '唔啊',
+				"haa": '哈啊',
+				"nng": '嗯嗯❤',
+				"mnng": '唔啊❤',
 			},
 		});
 
@@ -2972,7 +2981,7 @@ async function BondageClubEnhancements() {
 					eggedSounds[Math.floor(Math.random() * eggedSounds.length)];
 				const endSound =
 					endSounds[Math.floor(Math.random() * endSounds.length)];
-				results.push(" ", `${startSound}${sound}${endSound}`);
+				results.push(" ", `${startSound}${displayText(sound)}${endSound}`);
 			}
 			return results;
 		}
