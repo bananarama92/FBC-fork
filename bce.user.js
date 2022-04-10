@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Bondage Club Enhancements
 // @namespace https://www.bondageprojects.com/
-// @version 2.12.5
+// @version 2.12.6
 // @description enhancements for the bondage club
 // @author Sidious
 // @match https://bondageprojects.elementfx.com/*
@@ -38,9 +38,13 @@
  *  along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-const BCE_VERSION = "2.12.5";
+const BCE_VERSION = "2.12.6";
 
 const bceChangelog = `${BCE_VERSION}
+- compatibility with R79Beta1
+- Chinese alt stutters
+
+2.12.5
 - update stable bcx to 0.8.1
 - logging changes
 
@@ -84,7 +88,7 @@ const BCE_BC_MOD_SDK=function(){"use strict";const o="1.0.2";function e(o){alert
 async function BondageClubEnhancements() {
 	"use strict";
 
-	const SUPPORTED_GAME_VERSIONS = ["R78"];
+	const SUPPORTED_GAME_VERSIONS = ["R78", "R79Beta1"];
 	const CAPABILITIES = ["clubslave"];
 
 	const w = window;
@@ -959,6 +963,11 @@ async function BondageClubEnhancements() {
 		};
 
 		switch (gameVersion) {
+			case "R79Beta1":
+				hashes.ChatRoomKeyDown = "B4BFDB0C";
+				hashes.ChatRoomMessage = "98BF868C";
+				hashes.SpeechGarbleByGagLevel = "E5910C69";
+				break;
 			default:
 				break;
 		}
