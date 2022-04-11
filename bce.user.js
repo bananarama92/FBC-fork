@@ -811,6 +811,8 @@ async function BondageClubEnhancements() {
 					"启用buttplug.io（需要刷新网页)",
 				"This page allows configuration of the synchronization of bluetooth connected toys.":
 					"此页面允许配置将BC震动器状态同步到蓝牙连接的玩具",
+				"Save & browse seen profiles (requires refresh)":
+					"保存并浏览已知的个人资料 (需要刷新)"
 				"Chat & Social": "聊天 & 社交",
 				"Activities & Arousal": "活动 & 欲望",
 				"Appearance & Wardrobe": "外观 & 衣柜",
