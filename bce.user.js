@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Bondage Club Enhancements
 // @namespace https://www.bondageprojects.com/
-// @version 2.12.6
+// @version 2.12.7
 // @description enhancements for the bondage club
 // @author Sidious
 // @match https://bondageprojects.elementfx.com/*
@@ -38,9 +38,12 @@
  *  along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-const BCE_VERSION = "2.12.6";
+const BCE_VERSION = "2.12.7";
 
 const bceChangelog = `${BCE_VERSION}
+- compatibility with R79Beta2
+
+2.12.6
 - compatibility with R79Beta1
 - Chinese alt stutters
 
@@ -88,7 +91,7 @@ const BCE_BC_MOD_SDK=function(){"use strict";const o="1.0.2";function e(o){alert
 async function BondageClubEnhancements() {
 	"use strict";
 
-	const SUPPORTED_GAME_VERSIONS = ["R78", "R79Beta1"];
+	const SUPPORTED_GAME_VERSIONS = ["R78", "R79Beta1", "R79Beta2"];
 	const CAPABILITIES = ["clubslave"];
 
 	const w = window;
@@ -821,15 +824,15 @@ async function BondageClubEnhancements() {
 				"Other Addons": "其他插件",
 				"Show nicknames": "修改你的昵称",
 				"Change your nickname": "修改你的昵称",
-				"ah": '啊',
-				'aah': '啊❤',
-				'mnm': '唔姆',
-				'nn': '嗯啊',
-				"mnh": '嗯哈',
-				"mngh": '唔啊',
-				"haa": '哈啊',
-				"nng": '嗯嗯❤',
-				"mnng": '唔啊❤',
+				ah: "啊",
+				aah: "啊❤",
+				mnm: "唔姆",
+				nn: "嗯啊",
+				mnh: "嗯哈",
+				mngh: "唔啊",
+				haa: "哈啊",
+				nng: "嗯嗯❤",
+				mnng: "唔啊❤",
 			},
 		});
 
@@ -976,6 +979,11 @@ async function BondageClubEnhancements() {
 				hashes.ChatRoomKeyDown = "B4BFDB0C";
 				hashes.ChatRoomMessage = "98BF868C";
 				hashes.SpeechGarbleByGagLevel = "E5910C69";
+				break;
+			case "R79Beta2":
+				hashes.ChatRoomKeyDown = "B4BFDB0C";
+				hashes.ChatRoomMessage = "48A4F3CC";
+				hashes.SpeechGarbleByGagLevel = "54C20068";
 				break;
 			default:
 				break;
