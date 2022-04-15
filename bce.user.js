@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Bondage Club Enhancements
 // @namespace https://www.bondageprojects.com/
-// @version 3.0.3
+// @version 3.0.4
 // @description enhancements for the bondage club
 // @author Sidious
 // @match https://bondageprojects.elementfx.com/*
@@ -38,10 +38,13 @@
  *  along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-const BCE_VERSION = "3.0.3";
+const BCE_VERSION = "3.0.4";
 const settingsVersion = 33;
 
 const bceChangelog = `${BCE_VERSION}
+- fix error logs caused by an interaction between IM and BCX's version beeps
+
+3.0.3
 - show sent normal beeps in IM
 - fix settings label (not BcUtil compatible anymore since 3.0)
 
@@ -7247,7 +7250,12 @@ async function BondageClubEnhancements() {
 			/** @type {(args: [string, Beep], next: (args: [string, Beep]) => void) => void} */
 			(args, next) => {
 				const [command, beep] = args;
-				if (command === "AccountBeep" && !beep?.Message?.includes("\uf124")) {
+				if (
+					command === "AccountBeep" &&
+					!beep?.BeepType &&
+					isString(beep?.Message) &&
+					!beep.Message.includes("\uf124")
+				) {
 					addMessage(beep.MemberNumber, true, beep, false);
 				}
 				return next(args);
