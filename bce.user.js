@@ -6928,7 +6928,7 @@ async function BondageClubEnhancements() {
 			const messageText = beep.Message?.split("\n")
 				.filter((line) => !line.startsWith("\uf124"))
 				.join("\n")
-				.trim();
+				.trimEnd();
 
 			const scrolledToEnd =
 				friend.history.scrollHeight -
