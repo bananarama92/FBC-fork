@@ -74,7 +74,7 @@ BCE allows clicking links posted in chat and embeds images from trusted domains,
 
 ![](static/bceInstantMessenger.png)
 
-BCE includes an optional instant messenger that can be used to message with your friends. Compatible with friends who use BcUtil too, but they will not have BCE's clickable links and embeds.
+BCE includes an optional instant messenger that can be used to message with your friends.
 
 ### Require Glasses to See
 
