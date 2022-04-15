@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Bondage Club Enhancements
 // @namespace https://www.bondageprojects.com/
-// @version 3.0.4
+// @version 3.0.5
 // @description enhancements for the bondage club
 // @author Sidious
 // @match https://bondageprojects.elementfx.com/*
@@ -38,10 +38,13 @@
  *  along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-const BCE_VERSION = "3.0.4";
+const BCE_VERSION = "3.0.5";
 const settingsVersion = 33;
 
 const bceChangelog = `${BCE_VERSION}
+- R79Beta3 compatibility
+
+3.0.4
 - fix error logs caused by an interaction between IM and BCX's version beeps
 
 3.0.3
@@ -88,7 +91,7 @@ const BCE_BC_MOD_SDK=function(){"use strict";const o="1.0.2";function e(o){alert
 async function BondageClubEnhancements() {
 	"use strict";
 
-	const SUPPORTED_GAME_VERSIONS = ["R78", "R79Beta1", "R79Beta2"];
+	const SUPPORTED_GAME_VERSIONS = ["R78", "R79Beta1", "R79Beta2", "R79Beta3"];
 	const CAPABILITIES = ["clubslave"];
 
 	const w = window;
@@ -986,6 +989,7 @@ async function BondageClubEnhancements() {
 				hashes.SpeechGarbleByGagLevel = "E5910C69";
 				break;
 			case "R79Beta2":
+			case "R79Beta3":
 				hashes.ChatRoomKeyDown = "B4BFDB0C";
 				hashes.ChatRoomMessage = "48A4F3CC";
 				hashes.SpeechGarbleByGagLevel = "54C20068";
