@@ -56,7 +56,6 @@ At a glance, **everything is entirely optional, enable in settings** (profile ->
 - Confirmation prompt when leaving the page
 - Beeps display their text in chat. Clicking on them takes you directly to the beep.
 - Ctrl+Enter to OOC
-- Clearer activity labels
 - Accurate timer inputs
 - Club slave as an option for owners under forced labor
 - Extended Wardrobe (more slots)
@@ -111,12 +110,6 @@ BCE can allow using the full wardrobe with previews from the singleplayer privat
 - `/r` resets animations and expressions. You can optionally define part of the face to reset, leaving other parts intact, e.g. `/r eyes`
 - `/pose <space separated list of poses>` allows setting or resetting your character's pose. Note that this bypasses restrictions, but will not override poses imposed by items, e.g. short collar chain.
 - `/pose list` lists all available poses.
-
-### Clearer Activity Labels
-
-![](static/bceActivityLabels.png)
-
-BCE includes friendlier labels for activities so you don't have to guess or remember what "Body Rub" on the forehead means.
 
 ### Friend Presence Notifications
 
