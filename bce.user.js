@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Bondage Club Enhancements
 // @namespace https://www.bondageprojects.com/
-// @version 3.0.5
+// @version 3.0.6
 // @description enhancements for the bondage club
 // @author Sidious
 // @match https://bondageprojects.elementfx.com/*
@@ -38,10 +38,13 @@
  *  along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-const BCE_VERSION = "3.0.5";
+const BCE_VERSION = "3.0.6";
 const settingsVersion = 33;
 
 const bceChangelog = `${BCE_VERSION}
+- hide beeps without messages in IM
+
+3.0.5
 - R79Beta3 compatibility
 
 3.0.4
@@ -6962,6 +6965,11 @@ async function BondageClubEnhancements() {
 				.filter((line) => !line.startsWith("\uf124"))
 				.join("\n")
 				.trimEnd();
+
+			if (!messageText) {
+				bceLog("skipped empty beep", friendId, beep, sent, skipHistory);
+				return;
+			}
 
 			const scrolledToEnd =
 				friend.history.scrollHeight -
