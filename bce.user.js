@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Bondage Club Enhancements
 // @namespace https://www.bondageprojects.com/
-// @version 3.0.6
+// @version 3.0.7
 // @description enhancements for the bondage club
 // @author Sidious
 // @match https://bondageprojects.elementfx.com/*
@@ -38,10 +38,14 @@
  *  along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-const BCE_VERSION = "3.0.6";
+const BCE_VERSION = "3.0.7";
 const settingsVersion = 33;
 
 const bceChangelog = `${BCE_VERSION}
+- sort IMs by recent activity
+- fix timestamps on IMs after reloading page
+
+3.0.6
 - hide beeps without messages in IM
 
 3.0.5
@@ -6882,7 +6886,7 @@ async function BondageClubEnhancements() {
 
 		let unreadSinceOpened = 0;
 
-		/** @typedef {{ author: string, authorId: number, type: "Emote" | "Action" | "Message", message: string, color: string }} RawHistory */
+		/** @typedef {{ author: string, authorId: number, type: "Emote" | "Action" | "Message", message: string, color: string, createdAt: number }} RawHistory */
 		/** @typedef {{ unread: number, statusText: HTMLElement, listElement: HTMLElement, historyRaw: RawHistory[], history: HTMLElement, online: boolean }} IMFriendHistory */
 		/** @type {Map<number, IMFriendHistory>} */
 		const friendMessages = new Map();
@@ -6937,9 +6941,9 @@ async function BondageClubEnhancements() {
 			scrollToBottom();
 		};
 
-		/** @type {(friendId: number, sent: boolean, beep: Beep, skipHistory: boolean) => void} */
+		/** @type {(friendId: number, sent: boolean, beep: Beep, skipHistory: boolean, createdAt: Date) => void} */
 		// eslint-disable-next-line complexity
-		const addMessage = (friendId, sent, beep, skipHistory) => {
+		const addMessage = (friendId, sent, beep, skipHistory, createdAt) => {
 			const friend = friendMessages.get(friendId);
 			if (!friend || beep.BeepType) {
 				return;
@@ -6980,7 +6984,7 @@ async function BondageClubEnhancements() {
 			message.classList.add("bce-message");
 			message.classList.add(sent ? "bce-message-sent" : "bce-message-received");
 			message.classList.add(`bce-message-${messageType}`);
-			message.setAttribute("data-time", new Date().toLocaleString());
+			message.setAttribute("data-time", createdAt.toLocaleString());
 
 			const author = sent ? Player.Name : beep.MemberName;
 
@@ -7015,7 +7019,13 @@ async function BondageClubEnhancements() {
 					message: messageText,
 					type: messageType,
 					color: messageColor,
+					createdAt: Date.now(),
 				});
+
+				friend.listElement.setAttribute(
+					"data-last-updated",
+					Date.now().toString()
+				);
 
 				if (friendId !== activeChat) {
 					friend.listElement.classList.add("bce-friend-list-unread");
@@ -7107,8 +7117,15 @@ async function BondageClubEnhancements() {
 						MemberNumber: hist.authorId,
 						MemberName: hist.author,
 					},
-					true
+					true,
+					hist.createdAt ? new Date(hist.createdAt) : new Date(0)
 				);
+				if (hist.createdAt) {
+					friend.listElement.setAttribute(
+						"data-last-updated",
+						hist.createdAt.toString()
+					);
+				}
 			}
 		}
 
@@ -7153,7 +7170,7 @@ async function BondageClubEnhancements() {
 						messageColor: Player.LabelColor,
 					})}`,
 				};
-				addMessage(activeChat, true, message, false);
+				addMessage(activeChat, true, message, false, new Date());
 				FriendListBeepLog.push({
 					...message,
 					Sent: true,
@@ -7225,7 +7242,11 @@ async function BondageClubEnhancements() {
 					const notA = !a.classList.contains(onlineClass);
 					const notB = !b.classList.contains(onlineClass);
 					if ((notA && notB) || (!notA && !notB)) {
-						return 0;
+						const aUpdatedAt = a.getAttribute("data-last-updated");
+						const bUpdatedAt = b.getAttribute("data-last-updated");
+						const au = /^\d+$/u.test(aUpdatedAt) ? parseInt(aUpdatedAt) : 0;
+						const bu = /^\d+$/u.test(bUpdatedAt) ? parseInt(bUpdatedAt) : 0;
+						return bu - au;
 					}
 					if (notA) {
 						return 1;
@@ -7250,7 +7271,7 @@ async function BondageClubEnhancements() {
 					!beep.BeepType &&
 					bceSettings.instantMessenger
 				) {
-					addMessage(beep.MemberNumber, false, beep, false);
+					addMessage(beep.MemberNumber, false, beep, false, new Date());
 				}
 				next(args);
 			}
@@ -7268,7 +7289,7 @@ async function BondageClubEnhancements() {
 					isString(beep?.Message) &&
 					!beep.Message.includes("\uf124")
 				) {
-					addMessage(beep.MemberNumber, true, beep, false);
+					addMessage(beep.MemberNumber, true, beep, false, new Date());
 				}
 				return next(args);
 			}
