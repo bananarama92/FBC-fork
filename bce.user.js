@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Bondage Club Enhancements
 // @namespace https://www.bondageprojects.com/
-// @version 3.0.2
+// @version 3.0.3
 // @description enhancements for the bondage club
 // @author Sidious
 // @match https://bondageprojects.elementfx.com/*
@@ -38,10 +38,13 @@
  *  along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-const BCE_VERSION = "3.0.2";
+const BCE_VERSION = "3.0.3";
 const settingsVersion = 33;
 
 const bceChangelog = `${BCE_VERSION}
+- show sent normal beeps in IM
+- fix settings label (not BcUtil compatible anymore since 3.0)
+
 3.0.2
 - sort IM list by availability when opening IM
 - style offline contacts less prominently
@@ -262,7 +265,7 @@ async function BondageClubEnhancements() {
 			category: "performance",
 		},
 		instantMessenger: {
-			label: "Instant messenger (BcUtil compatible)",
+			label: "Instant messenger",
 			value: false,
 			sideEffects: (newValue) => {
 				bceLog("instantMessenger", newValue);
@@ -765,7 +768,7 @@ async function BondageClubEnhancements() {
 				"Replace wardrobe list with character previews":
 					"使用角色预览替换衣柜保存列表",
 				"Clear Drawing Cache Hourly": "每小时清除绘图缓存",
-				"Instant messenger (BcUtil compatible)": "即时通讯 (与BcUtil 兼容)",
+				"Instant messenger": "即时通讯",
 				"Chat Links and Embeds": "聊天链接和嵌入",
 				"Use Ctrl+Enter to OOC": "使用Ctrl+Enter进行OOC发言",
 				"Use italics for input when whispering": "悄悄话使用斜体字",
@@ -6924,9 +6927,9 @@ async function BondageClubEnhancements() {
 			scrollToBottom();
 		};
 
-		/** @type {(friendId: number, sent: boolean, beep: Beep, fromHistory: boolean) => void} */
+		/** @type {(friendId: number, sent: boolean, beep: Beep, skipHistory: boolean) => void} */
 		// eslint-disable-next-line complexity
-		const addMessage = (friendId, sent, beep, fromHistory) => {
+		const addMessage = (friendId, sent, beep, skipHistory) => {
 			const friend = friendMessages.get(friendId);
 			if (!friend || beep.BeepType) {
 				return;
@@ -6990,7 +6993,7 @@ async function BondageClubEnhancements() {
 					break;
 			}
 
-			if (!fromHistory) {
+			if (!skipHistory) {
 				friend.historyRaw.push({
 					author,
 					authorId: sent ? Player.MemberNumber : beep.MemberNumber,
@@ -7136,6 +7139,13 @@ async function BondageClubEnhancements() {
 					})}`,
 				};
 				addMessage(activeChat, true, message, false);
+				FriendListBeepLog.push({
+					...message,
+					Sent: true,
+					Private: false,
+					Time: new Date(),
+					ChatRoomName: null,
+				});
 				ServerSend("AccountBeep", message);
 			}
 		});
@@ -7228,6 +7238,19 @@ async function BondageClubEnhancements() {
 					addMessage(beep.MemberNumber, false, beep, false);
 				}
 				next(args);
+			}
+		);
+
+		SDK.hookFunction(
+			"ServerSend",
+			HOOK_PRIORITIES.Observe,
+			/** @type {(args: [string, Beep], next: (args: [string, Beep]) => void) => void} */
+			(args, next) => {
+				const [command, beep] = args;
+				if (command === "AccountBeep" && !beep?.Message?.includes("\uf124")) {
+					addMessage(beep.MemberNumber, true, beep, false);
+				}
+				return next(args);
 			}
 		);
 
