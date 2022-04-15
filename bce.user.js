@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Bondage Club Enhancements
 // @namespace https://www.bondageprojects.com/
-// @version 3.0.1
+// @version 3.0.2
 // @description enhancements for the bondage club
 // @author Sidious
 // @match https://bondageprojects.elementfx.com/*
@@ -38,10 +38,17 @@
  *  along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-const BCE_VERSION = "3.0.1";
+const BCE_VERSION = "3.0.2";
 const settingsVersion = 33;
 
 const bceChangelog = `${BCE_VERSION}
+3.0.2
+- sort IM list by availability when opening IM
+- style offline contacts less prominently
+- remove offline contacts without history from the list
+- fix loading history
+
+3.0.1
 - fix IM error when history contains links
 
 3.0.0
@@ -6843,6 +6850,9 @@ async function BondageClubEnhancements() {
 			displayText("Search for a friend")
 		);
 
+		const onlineClass = "bce-friend-list-handshake-completed";
+		const offlineClass = "bce-friend-list-handshake-false";
+
 		container.appendChild(leftContainer);
 		container.appendChild(rightContainer);
 		leftContainer.appendChild(friendSearch);
@@ -6874,6 +6884,9 @@ async function BondageClubEnhancements() {
 		const saveHistory = () => {
 			const history = {};
 			friendMessages.forEach((friend, id) => {
+				if (friend.historyRaw.length === 0) {
+					return;
+				}
 				const historyLength = Math.min(friend.historyRaw.length, 100);
 				history[id] = {
 					historyRaw: friend.historyRaw.slice(-historyLength),
@@ -7066,7 +7079,7 @@ async function BondageClubEnhancements() {
 			friend.historyRaw = friendHistory.historyRaw;
 			for (const hist of friendHistory.historyRaw) {
 				addMessage(
-					hist.authorId,
+					friendId,
 					hist.authorId === Player.MemberNumber,
 					{
 						Message: `${hist.message}\n\n\uf124${JSON.stringify({
@@ -7158,6 +7171,8 @@ async function BondageClubEnhancements() {
 						const f = handleUnseenFriend(friend.MemberNumber);
 						f.online = true;
 						f.statusText.textContent = displayText("Online");
+						f.listElement.classList.remove(offlineClass);
+						f.listElement.classList.add(onlineClass);
 					}
 					for (const friendId of Array.from(friendMessages.keys()).filter(
 						(f) => !data.Result.some((f2) => f2.MemberNumber === f)
@@ -7165,6 +7180,8 @@ async function BondageClubEnhancements() {
 						const f = friendMessages.get(friendId);
 						f.online = false;
 						f.statusText.textContent = displayText("Offline");
+						f.listElement.classList.remove(onlineClass);
+						f.listElement.classList.add(offlineClass);
 					}
 					if (!data.Result.some((f) => f.MemberNumber === activeChat)) {
 						// Disable input, current user is offline
@@ -7176,6 +7193,25 @@ async function BondageClubEnhancements() {
 				}
 			}
 		);
+
+		function sortIM() {
+			[...friendList.children]
+				.sort((a, b) => {
+					const notA = !a.classList.contains(onlineClass);
+					const notB = !b.classList.contains(onlineClass);
+					if ((notA && notB) || (!notA && !notB)) {
+						return 0;
+					}
+					if (notA) {
+						return 1;
+					}
+					return -1;
+				})
+				.forEach((node) => {
+					friendList.removeChild(node);
+					friendList.appendChild(node);
+				});
+		}
 
 		SDK.hookFunction(
 			"ServerAccountBeep",
@@ -7223,6 +7259,7 @@ async function BondageClubEnhancements() {
 			/** @type {(args: (MouseEvent | TouchEvent)[], next: (args: (MouseEvent | TouchEvent)[]) => void) => void} */
 			(args, next) => {
 				if (bceSettings.instantMessenger && MouseIn(70, 905, 60, 60)) {
+					sortIM();
 					container.classList.toggle("bce-hidden");
 					ServerSend("AccountQuery", { Query: "OnlineFriends" });
 					unreadSinceOpened = 0;
