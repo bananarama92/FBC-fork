@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Bondage Club Enhancements
 // @namespace https://www.bondageprojects.com/
-// @version 2.12.7
+// @version 3.0.0
 // @description enhancements for the bondage club
 // @author Sidious
 // @match https://bondageprojects.elementfx.com/*
@@ -38,33 +38,16 @@
  *  along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-const BCE_VERSION = "2.12.7";
+const BCE_VERSION = "3.0.0";
 
 const bceChangelog = `${BCE_VERSION}
-- compatibility with R79Beta2
+- BREAKING CHANGE: instant messenger now uses normal beeps instead of BcUtil-compatible beeps
+	- This means you can now use the instant messenger as a full replacement for beeps with all your friends, whether they use BCE or not
+- updated Chinese translation
 
-2.12.6
-- compatibility with R79Beta1
-- Chinese alt stutters
-
-2.12.5
-- update stable bcx to 0.8.1
-- logging changes
-
-2.12.4
-- fix rate limit relogin
-
-2.12.3
-- fix storage persistence
-
-2.12.2
-- fix scrolling in profile descriptions
-
-2.12.1
-- add notes to profiles, when past profile saving is enabled
-
-2.12.0
+2.12
 - add profile saving and viewing past profiles
+- add ability to save notes in profiles
 
 2.11
 - add support for syncing buttplug.io-compatible vibrators
@@ -72,10 +55,7 @@ const bceChangelog = `${BCE_VERSION}
 2.10
 - hand clamp gags you for 15 seconds
 - add option to allow leashing without a leash (roleplay carrying etc.)
-
-2.9
-- add license
-- add the ability to give yourself a nickname visible to other users of BCE`;
+`;
 
 /*
  * Bondage Club Mod Development Kit
@@ -1390,7 +1370,7 @@ async function BondageClubEnhancements() {
 				// eslint-disable-next-line no-template-curly-in-string
 				'ChatRoomSendLocal(`<a onclick="ServerOpenFriendList()">(${ServerBeep.Message})</a>`);': `{
 					const beepId = FriendListBeepLog.length - 1;
-					ChatRoomSendLocal(\`<a id="bce-beep-reply-\${beepId}">\u21a9\ufe0f</a><a class="bce-beep-link" id="bce-beep-\${beepId}">(\${ServerBeep.Message}\${ChatRoomHTMLEntities(data.Message ? \`: \${data.Message.length > 150 ? data.Message.substring(0, 150) + "..." : data.Message}\` : "")})</a>\`);
+					ChatRoomSendLocal(\`<a id="bce-beep-reply-\${beepId}">\u21a9\ufe0f</a><a class="bce-beep-link" id="bce-beep-\${beepId}">(\${ServerBeep.Message}\${ChatRoomHTMLEntities(data.Message ? \`: \${(data.Message.length > 150 ? data.Message.substring(0, 150) + "..." : data.Message).split('\\uf124')[0].trim()}\` : "")})</a>\`);
 					if (document.getElementById("bce-beep-reply-" + beepId)) {
 						document.getElementById(\`bce-beep-reply-\${beepId}\`).onclick = (e) => {
 							e.preventDefault();
@@ -6867,8 +6847,8 @@ async function BondageClubEnhancements() {
 
 		let unreadSinceOpened = 0;
 
-		/** @typedef {{ author: string, authorId: number, type: "Emote" | "Action" | "Message", message: string }} RawHistory */
-		/** @typedef {{ unread: number, statusText: HTMLElement, listElement: HTMLElement, historyRaw: RawHistory[], history: HTMLElement, handshake: false | "pending" | "completed" }} IMFriendHistory */
+		/** @typedef {{ author: string, authorId: number, type: "Emote" | "Action" | "Message", message: string, color: string }} RawHistory */
+		/** @typedef {{ unread: number, statusText: HTMLElement, listElement: HTMLElement, historyRaw: RawHistory[], history: HTMLElement, online: boolean }} IMFriendHistory */
 		/** @type {Map<number, IMFriendHistory>} */
 		const friendMessages = new Map();
 
@@ -6885,12 +6865,6 @@ async function BondageClubEnhancements() {
 				const historyLength = Math.min(friend.historyRaw.length, 100);
 				history[id] = {
 					historyRaw: friend.historyRaw.slice(-historyLength),
-					historyHTML: Array.from(
-						friend.history.querySelectorAll(".bce-message")
-					)
-						.map((e) => e.outerHTML)
-						.slice(-historyLength)
-						.join(""),
 				};
 			});
 			localStorage.setItem(storageKey(), JSON.stringify(history));
@@ -6899,7 +6873,7 @@ async function BondageClubEnhancements() {
 		/** @type {(friendId: number) => void} */
 		const changeActiveChat = (friendId) => {
 			const friend = friendMessages.get(friendId);
-			messageInput.disabled = friend?.handshake !== "completed";
+			messageInput.disabled = !friend?.online;
 			messageContainer.innerHTML = "";
 			for (const f of friendMessages.values()) {
 				f.listElement.classList.remove("bce-friend-list-selected");
@@ -6925,12 +6899,34 @@ async function BondageClubEnhancements() {
 			scrollToBottom();
 		};
 
-		/** @type {(friendId: number, sent: boolean, beep: Beep) => void} */
-		const addMessage = (friendId, sent, beep) => {
+		/** @type {(friendId: number, sent: boolean, beep: Beep, fromHistory: boolean) => void} */
+		// eslint-disable-next-line complexity
+		const addMessage = (friendId, sent, beep, fromHistory) => {
 			const friend = friendMessages.get(friendId);
-			if (!friend || typeof beep.BeepType !== "object") {
+			if (!friend || beep.BeepType) {
 				return;
 			}
+
+			/** @type {{ messageType?: "Message" | "Emote" | "Action"; messageColor?: string; }?} */
+			// @ts-ignore
+			// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+			const details = JSON.parse(
+				beep.Message?.split("\n")
+					.find((line) => line.startsWith("\uf124"))
+					?.substring(1) ?? "{}"
+			);
+
+			/** @type {"Message" | "Emote" | "Action"} */
+			const messageType = ["Message", "Emote", "Action"].includes(
+				details?.messageType
+			)
+				? `${details.messageType}`
+				: "Message";
+			const messageColor = details?.messageColor ?? "#ffffff";
+			const messageText = beep.Message?.split("\n")
+				.filter((line) => !line.startsWith("\uf124"))
+				.join("\n")
+				.trim();
 
 			const scrolledToEnd =
 				friend.history.scrollHeight -
@@ -6940,57 +6936,61 @@ async function BondageClubEnhancements() {
 			const message = document.createElement("div");
 			message.classList.add("bce-message");
 			message.classList.add(sent ? "bce-message-sent" : "bce-message-received");
-			message.classList.add(`bce-message-${beep.BeepType.messageType}`);
+			message.classList.add(`bce-message-${messageType}`);
 			message.setAttribute("data-time", new Date().toLocaleString());
 
 			const author = sent ? Player.Name : beep.MemberName;
 
-			friend.historyRaw.push({
-				author,
-				authorId: sent ? Player.MemberNumber : beep.MemberNumber,
-				message: beep.BeepType.message,
-				type: beep.BeepType.messageType,
-			});
-
-			switch (beep.BeepType.messageType) {
+			switch (messageType) {
 				case "Emote":
-					message.textContent = `*${author}${beep.BeepType.message}*`;
+					message.textContent = `*${author}${messageText}*`;
 					break;
 				case "Action":
-					message.textContent = `*${beep.BeepType.message}*`;
+					message.textContent = `*${messageText}*`;
 					break;
 				case "Message":
 					{
 						const sender = document.createElement("span");
 						sender.classList.add("bce-message-sender");
-						if (beep.BeepType.messageColor) {
-							sender.style.color = beep.BeepType.messageColor;
+						if (messageColor) {
+							sender.style.color = messageColor;
 						}
 						sender.textContent = `${author}: `;
 						message.appendChild(sender);
-						message.appendChild(document.createTextNode(beep.BeepType.message));
+						message.appendChild(document.createTextNode(messageText));
 					}
 					break;
 				default:
-					message.textContent = beep.BeepType.message;
+					message.textContent = messageText;
 					break;
 			}
 
-			if (friendId !== activeChat) {
-				friend.listElement.classList.add("bce-friend-list-unread");
-				friend.unread++;
-			}
-			if (
-				friend.unread === 1 &&
-				(container.classList.contains("bce-hidden") || friendId !== activeChat)
-			) {
-				const divider = document.createElement("div");
-				divider.classList.add("bce-message-divider");
-				friend.history.appendChild(divider);
-			}
+			if (!fromHistory) {
+				friend.historyRaw.push({
+					author,
+					authorId: sent ? Player.MemberNumber : beep.MemberNumber,
+					message: messageText,
+					type: messageType,
+					color: messageColor,
+				});
 
-			if (container.classList.contains("bce-hidden")) {
-				unreadSinceOpened++;
+				if (friendId !== activeChat) {
+					friend.listElement.classList.add("bce-friend-list-unread");
+					friend.unread++;
+				}
+				if (
+					friend.unread === 1 &&
+					(container.classList.contains("bce-hidden") ||
+						friendId !== activeChat)
+				) {
+					const divider = document.createElement("div");
+					divider.classList.add("bce-message-divider");
+					friend.history.appendChild(divider);
+				}
+
+				if (container.classList.contains("bce-hidden")) {
+					unreadSinceOpened++;
+				}
 			}
 			const noop = () => null;
 			processChatAugmentsForLine(
@@ -7003,89 +7003,7 @@ async function BondageClubEnhancements() {
 				scrollToBottom();
 			}
 
-			if (!document.hasFocus()) {
-				if (Player.AudioSettings?.PlayBeeps) {
-					AudioPlayInstantSound("Audio/BeepAlarm.mp3");
-				}
-				NotificationRaise("Beep", {
-					memberNumber: beep.MemberNumber,
-					characterName: beep.MemberName,
-					body: beep.BeepType.message,
-				});
-			}
-
 			saveHistory();
-		};
-
-		/** @type {(friendId: number, status: false | "pending" | "completed") => void} */
-		const setHandshakeStatus = (friendId, status) => {
-			const friend = friendMessages.get(friendId);
-			if (!friend) {
-				return;
-			}
-			friend.handshake = status;
-			for (const s of [false, "pending", "completed"]) {
-				friend.listElement.classList.remove(
-					`bce-friend-list-handshake-${s.toString()}`
-				);
-			}
-			friend.listElement.classList.add(
-				`bce-friend-list-handshake-${status.toString()}`
-			);
-			switch (status) {
-				case "completed":
-					friend.statusText.textContent = displayText("Online");
-					break;
-				default:
-					friend.statusText.textContent = displayText("Unavailable");
-					break;
-			}
-			[...friendList.children]
-				.sort((a, b) => {
-					const notA = !a.classList.contains(
-						"bce-friend-list-handshake-completed"
-					);
-					const notB = !b.classList.contains(
-						"bce-friend-list-handshake-completed"
-					);
-					if ((notA && notB) || (!notA && !notB)) {
-						return 0;
-					}
-					if (notA) {
-						return 1;
-					}
-					return -1;
-				})
-				.forEach((node) => {
-					friendList.removeChild(node);
-					friendList.appendChild(node);
-				});
-			setTimeout(() => {
-				if (friend.handshake === "pending") {
-					setHandshakeStatus(friendId, false);
-				}
-			}, 60000);
-		};
-
-		/** @type {(friendId: number, isResponse?: boolean) => void} */
-		const sendHandshake = (friendId, isResponse = false) => {
-			if (!isResponse) {
-				setHandshakeStatus(friendId, "pending");
-			} else {
-				setHandshakeStatus(friendId, "completed");
-			}
-
-			/** @type {Beep} */
-			const message = {
-				MemberNumber: friendId,
-				MemberName: Player.FriendNames.get(friendId) || "aname",
-				IsSecret: true,
-				BeepType: {
-					type: isResponse ? "BcuVersionResponse" : "BcuVersionRequest",
-					version: 0,
-				},
-			};
-			ServerSend("AccountBeep", message);
 		};
 
 		/** @type {(friendId: number) => IMFriendHistory} */
@@ -7097,8 +7015,8 @@ async function BondageClubEnhancements() {
 					listElement: document.createElement("div"),
 					historyRaw: [],
 					history: document.createElement("div"),
-					handshake: false,
 					unread: 0,
+					online: false,
 				};
 				friendData.listElement.id = `bce-friend-list-entry-${friendId}`;
 				friendData.listElement.classList.add("bce-friend-list-entry");
@@ -7123,19 +7041,32 @@ async function BondageClubEnhancements() {
 				friendList.appendChild(friendData.listElement);
 
 				friendMessages.set(friendId, friendData);
-				setHandshakeStatus(friendId, false);
 			}
 			return friendMessages.get(friendId);
 		};
 
-		/** @type {{ [key: string]: { historyRaw: RawHistory[], historyHTML: string } }} */
+		/** @type {{ [key: string]: { historyRaw: RawHistory[] } }} */
 		// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
 		const history = JSON.parse(localStorage.getItem(storageKey()) || "{}");
 		for (const [friendIdStr, friendHistory] of Object.entries(history)) {
 			const friendId = parseInt(friendIdStr);
 			const friend = handleUnseenFriend(friendId);
 			friend.historyRaw = friendHistory.historyRaw;
-			friend.history.innerHTML = friendHistory.historyHTML;
+			for (const hist of friendHistory.historyRaw) {
+				addMessage(
+					hist.authorId,
+					hist.authorId === Player.MemberNumber,
+					{
+						Message: `${hist.message}\n\n\uf124${JSON.stringify({
+							messageType: hist.type,
+							messageColor: hist.color,
+						})}`,
+						MemberNumber: hist.authorId,
+						MemberName: hist.author,
+					},
+					true
+				);
+			}
 		}
 
 		messageInput.addEventListener("keydown", (e) => {
@@ -7174,15 +7105,12 @@ async function BondageClubEnhancements() {
 					MemberNumber: activeChat,
 					MemberName: Player.FriendNames.get(activeChat) || "aname",
 					IsSecret: true,
-					BeepType: {
-						type: "BcuMessage",
-						message: messageText,
-						version: 0,
+					Message: `${messageText}\n\n\uf124${JSON.stringify({
 						messageType,
 						messageColor: Player.LabelColor,
-					},
+					})}`,
 				};
-				addMessage(activeChat, true, message);
+				addMessage(activeChat, true, message, false);
 				ServerSend("AccountBeep", message);
 			}
 		});
@@ -7216,14 +7144,15 @@ async function BondageClubEnhancements() {
 				if (data.Result && bceSettings.instantMessenger) {
 					for (const friend of data.Result) {
 						const f = handleUnseenFriend(friend.MemberNumber);
-						if (!f.handshake) {
-							sendHandshake(friend.MemberNumber);
-						}
+						f.online = true;
+						f.statusText.textContent = displayText("Online");
 					}
-					for (const fid of friendMessages.keys()) {
-						if (!data.Result.some((f) => f.MemberNumber === fid)) {
-							setHandshakeStatus(fid, false);
-						}
+					for (const friendId of Array.from(friendMessages.keys()).filter(
+						(f) => !data.Result.some((f2) => f2.MemberNumber === f)
+					)) {
+						const f = friendMessages.get(friendId);
+						f.online = false;
+						f.statusText.textContent = displayText("Offline");
 					}
 					if (!data.Result.some((f) => f.MemberNumber === activeChat)) {
 						// Disable input, current user is offline
@@ -7245,26 +7174,10 @@ async function BondageClubEnhancements() {
 				if (
 					beep &&
 					typeof beep === "object" &&
-					beep.BeepType &&
-					typeof beep.BeepType === "object" &&
+					!beep.BeepType &&
 					bceSettings.instantMessenger
 				) {
-					handleUnseenFriend(beep.MemberNumber);
-					switch (beep.BeepType.type) {
-						case "BcuVersionRequest":
-							sendHandshake(beep.MemberNumber, true);
-							break;
-						case "BcuVersionResponse":
-							setHandshakeStatus(beep.MemberNumber, "completed");
-							break;
-						case "BcuMessage":
-							// Add message to history
-							addMessage(beep.MemberNumber, false, beep);
-							break;
-						default:
-							break;
-					}
-					return;
+					addMessage(beep.MemberNumber, false, beep, false);
 				}
 				next(args);
 			}

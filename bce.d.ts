@@ -465,19 +465,12 @@ declare global {
       Modded?: boolean;
     }[];
   };
-  type BcUtilBeepType = {
-    version: 0;
-    type: "BcuVersionRequest" | "BcuVersionResponse" | "BcuMessage";
-    messageType?: "Message" | "Emote" | "Action";
-    message?: string;
-    messageColor?: string;
-  };
   type Beep = {
     Message?: string;
     Private?: boolean;
     Time?: Date;
     IsSecret?: boolean;
-    BeepType?: string | BcUtilBeepType;
+    BeepType?: string;
     MemberNumber: number;
     MemberName?: string;
     ChatRoomName?: string;
