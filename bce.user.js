@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Bondage Club Enhancements
 // @namespace https://www.bondageprojects.com/
-// @version 3.0.0
+// @version 3.0.1
 // @description enhancements for the bondage club
 // @author Sidious
 // @match https://bondageprojects.elementfx.com/*
@@ -38,9 +38,13 @@
  *  along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-const BCE_VERSION = "3.0.0";
+const BCE_VERSION = "3.0.1";
+const settingsVersion = 33;
 
 const bceChangelog = `${BCE_VERSION}
+- fix IM error when history contains links
+
+3.0.0
 - BREAKING CHANGE: instant messenger now uses normal beeps instead of BcUtil-compatible beeps
 	- This means you can now use the instant messenger as a full replacement for beeps with all your friends, whether they use BCE or not
 - updated Chinese translation
@@ -117,6 +121,13 @@ async function BondageClubEnhancements() {
 		TIMER_INPUT_ID = "bce_timerInput",
 		WHISPER_CLASS = "bce-whisper-input";
 
+	const EMBED_TYPE = Object.freeze({
+		/** @type {"img"} */
+		Image: "img",
+		/** @type {""} */
+		None: "",
+	});
+
 	/** @type {"none" | "external" | "stable" | "devel"} */
 	let bcxType = "none";
 
@@ -144,7 +155,6 @@ async function BondageClubEnhancements() {
 		Observe: 0,
 	};
 
-	const settingsVersion = 32;
 	/**
 	 * @type {Settings}
 	 */
@@ -7351,13 +7361,6 @@ async function BondageClubEnhancements() {
 			return false;
 		}
 	}
-
-	const EMBED_TYPE = Object.freeze({
-		/** @type {"img"} */
-		Image: "img",
-		/** @type {""} */
-		None: "",
-	});
 
 	/** @type {(url: URL) => "img" | ""} */
 	function bceAllowedToEmbed(url) {
