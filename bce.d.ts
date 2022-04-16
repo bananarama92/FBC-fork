@@ -18,6 +18,7 @@ declare global {
     original: string,
     replacements?: Record<string, string>
   ) => string;
+  var bceStripBeepMetadata: (text: string) => string;
   var bce_ArousalExpressionStages: ArousalExpressionStages;
   var bce_ActivityTriggers: ActivityTrigger[];
   var ActivityDictionary: string[][];
