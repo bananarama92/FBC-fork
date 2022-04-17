@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Bondage Club Enhancements
 // @namespace https://www.bondageprojects.com/
-// @version 3.0.8
+// @version 3.1.0
 // @description enhancements for the bondage club
 // @author Sidious
 // @match https://bondageprojects.elementfx.com/*
@@ -38,10 +38,13 @@
  *  along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-const BCE_VERSION = "3.0.8";
+const BCE_VERSION = "3.1.0";
 const settingsVersion = 33;
 
 const bceChangelog = `${BCE_VERSION}
+- R79 compatibility
+
+3.0.8
 - fix error in searching IM list, when you have friends whose names you do not know
 - fix IM search not repopulating list when erasing characters
 - sort IM list more often at opportune moments, such as when you click on a friend
@@ -104,7 +107,7 @@ const BCE_BC_MOD_SDK=function(){"use strict";const o="1.0.2";function e(o){alert
 async function BondageClubEnhancements() {
 	"use strict";
 
-	const SUPPORTED_GAME_VERSIONS = ["R78", "R79Beta1", "R79Beta2", "R79Beta3"];
+	const SUPPORTED_GAME_VERSIONS = ["R79"];
 	const CAPABILITIES = ["clubslave"];
 
 	const w = window;
@@ -903,9 +906,9 @@ async function BondageClubEnhancements() {
 			ChatRoomCurrentTime: "A462DD3A",
 			ChatRoomDrawBackground: "898C1B12",
 			ChatRoomDrawCharacterOverlay: "4AE4AD9E",
-			ChatRoomKeyDown: "33C77F12",
+			ChatRoomKeyDown: "B4BFDB0C",
 			ChatRoomListManipulation: "75D28A8B",
-			ChatRoomMessage: "D355B2C4",
+			ChatRoomMessage: "48A4F3CC",
 			ChatRoomResize: "9D52CF52",
 			ChatRoomRun: "07117155",
 			ChatRoomSendChat: "7F540ED0",
@@ -977,7 +980,7 @@ async function BondageClubEnhancements() {
 			ServerOpenFriendList: "25665C3F",
 			ServerSend: "90A61F57",
 			SkillGetWithRatio: "16620445",
-			SpeechGarbleByGagLevel: "A07EE53B",
+			SpeechGarbleByGagLevel: "54C20068",
 			SpeechGetTotalGagLevel: "E8051EA2",
 			StruggleDexterity: "95812A41",
 			StruggleDrawLockpickProgress: "A9C2DBBC",
@@ -997,17 +1000,6 @@ async function BondageClubEnhancements() {
 		};
 
 		switch (gameVersion) {
-			case "R79Beta1":
-				hashes.ChatRoomKeyDown = "B4BFDB0C";
-				hashes.ChatRoomMessage = "98BF868C";
-				hashes.SpeechGarbleByGagLevel = "E5910C69";
-				break;
-			case "R79Beta2":
-			case "R79Beta3":
-				hashes.ChatRoomKeyDown = "B4BFDB0C";
-				hashes.ChatRoomMessage = "48A4F3CC";
-				hashes.SpeechGarbleByGagLevel = "54C20068";
-				break;
 			default:
 				break;
 		}
