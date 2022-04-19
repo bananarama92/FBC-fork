@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Bondage Club Enhancements
 // @namespace https://www.bondageprojects.com/
-// @version 3.1.0
+// @version 3.1.1
 // @description enhancements for the bondage club
 // @author Sidious
 // @match https://bondageprojects.elementfx.com/*
@@ -38,10 +38,13 @@
  *  along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-const BCE_VERSION = "3.1.0";
+const BCE_VERSION = "3.1.1";
 const settingsVersion = 33;
 
 const bceChangelog = `${BCE_VERSION}
+- R79 hotfix compatibility...
+
+3.1.0
 - R79 compatibility
 
 3.0.8
@@ -980,7 +983,7 @@ async function BondageClubEnhancements() {
 			ServerOpenFriendList: "25665C3F",
 			ServerSend: "90A61F57",
 			SkillGetWithRatio: "16620445",
-			SpeechGarbleByGagLevel: "54C20068",
+			SpeechGarbleByGagLevel: "276CFF37",
 			SpeechGetTotalGagLevel: "E8051EA2",
 			StruggleDexterity: "95812A41",
 			StruggleDrawLockpickProgress: "A9C2DBBC",
