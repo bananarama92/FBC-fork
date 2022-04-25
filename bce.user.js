@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Bondage Club Enhancements
 // @namespace https://www.bondageprojects.com/
-// @version 3.1.2
+// @version 3.1.3
 // @description enhancements for the bondage club
 // @author Sidious
 // @match https://bondageprojects.elementfx.com/*
@@ -38,10 +38,13 @@
  *  along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-const BCE_VERSION = "3.1.2";
+const BCE_VERSION = "3.1.3";
 const settingsVersion = 33;
 
 const bceChangelog = `${BCE_VERSION}
+- update discord link to https://discord.gg/SHJMjEh9VH
+
+3.1.2
 - update bcx to 0.8.2
 
 3.1.1
@@ -127,7 +130,7 @@ async function BondageClubEnhancements() {
 
 	w.BCE_VERSION = BCE_VERSION;
 
-	const DISCORD_INVITE_URL = "https://discord.gg/aCCWVzXBUj";
+	const DISCORD_INVITE_URL = "https://discord.gg/SHJMjEh9VH";
 
 	const BCX_DEVEL_SOURCE =
 			"https://jomshir98.github.io/bondage-club-extended/devel/bcx.js",

@@ -1,4 +1,4 @@
-[About](.) | [Mobile](mobile.html) | [Toys](toys.html)
+[About](.) | [Mobile](mobile.html) | [Toys](toys.html) | [Discord](https://discord.gg/SHJMjEh9VH)
 
 # BCE - Bondage Club Enhancements
 
