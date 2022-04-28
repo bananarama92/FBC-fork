@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Bondage Club Enhancements
 // @namespace https://www.bondageprojects.com/
-// @version 3.1.3
+// @version 3.1.4
 // @description enhancements for the bondage club
 // @author Sidious
 // @match https://bondageprojects.elementfx.com/*
@@ -38,10 +38,16 @@
  *  along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-const BCE_VERSION = "3.1.3";
-const settingsVersion = 33;
+const BCE_VERSION = "3.1.4";
+const settingsVersion = 34;
 
 const bceChangelog = `${BCE_VERSION}
+- fixes towards automatic relogin when connection gets rate limited
+- longer handgag
+- option for handgagging
+- don't reset face on login
+
+3.1.3
 - update discord link to https://discord.gg/SHJMjEh9VH
 
 3.1.2
@@ -513,6 +519,14 @@ async function BondageClubEnhancements() {
 			},
 			category: "immersion",
 		},
+		handgag: {
+			label: "Clamping hand over mouth affects speech",
+			value: true,
+			sideEffects: (newValue) => {
+				bceLog("handgag", newValue);
+			},
+			category: "immersion",
+		},
 		checkUpdates: {
 			label: "Check for updates",
 			sideEffects: (newValue) => {
@@ -979,6 +993,8 @@ async function BondageClubEnhancements() {
 			OnlineProfileExit: "53E58C94",
 			OnlineProfileLoad: "04F6A136",
 			OnlineProfileRun: "8388DFE2",
+			RelogRun: "10AF5A60",
+			RelogExit: "2DFB2DAD",
 			ServerAccountBeep: "D93AD698",
 			ServerAppearanceBundle: "94A27A29",
 			ServerAppearanceLoadFromBundle: "76D1CC95",
@@ -2542,32 +2558,6 @@ async function BondageClubEnhancements() {
 				posMaps: {},
 			};
 
-			SDK.hookFunction(
-				"ServerDisconnect",
-				HOOK_PRIORITIES.ModifyBehaviourHigh,
-				/** @type {(args: [unknown, boolean], next: (args: [unknown, boolean]) => void) => void} */
-				(args, next) => {
-					const [, force] = args;
-					args[1] = false;
-					const ret = next(args);
-					if (force) {
-						if (
-							isString(args[0]) &&
-							["ErrorRateLimited", "ErrorDuplicatedLogin"].includes(args[0])
-						) {
-							// Reconnect after 3-6 seconds if rate limited
-							ServerSocket.io.disconnect();
-							setTimeout(() => {
-								ServerSocket.io.connect();
-							}, 3000 + Math.round(Math.random() * 3000));
-						} else {
-							ServerSocket.disconnect();
-						}
-					}
-					return ret;
-				}
-			);
-
 			SDK.hookFunction("LoginRun", HOOK_PRIORITIES.Top, (args, next) => {
 				const ret = next(args);
 				if (Object.keys(loginData.passwords).length > 0) {
@@ -2640,11 +2630,6 @@ async function BondageClubEnhancements() {
 				return;
 			}
 			breakCircuit = true;
-			await waitFor(
-				() => Player.AccountName && ServerIsConnected && !LoginSubmitted
-			);
-			// eslint-disable-next-line require-atomic-updates
-			breakCircuit = false;
 			/** @type {Passwords} */
 			// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
 			let passwords = JSON.parse(
@@ -2657,8 +2642,6 @@ async function BondageClubEnhancements() {
 			if (!passwords[Player.AccountName]) {
 				// eslint-disable-next-line no-alert
 				alert("Automatic reconnect failed!");
-				// eslint-disable-next-line require-atomic-updates
-				breakCircuit = true;
 				return;
 			}
 			LoginSetSubmitted();
@@ -2680,35 +2663,73 @@ async function BondageClubEnhancements() {
 			]);
 		}
 
-		SDK.hookFunction("ServerConnect", HOOK_PRIORITIES.Top, (args, next) => {
-			const ret = next(args);
-			relog();
-			return ret;
-		});
-
-		SDK.hookFunction("ServerDisconnect", HOOK_PRIORITIES.Top, (args, next) => {
-			const [data] = args;
-			if (!breakCircuit && bceSettings.relogin) {
-				if (data === "ErrorDuplicatedLogin") {
-					SDK.callOriginal("ServerAccountBeep", [
-						{
-							MemberNumber: Player.MemberNumber,
-							MemberName: Player.Name,
-							ChatRoomName: displayText("ERROR"),
-							Private: true,
-							Message: displayText(
-								"Signed in from a different location! Refresh the page to re-enable relogin in this tab."
-							),
-							ChatRoomSpace: "",
-						},
-					]);
-					breakCircuit = true;
-				} else {
+		SDK.hookFunction("RelogRun", HOOK_PRIORITIES.Top, (args, next) => {
+			const forbiddenReasons = ["ErrorDuplicatedLogin"];
+			if (!forbiddenReasons.includes(LoginErrorMessage)) {
+				if (
+					Player?.AccountName &&
+					ServerIsConnected &&
+					!LoginSubmitted &&
+					ServerSocket.connected
+				) {
 					relog();
 				}
+			} else if (!breakCircuit) {
+				SDK.callOriginal("ServerAccountBeep", [
+					{
+						MemberNumber: Player.MemberNumber,
+						MemberName: Player.Name,
+						ChatRoomName: displayText("ERROR"),
+						Private: true,
+						Message: displayText(
+							"Signed in from a different location! Refresh the page to re-enable relogin in this tab."
+						),
+						ChatRoomSpace: "",
+					},
+				]);
+				breakCircuit = true;
 			}
 			return next(args);
 		});
+
+		SDK.hookFunction("RelogExit", HOOK_PRIORITIES.Top, (args, next) => {
+			breakCircuit = false;
+			return next(args);
+		});
+
+		SDK.hookFunction(
+			"ServerDisconnect",
+			HOOK_PRIORITIES.ModifyBehaviourHigh,
+			/** @type {(args: [unknown, boolean], next: (args: [unknown, boolean]) => void) => void} */
+			(args, next) => {
+				const [, force] = args;
+				args[1] = false;
+				const ret = next(args);
+				if (force) {
+					bceWarn("Forcefully disconnected", args);
+					if (
+						isString(args[0]) &&
+						["ErrorRateLimited", "ErrorDuplicatedLogin"].includes(args[0])
+					) {
+						// Reconnect after 3-6 seconds if rate limited
+						bceWarn("Reconnecting...");
+						try {
+							ServerSocket.io.disconnect();
+						} catch {
+							// Just force a disconnect if it hasn't already happened
+						}
+						setTimeout(() => {
+							bceWarn("Connecting...");
+							ServerSocket.io.connect();
+						}, 3000 + Math.round(Math.random() * 3000));
+					} else {
+						bceWarn("Disconnected.");
+						ServerSocket.disconnect();
+					}
+				}
+				return ret;
+			}
+		);
 	}
 
 	function bceStyles() {
@@ -3261,6 +3282,9 @@ async function BondageClubEnhancements() {
 						exp.Id = newUniqueId();
 						if (typeof exp.Priority !== "number") {
 							exp.Priority = 1;
+						}
+						if (typeof exp.Duration !== "number") {
+							exp.Duration = event.Duration;
 						}
 					}
 				}
@@ -4483,8 +4507,35 @@ async function BondageClubEnhancements() {
 			},
 		};
 
-		// Reset
-		Player.ArousalSettings.Progress = 0;
+		const faceComponents = [
+			"Eyes",
+			"Eyes2",
+			"Eyebrows",
+			"Mouth",
+			"Fluids",
+			"Emoticon",
+			"Blush",
+		];
+
+		// When first initializing, set the current face as manual override
+		pushEvent({
+			Type: MANUAL_OVERRIDE_EVENT_TYPE,
+			Duration: -1,
+			Expression: faceComponents
+				.map((t) => {
+					const [expr] = expression(t);
+					return [t, expr];
+				})
+				.filter((v) => v[1] !== null)
+				.map((v) => [v[0], [{ Expression: v[1] }]])
+				// eslint-disable-next-line no-inline-comments
+				.reduce((a, v) => ({ ...a, [/** @type {string} */ (v[0])]: v[1] }), {}),
+		});
+
+		let lastOrgasm = 0,
+			orgasmCount = 0,
+			wasDefault = false;
+
 		let PreviousArousal = Player.ArousalSettings;
 
 		const ArousalMeterDirection = {
@@ -4728,23 +4779,9 @@ async function BondageClubEnhancements() {
 			}
 		);
 
-		const faceComponents = [
-			"Eyes",
-			"Eyes2",
-			"Eyebrows",
-			"Mouth",
-			"Fluids",
-			"Emoticon",
-			"Blush",
-		];
-
-		let lastOrgasm = 0,
-			orgasmCount = 0,
-			wasDefault = false;
-
 		// This is called once per interval to check for expression changes
 		// eslint-disable-next-line complexity
-		const CustomArousalExpression = () => {
+		function CustomArousalExpression() {
 			if (!bceAnimationEngineEnabled() || !Player?.AppearanceLayers) {
 				return;
 			}
@@ -5161,7 +5198,7 @@ async function BondageClubEnhancements() {
 			}
 
 			PreviousArousal = { ...Player.ArousalSettings };
-		};
+		}
 
 		createTimer(CustomArousalExpression, 250);
 	}
@@ -7973,7 +8010,7 @@ async function BondageClubEnhancements() {
 							clamped: 0,
 						};
 					}
-					s.clamped = Date.now() + 15000;
+					s.clamped = Date.now() + 45000;
 					characterStates.set(targetMemberNumber, s);
 				}
 			}
@@ -7985,7 +8022,10 @@ async function BondageClubEnhancements() {
 			/** @type {(args: [Character, boolean], next: (args: [Character, boolean]) => number) => number} */
 			(args, next) => {
 				let level = next(args);
-				if (characterStates.get(args[0].MemberNumber)?.clamped > Date.now()) {
+				if (
+					bceSettings.handgag &&
+					characterStates.get(args[0].MemberNumber)?.clamped > Date.now()
+				) {
 					level += 2;
 				}
 				return level;
@@ -8629,6 +8669,7 @@ async function BondageClubEnhancements() {
 				e.preventDefault();
 				// The connection is closed, this call gets you relogin immediately
 				ServerSocket.io.disconnect();
+				CommonSetScreen("Character", "Relog");
 				ServerSocket.io.connect();
 				return (e.returnValue = "Are you sure you want to leave the club?");
 			}

@@ -36,6 +36,7 @@ declare global {
   var ServerSend: (event: string, data: unknown) => void;
   var GameVersion: string;
   var GLVersion: string;
+  var LoginErrorMessage: string;
   var StruggleProgress: number;
   var StruggleProgressCurrentMinigame: "Strength" | "Flexibility" | "Dexterity";
   var StruggleProgressDexTarget: number;
@@ -636,6 +637,7 @@ declare global {
     ) => void;
     disconnect: () => void;
     io: { connect: () => void; disconnect: () => void };
+    connected: boolean;
   };
   type Command = {
     Tag: string;
