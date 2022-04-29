@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Bondage Club Enhancements
 // @namespace https://www.bondageprojects.com/
-// @version 3.1.4
+// @version 3.1.5
 // @description enhancements for the bondage club
 // @author Sidious
 // @match https://bondageprojects.elementfx.com/*
@@ -38,10 +38,13 @@
  *  along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-const BCE_VERSION = "3.1.4";
+const BCE_VERSION = "3.1.5";
 const settingsVersion = 34;
 
 const bceChangelog = `${BCE_VERSION}
+- dynamically position IM button (further out of the way in main chatroom view)
+
+3.1.4
 - fixes towards automatic relogin when connection gets rate limited
 - longer handgag
 - option for handgagging
@@ -7346,6 +7349,20 @@ async function BondageClubEnhancements() {
 			}
 		);
 
+		/**
+		 * Get the position of the IM button dynamically based on current screen properties
+		 * @type {() => [number, number, number, number]}
+		 */
+		function buttonPosition() {
+			if (
+				CurrentScreen === "ChatRoom" &&
+				document.getElementById("TextAreaChatLog")?.offsetParent !== null
+			) {
+				return [5, 905, 60, 60];
+			}
+			return [70, 905, 60, 60];
+		}
+
 		SDK.hookFunction(
 			"DrawProcess",
 			HOOK_PRIORITIES.AddBehaviour,
@@ -7354,10 +7371,7 @@ async function BondageClubEnhancements() {
 				next(args);
 				if (bceSettings.instantMessenger) {
 					DrawButton(
-						70,
-						905,
-						60,
-						60,
+						...buttonPosition(),
 						"",
 						unreadSinceOpened ? "Red" : "White",
 						"Icons/Small/Chat.png",
@@ -7373,7 +7387,7 @@ async function BondageClubEnhancements() {
 			HOOK_PRIORITIES.OverrideBehaviour,
 			/** @type {(args: (MouseEvent | TouchEvent)[], next: (args: (MouseEvent | TouchEvent)[]) => void) => void} */
 			(args, next) => {
-				if (bceSettings.instantMessenger && MouseIn(70, 905, 60, 60)) {
+				if (bceSettings.instantMessenger && MouseIn(...buttonPosition())) {
 					sortIM();
 					container.classList.toggle("bce-hidden");
 					ServerSend("AccountQuery", { Query: "OnlineFriends" });
