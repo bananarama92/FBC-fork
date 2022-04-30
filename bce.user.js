@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Bondage Club Enhancements
 // @namespace https://www.bondageprojects.com/
-// @version 3.1.5
+// @version 3.1.6
 // @description enhancements for the bondage club
 // @author Sidious
 // @match https://bondageprojects.elementfx.com/*
@@ -38,10 +38,13 @@
  *  along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-const BCE_VERSION = "3.1.5";
+const BCE_VERSION = "3.1.6";
 const settingsVersion = 34;
 
 const bceChangelog = `${BCE_VERSION}
+- more fixes towards automatic relogin when connection gets rate limited
+
+3.1.5
 - dynamically position IM button (further out of the way in main chatroom view)
 
 3.1.4
@@ -211,9 +214,9 @@ async function BondageClubEnhancements() {
 	let bceSettings = {};
 
 	/**
-	 * @type {DefaultSettings}
+	 * @type {Readonly<DefaultSettings>}
 	 */
-	const defaultSettings = Object.freeze({
+	const defaultSettings = {
 		expressions: {
 			label: "Automatic Arousal Expressions (Replaces Vanilla)",
 			sideEffects: (newValue) => {
@@ -688,7 +691,32 @@ async function BondageClubEnhancements() {
 			},
 			category: "hidden",
 		},
-	});
+	};
+
+	/** @type {SocketEventListenerRegister} */
+	const listeners = [];
+	/** @type {(event: ServerSocketEvent, cb: SocketEventListener) => void} */
+	function registerSocketListener(event, cb) {
+		if (!listeners.some((l) => l[1] === cb)) {
+			listeners.push([event, cb]);
+			// eslint-disable-next-line @typescript-eslint/no-misused-promises
+			ServerSocket.on(event, cb);
+		}
+	}
+
+	function appendSocketListenersToInit() {
+		SDK.hookFunction(
+			"ServerInit",
+			HOOK_PRIORITIES.AddBehaviour,
+			(args, next) => {
+				const ret = next(args);
+				for (const [event, cb] of listeners) {
+					ServerSocket.on(event, cb);
+				}
+				return ret;
+			}
+		);
+	}
 
 	function settingsLoaded() {
 		return Object.keys(bceSettings).length > 0;
@@ -1231,6 +1259,7 @@ async function BondageClubEnhancements() {
 	hiddenMessageHandler();
 	await bceLoadSettings();
 	postSettings();
+	appendSocketListenersToInit();
 	bceLog(bceSettings);
 	discreetMode();
 	commonPatches();
@@ -2710,24 +2739,19 @@ async function BondageClubEnhancements() {
 				const ret = next(args);
 				if (force) {
 					bceWarn("Forcefully disconnected", args);
+					ServerSocket.disconnect();
 					if (
 						isString(args[0]) &&
 						["ErrorRateLimited", "ErrorDuplicatedLogin"].includes(args[0])
 					) {
 						// Reconnect after 3-6 seconds if rate limited
 						bceWarn("Reconnecting...");
-						try {
-							ServerSocket.io.disconnect();
-						} catch {
-							// Just force a disconnect if it hasn't already happened
-						}
 						setTimeout(() => {
 							bceWarn("Connecting...");
-							ServerSocket.io.connect();
+							ServerInit();
 						}, 3000 + Math.round(Math.random() * 3000));
 					} else {
 						bceWarn("Disconnected.");
-						ServerSocket.disconnect();
 					}
 				}
 				return ret;
@@ -4409,7 +4433,7 @@ async function BondageClubEnhancements() {
 			];
 		}
 
-		ServerSocket.on(
+		registerSocketListener(
 			"ChatRoomMessage",
 			(
 				/** @type {ChatMessage} */
@@ -4746,7 +4770,7 @@ async function BondageClubEnhancements() {
 			}
 		);
 
-		ServerSocket.on(
+		registerSocketListener(
 			"ChatRoomSyncPose",
 			(
 				/** @type {{ MemberNumber: number; Character?: Character; Pose: string | string[]; }} */
@@ -4764,7 +4788,7 @@ async function BondageClubEnhancements() {
 			}
 		);
 
-		ServerSocket.on(
+		registerSocketListener(
 			"ChatRoomSyncSingle",
 			(
 				/** @type {ChatRoomSyncSingleEvent} */
@@ -5739,7 +5763,7 @@ async function BondageClubEnhancements() {
 	async function hiddenMessageHandler() {
 		await waitFor(() => ServerSocket && ServerIsConnected);
 
-		ServerSocket.on(
+		registerSocketListener(
 			"ChatRoomMessage",
 			// eslint-disable-next-line complexity
 			(
@@ -5802,7 +5826,7 @@ async function BondageClubEnhancements() {
 			}
 		);
 
-		ServerSocket.on(
+		registerSocketListener(
 			"ChatRoomSyncMemberJoin",
 			(
 				/** @type {ChatRoomSyncMemberJoinEvent} */
@@ -5814,7 +5838,7 @@ async function BondageClubEnhancements() {
 			}
 		);
 
-		ServerSocket.on("ChatRoomSync", () => {
+		registerSocketListener("ChatRoomSync", () => {
 			sendHello();
 		});
 	}
@@ -6271,7 +6295,7 @@ async function BondageClubEnhancements() {
 		let lastSync = 0;
 		const enjoymentMultiplier = 0.2;
 
-		ServerSocket.on(
+		registerSocketListener(
 			"ChatRoomSyncArousal",
 			(
 				/** @type {{ MemberNumber: number; Progress: number; }} */
@@ -6505,7 +6529,7 @@ async function BondageClubEnhancements() {
 
 	async function autoGhostBroadcast() {
 		await waitFor(() => !!ServerSocket && ServerIsConnected);
-		ServerSocket.on(
+		registerSocketListener(
 			"ChatRoomSyncMemberJoin",
 			(
 				/** @type {ChatRoomSyncMemberJoinEvent} */
@@ -6607,7 +6631,7 @@ async function BondageClubEnhancements() {
 
 		/** @type {Friend[]} */
 		let lastFriends = [];
-		ServerSocket.on(
+		registerSocketListener(
 			"AccountQueryResult",
 			(
 				/** @type {{ Query: string; Result: Friend[] }} */
@@ -6688,7 +6712,7 @@ async function BondageClubEnhancements() {
 	async function logCharacterUpdates() {
 		await waitFor(() => ServerSocket && ServerIsConnected);
 
-		ServerSocket.on(
+		registerSocketListener(
 			"ChatRoomSyncSingle",
 			(
 				/** @type {ChatRoomSyncSingleEvent} */
@@ -6701,7 +6725,7 @@ async function BondageClubEnhancements() {
 			}
 		);
 
-		ServerSocket.on(
+		registerSocketListener(
 			"ChatRoomSyncItem",
 			(
 				/** @type {ChatRoomSyncItemEvent} */
@@ -7253,7 +7277,7 @@ async function BondageClubEnhancements() {
 			sortIM();
 		};
 
-		ServerSocket.on(
+		registerSocketListener(
 			"AccountQueryResult",
 			(
 				/** @type {{ Query: string; Result: Friend[] }} */
@@ -8003,7 +8027,7 @@ async function BondageClubEnhancements() {
 	}
 
 	function clampGag() {
-		ServerSocket.on(
+		registerSocketListener(
 			"ChatRoomMessage",
 			(
 				/** @type {ChatMessage} */
@@ -8319,7 +8343,7 @@ async function BondageClubEnhancements() {
 			}
 		}
 
-		ServerSocket.on(
+		registerSocketListener(
 			"ChatRoomSync",
 			(
 				/** @type {ChatRoomSyncEvent} */
@@ -8334,7 +8358,7 @@ async function BondageClubEnhancements() {
 			}
 		);
 
-		ServerSocket.on(
+		registerSocketListener(
 			"ChatRoomSyncSingle",
 			(
 				/** @type {ChatRoomSyncSingleEvent} */
