@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Bondage Club Enhancements
 // @namespace https://www.bondageprojects.com/
-// @version 3.1.6
+// @version 3.1.7
 // @description enhancements for the bondage club
 // @author Sidious
 // @match https://bondageprojects.elementfx.com/*
@@ -38,10 +38,14 @@
  *  along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-const BCE_VERSION = "3.1.6";
+const BCE_VERSION = "3.1.7";
 const settingsVersion = 34;
 
 const bceChangelog = `${BCE_VERSION}
+- fix automatic relogin when connection gets reset multiple times
+- fix struggling causing rate limiting errors
+
+3.1.6
 - more fixes towards automatic relogin when connection gets rate limited
 
 3.1.5
@@ -2658,7 +2662,14 @@ async function BondageClubEnhancements() {
 		let breakCircuit = false;
 
 		async function relog() {
-			if (breakCircuit || !bceSettings.relogin) {
+			if (
+				!Player?.AccountName ||
+				!ServerIsConnected ||
+				LoginSubmitted ||
+				!ServerSocket.connected ||
+				breakCircuit ||
+				!bceSettings.relogin
+			) {
 				return;
 			}
 			breakCircuit = true;
@@ -2672,8 +2683,7 @@ async function BondageClubEnhancements() {
 				passwords = {};
 			}
 			if (!passwords[Player.AccountName]) {
-				// eslint-disable-next-line no-alert
-				alert("Automatic reconnect failed!");
+				bceWarn("No saved credentials for account", Player.AccountName);
 				return;
 			}
 			LoginSetSubmitted();
@@ -2681,7 +2691,14 @@ async function BondageClubEnhancements() {
 				AccountName: Player.AccountName,
 				Password: passwords[Player.AccountName],
 			});
-			await waitFor(() => CurrentScreen !== "Relog");
+			if (
+				!(await waitFor(
+					() => CurrentScreen !== "Relog",
+					() => !breakCircuit
+				))
+			) {
+				bceWarn("Relogin failed, circuit was restored");
+			}
 			await sleep(500);
 			SDK.callOriginal("ServerAccountBeep", [
 				{
@@ -2698,14 +2715,7 @@ async function BondageClubEnhancements() {
 		SDK.hookFunction("RelogRun", HOOK_PRIORITIES.Top, (args, next) => {
 			const forbiddenReasons = ["ErrorDuplicatedLogin"];
 			if (!forbiddenReasons.includes(LoginErrorMessage)) {
-				if (
-					Player?.AccountName &&
-					ServerIsConnected &&
-					!LoginSubmitted &&
-					ServerSocket.connected
-				) {
-					relog();
-				}
+				relog();
 			} else if (!breakCircuit) {
 				SDK.callOriginal("ServerAccountBeep", [
 					{
@@ -2727,6 +2737,10 @@ async function BondageClubEnhancements() {
 		SDK.hookFunction("RelogExit", HOOK_PRIORITIES.Top, (args, next) => {
 			breakCircuit = false;
 			return next(args);
+		});
+
+		registerSocketListener("connect", () => {
+			breakCircuit = false;
 		});
 
 		SDK.hookFunction(
@@ -3165,12 +3179,12 @@ async function BondageClubEnhancements() {
 		patchFunction(
 			"StruggleStrength",
 			{
-				'CharacterSetFacialExpression(Player, "Blush", "Low");':
-					'CharacterSetFacialExpression(Player, "Blush", "Low", 10);',
-				'CharacterSetFacialExpression(Player, "Blush", "Medium");':
-					'CharacterSetFacialExpression(Player, "Blush", "Medium", 10);',
-				'CharacterSetFacialExpression(Player, "Blush", "High");':
-					'CharacterSetFacialExpression(Player, "Blush", "High", 10);',
+				'if (StruggleProgressStruggleCount == 15) CharacterSetFacialExpression(Player, "Blush", "Low");':
+					'if (StruggleProgressStruggleCount >= 125) CharacterSetFacialExpression(Player, "Blush", "High", 10);',
+				'if (StruggleProgressStruggleCount == 50) CharacterSetFacialExpression(Player, "Blush", "Medium");':
+					'else if (StruggleProgressStruggleCount >= 50) CharacterSetFacialExpression(Player, "Blush", "Medium", 10);',
+				'if (StruggleProgressStruggleCount == 125) CharacterSetFacialExpression(Player, "Blush", "High");':
+					'else if (StruggleProgressStruggleCount >= 15) CharacterSetFacialExpression(Player, "Blush", "Low", 10);',
 				'CharacterSetFacialExpression(Player, "Fluids", "DroolMessy");':
 					'CharacterSetFacialExpression(Player, "Fluids", "DroolMessy", 10);',
 				'CharacterSetFacialExpression(Player, "Eyebrows", (StruggleProgress >= 50) ? "Angry" : null);':
@@ -3183,12 +3197,12 @@ async function BondageClubEnhancements() {
 		patchFunction(
 			"StruggleFlexibility",
 			{
-				'CharacterSetFacialExpression(Player, "Blush", "Low");':
-					'CharacterSetFacialExpression(Player, "Blush", "Low", 10);',
-				'CharacterSetFacialExpression(Player, "Blush", "Medium");':
-					'CharacterSetFacialExpression(Player, "Blush", "Medium", 10);',
-				'CharacterSetFacialExpression(Player, "Blush", "High");':
-					'CharacterSetFacialExpression(Player, "Blush", "High", 10);',
+				'if (StruggleProgressStruggleCount == 15) CharacterSetFacialExpression(Player, "Blush", "Low");':
+					'if (StruggleProgressStruggleCount >= 125) CharacterSetFacialExpression(Player, "Blush", "High", 10);',
+				'if (StruggleProgressStruggleCount == 50) CharacterSetFacialExpression(Player, "Blush", "Medium");':
+					'else if (StruggleProgressStruggleCount >= 50) CharacterSetFacialExpression(Player, "Blush", "Medium", 10);',
+				'if (StruggleProgressStruggleCount == 125) CharacterSetFacialExpression(Player, "Blush", "High");':
+					'else if (StruggleProgressStruggleCount >= 15) CharacterSetFacialExpression(Player, "Blush", "Low", 10);',
 				'CharacterSetFacialExpression(Player, "Eyes2", "Closed");':
 					'CharacterSetFacialExpression(Player, "Eyes2", "Closed", 10);',
 				'CharacterSetFacialExpression(Player, "Eyebrows", (StruggleProgress >= 50) ? "Angry" : null);':
@@ -3201,12 +3215,12 @@ async function BondageClubEnhancements() {
 		patchFunction(
 			"StruggleDexterity",
 			{
-				'CharacterSetFacialExpression(Player, "Blush", "Low");':
-					'CharacterSetFacialExpression(Player, "Blush", "Low", 10);',
-				'CharacterSetFacialExpression(Player, "Blush", "Medium");':
-					'CharacterSetFacialExpression(Player, "Blush", "Medium", 10);',
-				'CharacterSetFacialExpression(Player, "Blush", "High");':
-					'CharacterSetFacialExpression(Player, "Blush", "High", 10);',
+				'if (StruggleProgressStruggleCount == 15) CharacterSetFacialExpression(Player, "Blush", "Low");':
+					'if (StruggleProgressStruggleCount >= 125) CharacterSetFacialExpression(Player, "Blush", "High", 10);',
+				'if (StruggleProgressStruggleCount == 50) CharacterSetFacialExpression(Player, "Blush", "Medium");':
+					'else if (StruggleProgressStruggleCount >= 50) CharacterSetFacialExpression(Player, "Blush", "Medium", 10);',
+				'if (StruggleProgressStruggleCount == 125) CharacterSetFacialExpression(Player, "Blush", "High");':
+					'else if (StruggleProgressStruggleCount >= 15) CharacterSetFacialExpression(Player, "Blush", "Low", 10);',
 				'CharacterSetFacialExpression(Player, "Eyes", "Dazed");':
 					'CharacterSetFacialExpression(Player, "Eyes", "Dazed", 10);',
 				'CharacterSetFacialExpression(Player, "Eyebrows", (StruggleProgress >= 50) ? "Angry" : null);':
