@@ -672,6 +672,7 @@ declare global {
     Tag?: string;
     message?: BCEMessage;
     MemberNumber?: number;
+    Text?: string;
   };
   type ChatMessageBase = {
     Type: string;
@@ -682,6 +683,7 @@ declare global {
   type ChatMessage = ChatMessageBase & {
     Dictionary: ChatMessageDictionary[];
   };
+  /** @deprecated */
   type BCEChatMessage = ChatMessageBase & {
     Dictionary: { message: BCEMessage };
   };

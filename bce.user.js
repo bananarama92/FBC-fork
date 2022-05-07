@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Bondage Club Enhancements
 // @namespace https://www.bondageprojects.com/
-// @version 3.1.7
+// @version 3.2.0
 // @description enhancements for the bondage club
 // @author Sidious
 // @match https://bondageprojects.elementfx.com/*
@@ -38,70 +38,17 @@
  *  along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-const BCE_VERSION = "3.1.7";
-const settingsVersion = 34;
+const BCE_VERSION = "3.2.0";
+const settingsVersion = 35;
 
 const bceChangelog = `${BCE_VERSION}
-- fix automatic relogin when connection gets reset multiple times
-- fix struggling causing rate limiting errors
+- render pending messages in chat
+- fix duplicate login looping
 
-3.1.6
-- more fixes towards automatic relogin when connection gets rate limited
-
-3.1.5
-- dynamically position IM button (further out of the way in main chatroom view)
-
-3.1.4
-- fixes towards automatic relogin when connection gets rate limited
-- longer handgag
-- option for handgagging
-- don't reset face on login
-
-3.1.3
-- update discord link to https://discord.gg/SHJMjEh9VH
-
-3.1.2
-- update bcx to 0.8.2
-
-3.1.1
-- R79 hotfix compatibility...
-
-3.1.0
+3.1
 - R79 compatibility
 
-3.0.8
-- fix error in searching IM list, when you have friends whose names you do not know
-- fix IM search not repopulating list when erasing characters
-- sort IM list more often at opportune moments, such as when you click on a friend
-- IM metadata no longer shown in popup notifications
-
-3.0.7
-- sort IMs by recent activity
-- fix timestamps on IMs after reloading page
-
-3.0.6
-- hide beeps without messages in IM
-
-3.0.5
-- R79Beta3 compatibility
-
-3.0.4
-- fix error logs caused by an interaction between IM and BCX's version beeps
-
-3.0.3
-- show sent normal beeps in IM
-- fix settings label (not BcUtil compatible anymore since 3.0)
-
-3.0.2
-- sort IM list by availability when opening IM
-- style offline contacts less prominently
-- remove offline contacts without history from the list
-- fix loading history
-
-3.0.1
-- fix IM error when history contains links
-
-3.0.0
+3.0
 - BREAKING CHANGE: instant messenger now uses normal beeps instead of BcUtil-compatible beeps
 	- This means you can now use the instant messenger as a full replacement for beeps with all your friends, whether they use BCE or not
 - updated Chinese translation
@@ -401,6 +348,14 @@ async function BondageClubEnhancements() {
 			value: false,
 			sideEffects: (newValue) => {
 				bceLog("pastProfiles", newValue);
+			},
+			category: "chat",
+		},
+		pendingMessages: {
+			label: "Show sent messages while waiting for server",
+			value: true,
+			sideEffects: (newValue) => {
+				bceLog("showSentMessages", newValue);
 			},
 			category: "chat",
 		},
@@ -1295,6 +1250,7 @@ async function BondageClubEnhancements() {
 	clampGag();
 	toySync();
 	pastProfiles();
+	pendingMessages();
 
 	await bcxLoad;
 
@@ -2660,6 +2616,7 @@ async function BondageClubEnhancements() {
 		loginCheck();
 
 		let breakCircuit = false;
+		let breakCircuitFull = false;
 
 		async function relog() {
 			if (
@@ -2668,6 +2625,7 @@ async function BondageClubEnhancements() {
 				LoginSubmitted ||
 				!ServerSocket.connected ||
 				breakCircuit ||
+				breakCircuitFull ||
 				!bceSettings.relogin
 			) {
 				return;
@@ -2730,12 +2688,14 @@ async function BondageClubEnhancements() {
 					},
 				]);
 				breakCircuit = true;
+				breakCircuitFull = true;
 			}
 			return next(args);
 		});
 
 		SDK.hookFunction("RelogExit", HOOK_PRIORITIES.Top, (args, next) => {
 			breakCircuit = false;
+			breakCircuitFull = false;
 			return next(args);
 		});
 
@@ -2980,6 +2940,66 @@ async function BondageClubEnhancements() {
 		.bce-profile-open {
 			margin-right: 0.5em;
 		}
+		.bce-pending {
+			opacity: 0.4;
+		}
+
+		.lds-ellipsis {
+			display: inline-block;
+			position: relative;
+			width: 80px;
+			height: 1em;
+		}
+		.lds-ellipsis div {
+			position: absolute;
+			top: 44%;
+			width: 13px;
+			height: 13px;
+			border-radius: 50%;
+			background: #fff;
+			animation-timing-function: cubic-bezier(0, 1, 1, 0);
+		}
+		.lds-ellipsis div:nth-child(1) {
+			left: 8px;
+			animation: lds-ellipsis1 0.6s infinite;
+		}
+		.lds-ellipsis div:nth-child(2) {
+			left: 8px;
+			animation: lds-ellipsis2 0.6s infinite;
+		}
+		.lds-ellipsis div:nth-child(3) {
+			left: 32px;
+			animation: lds-ellipsis2 0.6s infinite;
+		}
+		.lds-ellipsis div:nth-child(4) {
+			left: 56px;
+			animation: lds-ellipsis3 0.6s infinite;
+		}
+		@keyframes lds-ellipsis1 {
+			0% {
+				transform: scale(0);
+			}
+			100% {
+				transform: scale(1);
+			}
+		}
+		@keyframes lds-ellipsis3 {
+			0% {
+				transform: scale(1);
+			}
+			100% {
+				transform: scale(0);
+			}
+		}
+		@keyframes lds-ellipsis2 {
+			0% {
+				transform: translate(0, 0);
+			}
+			100% {
+				transform: translate(24px, 0);
+			}
+		}
+
 		`;
 		const head = document.head || document.getElementsByTagName("head")[0];
 		const style = document.createElement("style");
@@ -5749,21 +5769,23 @@ async function BondageClubEnhancements() {
 
 	/** @type {(target: number, requestReply?: boolean) => void} */
 	function sendHello(target = null, requestReply = false) {
-		/** @type {BCEChatMessage} */
+		/** @type {ChatMessage} */
 		const message = {
 			Type: HIDDEN,
 			Content: BCE_MSG,
 			Sender: Player.MemberNumber,
-			Dictionary: {
-				message: {
-					type: MESSAGE_TYPES.Hello,
-					version: BCE_VERSION,
-					alternateArousal: !!bceSettings.alternateArousal,
-					replyRequested: requestReply,
-					capabilities: CAPABILITIES,
-					nick: Player.BCEOriginalName ? Player.Name : null,
+			Dictionary: [
+				{
+					message: {
+						type: MESSAGE_TYPES.Hello,
+						version: BCE_VERSION,
+						alternateArousal: !!bceSettings.alternateArousal,
+						replyRequested: requestReply,
+						capabilities: CAPABILITIES,
+						nick: Player.BCEOriginalName ? Player.Name : null,
+					},
 				},
-			},
+			],
 		};
 		if (target) {
 			message.Target = target;
@@ -5781,7 +5803,7 @@ async function BondageClubEnhancements() {
 			"ChatRoomMessage",
 			// eslint-disable-next-line complexity
 			(
-				/** @type {BCEChatMessage} */
+				/** @type {ChatMessage | BCEChatMessage} */
 				data
 			) => {
 				if (data.Type !== HIDDEN) {
@@ -5792,7 +5814,17 @@ async function BondageClubEnhancements() {
 					if (!sender) {
 						return;
 					}
-					const { message } = data.Dictionary;
+					/** @type {BCEMessage} */
+					let message = {
+						type: null,
+						version: null,
+					};
+					if (Array.isArray(data.Dictionary)) {
+						message =
+							data.Dictionary?.find((t) => t.message)?.message || message;
+					} else {
+						message = data.Dictionary?.message || message;
+					}
 					switch (message.type) {
 						case MESSAGE_TYPES.Hello:
 							sender.BCE = message.version;
@@ -6306,7 +6338,6 @@ async function BondageClubEnhancements() {
 			Player.ArousalSettings.Progress
 		);
 		Player.BCEEnjoyment = 1;
-		let lastSync = 0;
 		const enjoymentMultiplier = 0.2;
 
 		registerSocketListener(
@@ -6442,12 +6473,7 @@ async function BondageClubEnhancements() {
 					if (C.BCEArousal) {
 						C.ArousalSettings.Progress = Math.round(C.BCEArousalProgress);
 						args[1] = 0;
-						const ret = next(args);
-						if (C.IsPlayer() && Date.now() - lastSync > 2100) {
-							lastSync = Date.now();
-							ActivityChatRoomArousalSync(C);
-						}
-						return ret;
+						return next(args);
 					}
 				}
 				return next(args);
@@ -8587,6 +8613,115 @@ async function BondageClubEnhancements() {
 				bceWarn("Profile storage may not be persistent.");
 			}
 		}
+	}
+
+	function pendingMessages() {
+		/** @type {(dictionary: Record<string, unknown>[], key: string, value: unknown) => Record<string, unknown>[]} */
+		function addToDictionary(dictionary, key, value) {
+			if (!Array.isArray(dictionary)) {
+				dictionary = [];
+			}
+			dictionary.push({ Tag: key, Text: value });
+			return dictionary;
+		}
+
+		let nonce = 0;
+
+		SDK.hookFunction(
+			"ChatRoomMessage",
+			HOOK_PRIORITIES.Observe,
+			(args, next) => {
+				const ret = next(args);
+				if (
+					bceSettings.pendingMessages &&
+					args?.length &&
+					isChatMessage(args[0]) &&
+					Array.isArray(args[0].Dictionary)
+				) {
+					const [message] = args;
+					const tag = message.Dictionary?.find?.((d) => d.Tag === "nonce");
+					if (tag) {
+						const el = document.querySelector(`[data-nonce='${tag.Text}']`);
+						if (el) {
+							el.remove();
+						}
+					}
+				}
+				return ret;
+			}
+		);
+
+		SDK.hookFunction(
+			"ServerSend",
+			HOOK_PRIORITIES.AddBehaviour,
+			(args, next) => {
+				if (
+					bceSettings.pendingMessages &&
+					args?.length >= 2 &&
+					args[0] === "ChatRoomChat" &&
+					isChatMessage(args[1]) &&
+					args[1].Type !== HIDDEN
+				) {
+					nonce++;
+					if (nonce >= Number.MAX_SAFE_INTEGER) {
+						nonce = 0;
+					}
+					args[1].Dictionary = addToDictionary(
+						args[1].Dictionary,
+						"nonce",
+						nonce
+					);
+					const div = document.createElement("div");
+					div.classList.add("ChatMessage", "bce-pending");
+					div.setAttribute("data-time", ChatRoomCurrentTime());
+					div.setAttribute("data-sender", Player.MemberNumber.toString());
+					div.setAttribute("data-nonce", nonce.toString());
+					switch (args[1].Type) {
+						case "Chat":
+							{
+								div.classList.add("ChatMessageChat");
+								const name = document.createElement("span");
+								name.classList.add("ChatMessageName");
+								name.style.color = Player.LabelColor || null;
+								name.textContent = Player.Name;
+								div.appendChild(name);
+								div.appendChild(
+									document.createTextNode(`: ${args[1].Content}`)
+								);
+							}
+							break;
+						case "Emote":
+						case "Action":
+							div.classList.add("ChatMessageEmote");
+							div.appendChild(
+								document.createTextNode(
+									`*${args[1].Type === "Emote" ? `${Player.Name}: ` : ""}${
+										args[1].Content
+									}*`
+								)
+							);
+							break;
+						default:
+							return next(args);
+					}
+					const loader = document.createElement("div");
+					loader.classList.add("lds-ellipsis");
+					for (let i = 0; i < 4; i++) {
+						const dot = document.createElement("div");
+						loader.appendChild(dot);
+					}
+					div.appendChild(loader);
+					const scroll = ElementIsScrolledToEnd("TextAreaChatLog");
+					if (document.getElementById("TextAreaChatLog")) {
+						document.getElementById("TextAreaChatLog").appendChild(div);
+						if (scroll) {
+							ElementScrollToEnd("TextAreaChatLog");
+						}
+					}
+				}
+				return next(args);
+			}
+		);
 	}
 
 	(function () {
