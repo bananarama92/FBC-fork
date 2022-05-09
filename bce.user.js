@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Bondage Club Enhancements
 // @namespace https://www.bondageprojects.com/
-// @version 3.2.1
+// @version 3.2.2
 // @description enhancements for the bondage club
 // @author Sidious
 // @match https://bondageprojects.elementfx.com/*
@@ -38,10 +38,13 @@
  *  along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-const BCE_VERSION = "3.2.1";
+const BCE_VERSION = "3.2.2";
 const settingsVersion = 35;
 
 const bceChangelog = `${BCE_VERSION}
+- add digits 0-9 to allowed nickname characters
+
+3.2.1
 - R80Beta1 compatibilty
 
 3.2.0
@@ -8793,7 +8796,7 @@ async function BondageClubEnhancements() {
 			return "";
 		}
 		return s
-			.replace(/[^\p{L}\p{Z}'-]/gu, "")
+			.replace(/[^\p{L}0-9\p{Z}'-]/gu, "")
 			.replace(/[\n\r\p{Z}]/gu, " ")
 			.trim();
 	}
