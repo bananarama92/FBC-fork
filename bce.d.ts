@@ -423,6 +423,7 @@ declare global {
     AudioSettings: { PlayBeeps?: boolean };
     MemberNumber: number;
     Name: string;
+    Nickname?: string;
     AccountName: string;
     Creation: number;
     Appearance: Item[];

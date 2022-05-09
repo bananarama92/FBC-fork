@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Bondage Club Enhancements
 // @namespace https://www.bondageprojects.com/
-// @version 3.2.0
+// @version 3.2.1
 // @description enhancements for the bondage club
 // @author Sidious
 // @match https://bondageprojects.elementfx.com/*
@@ -38,10 +38,13 @@
  *  along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-const BCE_VERSION = "3.2.0";
+const BCE_VERSION = "3.2.1";
 const settingsVersion = 35;
 
 const bceChangelog = `${BCE_VERSION}
+- R80Beta1 compatibilty
+
+3.2.0
 - render pending messages in chat
 - fix duplicate login looping
 
@@ -79,7 +82,7 @@ const BCE_BC_MOD_SDK=function(){"use strict";const o="1.0.2";function e(o){alert
 async function BondageClubEnhancements() {
 	"use strict";
 
-	const SUPPORTED_GAME_VERSIONS = ["R79"];
+	const SUPPORTED_GAME_VERSIONS = ["R79", "R80Beta1"];
 	const CAPABILITIES = ["clubslave"];
 
 	const w = window;
@@ -1015,6 +1018,19 @@ async function BondageClubEnhancements() {
 		};
 
 		switch (gameVersion) {
+			case "R80Beta1":
+				hashes.CharacterBuildDialog = "3CC4F4AA";
+				hashes.ChatRoomDrawBackground = "597B062C";
+				hashes.ChatRoomMessage = "F9414B8C";
+				hashes.ChatRoomRun = "861854FF";
+				hashes.CommandParse = "CEA28651";
+				hashes.DrawProcess = "4B2BE17E";
+				hashes.ElementValue = "62C4242F";
+				hashes.InformationSheetRun = "FAE6ED88";
+				hashes.SpeechGarbleByGagLevel = "D29A6759";
+				hashes.StruggleDrawLockpickProgress = "0C83B6D4";
+				hashes.TimerInventoryRemove = "83E7C8E9";
+				break;
 			default:
 				break;
 		}
@@ -3019,16 +3035,29 @@ async function BondageClubEnhancements() {
 		);
 
 		// CommandParse patch for link OOC in whispers
-		patchFunction(
-			"CommandParse",
-			{
-				"// Regular chat":
-					"// Regular chat\nmsg = bceMessageReplacements(msg);",
-				"// The whispers get sent to the server and shown on the client directly":
-					"// The whispers get sent to the server and shown on the client directly\nmsg = bceMessageReplacements(msg);",
-			},
-			"No link or OOC parsing for sent whispers."
-		);
+		if (GameVersion === "R79") {
+			patchFunction(
+				"CommandParse",
+				{
+					"// Regular chat":
+						"// Regular chat\nmsg = bceMessageReplacements(msg);",
+					"// The whispers get sent to the server and shown on the client directly":
+						"// The whispers get sent to the server and shown on the client directly\nmsg = bceMessageReplacements(msg);",
+				},
+				"No link or OOC parsing for sent whispers."
+			);
+		} else {
+			patchFunction(
+				"CommandParse",
+				{
+					"// Regular chat can be prevented with an owner presence rule":
+						"// Regular chat can be prevented with an owner presence rule\nmsg = bceMessageReplacements(msg);",
+					"// The whispers get sent to the server and shown on the client directly":
+						"// The whispers get sent to the server and shown on the client directly\nmsg = bceMessageReplacements(msg);",
+				},
+				"No link or OOC parsing for sent whispers."
+			);
+		}
 
 		const startSounds = ["..", "--"];
 		const endSounds = ["...", "~", "~..", "~~", "..~"];
@@ -8017,6 +8046,8 @@ async function BondageClubEnhancements() {
 			);
 		}
 		Player.Name = newName;
+		Player.Nickname = newName;
+		ServerAccountUpdate.QueueData({ Nickname: newName });
 		if (Player.Name === Player.BCEOriginalName) {
 			delete Player.BCEOriginalName;
 		}
