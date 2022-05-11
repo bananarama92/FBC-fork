@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Bondage Club Enhancements
 // @namespace https://www.bondageprojects.com/
-// @version 3.2.2
+// @version 3.2.3
 // @description enhancements for the bondage club
 // @author Sidious
 // @match https://bondageprojects.elementfx.com/*
@@ -38,10 +38,15 @@
  *  along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-const BCE_VERSION = "3.2.2";
+const BCE_VERSION = "3.2.3";
 const settingsVersion = 35;
 
 const bceChangelog = `${BCE_VERSION}
+- update stable BCX to 0.8.3
+- R80 nickname support with extended allowed characters
+- removed nickname toggle: R80 brings them natively to the game and providing a toggle is pointless
+
+3.2.2
 - add digits 0-9 to allowed nickname characters
 
 3.2.1
@@ -104,7 +109,7 @@ async function BondageClubEnhancements() {
 	const BCX_DEVEL_SOURCE =
 			"https://jomshir98.github.io/bondage-club-extended/devel/bcx.js",
 		BCX_SOURCE =
-			"https://raw.githubusercontent.com/Jomshir98/bondage-club-extended/d919ff7dadcdf66f7e324dfc5f611b6dbf566020/bcx.js";
+			"https://raw.githubusercontent.com/Jomshir98/bondage-club-extended/898eeba03b35f7bf4c7a3b073a3ce730508e7eda/bcx.js";
 
 	const BCE_COLOR_ADJUSTMENTS_CLASS_NAME = "bce-colors",
 		BCE_LICENSE = "https://gitlab.com/Sidiousious/bce/-/blob/main/LICENSE",
@@ -322,30 +327,6 @@ async function BondageClubEnhancements() {
 			value: false,
 			sideEffects: (newValue) => {
 				bceLog("friendOfflineNotifications", newValue);
-			},
-			category: "chat",
-		},
-		nicknames: {
-			label: "Show nicknames",
-			value: true,
-			sideEffects: (newValue) => {
-				bceLog("nicknames", newValue);
-				if (!newValue) {
-					bceSettings.nickname = "";
-					for (const c of Character) {
-						if (c.BCEOriginalName) {
-							if (c.IsPlayer()) {
-								setOwnNickname(c.BCEOriginalName);
-							} else {
-								c.Name = c.BCEOriginalName;
-							}
-						}
-					}
-					sendHello();
-				} else if (isString(bceSettings.nickname)) {
-					setOwnNickname(bceSettings.nickname);
-					sendHello(null, true);
-				}
 			},
 			category: "chat",
 		},
@@ -1023,6 +1004,7 @@ async function BondageClubEnhancements() {
 		switch (gameVersion) {
 			case "R80Beta1":
 				hashes.CharacterBuildDialog = "3CC4F4AA";
+				hashes.CharacterNickname = "EB452E5E";
 				hashes.ChatRoomDrawBackground = "597B062C";
 				hashes.ChatRoomMessage = "F9414B8C";
 				hashes.ChatRoomRun = "861854FF";
@@ -1033,6 +1015,7 @@ async function BondageClubEnhancements() {
 				hashes.SpeechGarbleByGagLevel = "D29A6759";
 				hashes.StruggleDrawLockpickProgress = "0C83B6D4";
 				hashes.TimerInventoryRemove = "83E7C8E9";
+				hashes.TitleExit = "9DB9BA4A";
 				break;
 			default:
 				break;
@@ -1232,6 +1215,7 @@ async function BondageClubEnhancements() {
 
 	await functionIntegrityCheck();
 	bceStyles();
+	commonPatches();
 	extendedWardrobe();
 	automaticReconnect();
 	hiddenMessageHandler();
@@ -1240,7 +1224,6 @@ async function BondageClubEnhancements() {
 	appendSocketListenersToInit();
 	bceLog(bceSettings);
 	discreetMode();
-	commonPatches();
 	const bcxLoad = loadBCX();
 	beepImprovements();
 	settingsPage();
@@ -1376,6 +1359,39 @@ async function BondageClubEnhancements() {
 				"key.indexOf(CommandsKey + C.Tag) == 0)": `key.substring(1) === C.Tag)`,
 			},
 			"Whitelist commands will not work."
+		);
+
+		// Nickname valid characters patch
+		if (GameVersion.startsWith("R80")) {
+			patchFunction(
+				"CharacterNickname",
+				{
+					"/^[a-zA-Z\\s]*$/": "/^[\\p{L}0-9\\p{Z}'-]+$/u",
+				},
+				"Nickname validation not overridden in use"
+			);
+
+			patchFunction(
+				"TitleExit",
+				{
+					"/^[a-zA-Z\\s]*$/": "/^[\\p{L}0-9\\p{Z}'-]+$/u",
+					"let Nick": "console.log(Regex); let Nick",
+				},
+				"Nickname validation not overridden in saving"
+			);
+		}
+
+		// Prevent friendlist results from attempting to load into the HTML outside of the appropriate view
+		SDK.hookFunction(
+			"FriendListLoadFriendList",
+			HOOK_PRIORITIES.OverrideBehaviour,
+			(args, next) => {
+				if (!document.getElementById("FriendList")) {
+					return;
+				}
+				// eslint-disable-next-line consistent-return
+				return next(args);
+			}
 		);
 	}
 
@@ -5814,7 +5830,7 @@ async function BondageClubEnhancements() {
 						alternateArousal: !!bceSettings.alternateArousal,
 						replyRequested: requestReply,
 						capabilities: CAPABILITIES,
-						nick: Player.BCEOriginalName ? Player.Name : null,
+						nick: Player.Name !== Player.Nickname ? Player.Nickname : null,
 					},
 				},
 			],
@@ -5862,7 +5878,14 @@ async function BondageClubEnhancements() {
 							sender.BCE = message.version;
 							sender.BCEArousal = message.alternateArousal || false;
 							sender.BCECapabilities = message.capabilities;
-							if (bceSettings.nicknames) {
+							// TODO: remove after R80 stable (if only, leave logic inside)
+							if (GameVersion.startsWith("R80")) {
+								const newName = removeNonPrintables(message.nick);
+								if (newName && newName.length <= 20) {
+									sender.Nickname = newName;
+								}
+							} else {
+								// TODO: remove after R80 stable
 								const newName = removeNonPrintables(message.nick);
 								if (newName && newName.length <= 20) {
 									if (!sender.BCEOriginalName) {
@@ -7886,10 +7909,6 @@ async function BondageClubEnhancements() {
 	}
 
 	function nicknames() {
-		if (isString(bceSettings.nickname)) {
-			setOwnNickname(bceSettings.nickname);
-		}
-
 		/** @type {[number, number, number, number]} */
 		const nickButtonPosition = [475, 100, 60, 60];
 		/** @type {[number, number, number, number]} */
@@ -7897,33 +7916,52 @@ async function BondageClubEnhancements() {
 		let nickInputVisible = false;
 		const nickInputName = "bce-nick-input";
 
-		function showNickInput() {
-			nickInputVisible = true;
-			let name = "";
+		if (GameVersion.startsWith("R80")) {
+			SDK.hookFunction("TitleExit", HOOK_PRIORITIES.Observe, (args, next) => {
+				// TODO: remove after R80 stable, or change to send action
+				const oldNick = Player.Nickname;
+				const ret = next(args);
+				bceSendAction(
+					displayText("$OldName is now known as $NewName", {
+						$OldName: oldNick || Player.Name,
+						$NewName: Player.Nickname,
+					})
+				);
+				sendHello();
+				return ret;
+			});
+
+			// TODO: remove soon after R80
+			SDK.hookFunction(
+				"InformationSheetRun",
+				HOOK_PRIORITIES.AddBehaviour,
+				(args, next) => {
+					if (InformationSheetSelection?.IsPlayer()) {
+						DrawButton(
+							...nickButtonPosition,
+							"",
+							"grey",
+							"Icons/Small/Preference.png",
+							displayText(
+								"Use title menu on the right to change your nickname"
+							),
+							true
+						);
+					}
+					return next(args);
+				}
+			);
+		} else if (GameVersion.startsWith("R79")) {
+			// TODO: remove after R80 stable
 			if (isString(bceSettings.nickname)) {
-				name = bceSettings.nickname;
+				setOwnNickname(bceSettings.nickname);
 			}
-			ElementCreateInput(nickInputName, "text", name, "20");
-		}
 
-		function hideNickInput() {
-			if (!Player.BCEOriginalName) {
-				Player.BCEOriginalName = Player.Name;
-			}
-			bceSettings.nickname = ElementValue(nickInputName);
-			setOwnNickname(bceSettings.nickname);
-			bceSaveSettings();
-			ElementRemove(nickInputName);
-			nickInputVisible = false;
-			sendHello();
-		}
-
-		SDK.hookFunction(
-			"InformationSheetRun",
-			HOOK_PRIORITIES.AddBehaviour,
-			/** @type {(args: unknown[], next: (args: unknown[]) => unknown) => unknown} */
-			(args, next) => {
-				if (bceSettings.nicknames) {
+			SDK.hookFunction(
+				"InformationSheetRun",
+				HOOK_PRIORITIES.AddBehaviour,
+				/** @type {(args: unknown[], next: (args: unknown[]) => unknown) => unknown} */
+				(args, next) => {
 					if (
 						InformationSheetSelection?.BCEOriginalName &&
 						InformationSheetSelection.BCEOriginalName !==
@@ -7949,72 +7987,95 @@ async function BondageClubEnhancements() {
 							displayText("Change your nickname")
 						);
 					}
+					// eslint-disable-next-line consistent-return
+					return next(args);
 				}
-				// eslint-disable-next-line consistent-return
-				return next(args);
-			}
-		);
+			);
 
-		SDK.hookFunction(
-			"InformationSheetRun",
-			HOOK_PRIORITIES.OverrideBehaviour,
-			/** @type {(args: unknown[], next: (args: unknown[]) => unknown) => unknown} */
-			(args, next) => {
-				if (bceSettings.nicknames && nickInputVisible) {
-					DrawButton(
-						...exitButtonPosition,
-						"",
-						"white",
-						"Icons/Accept.png",
-						displayText("Save this nickname")
-					);
-					DrawText(
-						displayText("Set your nickname here. Leave empty to reset."),
-						1000,
-						400,
-						"black",
-						"black"
-					);
-					ElementPosition(nickInputName, 1000, 500, 500);
-					return;
-				}
-				// eslint-disable-next-line consistent-return
-				return next(args);
-			}
-		);
-
-		SDK.hookFunction(
-			"InformationSheetClick",
-			HOOK_PRIORITIES.AddBehaviour,
-			/** @type {(args: unknown[], next: (args: unknown[]) => unknown) => unknown} */
-			(args, next) => {
-				if (
-					bceSettings.nicknames &&
-					InformationSheetSelection?.IsPlayer() &&
-					MouseIn(...nickButtonPosition)
-				) {
-					showNickInput();
-				}
-				// eslint-disable-next-line consistent-return
-				return next(args);
-			}
-		);
-
-		SDK.hookFunction(
-			"InformationSheetClick",
-			HOOK_PRIORITIES.OverrideBehaviour,
-			/** @type {(args: unknown[], next: (args: unknown[]) => unknown) => unknown} */
-			(args, next) => {
-				if (bceSettings.nicknames && nickInputVisible) {
-					if (MouseIn(...exitButtonPosition)) {
-						hideNickInput();
+			SDK.hookFunction(
+				"InformationSheetRun",
+				HOOK_PRIORITIES.OverrideBehaviour,
+				/** @type {(args: unknown[], next: (args: unknown[]) => unknown) => unknown} */
+				(args, next) => {
+					if (nickInputVisible) {
+						DrawButton(
+							...exitButtonPosition,
+							"",
+							"white",
+							"Icons/Accept.png",
+							displayText("Save this nickname")
+						);
+						DrawText(
+							displayText("Set your nickname here. Leave empty to reset."),
+							1000,
+							400,
+							"black",
+							"black"
+						);
+						ElementPosition(nickInputName, 1000, 500, 500);
+						return;
 					}
-					return;
+					// eslint-disable-next-line consistent-return
+					return next(args);
 				}
-				// eslint-disable-next-line consistent-return
-				return next(args);
+			);
+
+			SDK.hookFunction(
+				"InformationSheetClick",
+				HOOK_PRIORITIES.AddBehaviour,
+				/** @type {(args: unknown[], next: (args: unknown[]) => unknown) => unknown} */
+				(args, next) => {
+					if (
+						InformationSheetSelection?.IsPlayer() &&
+						MouseIn(...nickButtonPosition)
+					) {
+						showNickInput();
+					}
+					// eslint-disable-next-line consistent-return
+					return next(args);
+				}
+			);
+
+			SDK.hookFunction(
+				"InformationSheetClick",
+				HOOK_PRIORITIES.OverrideBehaviour,
+				/** @type {(args: unknown[], next: (args: unknown[]) => unknown) => unknown} */
+				(args, next) => {
+					if (nickInputVisible) {
+						if (MouseIn(...exitButtonPosition)) {
+							hideNickInput();
+						}
+						return;
+					}
+					// eslint-disable-next-line consistent-return
+					return next(args);
+				}
+			);
+
+			document.addEventListener("keydown", keyHandler, true);
+			document.addEventListener("keypress", keyHandler, true);
+		}
+
+		function showNickInput() {
+			nickInputVisible = true;
+			let name = "";
+			if (isString(bceSettings.nickname)) {
+				name = bceSettings.nickname;
 			}
-		);
+			ElementCreateInput(nickInputName, "text", name, "20");
+		}
+
+		function hideNickInput() {
+			if (!Player.BCEOriginalName) {
+				Player.BCEOriginalName = Player.Name;
+			}
+			bceSettings.nickname = ElementValue(nickInputName);
+			setOwnNickname(bceSettings.nickname);
+			bceSaveSettings();
+			ElementRemove(nickInputName);
+			nickInputVisible = false;
+			sendHello();
+		}
 
 		/** @type {(e: KeyboardEvent) => void} */
 		function keyHandler(e) {
@@ -8024,36 +8085,30 @@ async function BondageClubEnhancements() {
 				e.preventDefault();
 			}
 		}
-
-		document.addEventListener("keydown", keyHandler, true);
-		document.addEventListener("keypress", keyHandler, true);
 	}
 
 	/** @type {(newName: string) => void} */
 	function setOwnNickname(newName) {
-		if (!Player.BCEOriginalName) {
-			Player.BCEOriginalName = Player.Name;
-		}
 		if (!newName) {
-			newName = Player.BCEOriginalName;
-		}
-		if (newName !== Player.BCEOriginalName) {
-			newName = removeNonPrintables(newName);
+			newName = Player.Name;
 		}
 		if (newName !== Player.Name) {
+			newName = removeNonPrintables(newName);
+		}
+		if (newName !== Player.Nickname) {
 			bceSendAction(
 				displayText("$OldName is now known as $NewName", {
-					$OldName: Player.Name,
+					$OldName: Player.Nickname || Player.Name,
 					$NewName: newName,
 				})
 			);
 		}
-		Player.Name = newName;
+		// TODO: remove after R80 stable
+		if (GameVersion.startsWith("R79")) {
+			Player.Name = newName;
+		}
 		Player.Nickname = newName;
 		ServerAccountUpdate.QueueData({ Nickname: newName });
-		if (Player.Name === Player.BCEOriginalName) {
-			delete Player.BCEOriginalName;
-		}
 	}
 
 	function enableLeashing() {
@@ -8395,15 +8450,8 @@ async function BondageClubEnhancements() {
 
 		/** @type {(characterBundle: Character) => Promise<void>} */
 		async function saveProfile(characterBundle) {
-			let name = characterBundle.Name;
-			let nick = null;
-			const C = Character.find(
-				(c) => c.MemberNumber === characterBundle.MemberNumber
-			);
-			if (C?.BCEOriginalName) {
-				nick = C.Name;
-				name = C.BCEOriginalName;
-			}
+			const name = characterBundle.Name;
+			const nick = characterBundle.Nickname;
 			try {
 				await profiles.put({
 					memberNumber: characterBundle.MemberNumber,
@@ -8479,10 +8527,6 @@ async function BondageClubEnhancements() {
 					memberNumber
 				);
 				C.BCESeen = profile.seen;
-				if (profile.lastNick) {
-					C.Name = profile.lastNick;
-					C.BCEOriginalName = profile.name;
-				}
 				if (CurrentScreen === "ChatRoom") {
 					document.getElementById("InputChat").style.display = "none";
 					document.getElementById("TextAreaChatLog").style.display = "none";

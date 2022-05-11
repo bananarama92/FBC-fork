@@ -436,6 +436,7 @@ declare global {
     BCECapabilities: string[];
     BCEArousalProgress: number;
     BCEEnjoyment: number;
+    /** @deprecated */
     BCEOriginalName?: string;
     /** @deprecated */
     BCEWardrobe?: string;
