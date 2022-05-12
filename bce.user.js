@@ -43,6 +43,7 @@ const settingsVersion = 36;
 
 const bceChangelog = `${BCE_VERSION}
 - fix blur remaining after disabling "blind without glasses" setting
+- fix long words running off screen in the IM
 
 3.3.0
 - add option to hide hidden items icon on other characters
@@ -2911,6 +2912,7 @@ async function BondageClubEnhancements() {
 			max-height: 75%;
 			min-width: 38%;
 			min-height: 30%;
+			overflow-wrap: break-word;
 		}
 		#bce-friend-list {
 			width: 100%;
