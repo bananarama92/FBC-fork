@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Bondage Club Enhancements
 // @namespace https://www.bondageprojects.com/
-// @version 3.2.4
+// @version 3.3.0
 // @description enhancements for the bondage club
 // @author Sidious
 // @match https://bondageprojects.elementfx.com/*
@@ -38,10 +38,15 @@
  *  along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-const BCE_VERSION = "3.2.4";
-const settingsVersion = 35;
+const BCE_VERSION = "3.3.0";
+const settingsVersion = 36;
 
 const bceChangelog = `${BCE_VERSION}
+- add option to hide hidden items icon on other characters
+- add ability to resize the instant messenger
+- changed blind without glasses setting to use R80's new blur effect
+
+3.2.4
 - fix extra "known as" when not changing nickname but viewing title options in R80-
 - fix nickname not being used in pending messages
 - fix extra space appearing in pending messages
@@ -481,6 +486,14 @@ async function BondageClubEnhancements() {
 			value: true,
 			sideEffects: (newValue) => {
 				bceLog("handgag", newValue);
+			},
+			category: "immersion",
+		},
+		hideHiddenItemsIcon: {
+			label: "Hide the hidden items icon",
+			value: false,
+			sideEffects: (newValue) => {
+				bceLog("hideHiddenItemsIcon", newValue);
 			},
 			category: "immersion",
 		},
@@ -1258,6 +1271,7 @@ async function BondageClubEnhancements() {
 	toySync();
 	pastProfiles();
 	pendingMessages();
+	hideHiddenItemsIcon();
 
 	await bcxLoad;
 
@@ -2887,6 +2901,12 @@ async function BondageClubEnhancements() {
 			background-color: #111;
 			color: #eee;
 			border: 0.2em solid white;
+			resize: both;
+			overflow: auto;
+			max-width: 80%;
+			max-height: 75%;
+			min-width: 38%;
+			min-height: 30%;
 		}
 		#bce-friend-list {
 			width: 100%;
@@ -6697,19 +6717,32 @@ async function BondageClubEnhancements() {
 				hasGlasses = !!Player.Appearance.find((a) =>
 					glasses.includes(a.Asset.Name)
 				);
-			if (
-				hasGlasses &&
-				GLASSES_BLUR_TARGET.classList.contains(GLASSES_BLIND_CLASS)
-			) {
-				GLASSES_BLUR_TARGET.classList.remove(GLASSES_BLIND_CLASS);
-				bceChatNotify(
-					displayText("Having recovered your glasses you can see again!")
-				);
-			} else if (
-				!hasGlasses &&
-				!GLASSES_BLUR_TARGET.classList.contains(GLASSES_BLIND_CLASS)
-			) {
-				GLASSES_BLUR_TARGET.classList.add(GLASSES_BLIND_CLASS);
+
+			if (GameVersion.startsWith("R79")) {
+				if (
+					hasGlasses &&
+					GLASSES_BLUR_TARGET.classList.contains(GLASSES_BLIND_CLASS)
+				) {
+					GLASSES_BLUR_TARGET.classList.remove(GLASSES_BLIND_CLASS);
+					bceChatNotify(
+						displayText("Having recovered your glasses you can see again!")
+					);
+				} else if (
+					!hasGlasses &&
+					!GLASSES_BLUR_TARGET.classList.contains(GLASSES_BLIND_CLASS)
+				) {
+					GLASSES_BLUR_TARGET.classList.add(GLASSES_BLIND_CLASS);
+					bceChatNotify(
+						displayText("Having lost your glasses your eyesight is impaired!")
+					);
+				}
+			} else if (hasGlasses) {
+				if (removeCustomEffect("BlurLight")) {
+					bceChatNotify(
+						displayText("Having recovered your glasses you can see again!")
+					);
+				}
+			} else if (addCustomEffect("BlurLight")) {
 				bceChatNotify(
 					displayText("Having lost your glasses your eyesight is impaired!")
 				);
@@ -8127,30 +8160,52 @@ async function BondageClubEnhancements() {
 		ServerAccountUpdate.QueueData({ Nickname: newName });
 	}
 
-	function enableLeashing() {
+	/** @type {(effect: string) => boolean} */
+	function addCustomEffect(effect) {
+		let updated = false;
 		const emoticon = Player.Appearance.find((a) => a.Asset.Name === "Emoticon");
 		if (!emoticon) {
 			bceWarn("Could not find emoticon asset.");
-			return;
+			return updated;
 		}
 		if (!emoticon.Property) {
-			emoticon.Property = { Effect: ["Leash"] };
+			emoticon.Property = { Effect: [effect] };
+			updated = true;
 		} else if (!emoticon.Property.Effect) {
-			emoticon.Property.Effect = ["Leash"];
-		} else if (!emoticon.Property.Effect.includes("Leash")) {
-			emoticon.Property.Effect.push("Leash");
+			emoticon.Property.Effect = [effect];
+			updated = true;
+		} else if (!emoticon.Property.Effect.includes(effect)) {
+			emoticon.Property.Effect.push(effect);
+			updated = true;
 		}
-		ChatRoomCharacterUpdate(Player);
+		if (updated && ServerPlayerIsInChatRoom()) {
+			ChatRoomCharacterUpdate(Player);
+		}
+		return updated;
+	}
+
+	/** @type {(effect: string) => boolean} */
+	function removeCustomEffect(effect) {
+		const emoticon = Player.Appearance.find((a) => a.Asset.Name === "Emoticon");
+		let updated = false;
+		if (emoticon?.Property?.Effect?.includes(effect)) {
+			emoticon.Property.Effect = emoticon.Property.Effect.filter(
+				(e) => e !== effect
+			);
+			updated = true;
+		}
+		if (updated && ServerPlayerIsInChatRoom()) {
+			ChatRoomCharacterUpdate(Player);
+		}
+		return updated;
+	}
+
+	function enableLeashing() {
+		addCustomEffect("Leash");
 	}
 
 	function disableLeashing() {
-		const emoticon = Player.Appearance.find((a) => a.Asset.Name === "Emoticon");
-		if (emoticon?.Property?.Effect?.includes("Leash")) {
-			emoticon.Property.Effect = emoticon.Property.Effect.filter(
-				(e) => e !== "Leash"
-			);
-		}
-		ChatRoomCharacterUpdate(Player);
+		removeCustomEffect("Leash");
 	}
 
 	async function leashAlways() {
@@ -8162,6 +8217,10 @@ async function BondageClubEnhancements() {
 			emoticon.Asset.AllowEffect.push("Leash");
 		} else {
 			emoticon.Asset.AllowEffect = ["Leash"];
+		}
+		// TODO: remove check after R80 stable
+		if (GameVersion.startsWith("R80")) {
+			emoticon.Asset.AllowEffect.push("BlurLight");
 		}
 
 		if (bceSettings.leashAlways) {
@@ -8816,6 +8875,25 @@ async function BondageClubEnhancements() {
 					}
 				}
 				return next(args);
+			}
+		);
+	}
+
+	function hideHiddenItemsIcon() {
+		SDK.hookFunction(
+			"DrawCharacter",
+			HOOK_PRIORITIES.ModifyBehaviourLow,
+			/** @type {(args: [Character], next: (args: [Character]) => void) => void} */
+			(args, next) => {
+				const [c] = args;
+				if (!c || !bceSettings.hideHiddenItemsIcon) {
+					return next(args);
+				}
+				const backup = c.HasHiddenItems;
+				c.HasHiddenItems = false;
+				const ret = next(args);
+				c.HasHiddenItems = backup;
+				return ret;
 			}
 		);
 	}

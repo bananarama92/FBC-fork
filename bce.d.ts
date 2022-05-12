@@ -56,6 +56,7 @@ declare global {
     data: Record<string, unknown>,
     sourceMemberNumber: number
   ) => Character;
+  var ServerPlayerIsInChatRoom: () => boolean;
   var InventoryItemMiscLoversTimerPadlockDraw: () => void;
   var InventoryItemMiscLoversTimerPadlockClick: () => void;
   var InventoryItemMiscLoversTimerPadlockExit: () => void;
@@ -431,6 +432,7 @@ declare global {
     AppearanceLayers: ItemLayer[];
     Wardrobe: ItemBundle[][];
     FocusGroup: AssetGroup;
+    HasHiddenItems: boolean;
     ActivePose: string[] | null;
     BCE: string;
     BCEArousal: boolean;
