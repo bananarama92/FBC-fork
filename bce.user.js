@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Bondage Club Enhancements
 // @namespace https://www.bondageprojects.com/
-// @version 3.2.3
+// @version 3.2.4
 // @description enhancements for the bondage club
 // @author Sidious
 // @match https://bondageprojects.elementfx.com/*
@@ -38,10 +38,15 @@
  *  along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-const BCE_VERSION = "3.2.3";
+const BCE_VERSION = "3.2.4";
 const settingsVersion = 35;
 
 const bceChangelog = `${BCE_VERSION}
+- fix extra "known as" when not changing nickname but viewing title options in R80-
+- fix nickname not being used in pending messages
+- fix extra space appearing in pending messages
+
+3.2.3
 - update stable BCX to 0.8.3
 - R80 nickname support with extended allowed characters
 - removed nickname toggle: R80 brings them natively to the game and providing a toggle is pointless
@@ -1381,6 +1386,12 @@ async function BondageClubEnhancements() {
 			);
 		}
 
+		// TODO: remove after R80 stable
+		if (GameVersion.startsWith("R79")) {
+			window.CharacterNickname = (character) =>
+				character.Nickname || character.Name;
+		}
+
 		// Prevent friendlist results from attempting to load into the HTML outside of the appropriate view
 		SDK.hookFunction(
 			"FriendListLoadFriendList",
@@ -2517,7 +2528,7 @@ async function BondageClubEnhancements() {
 						// Replicates pin rendering in the game Struggle.js
 						const xx =
 							x - pinWidth / 2 + (0.5 - hints.length / 2 + p) * pinSpacing;
-						if (hints[p]) {
+						if (hints[p] !== false) {
 							DrawText(
 								`${StruggleLockPickOrder.indexOf(p) + 1}`,
 								xx,
@@ -3220,8 +3231,9 @@ async function BondageClubEnhancements() {
 			for (const chatMessageElement of unhandledChat) {
 				chatMessageElement.setAttribute(handledAttributeName, "true");
 				if (
-					chatMessageElement.classList.contains("ChatMessageChat") ||
-					chatMessageElement.classList.contains("ChatMessageWhisper")
+					(chatMessageElement.classList.contains("ChatMessageChat") ||
+						chatMessageElement.classList.contains("ChatMessageWhisper")) &&
+					!chatMessageElement.classList.contains("bce-pending")
 				) {
 					const scrolledToEnd = ElementIsScrolledToEnd(chatLogContainerId);
 					// eslint-disable-next-line no-loop-func
@@ -7918,16 +7930,20 @@ async function BondageClubEnhancements() {
 
 		if (GameVersion.startsWith("R80")) {
 			SDK.hookFunction("TitleExit", HOOK_PRIORITIES.Observe, (args, next) => {
-				// TODO: remove after R80 stable, or change to send action
 				const oldNick = Player.Nickname;
+				if (ElementValue("InputNickname") === "") {
+					ElementValue("InputNickname", Player.Name);
+				}
 				const ret = next(args);
-				bceSendAction(
-					displayText("$OldName is now known as $NewName", {
-						$OldName: oldNick || Player.Name,
-						$NewName: Player.Nickname,
-					})
-				);
-				sendHello();
+				if (Player.Nickname !== oldNick) {
+					bceSendAction(
+						displayText("$OldName is now known as $NewName", {
+							$OldName: oldNick || Player.Name,
+							$NewName: Player.Nickname,
+						})
+					);
+					sendHello();
+				}
 				return ret;
 			});
 
@@ -8761,7 +8777,7 @@ async function BondageClubEnhancements() {
 								const name = document.createElement("span");
 								name.classList.add("ChatMessageName");
 								name.style.color = Player.LabelColor || null;
-								name.textContent = Player.Name;
+								name.textContent = CharacterNickname(Player);
 								div.appendChild(name);
 								div.appendChild(
 									document.createTextNode(`: ${args[1].Content}`)
@@ -8773,9 +8789,11 @@ async function BondageClubEnhancements() {
 							div.classList.add("ChatMessageEmote");
 							div.appendChild(
 								document.createTextNode(
-									`*${args[1].Type === "Emote" ? `${Player.Name}: ` : ""}${
-										args[1].Content
-									}*`
+									`*${
+										args[1].Type === "Emote"
+											? `${CharacterNickname(Player)}: `
+											: ""
+									}${args[1].Content}*`
 								)
 							);
 							break;

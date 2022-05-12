@@ -75,6 +75,7 @@ declare global {
   var ServerInit: () => void;
   var DialogFocusSourceItem: Item | null;
   var DialogFocusItem: Item | null;
+  var CharacterNickname: (C: Character) => string;
   var OnlineProfileExit: (save: boolean) => void;
   var ElementCreateTextArea: (id: string) => HTMLTextAreaElement;
   var ElementCreateInput: (
