@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Bondage Club Enhancements
 // @namespace https://www.bondageprojects.com/
-// @version 3.3.0
+// @version 3.3.1
 // @description enhancements for the bondage club
 // @author Sidious
 // @match https://bondageprojects.elementfx.com/*
@@ -38,10 +38,13 @@
  *  along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-const BCE_VERSION = "3.3.0";
+const BCE_VERSION = "3.3.1";
 const settingsVersion = 36;
 
 const bceChangelog = `${BCE_VERSION}
+- fix blur remaining after disabling "blind without glasses" setting
+
+3.3.0
 - add option to hide hidden items icon on other characters
 - add ability to resize the instant messenger
 - changed blind without glasses setting to use R80's new blur effect
@@ -462,6 +465,7 @@ async function BondageClubEnhancements() {
 			sideEffects: (newValue) => {
 				if (!newValue) {
 					GLASSES_BLUR_TARGET.classList.remove(GLASSES_BLIND_CLASS);
+					removeCustomEffect("BlurLight");
 				}
 				bceLog("blindWithoutGlasses", newValue);
 			},
