@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Bondage Club Enhancements
 // @namespace https://www.bondageprojects.com/
-// @version 3.4.0
+// @version 3.4.1
 // @description enhancements for the bondage club
 // @author Sidious
 // @match https://bondageprojects.elementfx.com/*
@@ -38,10 +38,15 @@
  *  along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-const BCE_VERSION = "3.4.0";
+const BCE_VERSION = "3.4.1";
 const settingsVersion = 37;
 
 const bceChangelog = `${BCE_VERSION}
+3.4.1
+- change EBCH to load from Elicia's URL
+- fix message when copying colors from item to another (layering menus)
+
+3.4.0
 - add loading for Eli's BC Helper by the wonderful Elicia
 - move loosen or tighten button to its own cheat setting
 
@@ -97,8 +102,7 @@ async function BondageClubEnhancements() {
 			"https://jomshir98.github.io/bondage-club-extended/devel/bcx.js",
 		BCX_SOURCE =
 			"https://raw.githubusercontent.com/Jomshir98/bondage-club-extended/898eeba03b35f7bf4c7a3b073a3ce730508e7eda/bcx.js",
-		EBCH_SOURCE =
-			"https://raw.githubusercontent.com/Sidiousious/ebch/5b79d78bd09102c5b36ddb055dc71233080d19b8/master/EBCH.js";
+		EBCH_SOURCE = "https://e2466.gitlab.io/ebch/master/EBCH.js";
 
 	const BCE_COLOR_ADJUSTMENTS_CLASS_NAME = "bce-colors",
 		BCE_LICENSE = "https://gitlab.com/Sidiousious/bce/-/blob/main/LICENSE",
@@ -413,7 +417,7 @@ async function BondageClubEnhancements() {
 			category: "addons",
 		},
 		ebch: {
-			label: "Load EBCH by Elicia",
+			label: "Load EBCH by Elicia (auto-updates)",
 			value: false,
 			sideEffects: (newValue) => {
 				if (newValue) {
@@ -5709,9 +5713,9 @@ async function BondageClubEnhancements() {
 				ChatRoomCharacterUpdate(C);
 				bceSendAction(
 					displayText(
-						"$PlayerName $ItemName colors spread from her $ItemGroup",
+						"$TargetName's $ItemName colors spread from her $ItemGroup",
 						{
-							$PlayerName: Player.Name,
+							$TargetName: CharacterNickname(C),
 							$ItemName: focusItem.Asset.Description.toLowerCase(),
 							$ItemGroup: focusItem.Asset.Group.Description.toLowerCase(),
 						}
