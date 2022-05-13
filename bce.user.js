@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Bondage Club Enhancements
 // @namespace https://www.bondageprojects.com/
-// @version 3.3.1
+// @version 3.3.2
 // @description enhancements for the bondage club
 // @author Sidious
 // @match https://bondageprojects.elementfx.com/*
@@ -38,10 +38,13 @@
  *  along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-const BCE_VERSION = "3.3.1";
+const BCE_VERSION = "3.3.2";
 const settingsVersion = 36;
 
 const bceChangelog = `${BCE_VERSION}
+- R80Beta2 compatiblity
+
+3.3.1
 - fix blur remaining after disabling "blind without glasses" setting
 - fix long words running off screen in the IM
 
@@ -104,7 +107,7 @@ const BCE_BC_MOD_SDK=function(){"use strict";const o="1.0.2";function e(o){alert
 async function BondageClubEnhancements() {
 	"use strict";
 
-	const SUPPORTED_GAME_VERSIONS = ["R79", "R80Beta1"];
+	const SUPPORTED_GAME_VERSIONS = ["R79", "R80Beta1", "R80Beta2"];
 	const CAPABILITIES = ["clubslave"];
 
 	const w = window;
@@ -1035,6 +1038,22 @@ async function BondageClubEnhancements() {
 				hashes.DrawProcess = "4B2BE17E";
 				hashes.ElementValue = "62C4242F";
 				hashes.InformationSheetRun = "FAE6ED88";
+				hashes.SpeechGarbleByGagLevel = "D29A6759";
+				hashes.StruggleDrawLockpickProgress = "0C83B6D4";
+				hashes.TimerInventoryRemove = "83E7C8E9";
+				hashes.TitleExit = "9DB9BA4A";
+				break;
+			case "R80Beta2":
+				hashes.CharacterBuildDialog = "3CC4F4AA";
+				hashes.CharacterNickname = "EB452E5E";
+				hashes.ChatRoomDrawBackground = "597B062C";
+				hashes.ChatRoomMessage = "F9414B8C";
+				hashes.ChatRoomRun = "861854FF";
+				hashes.CommandParse = "CEA28651";
+				hashes.DrawProcess = "4B2BE17E";
+				hashes.ElementValue = "62C4242F";
+				hashes.InformationSheetRun = "EE8678A4";
+				hashes.ServerOpenFriendList = "531EBF56";
 				hashes.SpeechGarbleByGagLevel = "D29A6759";
 				hashes.StruggleDrawLockpickProgress = "0C83B6D4";
 				hashes.TimerInventoryRemove = "83E7C8E9";
