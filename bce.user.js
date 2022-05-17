@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Bondage Club Enhancements
 // @namespace https://www.bondageprojects.com/
-// @version 3.4.1
+// @version 3.4.2
 // @description enhancements for the bondage club
 // @author Sidious
 // @match https://bondageprojects.elementfx.com/*
@@ -38,10 +38,13 @@
  *  along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-const BCE_VERSION = "3.4.1";
+const BCE_VERSION = "3.4.2";
 const settingsVersion = 37;
 
 const bceChangelog = `${BCE_VERSION}
+- R80 compatibility
+- enhance game's nicknames instead of implementing separate nicknames
+
 3.4.1
 - change EBCH to load from Elicia's URL
 - fix message when copying colors from item to another (layering menus)
@@ -82,7 +85,7 @@ const bcModSdk=function(){"use strict";const o="1.0.2";function e(o){alert("Mod 
 async function BondageClubEnhancements() {
 	"use strict";
 
-	const SUPPORTED_GAME_VERSIONS = ["R79", "R80Beta1", "R80Beta2"];
+	const SUPPORTED_GAME_VERSIONS = ["R80"];
 	const CAPABILITIES = ["clubslave"];
 
 	const w = window;
@@ -117,8 +120,6 @@ async function BondageClubEnhancements() {
 		DEFAULT_WARDROBE_SIZE = 24,
 		EXPANDED_WARDROBE_SIZE = 96,
 		GAGBYPASSINDICATOR = "\uf123",
-		GLASSES_BLIND_CLASS = "bce-blind",
-		GLASSES_BLUR_TARGET = w.MainCanvas,
 		HIDDEN = "Hidden",
 		INPUT_WARN_CLASS = "bce-input-warn",
 		MESSAGE_TYPES = Object.freeze({
@@ -481,7 +482,6 @@ async function BondageClubEnhancements() {
 			value: false,
 			sideEffects: (newValue) => {
 				if (!newValue) {
-					GLASSES_BLUR_TARGET.classList.remove(GLASSES_BLIND_CLASS);
 					removeCustomEffect("BlurLight");
 				}
 				bceLog("blindWithoutGlasses", newValue);
@@ -929,10 +929,11 @@ async function BondageClubEnhancements() {
 			AppearanceLoad: "A14CB302",
 			AppearanceRun: "6DDA14A1",
 			CharacterAppearanceWardrobeLoad: "A5B63A03",
-			CharacterBuildDialog: "E69E1DFE",
+			CharacterBuildDialog: "3CC4F4AA",
 			CharacterCompressWardrobe: "8D3B1AB1",
 			CharacterDecompressWardrobe: "A9FD29CC",
 			CharacterGetCurrent: "A4EA6438",
+			CharacterNickname: "EB452E5E",
 			CharacterRefresh: "5BF9DA5A",
 			CharacterSetActivePose: "0339D069",
 			CharacterSetCurrent: "FD267B9B",
@@ -943,17 +944,17 @@ async function BondageClubEnhancements() {
 			ChatRoomClick: "79E651EB",
 			ChatRoomCreateElement: "AD7CBE68",
 			ChatRoomCurrentTime: "A462DD3A",
-			ChatRoomDrawBackground: "898C1B12",
+			ChatRoomDrawBackground: "597B062C",
 			ChatRoomDrawCharacterOverlay: "4AE4AD9E",
 			ChatRoomKeyDown: "B4BFDB0C",
 			ChatRoomListManipulation: "75D28A8B",
-			ChatRoomMessage: "48A4F3CC",
+			ChatRoomMessage: "F9414B8C",
 			ChatRoomResize: "9D52CF52",
-			ChatRoomRun: "07117155",
+			ChatRoomRun: "861854FF",
 			ChatRoomSendChat: "7F540ED0",
 			ChatRoomStart: "9CB3783A",
 			CommandExecute: "12B2BAA4",
-			CommandParse: "534545CD",
+			CommandParse: "CEA28651",
 			CommonClick: "1F6DF7CB",
 			CommonColorIsValid: "390A2CE4",
 			CommonSetScreen: "17692CD7",
@@ -966,7 +967,7 @@ async function BondageClubEnhancements() {
 			DrawCheckbox: "00FD87EB",
 			DrawImageEx: "3D3D74F5",
 			DrawImageResize: "8CF55F04",
-			DrawProcess: "053C046E",
+			DrawProcess: "4B2BE17E",
 			DrawText: "C1BF0F50",
 			DrawTextFit: "F9A1B11E",
 			ElementCreateInput: "2B2603E4",
@@ -975,10 +976,10 @@ async function BondageClubEnhancements() {
 			ElementPosition: "CC4E3C82",
 			ElementRemove: "60809E60",
 			ElementScrollToEnd: "1AC45575",
-			ElementValue: "B647E0E6",
+			ElementValue: "62C4242F",
 			FriendListShowBeep: "6C0449BB",
 			GLDrawResetCanvas: "EDF1631A",
-			InformationSheetRun: "1079019C",
+			InformationSheetRun: "EE8678A4",
 			InventoryGet: "E666F671",
 			InventoryItemMiscLoversTimerPadlockClick: "B8F431EB",
 			InventoryItemMiscLoversTimerPadlockDraw: "87818D41",
@@ -1018,19 +1019,20 @@ async function BondageClubEnhancements() {
 			ServerConnect: "845E50A6",
 			ServerDisconnect: "0D4630FA",
 			ServerInit: "BBE09687",
-			ServerOpenFriendList: "25665C3F",
+			ServerOpenFriendList: "531EBF56",
 			ServerSend: "90A61F57",
 			SkillGetWithRatio: "16620445",
-			SpeechGarbleByGagLevel: "276CFF37",
+			SpeechGarbleByGagLevel: "D29A6759",
 			SpeechGetTotalGagLevel: "E8051EA2",
 			StruggleDexterity: "95812A41",
-			StruggleDrawLockpickProgress: "A9C2DBBC",
+			StruggleDrawLockpickProgress: "0C83B6D4",
 			StruggleFlexibility: "148CEB8F",
 			StruggleStrength: "7980C89B",
 			TextGet: "4DDE5794",
 			TextLoad: "ADF7C890",
-			TimerInventoryRemove: "FE03BE6F",
+			TimerInventoryRemove: "83E7C8E9",
 			TimerProcess: "19F09E1E",
+			TitleExit: "9DB9BA4A",
 			WardrobeClick: "D388FE7D",
 			WardrobeExit: "EE83FF29",
 			WardrobeFastLoad: "545CB8FD",
@@ -1041,37 +1043,6 @@ async function BondageClubEnhancements() {
 		};
 
 		switch (gameVersion) {
-			case "R80Beta1":
-				hashes.CharacterBuildDialog = "3CC4F4AA";
-				hashes.CharacterNickname = "EB452E5E";
-				hashes.ChatRoomDrawBackground = "597B062C";
-				hashes.ChatRoomMessage = "F9414B8C";
-				hashes.ChatRoomRun = "861854FF";
-				hashes.CommandParse = "CEA28651";
-				hashes.DrawProcess = "4B2BE17E";
-				hashes.ElementValue = "62C4242F";
-				hashes.InformationSheetRun = "FAE6ED88";
-				hashes.SpeechGarbleByGagLevel = "D29A6759";
-				hashes.StruggleDrawLockpickProgress = "0C83B6D4";
-				hashes.TimerInventoryRemove = "83E7C8E9";
-				hashes.TitleExit = "9DB9BA4A";
-				break;
-			case "R80Beta2":
-				hashes.CharacterBuildDialog = "3CC4F4AA";
-				hashes.CharacterNickname = "EB452E5E";
-				hashes.ChatRoomDrawBackground = "597B062C";
-				hashes.ChatRoomMessage = "F9414B8C";
-				hashes.ChatRoomRun = "861854FF";
-				hashes.CommandParse = "CEA28651";
-				hashes.DrawProcess = "4B2BE17E";
-				hashes.ElementValue = "62C4242F";
-				hashes.InformationSheetRun = "EE8678A4";
-				hashes.ServerOpenFriendList = "531EBF56";
-				hashes.SpeechGarbleByGagLevel = "D29A6759";
-				hashes.StruggleDrawLockpickProgress = "0C83B6D4";
-				hashes.TimerInventoryRemove = "83E7C8E9";
-				hashes.TitleExit = "9DB9BA4A";
-				break;
 			default:
 				break;
 		}
@@ -1415,30 +1386,22 @@ async function BondageClubEnhancements() {
 		);
 
 		// Nickname valid characters patch
-		if (GameVersion.startsWith("R80")) {
-			patchFunction(
-				"CharacterNickname",
-				{
-					"/^[a-zA-Z\\s]*$/": "/^[\\p{L}0-9\\p{Z}'-]+$/u",
-				},
-				"Nickname validation not overridden in use"
-			);
+		patchFunction(
+			"CharacterNickname",
+			{
+				"/^[a-zA-Z\\s]*$/": "/^[\\p{L}0-9\\p{Z}'-]+$/u",
+			},
+			"Nickname validation not overridden in use"
+		);
 
-			patchFunction(
-				"TitleExit",
-				{
-					"/^[a-zA-Z\\s]*$/": "/^[\\p{L}0-9\\p{Z}'-]+$/u",
-					"let Nick": "console.log(Regex); let Nick",
-				},
-				"Nickname validation not overridden in saving"
-			);
-		}
-
-		// TODO: remove after R80 stable
-		if (GameVersion.startsWith("R79")) {
-			window.CharacterNickname = (character) =>
-				character.Nickname || character.Name;
-		}
+		patchFunction(
+			"TitleExit",
+			{
+				"/^[a-zA-Z\\s]*$/": "/^[\\p{L}0-9\\p{Z}'-]+$/u",
+				"let Nick": "console.log(Regex); let Nick",
+			},
+			"Nickname validation not overridden in saving"
+		);
 
 		// Prevent friendlist results from attempting to load into the HTML outside of the appropriate view
 		SDK.hookFunction(
@@ -2883,9 +2846,6 @@ async function BondageClubEnhancements() {
 		.bce-message a {
 			color: #3d91ff;
 		}
-		.${GLASSES_BLIND_CLASS} {
-			filter: blur(0.24vw);
-		}
 		.${WHISPER_CLASS} {
 			font-style: italic;
 		}
@@ -3108,31 +3068,16 @@ async function BondageClubEnhancements() {
 			},
 			"No OOC on CTRL+Enter."
 		);
-
-		// CommandParse patch for link OOC in whispers
-		if (GameVersion === "R79") {
-			patchFunction(
-				"CommandParse",
-				{
-					"// Regular chat":
-						"// Regular chat\nmsg = bceMessageReplacements(msg);",
-					"// The whispers get sent to the server and shown on the client directly":
-						"// The whispers get sent to the server and shown on the client directly\nmsg = bceMessageReplacements(msg);",
-				},
-				"No link or OOC parsing for sent whispers."
-			);
-		} else {
-			patchFunction(
-				"CommandParse",
-				{
-					"// Regular chat can be prevented with an owner presence rule":
-						"// Regular chat can be prevented with an owner presence rule\nmsg = bceMessageReplacements(msg);",
-					"// The whispers get sent to the server and shown on the client directly":
-						"// The whispers get sent to the server and shown on the client directly\nmsg = bceMessageReplacements(msg);",
-				},
-				"No link or OOC parsing for sent whispers."
-			);
-		}
+		patchFunction(
+			"CommandParse",
+			{
+				"// Regular chat can be prevented with an owner presence rule":
+					"// Regular chat can be prevented with an owner presence rule\nmsg = bceMessageReplacements(msg);",
+				"// The whispers get sent to the server and shown on the client directly":
+					"// The whispers get sent to the server and shown on the client directly\nmsg = bceMessageReplacements(msg);",
+			},
+			"No link or OOC parsing for sent whispers."
+		);
 
 		const startSounds = ["..", "--"];
 		const endSounds = ["...", "~", "~..", "~~", "..~"];
@@ -5936,32 +5881,14 @@ async function BondageClubEnhancements() {
 					} else {
 						message = data.Dictionary?.message || message;
 					}
+					const newName = removeNonPrintables(message.nick);
 					switch (message.type) {
 						case MESSAGE_TYPES.Hello:
 							sender.BCE = message.version;
 							sender.BCEArousal = message.alternateArousal || false;
 							sender.BCECapabilities = message.capabilities;
-							// TODO: remove after R80 stable (if only, leave logic inside)
-							if (GameVersion.startsWith("R80")) {
-								const newName = removeNonPrintables(message.nick);
-								if (newName && newName.length <= 20) {
-									sender.Nickname = newName;
-								}
-							} else {
-								// TODO: remove after R80 stable
-								const newName = removeNonPrintables(message.nick);
-								if (newName && newName.length <= 20) {
-									if (!sender.BCEOriginalName) {
-										sender.BCEOriginalName = sender.Name;
-									}
-									sender.Name = newName;
-									if (sender.BCEOriginalName === sender.Name) {
-										delete sender.BCEOriginalName;
-									}
-								} else if (sender.BCEOriginalName) {
-									sender.Name = sender.BCEOriginalName;
-									delete sender.BCEOriginalName;
-								}
+							if (newName && newName.length <= 20) {
+								sender.Nickname = newName;
 							}
 							if (message.replyRequested) {
 								sendHello(sender.MemberNumber);
@@ -6749,25 +6676,7 @@ async function BondageClubEnhancements() {
 					glasses.includes(a.Asset.Name)
 				);
 
-			if (GameVersion.startsWith("R79")) {
-				if (
-					hasGlasses &&
-					GLASSES_BLUR_TARGET.classList.contains(GLASSES_BLIND_CLASS)
-				) {
-					GLASSES_BLUR_TARGET.classList.remove(GLASSES_BLIND_CLASS);
-					bceChatNotify(
-						displayText("Having recovered your glasses you can see again!")
-					);
-				} else if (
-					!hasGlasses &&
-					!GLASSES_BLUR_TARGET.classList.contains(GLASSES_BLIND_CLASS)
-				) {
-					GLASSES_BLUR_TARGET.classList.add(GLASSES_BLIND_CLASS);
-					bceChatNotify(
-						displayText("Having lost your glasses your eyesight is impaired!")
-					);
-				}
-			} else if (hasGlasses) {
+			if (hasGlasses) {
 				if (removeCustomEffect("BlurLight")) {
 					bceChatNotify(
 						displayText("Having recovered your glasses you can see again!")
@@ -7987,208 +7896,43 @@ async function BondageClubEnhancements() {
 	function nicknames() {
 		/** @type {[number, number, number, number]} */
 		const nickButtonPosition = [475, 100, 60, 60];
-		/** @type {[number, number, number, number]} */
-		const exitButtonPosition = [1815, 75, 90, 90];
-		let nickInputVisible = false;
-		const nickInputName = "bce-nick-input";
 
-		if (GameVersion.startsWith("R80")) {
-			SDK.hookFunction("TitleExit", HOOK_PRIORITIES.Observe, (args, next) => {
-				const oldNick = Player.Nickname;
-				if (ElementValue("InputNickname") === "") {
-					ElementValue("InputNickname", Player.Name);
-				}
-				const ret = next(args);
-				if (Player.Nickname !== oldNick) {
-					bceSendAction(
-						displayText("$OldName is now known as $NewName", {
-							$OldName: oldNick || Player.Name,
-							$NewName: Player.Nickname,
-						})
+		SDK.hookFunction("TitleExit", HOOK_PRIORITIES.Observe, (args, next) => {
+			const oldNick = Player.Nickname;
+			if (ElementValue("InputNickname") === "") {
+				ElementValue("InputNickname", Player.Name);
+			}
+			const ret = next(args);
+			if (Player.Nickname !== oldNick) {
+				bceSendAction(
+					displayText("$OldName is now known as $NewName", {
+						$OldName: oldNick || Player.Name,
+						$NewName: Player.Nickname,
+					})
+				);
+				sendHello();
+			}
+			return ret;
+		});
+
+		// TODO: remove soon after R80
+		SDK.hookFunction(
+			"InformationSheetRun",
+			HOOK_PRIORITIES.AddBehaviour,
+			(args, next) => {
+				if (InformationSheetSelection?.IsPlayer()) {
+					DrawButton(
+						...nickButtonPosition,
+						"",
+						"grey",
+						"Icons/Small/Preference.png",
+						displayText("Use title menu on the right to change your nickname"),
+						true
 					);
-					sendHello();
 				}
-				return ret;
-			});
-
-			// TODO: remove soon after R80
-			SDK.hookFunction(
-				"InformationSheetRun",
-				HOOK_PRIORITIES.AddBehaviour,
-				(args, next) => {
-					if (InformationSheetSelection?.IsPlayer()) {
-						DrawButton(
-							...nickButtonPosition,
-							"",
-							"grey",
-							"Icons/Small/Preference.png",
-							displayText(
-								"Use title menu on the right to change your nickname"
-							),
-							true
-						);
-					}
-					return next(args);
-				}
-			);
-		} else if (GameVersion.startsWith("R79")) {
-			// TODO: remove after R80 stable
-			if (isString(bceSettings.nickname)) {
-				setOwnNickname(bceSettings.nickname);
+				return next(args);
 			}
-
-			SDK.hookFunction(
-				"InformationSheetRun",
-				HOOK_PRIORITIES.AddBehaviour,
-				/** @type {(args: unknown[], next: (args: unknown[]) => unknown) => unknown} */
-				(args, next) => {
-					if (
-						InformationSheetSelection?.BCEOriginalName &&
-						InformationSheetSelection.BCEOriginalName !==
-							InformationSheetSelection.Name
-					) {
-						w.MainCanvas.getContext("2d").textAlign = "left";
-						DrawText(
-							displayText("Official Name: ") +
-								InformationSheetSelection.BCEOriginalName,
-							550,
-							75,
-							"grey",
-							"black"
-						);
-						w.MainCanvas.getContext("2d").textAlign = "center";
-					}
-					if (InformationSheetSelection?.IsPlayer()) {
-						DrawButton(
-							...nickButtonPosition,
-							"",
-							"white",
-							"Icons/Small/Preference.png",
-							displayText("Change your nickname")
-						);
-					}
-					// eslint-disable-next-line consistent-return
-					return next(args);
-				}
-			);
-
-			SDK.hookFunction(
-				"InformationSheetRun",
-				HOOK_PRIORITIES.OverrideBehaviour,
-				/** @type {(args: unknown[], next: (args: unknown[]) => unknown) => unknown} */
-				(args, next) => {
-					if (nickInputVisible) {
-						DrawButton(
-							...exitButtonPosition,
-							"",
-							"white",
-							"Icons/Accept.png",
-							displayText("Save this nickname")
-						);
-						DrawText(
-							displayText("Set your nickname here. Leave empty to reset."),
-							1000,
-							400,
-							"black",
-							"black"
-						);
-						ElementPosition(nickInputName, 1000, 500, 500);
-						return;
-					}
-					// eslint-disable-next-line consistent-return
-					return next(args);
-				}
-			);
-
-			SDK.hookFunction(
-				"InformationSheetClick",
-				HOOK_PRIORITIES.AddBehaviour,
-				/** @type {(args: unknown[], next: (args: unknown[]) => unknown) => unknown} */
-				(args, next) => {
-					if (
-						InformationSheetSelection?.IsPlayer() &&
-						MouseIn(...nickButtonPosition)
-					) {
-						showNickInput();
-					}
-					// eslint-disable-next-line consistent-return
-					return next(args);
-				}
-			);
-
-			SDK.hookFunction(
-				"InformationSheetClick",
-				HOOK_PRIORITIES.OverrideBehaviour,
-				/** @type {(args: unknown[], next: (args: unknown[]) => unknown) => unknown} */
-				(args, next) => {
-					if (nickInputVisible) {
-						if (MouseIn(...exitButtonPosition)) {
-							hideNickInput();
-						}
-						return;
-					}
-					// eslint-disable-next-line consistent-return
-					return next(args);
-				}
-			);
-
-			document.addEventListener("keydown", keyHandler, true);
-			document.addEventListener("keypress", keyHandler, true);
-		}
-
-		function showNickInput() {
-			nickInputVisible = true;
-			let name = "";
-			if (isString(bceSettings.nickname)) {
-				name = bceSettings.nickname;
-			}
-			ElementCreateInput(nickInputName, "text", name, "20");
-		}
-
-		function hideNickInput() {
-			if (!Player.BCEOriginalName) {
-				Player.BCEOriginalName = Player.Name;
-			}
-			bceSettings.nickname = ElementValue(nickInputName);
-			setOwnNickname(bceSettings.nickname);
-			bceSaveSettings();
-			ElementRemove(nickInputName);
-			nickInputVisible = false;
-			sendHello();
-		}
-
-		/** @type {(e: KeyboardEvent) => void} */
-		function keyHandler(e) {
-			if (e.key === "Escape" && nickInputVisible) {
-				hideNickInput();
-				e.stopPropagation();
-				e.preventDefault();
-			}
-		}
-	}
-
-	/** @type {(newName: string) => void} */
-	function setOwnNickname(newName) {
-		if (!newName) {
-			newName = Player.Name;
-		}
-		if (newName !== Player.Name) {
-			newName = removeNonPrintables(newName);
-		}
-		if (newName !== Player.Nickname) {
-			bceSendAction(
-				displayText("$OldName is now known as $NewName", {
-					$OldName: Player.Nickname || Player.Name,
-					$NewName: newName,
-				})
-			);
-		}
-		// TODO: remove after R80 stable
-		if (GameVersion.startsWith("R79")) {
-			Player.Name = newName;
-		}
-		Player.Nickname = newName;
-		ServerAccountUpdate.QueueData({ Nickname: newName });
+		);
 	}
 
 	/** @type {(effect: string) => boolean} */
@@ -8249,10 +7993,7 @@ async function BondageClubEnhancements() {
 		} else {
 			emoticon.Asset.AllowEffect = ["Leash"];
 		}
-		// TODO: remove check after R80 stable
-		if (GameVersion.startsWith("R80")) {
-			emoticon.Asset.AllowEffect.push("BlurLight");
-		}
+		emoticon.Asset.AllowEffect.push("BlurLight");
 
 		if (bceSettings.leashAlways) {
 			enableLeashing();
