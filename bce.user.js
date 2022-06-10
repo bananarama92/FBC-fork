@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Bondage Club Enhancements
 // @namespace https://www.bondageprojects.com/
-// @version 3.4.3
+// @version 3.4.4
 // @description enhancements for the bondage club
 // @author Sidious
 // @match https://bondageprojects.elementfx.com/*
@@ -38,10 +38,15 @@
  *  along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-const BCE_VERSION = "3.4.3";
+const BCE_VERSION = "3.4.4";
 const settingsVersion = 37;
 
 const bceChangelog = `${BCE_VERSION}
+- R81Beta1 compatibility
+- disable pending messages for targeted messages, because delivery cannot be confirmed
+- move notes to a subscreen
+
+3.4.3
 - update BCX stable
 
 3.4.2
@@ -88,7 +93,7 @@ const bcModSdk=function(){"use strict";const o="1.0.2";function e(o){alert("Mod 
 async function BondageClubEnhancements() {
 	"use strict";
 
-	const SUPPORTED_GAME_VERSIONS = ["R80"];
+	const SUPPORTED_GAME_VERSIONS = ["R80", "R81Beta1"];
 	const CAPABILITIES = ["clubslave"];
 
 	const w = window;
@@ -1010,8 +1015,6 @@ async function BondageClubEnhancements() {
 			NotificationTitleUpdate: "0E92F3ED",
 			OnlineGameAllowChange: "3779F42C",
 			OnlineProfileClick: "9EF4F64F",
-			OnlineProfileExit: "53E58C94",
-			OnlineProfileLoad: "04F6A136",
 			OnlineProfileRun: "8388DFE2",
 			RelogRun: "10AF5A60",
 			RelogExit: "2DFB2DAD",
@@ -1036,7 +1039,6 @@ async function BondageClubEnhancements() {
 			TimerInventoryRemove: "83E7C8E9",
 			TimerProcess: "19F09E1E",
 			TitleExit: "9DB9BA4A",
-			WardrobeClick: "D388FE7D",
 			WardrobeExit: "EE83FF29",
 			WardrobeFastLoad: "545CB8FD",
 			WardrobeFastSave: "B62385C1",
@@ -1046,6 +1048,23 @@ async function BondageClubEnhancements() {
 		};
 
 		switch (gameVersion) {
+			case "R81Beta1":
+				hashes.ChatRoomCharacterItemUpdate = "041F9B91";
+				hashes.ChatRoomMessage = "BA549E5F";
+				hashes.DialogClick = "592A4F65";
+				hashes.DialogDraw = "7AD8C0F6";
+				hashes.DialogDrawItemMenu = "FB5172D2";
+				hashes.GLDrawResetCanvas = "A3F059DE";
+				hashes.OnlineProfileClick = "CC034993";
+				hashes.OnlineProfileRun = "B0AF608D";
+				hashes.ServerAccountBeep = "6A6EC803";
+				hashes.ServerAppearanceBundle = "56C7E218";
+				hashes.ServerDisconnect = "06C1A6B0";
+				hashes.ServerOpenFriendList = "FA8D3CDE";
+				hashes.SpeechGarbleByGagLevel = "2AEDED9D";
+				hashes.SpeechGetTotalGagLevel = "C55B705A";
+				hashes.TimerProcess = "07A8B8A0";
+				break;
 			default:
 				break;
 		}
@@ -7897,9 +7916,6 @@ async function BondageClubEnhancements() {
 	}
 
 	function nicknames() {
-		/** @type {[number, number, number, number]} */
-		const nickButtonPosition = [475, 100, 60, 60];
-
 		SDK.hookFunction("TitleExit", HOOK_PRIORITIES.Observe, (args, next) => {
 			const oldNick = Player.Nickname;
 			if (ElementValue("InputNickname") === "") {
@@ -7917,25 +7933,6 @@ async function BondageClubEnhancements() {
 			}
 			return ret;
 		});
-
-		// TODO: remove soon after R80
-		SDK.hookFunction(
-			"InformationSheetRun",
-			HOOK_PRIORITIES.AddBehaviour,
-			(args, next) => {
-				if (InformationSheetSelection?.IsPlayer()) {
-					DrawButton(
-						...nickButtonPosition,
-						"",
-						"grey",
-						"Icons/Small/Preference.png",
-						displayText("Use title menu on the right to change your nickname"),
-						true
-					);
-				}
-				return next(args);
-			}
-		);
 	}
 
 	/** @type {(effect: string) => boolean} */
@@ -8444,51 +8441,44 @@ async function BondageClubEnhancements() {
 			},
 		});
 
-		SDK.hookFunction(
-			"OnlineProfileExit",
-			HOOK_PRIORITIES.AddBehaviour,
-			(args, next) => {
-				noteInput.classList.add("bce-hidden");
-				return next(args);
-			}
-		);
+		// Notes view
+		let inNotes = false;
 
-		SDK.hookFunction(
-			"OnlineProfileLoad",
-			HOOK_PRIORITIES.AddBehaviour,
-			(args, next) => {
-				next(args);
-				noteInput.classList.remove("bce-hidden");
-				noteInput.value = "Loading...";
-				notes
-					.get(InformationSheetSelection.MemberNumber)
-					.then((note) => {
-						// eslint-disable-next-line
-						noteInput.value = note?.note || "";
-					})
-					.catch((reason) => {
-						noteInput.value = "";
-						bceError("getting note", reason);
-					});
-			}
-		);
+		function showNoteInput() {
+			inNotes = true;
+			noteInput.classList.remove("bce-hidden");
+			noteInput.value = "Loading...";
+			notes
+				.get(InformationSheetSelection.MemberNumber)
+				.then((note) => {
+					// eslint-disable-next-line
+					noteInput.value = note?.note || "";
+				})
+				.catch((reason) => {
+					noteInput.value = "";
+					bceError("getting note", reason);
+				});
+		}
+
+		function hideNoteInput() {
+			noteInput.classList.add("bce-hidden");
+			inNotes = false;
+		}
 
 		SDK.hookFunction(
 			"OnlineProfileRun",
-			HOOK_PRIORITIES.AddBehaviour,
+			HOOK_PRIORITIES.OverrideBehaviour,
 			(args, next) => {
-				const ret = next(args);
-				ElementPositionFix("DescriptionInput", 36, 100, 160, 1790, 400);
-				DrawText(
-					displayText("Personal notes (only you can read these):"),
-					910,
-					160 + 455,
-					"Black",
-					"Gray"
-				);
-				ElementPositionFix("bceNoteInput", 36, 100, 160 + 500, 1790, 250);
-				// Always draw the accept button; normal method shows it when is player
-				if (!InformationSheetSelection.IsPlayer()) {
+				if (inNotes) {
+					DrawText(
+						displayText("Personal notes (only you can read these):"),
+						910,
+						105,
+						"Black",
+						"Gray"
+					);
+					ElementPositionFix("bceNoteInput", 36, 100, 160, 1790, 750);
+					// Always draw the accept button; normal method shows it when is player
 					DrawButton(
 						1720,
 						60,
@@ -8499,35 +8489,50 @@ async function BondageClubEnhancements() {
 						"Icons/Accept.png",
 						TextGet("LeaveSave")
 					);
+					DrawButton(
+						1820,
+						60,
+						90,
+						90,
+						"",
+						"White",
+						"Icons/Cancel.png",
+						TextGet("LeaveNoSave")
+					);
+					return null;
 				}
-				return ret;
+				DrawButton(
+					1620,
+					60,
+					90,
+					90,
+					"",
+					"White",
+					"Icons/Notifications.png",
+					displayText("[BCE] Notes")
+				);
+				return next(args);
 			}
-		);
-
-		patchFunction(
-			"OnlineProfileRun",
-			{
-				ElementPositionFix: "// ElementPositionFix",
-			},
-			"Scrolling in profile descriptions"
 		);
 
 		SDK.hookFunction(
 			"OnlineProfileClick",
 			HOOK_PRIORITIES.AddBehaviour,
 			(args, next) => {
-				if (MouseIn(1720, 60, 90, 90)) {
-					// Save note
-					notes.put({
-						memberNumber: InformationSheetSelection.MemberNumber,
-						note: noteInput.value,
-					});
-					if (InformationSheetSelection.IsPlayer()) {
-						OnlineProfileExit(true);
-					} else {
-						OnlineProfileExit(false);
+				if (inNotes) {
+					if (MouseIn(1720, 60, 90, 90)) {
+						// Save note
+						notes.put({
+							memberNumber: InformationSheetSelection.MemberNumber,
+							note: noteInput.value,
+						});
+						hideNoteInput();
+					} else if (MouseIn(1820, 60, 90, 90)) {
+						hideNoteInput();
 					}
 					return;
+				} else if (!inNotes && MouseIn(1620, 60, 90, 90)) {
+					showNoteInput();
 				}
 				next(args);
 			}
@@ -8588,7 +8593,8 @@ async function BondageClubEnhancements() {
 					args?.length >= 2 &&
 					args[0] === "ChatRoomChat" &&
 					isChatMessage(args[1]) &&
-					args[1].Type !== HIDDEN
+					args[1].Type !== HIDDEN &&
+					!args[1].Target
 				) {
 					nonce++;
 					if (nonce >= Number.MAX_SAFE_INTEGER) {
