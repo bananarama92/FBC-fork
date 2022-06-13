@@ -38,10 +38,13 @@
  *  along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-const BCE_VERSION = "3.4.4";
+const BCE_VERSION = "3.4.5";
 const settingsVersion = 37;
 
 const bceChangelog = `${BCE_VERSION}
+- R81Beta2 compatibility
+
+3.4.4
 - R81Beta1 compatibility
 - disable pending messages for targeted messages, because delivery cannot be confirmed
 - move notes to a subscreen
@@ -93,7 +96,7 @@ const bcModSdk=function(){"use strict";const o="1.0.2";function e(o){alert("Mod 
 async function BondageClubEnhancements() {
 	"use strict";
 
-	const SUPPORTED_GAME_VERSIONS = ["R80", "R81Beta1"];
+	const SUPPORTED_GAME_VERSIONS = ["R80", "R81Beta1", "R81Beta2"];
 	const CAPABILITIES = ["clubslave"];
 
 	const w = window;
@@ -1049,6 +1052,7 @@ async function BondageClubEnhancements() {
 
 		switch (gameVersion) {
 			case "R81Beta1":
+			case "R81Beta2":
 				hashes.ChatRoomCharacterItemUpdate = "041F9B91";
 				hashes.ChatRoomMessage = "BA549E5F";
 				hashes.DialogClick = "592A4F65";
