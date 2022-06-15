@@ -22,6 +22,12 @@ declare global {
   var bce_ArousalExpressionStages: ArousalExpressionStages;
   var bce_ActivityTriggers: ActivityTrigger[];
   var ActivityDictionary: string[][];
+  var ActivityCheckPrerequisite: (
+    activity: Activity,
+    acting: Character,
+    acted: Character,
+    group: AssetGroup
+  ) => boolean;
   var DialogDrawActivityMenu: (C: Character) => void;
   var CommandParse: (msg: string) => void;
   var Player: Character;
@@ -412,6 +418,9 @@ declare global {
   };
   type ChatSettings = {
     ColorTheme: string;
+  };
+  type Activity = {
+    Prerequisite: string[];
   };
   type NPC = {
     Stage: string;

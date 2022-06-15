@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Bondage Club Enhancements
 // @namespace https://www.bondageprojects.com/
-// @version 3.4.5
+// @version 3.5.0
 // @description enhancements for the bondage club
 // @author Sidious
 // @match https://bondageprojects.elementfx.com/*
@@ -38,29 +38,17 @@
  *  along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-const BCE_VERSION = "3.4.5";
-const settingsVersion = 37;
+const BCE_VERSION = "3.5.0";
+const settingsVersion = 38;
 
 const bceChangelog = `${BCE_VERSION}
-- R81Beta2 compatibility
+- R81Beta3 compatibility
+- remove cheat to loosen/tighten *while bound*: it has become apparent this is causing more problems than the issues it was created to solve
+- fix notes in profile
+- validate version strings before displaying them
+- new setting to allow using all activities always regardless of their prerequisites
 
-3.4.4
-- R81Beta1 compatibility
-- disable pending messages for targeted messages, because delivery cannot be confirmed
-- move notes to a subscreen
-
-3.4.3
-- update BCX stable
-
-3.4.2
-- R80 compatibility
-- enhance game's nicknames instead of implementing separate nicknames
-
-3.4.1
-- change EBCH to load from Elicia's URL
-- fix message when copying colors from item to another (layering menus)
-
-3.4.0
+3.4
 - add loading for Eli's BC Helper by the wonderful Elicia
 - move loosen or tighten button to its own cheat setting
 
@@ -375,6 +363,10 @@ async function BondageClubEnhancements() {
 			value: false,
 			sideEffects: (newValue) => {
 				bceLog("allowLayeringWhileBound", newValue);
+				if (newValue && !bceSettings.layeringMenu) {
+					bceSettings.layeringMenu = true;
+					defaultSettings.layeringMenu.sideEffects(true);
+				}
 			},
 			category: "cheats",
 		},
@@ -383,6 +375,10 @@ async function BondageClubEnhancements() {
 			value: false,
 			sideEffects: (newValue) => {
 				bceLog("modifyDifficulty", newValue);
+				if (newValue && !bceSettings.layeringMenu) {
+					bceSettings.layeringMenu = true;
+					defaultSettings.layeringMenu.sideEffects(true);
+				}
 			},
 			category: "cheats",
 		},
@@ -391,6 +387,14 @@ async function BondageClubEnhancements() {
 			value: false,
 			sideEffects: (newValue) => {
 				bceLog("autoStruggle", newValue);
+			},
+			category: "cheats",
+		},
+		skipActivityPrerequisites: {
+			label: "Always allow all activities",
+			value: false,
+			sideEffects: (newValue) => {
+				bceLog("skipActivityPrerequisites", newValue);
 			},
 			category: "cheats",
 		},
@@ -932,6 +936,8 @@ async function BondageClubEnhancements() {
 	const expectedHashes = (gameVersion) => {
 		const hashes = {
 			ActivityChatRoomArousalSync: "21318CAF",
+			ActivityCheckPrerequisite: "6DB129F9",
+			ActivityCheckPrerequisites: "4B8903AF",
 			ActivitySetArousal: "3AE28123",
 			ActivitySetArousalTimer: "A034E6C0",
 			ActivityTimerProgress: "6CD388A7",
@@ -1059,6 +1065,24 @@ async function BondageClubEnhancements() {
 				hashes.DialogDraw = "7AD8C0F6";
 				hashes.DialogDrawItemMenu = "FB5172D2";
 				hashes.GLDrawResetCanvas = "A3F059DE";
+				hashes.OnlineProfileClick = "CC034993";
+				hashes.OnlineProfileRun = "B0AF608D";
+				hashes.ServerAccountBeep = "6A6EC803";
+				hashes.ServerAppearanceBundle = "56C7E218";
+				hashes.ServerDisconnect = "06C1A6B0";
+				hashes.ServerOpenFriendList = "FA8D3CDE";
+				hashes.SpeechGarbleByGagLevel = "2AEDED9D";
+				hashes.SpeechGetTotalGagLevel = "C55B705A";
+				hashes.TimerProcess = "07A8B8A0";
+				break;
+			case "R81Beta3":
+				hashes.ChatRoomCharacterItemUpdate = "041F9B91";
+				hashes.ChatRoomMessage = "BA549E5F";
+				hashes.DialogClick = "592A4F65";
+				hashes.DialogDraw = "7AD8C0F6";
+				hashes.DialogDrawItemMenu = "FB5172D2";
+				hashes.DrawProcess = "2A1B4CB8";
+				hashes.GLDrawResetCanvas = "F267A4FB";
 				hashes.OnlineProfileClick = "CC034993";
 				hashes.OnlineProfileRun = "B0AF608D";
 				hashes.ServerAccountBeep = "6A6EC803";
@@ -1305,6 +1329,7 @@ async function BondageClubEnhancements() {
 	pastProfiles();
 	pendingMessages();
 	hideHiddenItemsIcon();
+	skipActivitiesPrerequisites();
 
 	// Post ready when in a chat room
 	await bceNotify(`Bondage Club Enhancements v${w.BCE_VERSION} Loaded`);
@@ -1455,7 +1480,7 @@ async function BondageClubEnhancements() {
 			/** @type {(args: DOMHighResTimeStamp[], next: (args: DOMHighResTimeStamp[]) => void) => void} */
 			(args, next) => {
 				const [time] = args;
-				if (lastFrame >= 0) {
+				if (lastFrame >= 0 && time > 0) {
 					let ftl = 0;
 					if (bceSettings.limitFPSInBackground && !document.hasFocus()) {
 						ftl = 10;
@@ -1471,10 +1496,13 @@ async function BondageClubEnhancements() {
 						return;
 					}
 				}
-				const frameTime = time - lastFrame;
-				lastFrame = time;
+				let frameTime = 10000;
+				if (time > 0) {
+					frameTime = time - lastFrame;
+					lastFrame = time;
+				}
 				next(args);
-				if (bceSettings.fpsCounter) {
+				if (time > 0 && bceSettings.fpsCounter) {
 					DrawTextFit(
 						(Math.round(10000 / frameTime) / 10).toString(),
 						15,
@@ -3075,6 +3103,10 @@ async function BondageClubEnhancements() {
 			100% {
 				transform: translate(24px, 0);
 			}
+		}
+
+		#bceNoteInput {
+			z-index: 100 !important;
 		}
 
 		`;
@@ -5353,6 +5385,15 @@ async function BondageClubEnhancements() {
 						!InventoryGroupIsBlocked(c, c.FocusGroup.Name)))
 			);
 		};
+		const canAccessDifficultyMenu = () => {
+			const c = CharacterGetCurrent();
+			return (
+				bceSettings.layeringMenu &&
+				Player.CanInteract() &&
+				c?.FocusGroup?.Name &&
+				!InventoryGroupIsBlocked(c, c.FocusGroup.Name)
+			);
+		};
 
 		// Pseudo-items that we do not want to process for color copying
 		const ignoredColorCopiableAssets = [
@@ -5545,7 +5586,7 @@ async function BondageClubEnhancements() {
 				if (isCharacter(C) && canAccessLayeringMenus()) {
 					const focusItem = InventoryGet(C, C.FocusGroup?.Name);
 					if (assetWorn(C, focusItem)) {
-						if (bceSettings.modifyDifficulty) {
+						if (bceSettings.modifyDifficulty && canAccessDifficultyMenu()) {
 							DrawButton(
 								10,
 								890,
@@ -5654,7 +5695,8 @@ async function BondageClubEnhancements() {
 					if (
 						assetWorn(C, focusItem) &&
 						MouseIn(10, 890, 52, 52) &&
-						bceSettings.modifyDifficulty
+						bceSettings.modifyDifficulty &&
+						canAccessDifficultyMenu()
 					) {
 						prioritySubscreenEnter(C, focusItem, FIELDS.Difficulty);
 						return null;
@@ -5776,11 +5818,18 @@ async function BondageClubEnhancements() {
 				return;
 			}
 
-			bceLog("Clearing caches");
-			if (GLDrawCanvas.GL.textureCache) {
-				GLDrawCanvas.GL.textureCache.clear();
+			if (GameVersion.startsWith("R81")) {
+				// TODO: remove after R81
+				bceWarn("Skipped cache clear: integrated to the game in R81");
+			} else {
+				bceLog("Clearing caches");
+				if (GLDrawCanvas.GL.textureCache) {
+					GLDrawCanvas.GL.textureCache.clear();
+				}
+				GLDrawResetCanvas();
 			}
-			GLDrawResetCanvas();
+
+			bceLog("Clearing old characters from cache");
 			const oldOnlineCharacters = Character.filter(
 				(c) =>
 					c.IsOnline?.() &&
@@ -5824,7 +5873,7 @@ async function BondageClubEnhancements() {
 						50 * Zoom
 					);
 					DrawTextFit(
-						C.BCE,
+						/^\d+\.\d+(\.\d+)?$/u.test(C.BCE) ? C.BCE : "",
 						CharX + 300 * Zoom,
 						CharY + 40 * Zoom,
 						50 * Zoom,
@@ -8679,6 +8728,29 @@ async function BondageClubEnhancements() {
 				const ret = next(args);
 				c.HasHiddenItems = backup;
 				return ret;
+			}
+		);
+	}
+
+	function skipActivitiesPrerequisites() {
+		SDK.hookFunction(
+			"ActivityCheckPrerequisites",
+			HOOK_PRIORITIES.OverrideBehaviour,
+			/** @type {(args: [Activity, Character, Character, AssetGroup], next: (args: [Activity, Character, Character, AssetGroup]) => boolean) => boolean} */
+			(args, next) => {
+				const [activity, acting, acted, group] = args;
+				if (!activity?.Prerequisite) {
+					return true;
+				}
+				if (bceSettings.skipActivityPrerequisites) {
+					// Keep item needs to be checked
+					return activity.Prerequisite.filter((pre) =>
+						pre.startsWith("Needs-")
+					).every((pre) =>
+						ActivityCheckPrerequisite(pre, acting, acted, group)
+					);
+				}
+				return next(args);
 			}
 		);
 	}
