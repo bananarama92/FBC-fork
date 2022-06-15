@@ -23,7 +23,7 @@ declare global {
   var bce_ActivityTriggers: ActivityTrigger[];
   var ActivityDictionary: string[][];
   var ActivityCheckPrerequisite: (
-    activity: Activity,
+    pre: string,
     acting: Character,
     acted: Character,
     group: AssetGroup
