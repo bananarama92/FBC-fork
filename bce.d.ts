@@ -45,6 +45,7 @@ declare global {
   var CraftingItemListBuild: () => void;
   var CharacterLoadSimple: (accName: string) => Character;
   var CharacterDelete: (accName: string) => void;
+  var CharacterNaked: (C: Character) => void;
   var ItemColorLoad: (
     c: Character,
     item: Item,

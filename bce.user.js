@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Bondage Club Enhancements
 // @namespace https://www.bondageprojects.com/
-// @version 3.6.0
+// @version 3.6.1
 // @description enhancements for the bondage club
 // @author Sidious
 // @match https://bondageprojects.elementfx.com/*
@@ -38,16 +38,20 @@
  *  along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-const BCE_VERSION = "3.6.0";
+const BCE_VERSION = "3.6.1";
 const settingsVersion = 38;
 
 const bceChangelog = `${BCE_VERSION}
+- add addon items to craftable items
+- add nudity toggle to crafting preview
+
+3.6.0
 - R81 compatibility
 - add /craft command
 - improvements to the crafting interface
 - removed all activities cheat until it can be implemented better
 
-3.5.0
+3.5
 - R81Beta3 compatibility
 - remove cheat to loosen/tighten *while bound*: it has become apparent this is causing more problems than the issues it was created to solve
 - fix notes in profile
@@ -926,6 +930,7 @@ async function BondageClubEnhancements() {
 			AppearanceExit: "AA300341",
 			AppearanceLoad: "A14CB302",
 			AppearanceRun: "6DDA14A1",
+			CharacterAppearanceNaked: "E95F92F7",
 			CharacterAppearanceWardrobeLoad: "A5B63A03",
 			CharacterBuildDialog: "3CC4F4AA",
 			CharacterCompressWardrobe: "8D3B1AB1",
@@ -8694,6 +8699,9 @@ async function BondageClubEnhancements() {
 		/** @type {Character} */
 		let previewChar = null;
 		let viaRoom = false;
+		let nakedPreview = false;
+		/** @type {[number, number, number, number]} */
+		const nudityToggleButtonPosition = [560, 870, 90, 90];
 		Commands.push({
 			Tag: "craft",
 			Description: displayText("open the crafting menu"),
@@ -8734,7 +8742,11 @@ async function BondageClubEnhancements() {
 
 		/** @type {(craft: Craft) => void} */
 		function updatePreview(craft) {
+			previewChar.Appearance = [...Player.Appearance];
 			CharacterReleaseTotal(previewChar);
+			if (nakedPreview) {
+				CharacterNaked(previewChar);
+			}
 			const items = Asset.filter((a) => a.Name === craft.Item && a.Group.Zone);
 			for (const item of items) {
 				InventoryWear(
@@ -8838,13 +8850,24 @@ async function BondageClubEnhancements() {
 			"Partial crafting enhancements - coloring"
 		);
 
+		patchFunction(
+			"CraftingItemListBuild",
+			{
+				'(I.Asset.Group.Name != "ItemAddon")': "true",
+			},
+			"Crafting addon items"
+		);
+
 		SDK.hookFunction(
 			"CraftingClick",
 			HOOK_PRIORITIES.AddBehaviour,
 			(args, next) => {
 				switch (CraftingMode) {
 					case "Name":
-						if (MouseIn(80, 250, 225, 275)) {
+						if (MouseIn(...nudityToggleButtonPosition)) {
+							nakedPreview = !nakedPreview;
+							updatePreview(previewChar.Crafting[CraftingSlot]);
+						} else if (MouseIn(80, 250, 225, 275)) {
 							CraftingModeSet("Item");
 							CraftingOffset = 0;
 							CraftingItemListBuild();
@@ -8900,6 +8923,12 @@ async function BondageClubEnhancements() {
 			}
 		);
 
+		patchFunction(
+			"CharacterAppearanceNaked",
+			{ "C.IsNpc()": "!C.IsOnline()" },
+			"Crash when toggling nudity in crafting preview"
+		);
+
 		SDK.hookFunction(
 			"CraftingRun",
 			HOOK_PRIORITIES.ModifyBehaviourMedium,
@@ -8907,6 +8936,12 @@ async function BondageClubEnhancements() {
 				const ret = next(args);
 				if (CraftingMode === "Name") {
 					DrawCharacter(previewChar, 665, 65, 0.9, false);
+					DrawButton(
+						...nudityToggleButtonPosition,
+						"",
+						"white",
+						`Icons/${nakedPreview ? "Dress" : "Naked"}.png`
+					);
 					if (coloring) {
 						ItemColorDraw(
 							previewChar,
