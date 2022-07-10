@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Bondage Club Enhancements
 // @namespace https://www.bondageprojects.com/
-// @version 3.6.1
+// @version 3.6.2
 // @description enhancements for the bondage club
 // @author Sidious
 // @match https://bondageprojects.elementfx.com/*
@@ -38,10 +38,14 @@
  *  along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-const BCE_VERSION = "3.6.1";
+const BCE_VERSION = "3.6.2";
 const settingsVersion = 38;
 
 const bceChangelog = `${BCE_VERSION}
+- fix potential crash when entering crafting for the very first time
+- R82 Beta1
+
+3.6.1
 - add addon items to craftable items
 - add nudity toggle to crafting preview
 
@@ -77,7 +81,7 @@ const bcModSdk=function(){"use strict";const o="1.0.2";function e(o){alert("Mod 
 async function BondageClubEnhancements() {
 	"use strict";
 
-	const SUPPORTED_GAME_VERSIONS = ["R81"];
+	const SUPPORTED_GAME_VERSIONS = ["R81", "R82Beta1"];
 	const CAPABILITIES = ["clubslave"];
 
 	const w = window;
@@ -1058,6 +1062,11 @@ async function BondageClubEnhancements() {
 		};
 
 		switch (gameVersion) {
+			case "R82Beta1":
+				hashes.CraftingClick = "3D4C8373";
+				hashes.CraftingItemListBuild = "AD8AB2D2";
+				hashes.CraftingRun = "7E104EC8";
+				break;
 			default:
 				break;
 		}
@@ -8715,6 +8724,7 @@ async function BondageClubEnhancements() {
 			"CraftingLoad",
 			HOOK_PRIORITIES.AddBehaviour,
 			(args, next) => {
+				const ret = next(args);
 				previewChar = CharacterLoadSimple(
 					`CraftingPreview-${Player.MemberNumber}`
 				);
@@ -8722,7 +8732,7 @@ async function BondageClubEnhancements() {
 				// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
 				previewChar.Crafting = JSON.parse(JSON.stringify(Player.Crafting));
 				CharacterReleaseTotal(previewChar);
-				return next(args);
+				return ret;
 			}
 		);
 		SDK.hookFunction(
