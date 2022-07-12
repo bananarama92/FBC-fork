@@ -593,6 +593,7 @@ declare global {
     Category: "Appearance" | "Item";
     AllowNone: boolean;
     BodyCosplay: boolean;
+    IsDefault: boolean;
     Clothing: boolean;
     Asset: Asset[];
     IsRestraint: boolean;
@@ -613,6 +614,7 @@ declare global {
     Difficulty?: number;
     Color?: string | string[];
     Property?: ItemProperty;
+    Craft?: Craft;
   };
   type ItemBundle = {
     Group: string;
@@ -620,6 +622,7 @@ declare global {
     Difficulty?: number;
     Color?: string | string[];
     Property?: ItemProperty;
+    Craft?: Craft;
   };
   type ScreenFunctions = {
     Run: (time: number) => void;
