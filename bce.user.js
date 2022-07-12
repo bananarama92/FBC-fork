@@ -46,6 +46,7 @@ const bceChangelog = `${BCE_VERSION}
 - /exportlooks prompts for options and is more configurable
 - /importlooks now prompts for the input string instead of patching chat input
 - crafted items now work with /exportlooks and /importlooks
+- fixed changing buttplug.io slots with more than one device connected
 
 3.6
 - R81 compatibility
