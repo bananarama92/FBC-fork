@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Bondage Club Enhancements
 // @namespace https://www.bondageprojects.com/
-// @version 3.7.0
+// @version 3.7.1
 // @description enhancements for the bondage club
 // @author Sidious
 // @match https://bondageprojects.elementfx.com/*
@@ -39,10 +39,13 @@
  *  along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-const BCE_VERSION = "3.7.0";
+const BCE_VERSION = "3.7.1";
 const settingsVersion = 38;
 
 const bceChangelog = `${BCE_VERSION}
+- R82 beta 2
+
+3.7.0
 - /exportlooks prompts for options and is more configurable
 - /importlooks now prompts for the input string instead of patching chat input
 - crafted items now work with /exportlooks and /importlooks
@@ -78,7 +81,7 @@ const bcModSdk=function(){"use strict";const o="1.0.2";function e(o){alert("Mod 
 async function BondageClubEnhancements() {
 	"use strict";
 
-	const SUPPORTED_GAME_VERSIONS = ["R81", "R82Beta1"];
+	const SUPPORTED_GAME_VERSIONS = ["R81", "R82Beta1", "R82Beta2"];
 	const CAPABILITIES = ["clubslave"];
 
 	const w = window;
@@ -1060,6 +1063,7 @@ async function BondageClubEnhancements() {
 
 		switch (gameVersion) {
 			case "R82Beta1":
+			case "R82Beta2":
 				hashes.CraftingClick = "3D4C8373";
 				hashes.CraftingItemListBuild = "AD8AB2D2";
 				hashes.CraftingRun = "7E104EC8";
