@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Bondage Club Enhancements
 // @namespace https://www.bondageprojects.com/
-// @version 3.8.2
+// @version 3.8.3
 // @description enhancements for the bondage club
 // @author Sidious
 // @match https://bondageprojects.elementfx.com/*
@@ -39,10 +39,13 @@
  *  along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-const BCE_VERSION = "3.8.2";
+const BCE_VERSION = "3.8.3";
 const settingsVersion = 39;
 
 const bceChangelog = `${BCE_VERSION}
+- fix crash with crafted item property/description showing
+
+3.8.2
 - show crafted property and description when hovering over item
 - R82 beta 3 compatibility
 
@@ -9226,10 +9229,12 @@ async function BondageClubEnhancements() {
 			(args, next) => {
 				const ret = next(args);
 				const [x, y, , options] = args;
-				const { Craft } = options;
-				if (MouseIn(x, y, 225, 275) && Craft) {
-					drawTooltip(x, y, 225, displayText(Craft.Property));
-					drawTooltip(1000, y - 70, 975, displayText(Craft.Description));
+				if (options) {
+					const { Craft } = options;
+					if (MouseIn(x, y, 225, 275) && Craft) {
+						drawTooltip(x, y, 225, displayText(Craft.Property));
+						drawTooltip(1000, y - 70, 975, displayText(Craft.Description));
+					}
 				}
 				return ret;
 			}
