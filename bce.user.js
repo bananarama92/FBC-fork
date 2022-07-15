@@ -44,7 +44,7 @@ const settingsVersion = 39;
 
 const bceChangelog = `${BCE_VERSION}
 - removed "keep tab active" option, which did not work. In Firefox you can set widget.windows.window_occlusion_tracking.enabled to false in about:config to keep the game processing in the background
-- added descriptions for settings, which show up when hovering over each setting
+- added descriptions for settings, which show up when clicking each setting
 - allow sharing your crafted items with other BCE users in the room, per item
 - option to disable seeing shared crafts
 
