@@ -506,6 +506,7 @@ declare global {
     AccountName: string;
     Creation: number;
     Appearance: Item[];
+    Inventory: Item[];
     AppearanceLayers: ItemLayer[];
     Wardrobe: ItemBundle[][];
     FocusGroup: AssetGroup;

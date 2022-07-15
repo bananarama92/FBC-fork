@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Bondage Club Enhancements
 // @namespace https://www.bondageprojects.com/
-// @version 3.8.0
+// @version 3.8.1
 // @description enhancements for the bondage club
 // @author Sidious
 // @match https://bondageprojects.elementfx.com/*
@@ -39,10 +39,13 @@
  *  along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-const BCE_VERSION = "3.8.0";
+const BCE_VERSION = "3.8.1";
 const settingsVersion = 39;
 
 const bceChangelog = `${BCE_VERSION}
+- import/export for crafts
+
+3.8.0
 - removed "keep tab active" option, which did not work. In Firefox you can set widget.windows.window_occlusion_tracking.enabled to false in about:config to keep the game processing in the background
 - added descriptions for settings, which show up when clicking each setting
 - allow sharing your crafted items with other BCE users in the room, per item
@@ -8865,6 +8868,10 @@ async function BondageClubEnhancements() {
 		/** @type {[number, number, number, number]} */
 		const nudityToggleButtonPosition = [560, 870, 90, 90];
 		/** @type {[number, number, number, number]} */
+		const importPosition = [1485, 15, 90, 90];
+		/** @type {[number, number, number, number]} */
+		const exportPosition = [1585, 15, 90, 90];
+		/** @type {[number, number, number, number]} */
 		const shareTogglePosition = [80, 150, 64, 64];
 		Commands.push({
 			Tag: "craft",
@@ -8904,9 +8911,11 @@ async function BondageClubEnhancements() {
 						bceSettings.sharedCrafts = JSON.stringify(sharedCrafts);
 						bceSaveSettings();
 					}
+					ElementRemove("InputColor");
 					return null;
 				}
 				CharacterDelete(previewChar.AccountName);
+				ElementRemove("InputColor");
 				return next(args);
 			}
 		);
@@ -9029,6 +9038,41 @@ async function BondageClubEnhancements() {
 			"Crafting addon items"
 		);
 
+		function importCraft() {
+			const str = window.prompt(displayText("Paste the craft here")) || "";
+			if (str.length === 0) {
+				window.alert(displayText("No craft to import"));
+			}
+			try {
+				/** @type {Craft} */
+				// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+				const craft = JSON.parse(LZString.decompressFromBase64(str));
+				if (!isNonNullObject(craft)) {
+					bceError(craft);
+					throw new Error("invalid craft type");
+				}
+				for (const [, value] of Object.entries(craft)) {
+					if (!isString(value) && !Number.isInteger(value)) {
+						bceError(value);
+						throw new Error("invalid craft properties");
+					}
+				}
+				CraftingItem = Asset.find((a) => a.Name === craft.Item);
+				CraftingProperty = craft.Property;
+				CraftingLock = Player.Inventory.find(
+					(a) =>
+						a.Asset.Group.Name === "ItemMisc" && a.Asset.Name === craft.Lock
+				);
+				ElementValue("InputName", craft.Name);
+				ElementValue("InputDescription", craft.Description);
+				ElementValue("InputColor", craft.Color);
+				previewChar.Crafting[CraftingSlot] = craft;
+				updatePreview(craft);
+			} catch (e) {
+				bceError("importing craft", e);
+			}
+		}
+
 		SDK.hookFunction(
 			"CraftingClick",
 			HOOK_PRIORITIES.AddBehaviour,
@@ -9041,6 +9085,15 @@ async function BondageClubEnhancements() {
 						} else if (MouseIn(...nudityToggleButtonPosition)) {
 							nakedPreview = !nakedPreview;
 							updatePreview(previewChar.Crafting[CraftingSlot]);
+						} else if (MouseIn(...exportPosition)) {
+							window.prompt(
+								displayText("Copy the craft here"),
+								LZString.compressToBase64(
+									JSON.stringify(previewChar.Crafting[CraftingSlot])
+								)
+							);
+						} else if (!coloring && MouseIn(...importPosition)) {
+							importCraft();
 						} else if (MouseIn(80, 250, 225, 275)) {
 							CraftingModeSet("Item");
 							CraftingOffset = 0;
@@ -9136,6 +9189,10 @@ async function BondageClubEnhancements() {
 						"white",
 						`Icons/${nakedPreview ? "Dress" : "Naked"}.png`
 					);
+					if (!coloring) {
+						DrawButton(...importPosition, displayText("Import"), "white");
+					}
+					DrawButton(...exportPosition, displayText("Export"), "white");
 					if (coloring) {
 						ItemColorDraw(
 							previewChar,
