@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Bondage Club Enhancements
 // @namespace https://www.bondageprojects.com/
-// @version 3.8.1
+// @version 3.8.2
 // @description enhancements for the bondage club
 // @author Sidious
 // @match https://bondageprojects.elementfx.com/*
@@ -39,10 +39,14 @@
  *  along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-const BCE_VERSION = "3.8.1";
+const BCE_VERSION = "3.8.2";
 const settingsVersion = 39;
 
 const bceChangelog = `${BCE_VERSION}
+- show crafted property and description when hovering over item
+- R82 beta 3 compatibility
+
+3.8.1
 - import/export for crafts
 
 3.8.0
@@ -87,7 +91,7 @@ const bcModSdk=function(){"use strict";const o="1.0.2";function e(o){alert("Mod 
 async function BondageClubEnhancements() {
 	"use strict";
 
-	const SUPPORTED_GAME_VERSIONS = ["R81", "R82Beta1", "R82Beta2"];
+	const SUPPORTED_GAME_VERSIONS = ["R81", "R82Beta1", "R82Beta2", "R82Beta3"];
 	const CAPABILITIES = ["clubslave"];
 
 	const w = window;
@@ -1079,6 +1083,7 @@ async function BondageClubEnhancements() {
 			DialogDrawItemMenu: "FB5172D2",
 			DialogInventoryBuild: "F779D30F",
 			DialogLeave: "354CBC00",
+			DrawAssetPreview: "5BD59B42",
 			DrawBackNextButton: "0DE5491B",
 			DrawButton: "63FDE2B2",
 			DrawCharacter: "C8F13D85",
@@ -1165,6 +1170,7 @@ async function BondageClubEnhancements() {
 		switch (gameVersion) {
 			case "R82Beta1":
 			case "R82Beta2":
+			case "R82Beta3":
 				hashes.CraftingClick = "3D4C8373";
 				hashes.CraftingItemListBuild = "AD8AB2D2";
 				hashes.CraftingRun = "7E104EC8";
@@ -2500,25 +2506,11 @@ async function BondageClubEnhancements() {
 					);
 
 					if (currentSetting in defaultSettings) {
-						const canvas = w.MainCanvas.getContext("2d");
-						const left = 300;
-						const top = 830;
-						const width = 1400;
-						canvas.beginPath();
-						canvas.rect(left, top, width, 65);
-						canvas.fillStyle = "#FFFF88";
-						canvas.fillRect(left, top, width, 65);
-						canvas.fill();
-						canvas.lineWidth = 2;
-						canvas.strokeStyle = "black";
-						canvas.stroke();
-						canvas.closePath();
-						DrawTextFit(
-							displayText(defaultSettings[currentSetting].description),
-							left + 3,
-							top + 33,
-							width - 6,
-							"black"
+						drawTooltip(
+							300,
+							830,
+							1400,
+							displayText(defaultSettings[currentSetting].description)
 						);
 					}
 
@@ -9226,6 +9218,22 @@ async function BondageClubEnhancements() {
 				return ret;
 			}
 		);
+
+		SDK.hookFunction(
+			"DrawAssetPreview",
+			HOOK_PRIORITIES.AddBehaviour,
+			/** @type {(args: [number, number, Asset, { C: Character; Description: string; Background: string; Foreground: string; Vibrating: boolean; Border: boolean; Hover: boolean; HoverBackground: string; Disabled: boolean; Craft: Craft; }], next: (args: [number, number, Asset, { C: Character; Description: string; Background: string; Foreground: string; Vibrating: boolean; Border: boolean; Hover: boolean; HoverBackground: string; Disabled: boolean; Craft: Craft; }]) => void) => void} */
+			(args, next) => {
+				const ret = next(args);
+				const [x, y, , options] = args;
+				const { Craft } = options;
+				if (MouseIn(x, y, 225, 275) && Craft) {
+					drawTooltip(x, y, 225, displayText(Craft.Property));
+					drawTooltip(1000, y - 70, 975, displayText(Craft.Description));
+				}
+				return ret;
+			}
+		);
 	}
 
 	function hideChatRoomElements() {
@@ -9272,6 +9280,24 @@ async function BondageClubEnhancements() {
 		// 5 minutes
 		createTimer(sendHeartbeat, 1000 * 60 * 5);
 	})();
+
+	/** @type {(x: number, y: number, width: number, text: string)} */
+	function drawTooltip(x, y, width, text) {
+		const canvas = w.MainCanvas.getContext("2d");
+		const bak = canvas.textAlign;
+		canvas.textAlign = "left";
+		canvas.beginPath();
+		canvas.rect(x, y, width, 65);
+		canvas.fillStyle = "#FFFF88";
+		canvas.fillRect(x, y, width, 65);
+		canvas.fill();
+		canvas.lineWidth = 2;
+		canvas.strokeStyle = "black";
+		canvas.stroke();
+		canvas.closePath();
+		DrawTextFit(text, x + 3, y + 33, width - 6, "black");
+		canvas.textAlign = bak;
+	}
 
 	/** @type {(s: string) => string} */
 	function removeNonPrintables(s) {
