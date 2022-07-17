@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Bondage Club Enhancements
 // @namespace https://www.bondageprojects.com/
-// @version 3.8.3
+// @version 3.8.5
 // @description enhancements for the bondage club
 // @author Sidious
 // @match https://bondageprojects.elementfx.com/*
@@ -39,10 +39,16 @@
  *  along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-const BCE_VERSION = "3.8.3";
+const BCE_VERSION = "3.8.5";
 const settingsVersion = 39;
 
 const bceChangelog = `${BCE_VERSION}
+- R82 compatibility
+
+3.8.4
+- small styling fixes for BCE's tooltips
+
+3.8.3
 - fix crash with crafted item property/description showing
 
 3.8.2
@@ -94,7 +100,7 @@ const bcModSdk=function(){"use strict";const o="1.0.2";function e(o){alert("Mod 
 async function BondageClubEnhancements() {
 	"use strict";
 
-	const SUPPORTED_GAME_VERSIONS = ["R81", "R82Beta1", "R82Beta2", "R82Beta3"];
+	const SUPPORTED_GAME_VERSIONS = ["R82"];
 	const CAPABILITIES = ["clubslave"];
 
 	const w = window;
@@ -1075,12 +1081,12 @@ async function BondageClubEnhancements() {
 			CommonClick: "1F6DF7CB",
 			CommonColorIsValid: "390A2CE4",
 			CommonSetScreen: "17692CD7",
-			CraftingClick: "4A59F3E8",
-			CraftingItemListBuild: "107646D8",
+			CraftingClick: "3D4C8373",
+			CraftingItemListBuild: "AD8AB2D2",
 			CraftingLoad: "8ACDAB6E",
 			CraftingExit: "27578DC8",
 			CraftingModeSet: "CD06BF9E",
-			CraftingRun: "50DAA6E6",
+			CraftingRun: "7E104EC8",
 			DialogClick: "592A4F65",
 			DialogDraw: "7AD8C0F6",
 			DialogDrawItemMenu: "FB5172D2",
@@ -1171,13 +1177,6 @@ async function BondageClubEnhancements() {
 		};
 
 		switch (gameVersion) {
-			case "R82Beta1":
-			case "R82Beta2":
-			case "R82Beta3":
-				hashes.CraftingClick = "3D4C8373";
-				hashes.CraftingItemListBuild = "AD8AB2D2";
-				hashes.CraftingRun = "7E104EC8";
-				break;
 			default:
 				break;
 		}
@@ -2513,7 +2512,8 @@ async function BondageClubEnhancements() {
 							300,
 							830,
 							1400,
-							displayText(defaultSettings[currentSetting].description)
+							displayText(defaultSettings[currentSetting].description),
+							"left"
 						);
 					}
 
@@ -9232,8 +9232,16 @@ async function BondageClubEnhancements() {
 				if (options) {
 					const { Craft } = options;
 					if (MouseIn(x, y, 225, 275) && Craft) {
-						drawTooltip(x, y, 225, displayText(Craft.Property));
-						drawTooltip(1000, y - 70, 975, displayText(Craft.Description));
+						drawTooltip(x, y, 225, displayText(Craft.Property), "center");
+						drawTooltip(
+							1000,
+							y - 70,
+							975,
+							`${displayText("Description:")} ${
+								Craft.Description || "<no description>"
+							}`,
+							"left"
+						);
 					}
 				}
 				return ret;
@@ -9286,11 +9294,11 @@ async function BondageClubEnhancements() {
 		createTimer(sendHeartbeat, 1000 * 60 * 5);
 	})();
 
-	/** @type {(x: number, y: number, width: number, text: string)} */
-	function drawTooltip(x, y, width, text) {
+	/** @type {(x: number, y: number, width: number, text: string, align: "left" | "center") => void} */
+	function drawTooltip(x, y, width, text, align) {
 		const canvas = w.MainCanvas.getContext("2d");
 		const bak = canvas.textAlign;
-		canvas.textAlign = "left";
+		canvas.textAlign = align;
 		canvas.beginPath();
 		canvas.rect(x, y, width, 65);
 		canvas.fillStyle = "#FFFF88";
@@ -9300,7 +9308,13 @@ async function BondageClubEnhancements() {
 		canvas.strokeStyle = "black";
 		canvas.stroke();
 		canvas.closePath();
-		DrawTextFit(text, x + 3, y + 33, width - 6, "black");
+		DrawTextFit(
+			text,
+			align === "left" ? x + 3 : x + width / 2,
+			y + 33,
+			width - 6,
+			"black"
+		);
 		canvas.textAlign = bak;
 	}
 
