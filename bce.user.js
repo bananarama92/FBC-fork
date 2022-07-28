@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Bondage Club Enhancements
 // @namespace https://www.bondageprojects.com/
-// @version 3.8.5
+// @version 3.8.6
 // @description enhancements for the bondage club
 // @author Sidious
 // @match https://bondageprojects.elementfx.com/*
@@ -39,10 +39,13 @@
  *  along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-const BCE_VERSION = "3.8.5";
+const BCE_VERSION = "3.8.6";
 const settingsVersion = 39;
 
 const bceChangelog = `${BCE_VERSION}
+- BCX 0.8.4
+
+3.8.5
 - R82 compatibility
 
 3.8.4
@@ -120,7 +123,7 @@ async function BondageClubEnhancements() {
 	const BCX_DEVEL_SOURCE =
 			"https://jomshir98.github.io/bondage-club-extended/devel/bcx.js",
 		BCX_SOURCE =
-			"https://raw.githubusercontent.com/Jomshir98/bondage-club-extended/651683fe766c520d443b3a50c5b72130baa382c8/bcx.js",
+			"https://raw.githubusercontent.com/Jomshir98/bondage-club-extended/c9847a5b641b3a0e58e6b13c4987b9bf1a21b8af/bcx.js",
 		EBCH_SOURCE = "https://e2466.gitlab.io/ebch/master/EBCH.js";
 
 	const BCE_COLOR_ADJUSTMENTS_CLASS_NAME = "bce-colors",
