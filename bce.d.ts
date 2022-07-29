@@ -174,6 +174,7 @@ declare global {
   var ChatRoomChatHidden: boolean;
   var ChatRoomBackground: string;
   var CharacterGetCurrent: () => Character;
+  var CharacterLoadCanvas: (C: Character) => void;
   var CharacterDelete: (AccountName: string) => void;
   var CharacterAppearanceStringify: (C: Character) => string;
   var CharacterAppearanceBackup: string;
