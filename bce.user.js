@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Bondage Club Enhancements
 // @namespace https://www.bondageprojects.com/
-// @version 3.9.0
+// @version 3.9.1
 // @description enhancements for the bondage club
 // @author Sidious
 // @match https://bondageprojects.elementfx.com/*
@@ -39,10 +39,14 @@
  *  along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-const BCE_VERSION = "3.9.0";
+const BCE_VERSION = "3.9.1";
 const settingsVersion = 39;
 
 const bceChangelog = `${BCE_VERSION}
+3.9.1
+- bcx stable hotfix
+
+3.9.0
 - add ability to load wardrobe sets without overriding body parts such as hair styles, eye colors, body sizes
 
 3.8
@@ -102,7 +106,7 @@ async function BondageClubEnhancements() {
 	const BCX_DEVEL_SOURCE =
 			"https://jomshir98.github.io/bondage-club-extended/devel/bcx.js",
 		BCX_SOURCE =
-			"https://raw.githubusercontent.com/Jomshir98/bondage-club-extended/c9847a5b641b3a0e58e6b13c4987b9bf1a21b8af/bcx.js",
+			"https://raw.githubusercontent.com/Jomshir98/bondage-club-extended/76254777cdd24ee1af2d1b9565c4a7dc34d58f82/bcx.js",
 		EBCH_SOURCE = "https://e2466.gitlab.io/ebch/master/EBCH.js";
 
 	const BCE_COLOR_ADJUSTMENTS_CLASS_NAME = "bce-colors",
