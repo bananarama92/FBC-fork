@@ -1,6 +1,6 @@
 /* eslint-disable */
 
-export {};
+export { };
 
 declare global {
   var Dexie: import("dexie").DexieConstructor;
@@ -175,6 +175,7 @@ declare global {
   var ChatRoomBackground: string;
   var CharacterGetCurrent: () => Character;
   var CharacterLoadCanvas: (C: Character) => void;
+  var ServerCharacterNicknameRegex: RegExp;
   var CharacterDelete: (AccountName: string) => void;
   var CharacterAppearanceStringify: (C: Character) => string;
   var CharacterAppearanceBackup: string;
