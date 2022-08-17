@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Bondage Club Enhancements
 // @namespace https://www.bondageprojects.com/
-// @version 3.9.3
+// @version 3.9.4
 // @description enhancements for the bondage club
 // @author Sidious
 // @match https://bondageprojects.elementfx.com/*
@@ -39,10 +39,13 @@
  *  along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-const BCE_VERSION = "3.9.3";
+const BCE_VERSION = "3.9.4";
 const settingsVersion = 39;
 
 const bceChangelog = `${BCE_VERSION}
+- R83
+
+3.9.3
 - fix a rare bug with alt arousal keeping arousal meter at 0
 - R83 Beta 1 compatibility
 
@@ -89,7 +92,7 @@ const bcModSdk=function(){"use strict";const o="1.0.2";function e(o){alert("Mod 
 async function BondageClubEnhancements() {
 	"use strict";
 
-	const SUPPORTED_GAME_VERSIONS = ["R82", "R83Beta1"];
+	const SUPPORTED_GAME_VERSIONS = ["R83"];
 	const CAPABILITIES = ["clubslave"];
 
 	const w = window;
@@ -1059,13 +1062,13 @@ async function BondageClubEnhancements() {
 			ChatRoomDrawCharacterOverlay: "4AE4AD9E",
 			ChatRoomKeyDown: "B4BFDB0C",
 			ChatRoomListManipulation: "75D28A8B",
-			ChatRoomMessage: "BA549E5F",
+			ChatRoomMessage: "F6D15264",
 			ChatRoomResize: "9D52CF52",
-			ChatRoomRun: "861854FF",
+			ChatRoomRun: "685FF69C",
 			ChatRoomSendChat: "7F540ED0",
 			ChatRoomStart: "9CB3783A",
 			CommandExecute: "12B2BAA4",
-			CommandParse: "CEA28651",
+			CommandParse: "B398E685",
 			CommonClick: "1F6DF7CB",
 			CommonColorIsValid: "390A2CE4",
 			CommonSetScreen: "17692CD7",
@@ -1087,7 +1090,7 @@ async function BondageClubEnhancements() {
 			DrawCheckbox: "00FD87EB",
 			DrawImageEx: "3D3D74F5",
 			DrawImageResize: "8CF55F04",
-			DrawProcess: "4B2BE17E",
+			DrawProcess: "4CE8C9F7",
 			DrawText: "C1BF0F50",
 			DrawTextFit: "F9A1B11E",
 			ElementCreateInput: "2B2603E4",
@@ -1137,7 +1140,7 @@ async function BondageClubEnhancements() {
 			RelogExit: "2DFB2DAD",
 			ServerAccountBeep: "6A6EC803",
 			ServerAppearanceBundle: "56C7E218",
-			ServerAppearanceLoadFromBundle: "76D1CC95",
+			ServerAppearanceLoadFromBundle: "7658C7FA",
 			ServerClickBeep: "3E6277BE",
 			ServerConnect: "845E50A6",
 			ServerDisconnect: "06C1A6B0",
@@ -1154,8 +1157,8 @@ async function BondageClubEnhancements() {
 			TextGet: "4DDE5794",
 			TextLoad: "ADF7C890",
 			TimerInventoryRemove: "83E7C8E9",
-			TimerProcess: "19F09E1E",
-			TitleExit: "9DB9BA4A",
+			TimerProcess: "EAF648B7",
+			TitleExit: "F13F533C",
 			WardrobeClick: "E96F7F63",
 			WardrobeExit: "EE83FF29",
 			WardrobeFastLoad: "545CB8FD",
@@ -1166,17 +1169,6 @@ async function BondageClubEnhancements() {
 		};
 
 		switch (gameVersion) {
-			case "R83Beta1":
-				hashes.ChatRoomMessage = "F6D15264";
-				hashes.ChatRoomRun = "685FF69C";
-				hashes.CommandParse = "B398E685";
-				hashes.DialogDraw = "C533BAD0";
-				hashes.DialogLeave = "5CA8C7C9";
-				hashes.DrawProcess = "4CE8C9F7";
-				hashes.ServerAppearanceLoadFromBundle = "7658C7FA";
-				hashes.TimerProcess = "EAF648B7";
-				hashes.TitleExit = "F13F533C";
-				break;
 			default:
 				break;
 		}
@@ -1527,17 +1519,6 @@ async function BondageClubEnhancements() {
 			},
 			"Nickname validation not overridden in use"
 		);
-
-		if (!GameVersion.startsWith("R83")) {
-			patchFunction(
-				"TitleExit",
-				{
-					"/^[a-zA-Z\\s]*$/": "/^[\\p{L}0-9\\p{Z}'-]+$/u",
-					"let Nick": "console.log(Regex); let Nick",
-				},
-				"Nickname validation not overridden in saving"
-			);
-		}
 
 		// Prevent friendlist results from attempting to load into the HTML outside of the appropriate view
 		SDK.hookFunction(
@@ -8145,27 +8126,7 @@ async function BondageClubEnhancements() {
 	}
 
 	function nicknames() {
-		if (GameVersion.startsWith("R83")) {
-			ServerCharacterNicknameRegex = /^[\p{L}0-9\p{Z}'-]+$/u;
-		} else {
-			SDK.hookFunction("TitleExit", HOOK_PRIORITIES.Observe, (args, next) => {
-				const oldNick = Player.Nickname;
-				if (ElementValue("InputNickname") === "") {
-					ElementValue("InputNickname", Player.Name);
-				}
-				const ret = next(args);
-				if (Player.Nickname !== oldNick) {
-					bceSendAction(
-						displayText("$OldName is now known as $NewName", {
-							$OldName: oldNick || Player.Name,
-							$NewName: Player.Nickname,
-						})
-					);
-					sendHello();
-				}
-				return ret;
-			});
-		}
+		ServerCharacterNicknameRegex = /^[\p{L}0-9\p{Z}'-]+$/u;
 	}
 
 	/** @type {(effect: string) => boolean} */
