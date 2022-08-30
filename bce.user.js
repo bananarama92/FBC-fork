@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Bondage Club Enhancements
 // @namespace https://www.bondageprojects.com/
-// @version 3.10.3
+// @version 3.10.4
 // @description enhancements for the bondage club
 // @author Sidious
 // @match https://bondageprojects.elementfx.com/*
@@ -39,10 +39,13 @@
  *  along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-const BCE_VERSION = "3.10.3";
+const BCE_VERSION = "3.10.4";
 const settingsVersion = 40;
 
 const bceChangelog = `${BCE_VERSION}
+- fix bug causing anti-cheat to trigger unexpectedly
+
+3.10.3
 - limit number of public messages from anti-cheat to one per player per 10 minutes
 
 3.10.2
@@ -7226,6 +7229,9 @@ async function BondageClubEnhancements() {
 			(args, next) => {
 				const [data] = args;
 				if (!bceSettings.itemAntiCheat) {
+					return next(args);
+				}
+				if (data.Item.Target !== Player.MemberNumber) {
 					return next(args);
 				}
 				const sourceCharacter = ChatRoomCharacter.find(
