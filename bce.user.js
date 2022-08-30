@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Bondage Club Enhancements
 // @namespace https://www.bondageprojects.com/
-// @version 3.10.0
+// @version 3.10.1
 // @description enhancements for the bondage club
 // @author Sidious
 // @match https://bondageprojects.elementfx.com/*
@@ -39,10 +39,13 @@
  *  along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-const BCE_VERSION = "3.10.0";
+const BCE_VERSION = "3.10.1";
 const settingsVersion = 40;
 
 const bceChangelog = `${BCE_VERSION}
+- fix whitelist for anti-cheat
+
+3.10.0
 - add anti-cheat for certain console-driven item changes; this will be expanded in the future
 
 3.9
@@ -7058,7 +7061,7 @@ async function BondageClubEnhancements() {
 				if (data.Character.MemberNumber !== Player.MemberNumber) {
 					return next(args);
 				}
-				if (Player.WhiteList.includes(data.Character.MemberNumber)) {
+				if (Player.WhiteList.includes(data.SourceMemberNumber)) {
 					return next(args);
 				}
 
