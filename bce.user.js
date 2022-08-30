@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Bondage Club Enhancements
 // @namespace https://www.bondageprojects.com/
-// @version 3.9.4
+// @version 3.10.0
 // @description enhancements for the bondage club
 // @author Sidious
 // @match https://bondageprojects.elementfx.com/*
@@ -39,20 +39,13 @@
  *  along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-const BCE_VERSION = "3.9.4";
-const settingsVersion = 39;
+const BCE_VERSION = "3.10.0";
+const settingsVersion = 40;
 
 const bceChangelog = `${BCE_VERSION}
-- R83
+- add anti-cheat for certain console-driven item changes; this will be expanded in the future
 
-3.9.3
-- fix a rare bug with alt arousal keeping arousal meter at 0
-- R83 Beta 1 compatibility
-
-3.9.2-3.9.1
-- bcx stable hotfixes
-
-3.9.0
+3.9
 - add ability to load wardrobe sets without overriding body parts such as hair styles, eye colors, body sizes
 
 3.8
@@ -62,20 +55,6 @@ const bceChangelog = `${BCE_VERSION}
 - option to disable seeing shared crafts
 - import/export for crafts
 - show crafted property and description when hovering over item
-
-3.7
-- /exportlooks prompts for options and is more configurable
-- /importlooks now prompts for the input string instead of patching chat input
-- crafted items now work with /exportlooks and /importlooks
-- fixed changing buttplug.io slots with more than one device connected
-
-3.6
-- R81 compatibility
-- add /craft command
-- add addon items to craftable items
-- add nudity toggle to crafting preview
-- improvements to the crafting interface
-- removed all activities cheat until it can be implemented better
 `;
 
 /*
@@ -604,6 +583,26 @@ async function BondageClubEnhancements() {
 			category: "immersion",
 			description:
 				"You can choose to hide items (not on extreme difficulty). The game shows an icon on players that have hidden items. This option hides that icon.",
+		},
+		itemAntiCheat: {
+			label: "Enable anti-cheat",
+			value: false,
+			sideEffects: (newValue) => {
+				bceLog("itemAntiCheat", newValue);
+			},
+			category: "immersion",
+			description:
+				"Prevents certain console cheats from impacting your character. Whitelisted actors are exempt from this.",
+		},
+		antiCheatBlackList: {
+			label: "Blacklist detected cheaters automatically",
+			value: false,
+			sideEffects: (newValue) => {
+				bceLog("antiCheatBlackList", newValue);
+			},
+			category: "immersion",
+			description:
+				"Automatically blacklist detected cheaters. Whitelisted actors are exempt from this.",
 		},
 		checkUpdates: {
 			label: "Check for updates",
@@ -1405,6 +1404,7 @@ async function BondageClubEnhancements() {
 	pendingMessages();
 	hideHiddenItemsIcon();
 	crafting();
+	itemAntiCheat();
 
 	// Post ready when in a chat room
 	await bceNotify(`Bondage Club Enhancements v${w.BCE_VERSION} Loaded`);
@@ -6208,8 +6208,9 @@ async function BondageClubEnhancements() {
 			HOOK_PRIORITIES.AddBehaviour,
 			(args, next) => {
 				const playerBackup = Player;
+				// Replace Player with target character in rendering
 				if (inCustomWardrobe) {
-					// Replace Player with target character in rendering
+					// @ts-ignore - explicitly overriding with another Character temporarily
 					Player = targetCharacter;
 				}
 				const ret = next(args);
@@ -7035,6 +7036,147 @@ async function BondageClubEnhancements() {
 						default:
 							break;
 					}
+				}
+				return next(args);
+			}
+		);
+	}
+
+	function itemAntiCheat() {
+		SDK.hookFunction(
+			"ChatRoomSyncSingle",
+			HOOK_PRIORITIES.OverrideBehaviour,
+			/** @type {(args: [ChatRoomSyncSingleEvent], next: (args: [ChatRoomSyncSingleEvent]) => void) => void} */
+			(args, next) => {
+				const [data] = args;
+				if (!bceSettings.itemAntiCheat) {
+					return next(args);
+				}
+				if (!data?.Character) {
+					return next(args);
+				}
+				if (data.Character.MemberNumber !== Player.MemberNumber) {
+					return next(args);
+				}
+				if (Player.WhiteList.includes(data.Character.MemberNumber)) {
+					return next(args);
+				}
+
+				const sourceName = `${CharacterNickname(
+					ChatRoomCharacter.find(
+						(c) => c.MemberNumber === data.SourceMemberNumber
+					)
+				)} (${data.SourceMemberNumber})`;
+
+				// Gets the item bundles to be used for diff comparison, also making necessary changes for the purpose
+				/** @type {(bundle: ItemBundle[]) => Map<string, ItemBundle>} */
+				function processItemBundleToMap(bundle) {
+					/** @type {(Map<string, ItemBundle>)} */
+					const initial = new Map();
+					return bundle.reduce((prev, cur) => {
+						// Ignoring color changes
+						cur = deepCopy(cur);
+						delete cur.Color;
+						prev.set(`${cur.Group}/${cur.Name}`, cur);
+						return prev;
+					}, initial);
+				}
+
+				// Number of items changed in appearance
+				const oldItems = processItemBundleToMap(
+					ServerAppearanceBundle(
+						Player.Appearance.filter((a) => a.Asset.Group.Category === "Item")
+					)
+				);
+				const newItems = processItemBundleToMap(
+					data.Character.Appearance.filter(
+						(a) =>
+							ServerBundledItemToAppearanceItem("Female3DCG", a)?.Asset.Group
+								.Category === "Item"
+					)
+				);
+
+				// Locks can be modified enmass with futuristic collar
+				const ignoreLocks =
+					Array.from(oldItems.values()).some(
+						(i) => i.Name === "FuturisticCollar"
+					) &&
+					Array.from(newItems.values()).some(
+						(i) => i.Name === "FuturisticCollar"
+					);
+
+				bceLog(sourceName, ignoreLocks);
+
+				// Count number of new items
+				const newAndChanges = Array.from(newItems.keys()).reduce(
+					(prev, cur) => {
+						if (!oldItems.has(cur)) {
+							prev.new++;
+							return prev;
+						}
+
+						/** @type {(item: ItemBundle) => void} */
+						function deleteLockData(item) {
+							if (ignoreLocks && item.Property) {
+								delete item.Property.LockMemberNumber;
+								delete item.Property.LockedBy;
+								delete item.Property.RemoveTimer;
+								delete item.Property.Effect;
+							}
+						}
+						const newItem = newItems.get(cur);
+						const oldItem = oldItems.get(cur);
+						deleteLockData(newItem);
+						deleteLockData(oldItem);
+
+						if (JSON.stringify(newItem) !== JSON.stringify(oldItem)) {
+							bceLog("diff", newItem, oldItem);
+							prev.changed++;
+						}
+						return prev;
+					},
+					{ new: 0, changed: 0, prohibited: false }
+				);
+
+				// Count number of removed items
+				const removed = Array.from(oldItems.keys()).reduce((prev, cur) => {
+					if (!newItems.has(cur)) {
+						return prev + 1;
+					}
+					return prev;
+				}, 0);
+				if (
+					newAndChanges.new + newAndChanges.changed + removed > 2 ||
+					newAndChanges.prohibited
+				) {
+					bceChatNotify(
+						displayText(
+							`[Anti-Cheat] ${sourceName} tried to make suspicious changes! Appearance changes rejected.`
+						)
+					);
+					bceSendAction(
+						displayText(
+							`A magical shield on ${CharacterNickname(
+								Player
+							)} repelled the suspiciously magical changes attempted by ${sourceName}! [BCE Anti-Cheat]`
+						)
+					);
+					if (
+						bceSettings.antiCheatBlackList &&
+						!Player.WhiteList.includes(data.SourceMemberNumber) &&
+						!Player.BlackList.includes(data.SourceMemberNumber)
+					) {
+						ChatRoomListManipulation(
+							Player.BlackList,
+							true,
+							data.SourceMemberNumber
+						);
+						bceChatNotify(
+							displayText(`[AntiCheat] ${sourceName} blacklisted.`)
+						);
+					}
+					ChatRoomCharacterUpdate(Player);
+					return null;
 				}
 				return next(args);
 			}
@@ -9456,6 +9598,12 @@ async function BondageClubEnhancements() {
 			// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
 			typeof o.Group === "string"
 		);
+	}
+
+	/** @type {<T>(o: T) => T} */
+	function deepCopy(o) {
+		// eslint-disable-next-line @typescript-eslint/no-unsafe-return
+		return JSON.parse(JSON.stringify(o));
 	}
 
 	// Confirm leaving the page to prevent accidental back button, refresh, or other navigation-related disruptions

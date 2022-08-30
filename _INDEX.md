@@ -65,6 +65,7 @@ At a glance, **everything is entirely optional, enable in settings** (profile ->
 - Save and review profiles of, and add notes to, players you have seen before (incompatible with incognito/private browsing due to saving in browser storage)
 - More convenient crafting interface with ability to edit previously crafted items
 - Sharing crafted items among players in the room
+- Basic anti-cheat
 
 ### Chat Links and Embeds
 
@@ -161,6 +162,10 @@ BCE allows manual editing of an asset's priority — the value the game uses to 
 This allow manually overriding the assets' relative positioning, giving better flexibility when doing outfits, or slapping restraints. Note that there's no way to reset the priority to its default value, so you have to take note of it or take it off and put it on again.
 
 **Note**: the difficulty modification is technically cheating and should be used for roleplay purposes only. This does also allow struggling out of items you are not supposed to remove, such as a slave collar. Both of these features can be used to break the game, so use them responsibly. The main intent here is along the lines of choosing whether a shirt goes on top of your pants or vice-versa, or modifying the tightness of a rope tie without having to remove it, modify your bondage skill, and re-apply.
+
+### Anti-cheat
+
+BCE can be set to prevent certain console-based cheats from impacting your character and allows you to optionally blacklist detected bad actors automatically.
 
 ### Customizable automated expressions
 

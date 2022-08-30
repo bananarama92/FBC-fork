@@ -1,6 +1,6 @@
 /* eslint-disable */
 
-export { };
+export {};
 
 declare global {
   var Dexie: import("dexie").DexieConstructor;
@@ -30,7 +30,7 @@ declare global {
   ) => boolean;
   var DialogDrawActivityMenu: (C: Character) => void;
   var CommandParse: (msg: string) => void;
-  var Player: Character;
+  var Player: PlayerCharacter;
   var WardrobeSize: number;
   var WardrobeOffset: number;
   var CraftingSlot: number;
@@ -330,6 +330,10 @@ declare global {
   var ChatRoomResize: (load: boolean) => void;
   var ChatRoomRun: () => void;
   var ChatRoomClick: () => void;
+  var ServerBundledItemToAppearanceItem: (
+    assetFamily: string,
+    item: ItemBundle
+  ) => Item | null;
   var DrawBackNextButton: (
     x: number,
     y: number,
@@ -496,19 +500,29 @@ declare global {
     Stage: string;
     CurrentDialog: string;
   } & Character;
-  type Character = {
+  type NetCharacter = {
+    Appearance: ItemBundle[];
+  } & Character;
+  type PlayerCharacter = {
+    WhiteList: number[];
+    BlackList: number[];
+    GhostList: number[];
+    FriendList: number[];
+    FriendNames: Map<number, string>;
+    Inventory: Item[];
+    ChatSettings: ChatSettings;
+    AudioSettings: { PlayBeeps?: boolean };
+  } & Character;
+  interface Character {
     ArousalSettings: ArousalSettings;
     OnlineSettings: OnlineSettings;
     OnlineSharedSettings: OnlineSharedSettings;
-    ChatSettings: ChatSettings;
-    AudioSettings: { PlayBeeps?: boolean };
     MemberNumber: number;
     Name: string;
     Nickname?: string;
     AccountName: string;
     Creation: number;
     Appearance: Item[];
-    Inventory: Item[];
     AppearanceLayers: ItemLayer[];
     Wardrobe: ItemBundle[][];
     FocusGroup: AssetGroup;
@@ -525,17 +539,13 @@ declare global {
     /** @deprecated */
     BCEWardrobe?: string;
     BCESeen: number;
-    IsPlayer: () => boolean;
+    IsPlayer: () => this is PlayerCharacter;
     IsOnline: () => boolean;
     CanChange?: () => boolean;
     CanChangeOwnClothes?: () => boolean;
     CanInteract: () => boolean;
-    BlackList: number[];
-    GhostList: number[];
-    FriendList: number[];
     LastChatRoom: string;
     LastChatRoomPrivate: boolean;
-    FriendNames: Map<number, string>;
     LabelColor: string;
     Ownership: {
       Name: string;
@@ -552,7 +562,7 @@ declare global {
       Stage: string;
       Modded?: boolean;
     }[];
-  };
+  }
   type Beep = {
     Message?: string;
     Private?: boolean;
@@ -782,10 +792,10 @@ declare global {
   };
   type ChatRoomSyncMemberJoinEvent = {
     MemberNumber: number;
-    Character: Character;
+    Character: NetCharacter;
   };
   type ChatRoomSyncSingleEvent = {
-    Character?: Character;
+    Character?: NetCharacter;
     SourceMemberNumber: number;
   };
   type ChatRoomSyncEvent = {
