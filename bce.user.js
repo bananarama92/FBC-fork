@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Bondage Club Enhancements
 // @namespace https://www.bondageprojects.com/
-// @version 3.10.1
+// @version 3.10.2
 // @description enhancements for the bondage club
 // @author Sidious
 // @match https://bondageprojects.elementfx.com/*
@@ -39,10 +39,13 @@
  *  along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-const BCE_VERSION = "3.10.1";
+const BCE_VERSION = "3.10.2";
 const settingsVersion = 40;
 
 const bceChangelog = `${BCE_VERSION}
+- add extended lock change validation to anti-cheat: mistress locks require mistress status and lock member numbers cannot be manipulated
+
+3.10.1
 - fix whitelist for anti-cheat
 
 3.10.0
@@ -1394,7 +1397,6 @@ async function BondageClubEnhancements() {
 	blindWithoutGlasses();
 	friendPresenceNotifications();
 	accurateTimerInputs();
-	logCharacterUpdates();
 	forcedClubSlave();
 	fpsCounter();
 	instantMessenger();
@@ -7046,6 +7048,202 @@ async function BondageClubEnhancements() {
 	}
 
 	function itemAntiCheat() {
+		/** @type {(sourceCharacter: Character, newItem: ItemBundle) => boolean} */
+		function validateNewLockMemberNumber(sourceCharacter, newItem) {
+			if (!newItem.Name || !newItem.Property?.LockedBy) {
+				return true;
+			}
+			if (newItem.Property?.LockMemberNumber !== sourceCharacter.MemberNumber) {
+				bceLog(
+					"Bad lock member number",
+					newItem.Property?.LockMemberNumber,
+					"from",
+					sourceCharacter.MemberNumber
+				);
+				return false;
+			}
+			return true;
+		}
+
+		/** @type {(sourceCharacter: Character, oldItem: ItemBundle | null, newItem: ItemBundle | null, ignoreLocks: boolean) => { changed: number; prohibited: boolean }} */
+		function validateSingleItemChange(
+			sourceCharacter,
+			oldItem,
+			newItem,
+			ignoreLocks
+		) {
+			const changes = {
+				changed: 0,
+				prohibited: false,
+			};
+
+			if (sourceCharacter.IsPlayer()) {
+				return changes;
+			}
+
+			const sourceName = `${CharacterNickname(sourceCharacter)} (${
+				sourceCharacter.MemberNumber
+			})`;
+
+			/** @type {(item: ItemBundle) => void} */
+			function deleteUnneededLockData(item) {
+				if (ignoreLocks && item?.Property) {
+					delete item.Property.LockMemberNumber;
+					delete item.Property.LockedBy;
+					delete item.Property.RemoveTimer;
+					delete item.Property.Effect;
+				}
+			}
+
+			function validateMistressLocks() {
+				const sourceCanBeMistress =
+					(sourceCharacter?.Reputation?.find((a) => a.Type === "Dominant")
+						?.Value ?? 0) >= 50 || sourceCharacter.Title === "Mistress";
+
+				if (
+					sourceCanBeMistress ||
+					sourceCharacter.MemberNumber === Player.Ownership.MemberNumber ||
+					Player.Lovership.some(
+						(a) => a.MemberNumber === sourceCharacter.MemberNumber
+					)
+				) {
+					return;
+				}
+
+				// Removal
+				if (
+					(oldItem?.Property?.LockedBy === "MistressPadlock" &&
+						newItem.Property?.LockedBy !== "MistressPadlock") ||
+					(oldItem?.Property?.LockedBy === "MistressTimerPadlock" &&
+						newItem.Property?.LockedBy !== "MistressTimerPadlock")
+				) {
+					bceLog(
+						"Not a mistress attempting to remove mistress lock",
+						sourceName
+					);
+					changes.prohibited = true;
+				}
+
+				// Addition
+				if (
+					(oldItem?.Property?.LockedBy !== "MistressPadlock" &&
+						newItem.Property?.LockedBy === "MistressPadlock") ||
+					(oldItem?.Property?.LockedBy !== "MistressTimerPadlock" &&
+						newItem.Property?.LockedBy === "MistressTimerPadlock")
+				) {
+					bceLog("Not a mistress attempting to add mistress lock", sourceName);
+					changes.prohibited = true;
+				}
+
+				// Timer change
+				if (
+					oldItem?.Property?.LockedBy === "MistressTimerPadlock" &&
+					Math.abs(
+						oldItem.Property?.RemoveTimer - newItem.Property?.RemoveTimer
+					) >
+						31 * 60 * 1000
+				) {
+					bceLog(
+						"Not a mistress attempting to change mistress lock timer more than allowed by public entry",
+						sourceName
+					);
+				}
+			}
+
+			// Validate lock changes
+			if (
+				newItem.Property?.LockMemberNumber !==
+				oldItem?.Property?.LockMemberNumber
+			) {
+				if (!validateNewLockMemberNumber(sourceCharacter, newItem)) {
+					changes.prohibited = true;
+				}
+			}
+			validateMistressLocks();
+
+			deleteUnneededLockData(newItem);
+			deleteUnneededLockData(oldItem);
+
+			if (JSON.stringify(newItem) !== JSON.stringify(oldItem)) {
+				bceLog(
+					sourceName,
+					"changed",
+					JSON.stringify(oldItem),
+					"to",
+					JSON.stringify(newItem)
+				);
+				changes.changed++;
+			}
+			return changes;
+		}
+
+		/** @type {(sourceCharacter: Character) => void} */
+		function revertChanges(sourceCharacter) {
+			const sourceName = `${CharacterNickname(sourceCharacter)} (${
+				sourceCharacter.MemberNumber
+			})`;
+			bceChatNotify(
+				displayText(
+					`[Anti-Cheat] ${sourceName} tried to make suspicious changes! Appearance changes rejected.`
+				)
+			);
+			bceSendAction(
+				displayText(
+					`A magical shield on ${CharacterNickname(
+						Player
+					)} repelled the suspiciously magical changes attempted by ${sourceName}! [BCE Anti-Cheat]`
+				)
+			);
+			if (
+				bceSettings.antiCheatBlackList &&
+				!Player.WhiteList.includes(sourceCharacter.MemberNumber) &&
+				!Player.BlackList.includes(sourceCharacter.MemberNumber)
+			) {
+				ChatRoomListManipulation(
+					Player.BlackList,
+					true,
+					sourceCharacter.MemberNumber
+				);
+				bceChatNotify(displayText(`[AntiCheat] ${sourceName} blacklisted.`));
+			}
+			ChatRoomCharacterUpdate(Player);
+		}
+
+		SDK.hookFunction(
+			"ChatRoomSyncItem",
+			HOOK_PRIORITIES.OverrideBehaviour,
+			/** @type {(args: [ChatRoomSyncItemEvent], next: (args: [ChatRoomSyncItemEvent]) => void) => void} */
+			(args, next) => {
+				const [data] = args;
+				if (!bceSettings.itemAntiCheat) {
+					return next(args);
+				}
+				const sourceCharacter = ChatRoomCharacter.find(
+					(a) => a.MemberNumber === data.Source
+				);
+				const ignoreLocks = Player.Appearance.some(
+					(a) => a.Asset.Name === "FuturisticCollar"
+				);
+				const oldItem = Player.Appearance.find(
+					(i) => i.Asset.Group.Name === data.Item.Group
+				);
+				const oldItemBundle = oldItem
+					? ServerAppearanceBundle([oldItem])[0]
+					: null;
+				const result = validateSingleItemChange(
+					sourceCharacter,
+					oldItemBundle,
+					data.Item,
+					ignoreLocks
+				);
+				if (result.prohibited) {
+					revertChanges(sourceCharacter);
+					return null;
+				}
+				return next(args);
+			}
+		);
+
 		SDK.hookFunction(
 			"ChatRoomSyncSingle",
 			HOOK_PRIORITIES.OverrideBehaviour,
@@ -7065,11 +7263,9 @@ async function BondageClubEnhancements() {
 					return next(args);
 				}
 
-				const sourceName = `${CharacterNickname(
-					ChatRoomCharacter.find(
-						(c) => c.MemberNumber === data.SourceMemberNumber
-					)
-				)} (${data.SourceMemberNumber})`;
+				const sourceCharacter = ChatRoomCharacter.find(
+					(a) => a.MemberNumber === data.SourceMemberNumber
+				);
 
 				// Gets the item bundles to be used for diff comparison, also making necessary changes for the purpose
 				/** @type {(bundle: ItemBundle[]) => Map<string, ItemBundle>} */
@@ -7108,35 +7304,28 @@ async function BondageClubEnhancements() {
 						(i) => i.Name === "FuturisticCollar"
 					);
 
-				bceLog(sourceName, ignoreLocks);
-
 				// Count number of new items
 				const newAndChanges = Array.from(newItems.keys()).reduce(
-					(prev, cur) => {
-						if (!oldItems.has(cur)) {
-							prev.new++;
-							return prev;
-						}
-
-						/** @type {(item: ItemBundle) => void} */
-						function deleteLockData(item) {
-							if (ignoreLocks && item.Property) {
-								delete item.Property.LockMemberNumber;
-								delete item.Property.LockedBy;
-								delete item.Property.RemoveTimer;
-								delete item.Property.Effect;
-							}
-						}
+					(changes, cur) => {
 						const newItem = newItems.get(cur);
-						const oldItem = oldItems.get(cur);
-						deleteLockData(newItem);
-						deleteLockData(oldItem);
-
-						if (JSON.stringify(newItem) !== JSON.stringify(oldItem)) {
-							bceLog("diff", newItem, oldItem);
-							prev.changed++;
+						if (!oldItems.has(cur)) {
+							// Item is new, validate it and mark as new
+							if (!validateNewLockMemberNumber(sourceCharacter, newItem)) {
+								changes.prohibited = true;
+							}
+							changes.new++;
+							return changes;
 						}
-						return prev;
+						const oldItem = oldItems.get(cur);
+						const result = validateSingleItemChange(
+							sourceCharacter,
+							oldItem,
+							newItem,
+							ignoreLocks
+						);
+						changes.prohibited = changes.prohibited || result.prohibited;
+						changes.changed += result.changed;
+						return changes;
 					},
 					{ new: 0, changed: 0, prohibited: false }
 				);
@@ -7152,75 +7341,10 @@ async function BondageClubEnhancements() {
 					newAndChanges.new + newAndChanges.changed + removed > 2 ||
 					newAndChanges.prohibited
 				) {
-					bceChatNotify(
-						displayText(
-							`[Anti-Cheat] ${sourceName} tried to make suspicious changes! Appearance changes rejected.`
-						)
-					);
-					bceSendAction(
-						displayText(
-							`A magical shield on ${CharacterNickname(
-								Player
-							)} repelled the suspiciously magical changes attempted by ${sourceName}! [BCE Anti-Cheat]`
-						)
-					);
-					if (
-						bceSettings.antiCheatBlackList &&
-						!Player.WhiteList.includes(data.SourceMemberNumber) &&
-						!Player.BlackList.includes(data.SourceMemberNumber)
-					) {
-						ChatRoomListManipulation(
-							Player.BlackList,
-							true,
-							data.SourceMemberNumber
-						);
-						bceChatNotify(
-							displayText(`[AntiCheat] ${sourceName} blacklisted.`)
-						);
-					}
-					ChatRoomCharacterUpdate(Player);
+					revertChanges(sourceCharacter);
 					return null;
 				}
 				return next(args);
-			}
-		);
-	}
-
-	async function logCharacterUpdates() {
-		await waitFor(() => ServerSocket && ServerIsConnected);
-
-		registerSocketListener(
-			"ChatRoomSyncSingle",
-			(
-				/** @type {ChatRoomSyncSingleEvent} */
-				data
-			) => {
-				if (data?.Character?.MemberNumber !== Player.MemberNumber) {
-					return;
-				}
-				bceLog("Player appearance updated by", data.SourceMemberNumber);
-			}
-		);
-
-		registerSocketListener(
-			"ChatRoomSyncItem",
-			(
-				/** @type {ChatRoomSyncItemEvent} */
-				data
-			) => {
-				if (data?.Item?.Target !== Player.MemberNumber) {
-					return;
-				}
-				bceLog(
-					"Player's worn item",
-					data.Item.Name,
-					"in group",
-					data.Item.Group,
-					"updated by",
-					data.Source,
-					"to",
-					data.Item
-				);
 			}
 		);
 	}

@@ -513,11 +513,19 @@ declare global {
     ChatSettings: ChatSettings;
     AudioSettings: { PlayBeeps?: boolean };
   } & Character;
+  type Relationship = {
+    Name: string;
+    MemberNumber: number;
+    Start: number;
+    Stage: number;
+  };
   interface Character {
     ArousalSettings: ArousalSettings;
     OnlineSettings: OnlineSettings;
     OnlineSharedSettings: OnlineSharedSettings;
     MemberNumber: number;
+    Reputation: { Type: string; Value: number }[];
+    Title: string;
     Name: string;
     Nickname?: string;
     AccountName: string;
@@ -547,12 +555,8 @@ declare global {
     LastChatRoom: string;
     LastChatRoomPrivate: boolean;
     LabelColor: string;
-    Ownership: {
-      Name: string;
-      MemberNumber: number;
-      Start: number;
-      Stage: number;
-    };
+    Ownership: Relationship;
+    Lovership: Relationship[];
     Dialog: {
       Function: string;
       NextStage: string;
@@ -804,10 +808,8 @@ declare global {
   };
   type ChatRoomSyncItemEvent = {
     Item: {
-      Name: string;
       Target: number;
-      Group: string;
-    };
+    } & ItemBundle;
     Source: number;
   };
   type BCECharacterState = { clamped: number };
