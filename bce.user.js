@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Bondage Club Enhancements
 // @namespace https://www.bondageprojects.com/
-// @version 3.10.2
+// @version 3.10.3
 // @description enhancements for the bondage club
 // @author Sidious
 // @match https://bondageprojects.elementfx.com/*
@@ -39,10 +39,13 @@
  *  along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-const BCE_VERSION = "3.10.2";
+const BCE_VERSION = "3.10.3";
 const settingsVersion = 40;
 
 const bceChangelog = `${BCE_VERSION}
+- limit number of public messages from anti-cheat to one per player per 10 minutes
+
+3.10.2
 - add extended lock change validation to anti-cheat: mistress locks require mistress status and lock member numbers cannot be manipulated
 
 3.10.1
@@ -7048,6 +7051,9 @@ async function BondageClubEnhancements() {
 	}
 
 	function itemAntiCheat() {
+		/** @type {Map<number, number>} */
+		const noticesSent = new Map();
+
 		/** @type {(sourceCharacter: Character, newItem: ItemBundle) => boolean} */
 		function validateNewLockMemberNumber(sourceCharacter, newItem) {
 			if (!newItem.Name || !newItem.Property?.LockedBy) {
@@ -7184,16 +7190,20 @@ async function BondageClubEnhancements() {
 			})`;
 			bceChatNotify(
 				displayText(
-					`[Anti-Cheat] ${sourceName} tried to make suspicious changes! Appearance changes rejected.`
+					`[Anti-Cheat] ${sourceName} tried to make suspicious changes! Appearance changes rejected. Consider telling the user to stop, whitelisting the user (if trusted friend), or blacklisting the user (if the behaviour continues, chat command: "/blacklistadd ${sourceCharacter.MemberNumber}").`
 				)
 			);
-			bceSendAction(
-				displayText(
-					`A magical shield on ${CharacterNickname(
-						Player
-					)} repelled the suspiciously magical changes attempted by ${sourceName}! [BCE Anti-Cheat]`
-				)
-			);
+			const noticeSent = noticesSent.get(sourceCharacter.MemberNumber) || 0;
+			if (Date.now() - noticeSent > 1000 * 60 * 10) {
+				noticesSent.set(sourceCharacter.MemberNumber, Date.now());
+				bceSendAction(
+					displayText(
+						`A magical shield on ${CharacterNickname(
+							Player
+						)} repelled the suspiciously magical changes attempted by ${sourceName}! [BCE Anti-Cheat]`
+					)
+				);
+			}
 			if (
 				bceSettings.antiCheatBlackList &&
 				!Player.WhiteList.includes(sourceCharacter.MemberNumber) &&
