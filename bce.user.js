@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Bondage Club Enhancements
 // @namespace https://www.bondageprojects.com/
-// @version 3.10.4
+// @version 3.10.5
 // @description enhancements for the bondage club
 // @author Sidious
 // @match https://bondageprojects.elementfx.com/*
@@ -39,10 +39,13 @@
  *  along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-const BCE_VERSION = "3.10.4";
+const BCE_VERSION = "3.10.5";
 const settingsVersion = 40;
 
 const bceChangelog = `${BCE_VERSION}
+- fix anti-cheat error when player has no owner
+
+3.10.4
 - fix bug causing anti-cheat to trigger unexpectedly
 
 3.10.3
@@ -7111,7 +7114,7 @@ async function BondageClubEnhancements() {
 
 				if (
 					sourceCanBeMistress ||
-					sourceCharacter.MemberNumber === Player.Ownership.MemberNumber ||
+					sourceCharacter.MemberNumber === Player.Ownership?.MemberNumber ||
 					Player.Lovership.some(
 						(a) => a.MemberNumber === sourceCharacter.MemberNumber
 					)
@@ -7231,7 +7234,7 @@ async function BondageClubEnhancements() {
 				if (!bceSettings.itemAntiCheat) {
 					return next(args);
 				}
-				if (data.Item.Target !== Player.MemberNumber) {
+				if (data?.Item?.Target !== Player.MemberNumber) {
 					return next(args);
 				}
 				const sourceCharacter = ChatRoomCharacter.find(
