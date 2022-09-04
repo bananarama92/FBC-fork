@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Bondage Club Enhancements
 // @namespace https://www.bondageprojects.com/
-// @version 3.10.5
+// @version 3.10.6
 // @description enhancements for the bondage club
 // @author Sidious
 // @match https://bondageprojects.elementfx.com/*
@@ -39,10 +39,16 @@
  *  along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-const BCE_VERSION = "3.10.5";
+const BCE_VERSION = "3.10.6";
 const settingsVersion = 40;
 
 const bceChangelog = `${BCE_VERSION}
+- BCX 0.9.1
+- initial support for BCX rules (beeps, emoticon locking)
+- nicknames will now be used instead of or in addition to names in many places
+- member number support for /w
+
+3.10.5
 - fix anti-cheat error when player has no owner
 
 3.10.4
@@ -97,6 +103,8 @@ async function BondageClubEnhancements() {
 	}
 
 	const SDK = bcModSdk.registerMod("BCE", BCE_VERSION, false);
+	/** @type {import('./types/bcxExternalInterface').BCX_ModAPI | null} */
+	let BCX = null;
 
 	w.BCE_VERSION = BCE_VERSION;
 
@@ -106,7 +114,7 @@ async function BondageClubEnhancements() {
 	const BCX_DEVEL_SOURCE =
 			"https://jomshir98.github.io/bondage-club-extended/devel/bcx.js",
 		BCX_SOURCE =
-			"https://raw.githubusercontent.com/Jomshir98/bondage-club-extended/852a9cb34216a1722a668ee89bce3b5216c75767/bcx.js",
+			"https://raw.githubusercontent.com/Jomshir98/bondage-club-extended/aba14e78bacac09888e31656e4963ea7e930d312/bcx.js",
 		EBCH_SOURCE = "https://e2466.gitlab.io/ebch/master/EBCH.js";
 
 	const BCE_COLOR_ADJUSTMENTS_CLASS_NAME = "bce-colors",
@@ -1804,9 +1812,9 @@ async function BondageClubEnhancements() {
 						displayText(
 							`$PlayerName changed the timer on the $ItemName on $TargetName $GroupName ${timeMessage}`,
 							{
-								$PlayerName: Player.Name,
+								$PlayerName: CharacterNickname(Player),
 								$ItemName: DialogFocusItem?.Asset?.Description?.toLowerCase(),
-								$TargetName: CharacterGetCurrent()?.Name,
+								$TargetName: CharacterNickname(CharacterGetCurrent()),
 								$GroupName:
 									CharacterGetCurrent()?.FocusGroup?.Description?.toLowerCase(),
 								$days: until.days.toString(),
@@ -1869,9 +1877,16 @@ async function BondageClubEnhancements() {
 	async function loadExternalAddon(addon, source) {
 		await waitFor(settingsLoaded);
 
+		function hookBCX() {
+			if (addon === "BCX") {
+				BCX = w.bcx?.getModApi("BCE");
+			}
+		}
+
 		if (bcModSdk.getModsInfo().some((mod) => mod.name === addon)) {
 			addonTypes[addon] = "external";
 			bceLog(`${addon} already loaded, skipping loadExternalAddon()`);
+			hookBCX();
 			return false;
 		}
 
@@ -1887,6 +1902,7 @@ async function BondageClubEnhancements() {
 				eval(resp);
 			});
 		bceInfo("Loaded", addon);
+		hookBCX();
 		return true;
 	}
 
@@ -2034,7 +2050,7 @@ async function BondageClubEnhancements() {
 
 					const targetName = targetMember.IsPlayer()
 						? "yourself"
-						: targetMember.Name;
+						: CharacterNickname(targetMember);
 
 					await navigator.clipboard.writeText(
 						LZString.compressToBase64(JSON.stringify(looks))
@@ -2180,22 +2196,34 @@ async function BondageClubEnhancements() {
 					"[target name] [message]: whisper the target player. Use first name only. Finds the first person in the room with a matching name, left-to-right, top-to-bottom."
 				),
 				Action: (_, command, args) => {
-					const [target] = args,
-						[, , ...message] = command.split(" "),
-						msg = message?.join(" "),
+					const [target] = args;
+					const [, , ...message] = command.split(" ");
+					const msg = message?.join(" ");
+					/** @type {Character[]} */
+					let targetMembers = [];
+					if (/^\d+$/u.test(target)) {
+						targetMembers = [
+							ChatRoomCharacter.find(
+								(c) => c.MemberNumber === parseInt(target)
+							),
+						];
+					} else {
 						targetMembers = ChatRoomCharacter.filter(
 							(c) =>
-								c.Name.split(" ")[0]?.toLowerCase() === target?.toLowerCase()
+								CharacterNickname(c).split(" ")[0]?.toLowerCase() ===
+									target?.toLowerCase() ||
+								c.Name.split(" ")[0].toLowerCase() === target?.toLowerCase()
 						);
+					}
 					if (!target || targetMembers.length === 0) {
 						bceChatNotify(`Whisper target not found: ${target}`);
 					} else if (targetMembers.length > 1) {
 						bceChatNotify(
 							displayText(
-								"Multiple whisper targets found: $Targets. You can still whisper the player by clicking their name.",
+								"Multiple whisper targets found: $Targets. You can still whisper the player by clicking their name or by using their member number.",
 								{
 									$Targets: targetMembers
-										.map((c) => `${c.Name} (${c.MemberNumber})`)
+										.map((c) => `${CharacterNickname(c)} (${c.MemberNumber})`)
 										.join(", "),
 								}
 							)
@@ -2229,7 +2257,7 @@ async function BondageClubEnhancements() {
 						chars
 							.map(
 								(a) =>
-									`${a.Name} (${a.MemberNumber}) club ${
+									`${CharacterNickname(a)} (${a.MemberNumber}) club ${
 										a.OnlineSharedSettings?.GameVersion
 									}${
 										bcx?.getCharacterVersion(a.MemberNumber)
@@ -5402,6 +5430,12 @@ async function BondageClubEnhancements() {
 
 			if (Object.keys(desiredExpression).length > 0) {
 				for (const t of Object.keys(desiredExpression)) {
+					if (
+						BCX?.getRuleState("block_changing_emoticon").isEnforced &&
+						t === "Emoticon"
+					) {
+						continue;
+					}
 					setExpression(
 						t,
 						desiredExpression[t].Expression,
@@ -5902,9 +5936,9 @@ async function BondageClubEnhancements() {
 						}
 						focusItem.Difficulty = newDifficulty;
 						bceSendAction(
-							displayText(`$PlayerName ${action} $TargetName $ItemName`, {
-								$PlayerName: Player.Name,
-								$TargetName: C.Name,
+							displayText(`$PlayerName ${action} $TargetName's $ItemName`, {
+								$PlayerName: CharacterNickname(Player),
+								$TargetName: CharacterNickname(C),
 								$ItemName: focusItem.Asset.Description.toLowerCase(),
 							})
 						);
@@ -6028,7 +6062,6 @@ async function BondageClubEnhancements() {
 						alternateArousal: !!bceSettings.alternateArousal,
 						replyRequested: requestReply,
 						capabilities: CAPABILITIES,
-						nick: Player.Name !== Player.Nickname ? Player.Nickname : null,
 						crafts: Player.Crafting?.filter((_c, i) => sharedCrafts[i]),
 					},
 				},
@@ -6077,7 +6110,6 @@ async function BondageClubEnhancements() {
 					} else {
 						message = data.Dictionary?.message || message;
 					}
-					const newName = removeNonPrintables(message.nick);
 					switch (message.type) {
 						case MESSAGE_TYPES.Hello:
 							sender.BCE = message.version;
@@ -6086,9 +6118,6 @@ async function BondageClubEnhancements() {
 								message.progress || sender.ArousalSettings.Progress || 0;
 							sender.BCEEnjoyment = message.enjoyment || 1;
 							sender.BCECapabilities = message.capabilities;
-							if (newName && newName.length <= 20) {
-								sender.Nickname = newName;
-							}
 							if (message.replyRequested) {
 								sendHello(sender.MemberNumber);
 							}
@@ -6343,7 +6372,7 @@ async function BondageClubEnhancements() {
 					repl.href = "#";
 					repl.onclick = (e) => {
 						e.preventDefault();
-						ElementValue("InputChat", \`/w \${SenderCharacter.Name.split(' ')[0]} \${ElementValue("InputChat").replace(/^\\/(beep|w) \\S+ ?/u, '')}\`);
+						ElementValue("InputChat", \`/w \${SenderCharacter.MemberNumber} \${ElementValue("InputChat").replace(/^\\/(beep|w) \\S+ ?/u, '')}\`);
 						window.InputChat.focus();
 					};
 					repl.classList.add("bce-button");
@@ -6904,6 +6933,7 @@ async function BondageClubEnhancements() {
 					bceLog(
 						"Blacklisted",
 						data.Character.Name,
+						CharacterNickname(data.Character),
 						data.Character.MemberNumber,
 						"registered",
 						(Date.now() - data.Character.Creation) / 1000,
@@ -7420,11 +7450,11 @@ async function BondageClubEnhancements() {
 						Stage: v[0],
 						NextStage: v[1],
 						Option: v[2]
-							.replace("DialogCharacterName", c.Name)
-							.replace("DialogPlayerName", Player.Name),
+							.replace("DialogCharacterName", CharacterNickname(c))
+							.replace("DialogPlayerName", CharacterNickname(Player)),
 						Result: v[3]
-							.replace("DialogCharacterName", c.Name)
-							.replace("DialogPlayerName", Player.Name),
+							.replace("DialogCharacterName", CharacterNickname(c))
+							.replace("DialogPlayerName", CharacterNickname(Player)),
 						Function:
 							(v[4].trim().substring(0, 6) === "Dialog" ? "" : "ChatRoom") +
 							v[4],
@@ -7498,10 +7528,20 @@ async function BondageClubEnhancements() {
 		w.bceStartClubSlave = async () => {
 			const managementScreen = "Management";
 
+			if (BCX?.getRuleState("block_club_slave_work").isEnforced) {
+				bceSendAction(
+					displayText(
+						`BCX rules forbid $PlayerName from becoming a Club Slave.`,
+						{ $PlayerName: CharacterNickname(Player) }
+					)
+				);
+				return;
+			}
+
 			bceSendAction(
 				displayText(
 					`$PlayerName gets grabbed by two maids and escorted to management to serve as a Club Slave.`,
-					{ $PlayerName: Player.Name }
+					{ $PlayerName: CharacterNickname(Player) }
 				)
 			);
 
@@ -7682,7 +7722,7 @@ async function BondageClubEnhancements() {
 			message.classList.add(`bce-message-${messageType}`);
 			message.setAttribute("data-time", createdAt.toLocaleString());
 
-			const author = sent ? Player.Name : beep.MemberName;
+			const author = sent ? CharacterNickname(Player) : beep.MemberName;
 
 			switch (messageType) {
 				case "Emote":
@@ -7828,6 +7868,12 @@ async function BondageClubEnhancements() {
 		messageInput.addEventListener("keydown", (e) => {
 			if (e.key === "Enter" && !e.shiftKey) {
 				e.preventDefault();
+				if (BCX?.getRuleState("speech_restrict_beep_send").isEnforced) {
+					bceNotify(
+						displayText("Sending beeps is currently restricted by BCX rules")
+					);
+					return;
+				}
 				let messageText = messageInput.value;
 				if (messageText.trim() === "") {
 					return;
@@ -8014,14 +8060,32 @@ async function BondageClubEnhancements() {
 			(args, next) => {
 				next(args);
 				if (bceSettings.instantMessenger) {
-					DrawButton(
-						...buttonPosition(),
-						"",
-						unreadSinceOpened ? "Red" : "White",
-						"Icons/Small/Chat.png",
-						displayText("Instant Messenger"),
-						false
-					);
+					if (
+						BCX?.getRuleState("speech_restrict_beep_receive").isEnforced ||
+						(BCX?.getRuleState("alt_hide_friends").isEnforced &&
+							Player.GetBlindLevel() >= 3)
+					) {
+						if (!container.classList.contains("bce-hidden")) {
+							container.classList.add("bce-hidden");
+						}
+						DrawButton(
+							...buttonPosition(),
+							"",
+							"Gray",
+							"Icons/Small/Chat.png",
+							displayText("Instant Messenger (Disabled by BCX)"),
+							false
+						);
+					} else {
+						DrawButton(
+							...buttonPosition(),
+							"",
+							unreadSinceOpened ? "Red" : "White",
+							"Icons/Small/Chat.png",
+							displayText("Instant Messenger"),
+							false
+						);
+					}
 				}
 			}
 		);
@@ -9660,17 +9724,6 @@ async function BondageClubEnhancements() {
 		w.MainCanvas.getContext("2d").textAlign = "left";
 		DrawTextFit(text, x, y, width, color, backColor);
 		w.MainCanvas.getContext("2d").textAlign = bk;
-	}
-
-	/** @type {(s: string) => string} */
-	function removeNonPrintables(s) {
-		if (!s) {
-			return "";
-		}
-		return s
-			.replace(/[^\p{L}0-9\p{Z}'-]/gu, "")
-			.replace(/[\n\r\p{Z}]/gu, " ")
-			.trim();
 	}
 
 	/** @type {(cb: () => void, intval: number) => void} */

@@ -183,7 +183,9 @@ declare global {
   var ChatRoomCharacterDrawlist: Character[];
   var Character: Character[];
   var ChatRoomTargetMemberNumber: number;
-  var bcx: { getCharacterVersion: (memberNumber: number) => string };
+  var bcx:
+    | import("./types/bcxExternalInterface").BCX_ConsoleInterface
+    | undefined;
   var PreferenceSubscreenList: string[];
   var PreferenceSubscreen: string;
   var PreferenceMessage: string;
@@ -535,6 +537,7 @@ declare global {
     Wardrobe: ItemBundle[][];
     FocusGroup: AssetGroup;
     HasHiddenItems: boolean;
+    GetBlindLevel: () => number;
     ActivePose: string[] | null;
     Crafting: Craft[];
     BCE: string;
@@ -772,7 +775,6 @@ declare global {
     progress?: number;
     enjoyment?: number;
     activity?: BCEActivity;
-    nick?: string;
     crafts?: Craft[];
   };
   type ChatMessageDictionary = {
