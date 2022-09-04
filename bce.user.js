@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Bondage Club Enhancements
 // @namespace https://www.bondageprojects.com/
-// @version 3.10.6
+// @version 3.11.0
 // @description enhancements for the bondage club
 // @author Sidious
 // @match https://bondageprojects.elementfx.com/*
@@ -39,7 +39,7 @@
  *  along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-const BCE_VERSION = "3.10.6";
+const BCE_VERSION = "3.11.0";
 const settingsVersion = 40;
 
 const bceChangelog = `${BCE_VERSION}
@@ -48,22 +48,7 @@ const bceChangelog = `${BCE_VERSION}
 - nicknames will now be used instead of or in addition to names in many places
 - member number support for /w
 
-3.10.5
-- fix anti-cheat error when player has no owner
-
-3.10.4
-- fix bug causing anti-cheat to trigger unexpectedly
-
-3.10.3
-- limit number of public messages from anti-cheat to one per player per 10 minutes
-
-3.10.2
-- add extended lock change validation to anti-cheat: mistress locks require mistress status and lock member numbers cannot be manipulated
-
-3.10.1
-- fix whitelist for anti-cheat
-
-3.10.0
+3.10
 - add anti-cheat for certain console-driven item changes; this will be expanded in the future
 
 3.9
