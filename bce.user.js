@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Bondage Club Enhancements
 // @namespace https://www.bondageprojects.com/
-// @version 3.11.0
+// @version 3.11.1
 // @description enhancements for the bondage club
 // @author Sidious
 // @match https://bondageprojects.elementfx.com/*
@@ -39,10 +39,13 @@
  *  along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-const BCE_VERSION = "3.11.0";
+const BCE_VERSION = "3.11.1";
 const settingsVersion = 40;
 
 const bceChangelog = `${BCE_VERSION}
+- fixed loading the addon when extended wardrobe is corrupted
+
+3.11.0
 - BCX 0.9.1
 - initial support for BCX rules (beeps, emoticon locking)
 - nicknames will now be used instead of or in addition to names in many places
@@ -142,6 +145,9 @@ async function BondageClubEnhancements() {
 		console.warn("Bondage Club not detected. Skipping BCE initialization.");
 		return;
 	}
+
+	/** @type {{ level: "error" | "warn" | "info" | "debug", message: string }[]} */
+	const pastLogs = new Array(100);
 
 	/** @type {Map<number, BCECharacterState>} */
 	const characterStates = new Map();
@@ -1183,11 +1189,32 @@ async function BondageClubEnhancements() {
 		return Object.freeze(hashes);
 	};
 
+	/** @type {(level: "error" | "warn" | "info" | "debug", ...args: unknown[]) => void} */
+	const pushLog = (level, ...args) => {
+		pastLogs.shift();
+		pastLogs.push({
+			level,
+			message: args
+				.map((v) => {
+					if (isString(v)) {
+						return v;
+					}
+					try {
+						return JSON.stringify(v);
+					} catch (e) {
+						return v.toString();
+					}
+				})
+				.join(", "),
+		});
+	};
+
 	/**
 	 * @type {(...args: unknown[]) => void}
 	 */
 	const bceLog = (...args) => {
 		console.debug("BCE", `${w.BCE_VERSION}:`, ...args);
+		pushLog("debug", ...args);
 	};
 
 	/**
@@ -1195,6 +1222,7 @@ async function BondageClubEnhancements() {
 	 */
 	const bceInfo = (...args) => {
 		console.info("BCE", `${w.BCE_VERSION}:`, ...args);
+		pushLog("info", ...args);
 	};
 
 	/**
@@ -1202,6 +1230,7 @@ async function BondageClubEnhancements() {
 	 */
 	const bceWarn = (...args) => {
 		console.warn("BCE", `${w.BCE_VERSION}:`, ...args);
+		pushLog("warn", ...args);
 	};
 
 	/**
@@ -1209,6 +1238,7 @@ async function BondageClubEnhancements() {
 	 */
 	const bceError = (...args) => {
 		console.error("BCE", `${w.BCE_VERSION}:`, ...args);
+		pushLog("error", ...args);
 	};
 
 	/** @type {string[]} */
@@ -1883,7 +1913,6 @@ async function BondageClubEnhancements() {
 					/sourceMappingURL=.*?.map/u,
 					`sourceMappingURL=${source}.map`
 				);
-				bceLog(resp);
 				eval(resp);
 			});
 		bceInfo("Loaded", addon);
@@ -1942,6 +1971,13 @@ async function BondageClubEnhancements() {
 					info.set(
 						"Skipped Functionality for Compatibility",
 						`\n- ${skippedFunctionality.join("\n- ")}`
+					);
+					info.set(
+						"Log",
+						pastLogs
+							.filter((v) => v)
+							.map((v) => `[${v.level.toUpperCase()}] ${v.message}`)
+							.join("\n")
 					);
 					const print = Array.from(info)
 						.map(([k, v]) => `${k}: ${v}`)
@@ -7209,6 +7245,7 @@ async function BondageClubEnhancements() {
 			const sourceName = `${CharacterNickname(sourceCharacter)} (${
 				sourceCharacter.MemberNumber
 			})`;
+			bceLog("Rejected changes from", sourceName);
 			bceChatNotify(
 				displayText(
 					`[Anti-Cheat] ${sourceName} tried to make suspicious changes! Appearance changes rejected. Consider telling the user to stop, whitelisting the user (if trusted friend), or blacklisting the user (if the behaviour continues, chat command: "/blacklistadd ${sourceCharacter.MemberNumber}").`
@@ -7338,6 +7375,11 @@ async function BondageClubEnhancements() {
 						(i) => i.Name === "FuturisticCollar"
 					);
 
+				bceLog(
+					"Anti-Cheat validating bulk change from",
+					sourceCharacter.MemberNumber
+				);
+
 				// Count number of new items
 				const newAndChanges = Array.from(newItems.keys()).reduce(
 					(changes, cur) => {
@@ -7375,6 +7417,12 @@ async function BondageClubEnhancements() {
 					newAndChanges.new + newAndChanges.changed + removed > 2 ||
 					newAndChanges.prohibited
 				) {
+					bceLog(
+						"Anti-Cheat tripped on bulk change from",
+						sourceCharacter.MemberNumber,
+						newAndChanges,
+						removed
+					);
 					revertChanges(sourceCharacter);
 					return null;
 				}
@@ -8191,19 +8239,27 @@ async function BondageClubEnhancements() {
 			});
 		}
 		if (Player.OnlineSettings.BCEWardrobe) {
-			/** @type {ItemBundle[][]} */
-			// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-			const additionalItemBundle = JSON.parse(
-				LZString.decompressFromUTF16(Player.OnlineSettings.BCEWardrobe)
-			);
-			if (isWardrobe(additionalItemBundle)) {
-				for (let i = DEFAULT_WARDROBE_SIZE; i < EXPANDED_WARDROBE_SIZE; i++) {
-					const additionalIdx = i - DEFAULT_WARDROBE_SIZE;
-					if (additionalIdx >= additionalItemBundle.length) {
-						break;
+			try {
+				/** @type {ItemBundle[][]} */
+				// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+				const additionalItemBundle = JSON.parse(
+					LZString.decompressFromUTF16(Player.OnlineSettings.BCEWardrobe)
+				);
+				if (isWardrobe(additionalItemBundle)) {
+					for (let i = DEFAULT_WARDROBE_SIZE; i < EXPANDED_WARDROBE_SIZE; i++) {
+						const additionalIdx = i - DEFAULT_WARDROBE_SIZE;
+						if (additionalIdx >= additionalItemBundle.length) {
+							break;
+						}
+						wardrobe[i] = additionalItemBundle[additionalIdx];
 					}
-					wardrobe[i] = additionalItemBundle[additionalIdx];
 				}
+			} catch (e) {
+				bceError("Failed to load extended wardrobe", e);
+				bceBeepNotify(
+					"Wardrobe error",
+					`Failed to load extended wardrobe.\n\nBackup: ${Player.OnlineSettings.BCEWardrobe}`
+				);
 			}
 		}
 		return wardrobe;
