@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Bondage Club Enhancements
 // @namespace https://www.bondageprojects.com/
-// @version 3.11.1
+// @version 3.12.0
 // @description enhancements for the bondage club
 // @author Sidious
 // @match https://bondageprojects.elementfx.com/*
@@ -39,13 +39,14 @@
  *  along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-const BCE_VERSION = "3.11.1";
+const BCE_VERSION = "3.12.0";
 const settingsVersion = 40;
 
 const bceChangelog = `${BCE_VERSION}
-- fixed loading the addon when extended wardrobe is corrupted
+- compatibility for R84 Beta2
+- potential fix for anti-cheat sometimes triggering on own changes e.g. locks expiring
 
-3.11.0
+3.11
 - BCX 0.9.1
 - initial support for BCX rules (beeps, emoticon locking)
 - nicknames will now be used instead of or in addition to names in many places
@@ -53,17 +54,6 @@ const bceChangelog = `${BCE_VERSION}
 
 3.10
 - add anti-cheat for certain console-driven item changes; this will be expanded in the future
-
-3.9
-- add ability to load wardrobe sets without overriding body parts such as hair styles, eye colors, body sizes
-
-3.8
-- removed "keep tab active" option, which did not work. In Firefox you can set widget.windows.window_occlusion_tracking.enabled to false in about:config to keep the game processing in the background
-- add descriptions for settings, which show up when clicking each setting
-- allow sharing your crafted items with other BCE users in the room, per item
-- option to disable seeing shared crafts
-- import/export for crafts
-- show crafted property and description when hovering over item
 `;
 
 /*
@@ -80,7 +70,7 @@ const bcModSdk=function(){"use strict";const o="1.0.2";function e(o){alert("Mod 
 async function BondageClubEnhancements() {
 	"use strict";
 
-	const SUPPORTED_GAME_VERSIONS = ["R83"];
+	const SUPPORTED_GAME_VERSIONS = ["R83", "R84Beta2"];
 	const CAPABILITIES = ["clubslave"];
 
 	const w = window;
@@ -1182,6 +1172,18 @@ async function BondageClubEnhancements() {
 		};
 
 		switch (gameVersion) {
+			case "R84Beta2":
+				hashes.CharacterAppearanceNaked = "3715956B";
+				hashes.CraftingClick = "8A425456";
+				hashes.CraftingItemListBuild = "AA42603F";
+				hashes.CraftingLoad = "17449578";
+				hashes.CraftingExit = "25D6CBA7";
+				hashes.CraftingModeSet = "9C4188A6";
+				hashes.CraftingRun = "143055F3";
+				hashes.DialogInventoryBuild = "CFB24231";
+				hashes.ElementValue = "429E34AA";
+				hashes.InventoryWear = "B56E0D81";
+				break;
 			default:
 				break;
 		}
@@ -7289,9 +7291,9 @@ async function BondageClubEnhancements() {
 				if (data?.Item?.Target !== Player.MemberNumber) {
 					return next(args);
 				}
-				const sourceCharacter = ChatRoomCharacter.find(
-					(a) => a.MemberNumber === data.Source
-				);
+				const sourceCharacter =
+					ChatRoomCharacter.find((a) => a.MemberNumber === data.Source) ||
+					(data.Source === Player.MemberNumber ? Player : null);
 				const ignoreLocks = Player.Appearance.some(
 					(a) => a.Asset.Name === "FuturisticCollar"
 				);
@@ -7334,9 +7336,11 @@ async function BondageClubEnhancements() {
 					return next(args);
 				}
 
-				const sourceCharacter = ChatRoomCharacter.find(
-					(a) => a.MemberNumber === data.SourceMemberNumber
-				);
+				const sourceCharacter =
+					ChatRoomCharacter.find(
+						(a) => a.MemberNumber === data.SourceMemberNumber
+					) ||
+					(data.SourceMemberNumber === Player.MemberNumber ? Player : null);
 
 				// Gets the item bundles to be used for diff comparison, also making necessary changes for the purpose
 				/** @type {(bundle: ItemBundle[]) => Map<string, ItemBundle>} */
@@ -9267,6 +9271,10 @@ async function BondageClubEnhancements() {
 
 	async function crafting() {
 		await waitFor(() => Array.isArray(Commands) && Commands.length > 0);
+
+		if (GameVersion.startsWith("R84")) {
+			return;
+		}
 
 		try {
 			if (isString(bceSettings.sharedCrafts)) {
