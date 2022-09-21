@@ -35,12 +35,10 @@ declare global {
   var WardrobeOffset: number;
   var CraftingSlot: number;
   var CraftingOffset: number;
-  var CraftingMode: "Slot" | "Item" | "Property" | "Lock" | "Name";
-  var CraftingItem: Asset;
-  var CraftingProperty: string;
-  var CraftingLock: Item;
+  var CraftingMode: "Slot" | "Item" | "Property" | "Lock" | "Name" | "Color";
+  var CraftingConvertItemToSelected: (craft: Craft) => CraftingItem;
   var CraftingModeSet: (
-    mode: "Slot" | "Item" | "Property" | "Lock" | "Name"
+    mode: "Slot" | "Item" | "Property" | "Lock" | "Name" | "Color"
   ) => void;
   var CraftingItemListBuild: () => void;
   var CharacterLoadSimple: (accName: string) => Character;
@@ -121,6 +119,9 @@ declare global {
     data: Record<string, unknown>,
     sourceMemberNumber: number
   ) => Character;
+  var CraftingUpdatePreview: () => void;
+  var CraftingConvertSelectedToItem: () => Craft;
+  var CraftingSelectedItem: CraftingItem;
   var ServerPlayerIsInChatRoom: () => boolean;
   var InventoryItemMiscLoversTimerPadlockDraw: () => void;
   var InventoryItemMiscLoversTimerPadlockClick: () => void;
@@ -597,6 +598,16 @@ declare global {
     ChatRoomName?: string;
     IsMail?: boolean;
     ClickAction?: "FriendList";
+  };
+  type CraftingItem = {
+    Name?: string;
+    Description?: string;
+    Color?: string;
+    Asset?: Asset;
+    Property?: string;
+    Lock?: Asset;
+    Private?: boolean;
+    Type: String;
   };
   type ItemProperty = {
     RemoveTimer?: number;
