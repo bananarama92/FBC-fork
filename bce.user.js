@@ -39,10 +39,13 @@
  *  along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-const BCE_VERSION = "3.12.2";
-const settingsVersion = 41;
+const BCE_VERSION = "3.12.3";
+const settingsVersion = 42;
 
 const bceChangelog = `${BCE_VERSION}
+- added a cheat for IM to bypass BCX beep rules
+
+3.12.2
 - removed craft sharing settings from BCE with the game handling sharing now
 
 3.12.1
@@ -59,7 +62,7 @@ const bceChangelog = `${BCE_VERSION}
 - member number support for /w
 
 3.10
-- add anti-cheat for certain console-driven item changes; this will be expanded in the future
+- added anti-cheat for certain console-driven item changes; this will be expanded in the future
 `;
 
 /*
@@ -429,6 +432,16 @@ async function BondageClubEnhancements() {
 			category: "cheats",
 			description:
 				"All three forms of struggling will be completed automatically in a realistic amount of time, if the restraint is possible to struggle out of.",
+		},
+		allowIMBypassBCX: {
+			label: "Allow IMs to bypass BCX beep restrictions",
+			value: false,
+			sideEffects: (newValue) => {
+				bceLog("allowIMBypassBCX", newValue);
+			},
+			category: "cheats",
+			description:
+				"This setting is temporary until BCX supports a focus mode rule.",
 		},
 		bcx: {
 			label: "Load BCX by Jomshir98 (no auto-update)",
@@ -7877,7 +7890,10 @@ async function BondageClubEnhancements() {
 		messageInput.addEventListener("keydown", (e) => {
 			if (e.key === "Enter" && !e.shiftKey) {
 				e.preventDefault();
-				if (BCX?.getRuleState("speech_restrict_beep_send").isEnforced) {
+				if (
+					BCX?.getRuleState("speech_restrict_beep_send").isEnforced &&
+					!bceSettings.allowIMBypassBCX
+				) {
 					bceNotify(
 						displayText("Sending beeps is currently restricted by BCX rules")
 					);
@@ -8070,9 +8086,10 @@ async function BondageClubEnhancements() {
 				next(args);
 				if (bceSettings.instantMessenger) {
 					if (
-						BCX?.getRuleState("speech_restrict_beep_receive").isEnforced ||
-						(BCX?.getRuleState("alt_hide_friends").isEnforced &&
-							Player.GetBlindLevel() >= 3)
+						!bceSettings.allowIMBypassBCX &&
+						(BCX?.getRuleState("speech_restrict_beep_receive").isEnforced ||
+							(BCX?.getRuleState("alt_hide_friends").isEnforced &&
+								Player.GetBlindLevel() >= 3))
 					) {
 						if (!container.classList.contains("bce-hidden")) {
 							container.classList.add("bce-hidden");
