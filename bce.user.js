@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Bondage Club Enhancements
 // @namespace https://www.bondageprojects.com/
-// @version 3.12.1
+// @version 3.12.2
 // @description enhancements for the bondage club
 // @author Sidious
 // @match https://bondageprojects.elementfx.com/*
@@ -39,10 +39,13 @@
  *  along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-const BCE_VERSION = "3.12.1";
-const settingsVersion = 40;
+const BCE_VERSION = "3.12.2";
+const settingsVersion = 41;
 
 const bceChangelog = `${BCE_VERSION}
+- removed craft sharing settings from BCE with the game handling sharing now
+
+3.12.1
 - compatibility for R84
 
 3.12.0
@@ -368,15 +371,6 @@ async function BondageClubEnhancements() {
 			category: "chat",
 			description:
 				"Shows messages you've sent while waiting for the server to respond, confirming you have sent the message and the server is just being slow.",
-		},
-		seeSharedCrafts: {
-			label: "See shared crafts",
-			value: true,
-			sideEffects: (newValue) => {
-				bceLog("seeSharedCrafts", newValue);
-			},
-			category: "chat",
-			description: "Allows you to see other player's crafts in the item lists.",
 		},
 		gagspeak: {
 			label: "Understand All Gagged and when Deafened",
@@ -778,15 +772,6 @@ async function BondageClubEnhancements() {
 				} catch (ex) {
 					bceError(ex);
 				}
-			},
-			category: "hidden",
-			description: "",
-		},
-		sharedCrafts: {
-			label: "Shared crafts",
-			value: "",
-			sideEffects: (newValue) => {
-				bceLog("sharedCrafts", newValue);
 			},
 			category: "hidden",
 			description: "",
