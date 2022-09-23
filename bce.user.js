@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Bondage Club Enhancements
 // @namespace https://www.bondageprojects.com/
-// @version 3.12.3
+// @version 3.12.4
 // @description enhancements for the bondage club
 // @author Sidious
 // @match https://bondageprojects.elementfx.com/*
@@ -39,10 +39,14 @@
  *  along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-const BCE_VERSION = "3.12.3";
+const BCE_VERSION = "3.12.4";
 const settingsVersion = 42;
 
 const bceChangelog = `${BCE_VERSION}
+- update bcx
+- support for R84 hotfixes...
+
+3.12.3
 - added a cheat for IM to bypass BCX beep rules
 
 3.12.2
@@ -101,7 +105,7 @@ async function BondageClubEnhancements() {
 	const BCX_DEVEL_SOURCE =
 			"https://jomshir98.github.io/bondage-club-extended/devel/bcx.js",
 		BCX_SOURCE =
-			"https://raw.githubusercontent.com/Jomshir98/bondage-club-extended/aba14e78bacac09888e31656e4963ea7e930d312/bcx.js",
+			"https://raw.githubusercontent.com/Jomshir98/bondage-club-extended/a83bd0b7ed44355232c0a0da9cec8bbc0390bcf5/bcx.js",
 		EBCH_SOURCE = "https://e2466.gitlab.io/ebch/master/EBCH.js";
 
 	const BCE_COLOR_ADJUSTMENTS_CLASS_NAME = "bce-colors",
@@ -1075,10 +1079,10 @@ async function BondageClubEnhancements() {
 			CommonClick: "1F6DF7CB",
 			CommonColorIsValid: "390A2CE4",
 			CommonSetScreen: "17692CD7",
-			CraftingClick: "8A425456",
+			CraftingClick: "233CD295",
 			CraftingConvertSelectedToItem: "EB2512A3",
-			CraftingRun: "143055F3",
-			CraftingUpdatePreview: "9E861826",
+			CraftingRun: "8344BFEB",
+			CraftingUpdatePreview: "036B150C",
 			DialogClick: "592A4F65",
 			DialogDraw: "7AD8C0F6",
 			DialogDrawItemMenu: "FB5172D2",
