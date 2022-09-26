@@ -1,8 +1,8 @@
 // ==UserScript==
 // @name Bondage Club Enhancements
 // @namespace https://www.bondageprojects.com/
-// @version 3.12.4
-// @description enhancements for the bondage club
+// @version 4.0
+// @description FBC - For Better Club - enhancements for the bondage club - old name kept in tampermonkey for compatibility
 // @author Sidious
 // @match https://bondageprojects.elementfx.com/*
 // @match https://www.bondageprojects.elementfx.com/*
@@ -22,7 +22,7 @@
 /* eslint-disable no-alert */
 
 /**
- *     BCE
+ *     BCE/FBC
  *  Copyright (C) 2022  Sid
  *
  *  This program is free software: you can redistribute it and/or modify
@@ -39,34 +39,23 @@
  *  along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-const BCE_VERSION = "3.12.4";
-const settingsVersion = 42;
+const FBC_VERSION = "4.0";
+const settingsVersion = 44;
 
-const bceChangelog = `${BCE_VERSION}
-- update bcx
-- support for R84 hotfixes...
+const fbcChangelog = `${FBC_VERSION}
+- BCE is now known as FBC (For Better Club) to reduce confusion with BCX
 
-3.12.3
-- added a cheat for IM to bypass BCX beep rules
-
-3.12.2
-- removed craft sharing settings from BCE with the game handling sharing now
-
-3.12.1
+BCE:
+3.12
 - compatibility for R84
-
-3.12.0
-- compatibility for R84 Beta2
 - potential fix for anti-cheat sometimes triggering on own changes e.g. locks expiring
+- added a cheat for IM to bypass BCX beep rules
 
 3.11
 - BCX 0.9.1
 - initial support for BCX rules (beeps, emoticon locking)
 - nicknames will now be used instead of or in addition to names in many places
 - member number support for /w
-
-3.10
-- added anti-cheat for certain console-driven item changes; this will be expanded in the future
 `;
 
 /*
@@ -80,7 +69,7 @@ const bceChangelog = `${BCE_VERSION}
 // eslint-disable-next-line
 const bcModSdk=function(){"use strict";const o="1.0.2";function e(o){alert("Mod ERROR:\n"+o);const e=new Error(o);throw console.error(e),e}const t=new TextEncoder;function n(o){return!!o&&"object"==typeof o&&!Array.isArray(o)}function r(o){const e=new Set;return o.filter((o=>!e.has(o)&&e.add(o)))}const a=new Map,i=new Set;function d(o){i.has(o)||(i.add(o),console.warn(o))}function c(o,e){if(0===e.size)return o;let t=o.toString().replaceAll("\r\n","\n");for(const[n,r]of e.entries())t.includes(n)||d(`ModSDK: Patching ${o.name}: Patch ${n} not applied`),t=t.replaceAll(n,r);return(0,eval)(`(${t})`)}function s(o){const e=[],t=new Map,n=new Set;for(const r of u.values()){const a=r.patching.get(o.name);if(a){e.push(...a.hooks);for(const[e,i]of a.patches.entries())t.has(e)&&t.get(e)!==i&&d(`ModSDK: Mod '${r.name}' is patching function ${o.name} with same pattern that is already applied by different mod, but with different pattern:\nPattern:\n${e}\nPatch1:\n${t.get(e)||""}\nPatch2:\n${i}`),t.set(e,i),n.add(r.name)}}return e.sort(((o,e)=>e.priority-o.priority)),{hooks:e,patches:t,patchesSources:n,final:c(o.original,t)}}function l(o,e=!1){let r=a.get(o);if(r)e&&(r.precomputed=s(r));else{let e=window;const i=o.split(".");for(let t=0;t<i.length-1;t++)if(e=e[i[t]],!n(e))throw new Error(`ModSDK: Function ${o} to be patched not found; ${i.slice(0,t+1).join(".")} is not object`);const d=e[i[i.length-1]];if("function"!=typeof d)throw new Error(`ModSDK: Function ${o} to be patched not found`);const c=function(o){let e=-1;for(const n of t.encode(o)){let o=255&(e^n);for(let e=0;e<8;e++)o=1&o?-306674912^o>>>1:o>>>1;e=e>>>8^o}return((-1^e)>>>0).toString(16).padStart(8,"0").toUpperCase()}(d.toString().replaceAll("\r\n","\n")),l={name:o,original:d,originalHash:c};r=Object.assign(Object.assign({},l),{precomputed:s(l)}),a.set(o,r),e[i[i.length-1]]=function(o){return function(...e){const t=o.precomputed,n=t.hooks,r=t.final;let a=0;const i=d=>{var c,s,l,f;if(a<n.length){const e=n[a];a++;const t=null===(s=(c=w.errorReporterHooks).hookEnter)||void 0===s?void 0:s.call(c,o.name,e.mod),r=e.hook(d,i);return null==t||t(),r}{const n=null===(f=(l=w.errorReporterHooks).hookChainExit)||void 0===f?void 0:f.call(l,o.name,t.patchesSources),a=r.apply(this,e);return null==n||n(),a}};return i(e)}}(r)}return r}function f(){const o=new Set;for(const e of u.values())for(const t of e.patching.keys())o.add(t);for(const e of a.keys())o.add(e);for(const e of o)l(e,!0)}function p(){const o=new Map;for(const[e,t]of a)o.set(e,{name:e,originalHash:t.originalHash,hookedByMods:r(t.precomputed.hooks.map((o=>o.mod))),patchedByMods:Array.from(t.precomputed.patchesSources)});return o}const u=new Map;function h(o){u.get(o.name)!==o&&e(`Failed to unload mod '${o.name}': Not registered`),u.delete(o.name),o.loaded=!1}function g(o,t,r){"string"==typeof o&&o||e("Failed to register mod: Expected non-empty name string, got "+typeof o),"string"!=typeof t&&e(`Failed to register mod '${o}': Expected version string, got ${typeof t}`),r=!0===r;const a=u.get(o);a&&(a.allowReplace&&r||e(`Refusing to load mod '${o}': it is already loaded and doesn't allow being replaced.\nWas the mod loaded multiple times?`),h(a));const i=t=>{"string"==typeof t&&t||e(`Mod '${o}' failed to patch a function: Expected function name string, got ${typeof t}`);let n=c.patching.get(t);return n||(n={hooks:[],patches:new Map},c.patching.set(t,n)),n},d={unload:()=>h(c),hookFunction:(t,n,r)=>{c.loaded||e(`Mod '${c.name}' attempted to call SDK function after being unloaded`);const a=i(t);"number"!=typeof n&&e(`Mod '${o}' failed to hook function '${t}': Expected priority number, got ${typeof n}`),"function"!=typeof r&&e(`Mod '${o}' failed to hook function '${t}': Expected hook function, got ${typeof r}`);const d={mod:c.name,priority:n,hook:r};return a.hooks.push(d),f(),()=>{const o=a.hooks.indexOf(d);o>=0&&(a.hooks.splice(o,1),f())}},patchFunction:(t,r)=>{c.loaded||e(`Mod '${c.name}' attempted to call SDK function after being unloaded`);const a=i(t);n(r)||e(`Mod '${o}' failed to patch function '${t}': Expected patches object, got ${typeof r}`);for(const[n,i]of Object.entries(r))"string"==typeof i?a.patches.set(n,i):null===i?a.patches.delete(n):e(`Mod '${o}' failed to patch function '${t}': Invalid format of patch '${n}'`);f()},removePatches:o=>{c.loaded||e(`Mod '${c.name}' attempted to call SDK function after being unloaded`);i(o).patches.clear(),f()},callOriginal:(t,n,r)=>(c.loaded||e(`Mod '${c.name}' attempted to call SDK function after being unloaded`),"string"==typeof t&&t||e(`Mod '${o}' failed to call a function: Expected function name string, got ${typeof t}`),Array.isArray(n)||e(`Mod '${o}' failed to call a function: Expected args array, got ${typeof n}`),function(o,e,t=window){return l(o).original.apply(t,e)}(t,n,r)),getOriginalHash:t=>("string"==typeof t&&t||e(`Mod '${o}' failed to get hash: Expected function name string, got ${typeof t}`),l(t).originalHash)},c={name:o,version:t,allowReplace:r,api:d,loaded:!0,patching:new Map};return u.set(o,c),Object.freeze(d)}function m(){const o=[];for(const e of u.values())o.push({name:e.name,version:e.version});return o}let w;const y=void 0===window.bcModSdk?window.bcModSdk=function(){const e={version:o,apiVersion:1,registerMod:g,getModsInfo:m,getPatchingInfo:p,errorReporterHooks:Object.seal({hookEnter:null,hookChainExit:null})};return w=e,Object.freeze(e)}():(n(window.bcModSdk)||e("Failed to init Mod SDK: Name already in use"),1!==window.bcModSdk.apiVersion&&e(`Failed to init Mod SDK: Different version already loaded ('1.0.2' vs '${window.bcModSdk.version}')`),window.bcModSdk.version!==o&&alert(`Mod SDK warning: Loading different but compatible versions ('1.0.2' vs '${window.bcModSdk.version}')\nOne of mods you are using is using an old version of SDK. It will work for now but please inform author to update`),window.bcModSdk);return"undefined"!=typeof exports&&(Object.defineProperty(exports,"__esModule",{value:!0}),exports.default=y),y}();
 
-async function BondageClubEnhancements() {
+async function ForBetterClub() {
 	"use strict";
 
 	const SUPPORTED_GAME_VERSIONS = ["R84"];
@@ -88,16 +77,16 @@ async function BondageClubEnhancements() {
 
 	const w = window;
 
-	if (w.BCE_VERSION) {
-		console.warn("BCE already loaded. Skipping load.");
+	if (w.FBC_VERSION) {
+		console.warn("FBC already loaded. Skipping load.");
 		return;
 	}
 
-	const SDK = bcModSdk.registerMod("BCE", BCE_VERSION, false);
+	const SDK = bcModSdk.registerMod("FBC", FBC_VERSION, false);
 	/** @type {import('./types/bcxExternalInterface').BCX_ModAPI | null} */
 	let BCX = null;
 
-	w.BCE_VERSION = BCE_VERSION;
+	w.FBC_VERSION = FBC_VERSION;
 
 	const DISCORD_INVITE_URL = "https://discord.gg/SHJMjEh9VH";
 	const WEBSITE_URL = "https://sidiousious.gitlab.io/bce/";
@@ -145,7 +134,7 @@ async function BondageClubEnhancements() {
 	};
 
 	if (typeof ChatRoomCharacter === "undefined") {
-		console.warn("Bondage Club not detected. Skipping BCE initialization.");
+		console.warn("Bondage Club not detected. Skipping FBC initialization.");
 		return;
 	}
 
@@ -159,9 +148,6 @@ async function BondageClubEnhancements() {
 	const toySyncState = {
 		deviceSettings: new Map(),
 	};
-
-	/** @type {boolean[]} */
-	const sharedCrafts = [];
 
 	/** @type {Readonly<{Top: 11; OverrideBehaviour: 10; ModifyBehaviourHigh: 6; ModifyBehaviourMedium: 5; ModifyBehaviourLow: 4; AddBehaviour: 3; Observe: 0}>} */
 	const HOOK_PRIORITIES = {
@@ -177,20 +163,33 @@ async function BondageClubEnhancements() {
 	/**
 	 * @type {Settings}
 	 */
-	let bceSettings = {};
+	let fbcSettings = {};
 
 	/**
 	 * @type {Readonly<DefaultSettings>}
 	 */
 	const defaultSettings = {
-		expressions: {
-			label: "Automatic Arousal Expressions (Replaces Vanilla)",
+		animationEngine: {
+			label: "Animation Engine",
 			sideEffects: (newValue) => {
 				if (newValue) {
 					// Disable conflicting settings
 					Player.ArousalSettings.AffectExpression = false;
 				}
-				bceLog("expressions", newValue);
+			},
+			value: false,
+			category: "activities",
+			description:
+				"Enables the animation engine. This will replace the game's expression and pose system.",
+		},
+		expressions: {
+			label: "Automatic Arousal Expressions (Replaces Vanilla)",
+			sideEffects: (newValue) => {
+				if (newValue) {
+					fbcSettings.animationEngine = true;
+					defaultSettings.animationEngine.sideEffects(true);
+				}
+				debug("expressions", newValue);
 			},
 			value: false,
 			category: "activities",
@@ -201,10 +200,10 @@ async function BondageClubEnhancements() {
 			value: false,
 			sideEffects: (newValue) => {
 				if (newValue) {
-					// Disable conflicting settings
-					Player.ArousalSettings.AffectExpression = false;
+					fbcSettings.animationEngine = true;
+					defaultSettings.animationEngine.sideEffects(true);
 				}
-				bceLog("activityExpressions", newValue);
+				debug("activityExpressions", newValue);
 			},
 			category: "activities",
 			description: "Automatically express reactions to certain activities.",
@@ -220,7 +219,7 @@ async function BondageClubEnhancements() {
 					BCE_MAX_AROUSAL,
 					Player.ArousalSettings.Progress
 				);
-				bceLog("alternateArousal", newValue);
+				debug("alternateArousal", newValue);
 			},
 			category: "activities",
 			description: "More intense activities will affect arousal faster.",
@@ -229,7 +228,7 @@ async function BondageClubEnhancements() {
 			label: "Alternative speech stutter",
 			value: false,
 			sideEffects: (newValue) => {
-				bceLog("stutters", newValue);
+				debug("stutters", newValue);
 			},
 			category: "activities",
 			description:
@@ -239,7 +238,7 @@ async function BondageClubEnhancements() {
 			label: "Enable layering menus",
 			value: false,
 			sideEffects: (newValue) => {
-				bceLog("layeringMenu", newValue);
+				debug("layeringMenu", newValue);
 			},
 			category: "appearance",
 			description:
@@ -249,7 +248,7 @@ async function BondageClubEnhancements() {
 			label: "Extended wardrobe slots (96)",
 			value: false,
 			sideEffects: (newValue) => {
-				bceLog("extendedWardrobe", newValue);
+				debug("extendedWardrobe", newValue);
 				if (newValue) {
 					WardrobeSize = EXPANDED_WARDROBE_SIZE;
 					loadExtendedWardrobe(Player.Wardrobe);
@@ -270,7 +269,7 @@ async function BondageClubEnhancements() {
 			label: "Replace wardrobe list with character previews",
 			value: false,
 			sideEffects: (newValue) => {
-				bceLog("privateWardrobe", newValue);
+				debug("privateWardrobe", newValue);
 			},
 			category: "appearance",
 			description:
@@ -280,7 +279,7 @@ async function BondageClubEnhancements() {
 			label: "Clear Drawing Cache Hourly",
 			value: false,
 			sideEffects: (newValue) => {
-				bceLog("automateCacheClear", newValue);
+				debug("automateCacheClear", newValue);
 			},
 			category: "performance",
 			description:
@@ -290,7 +289,7 @@ async function BondageClubEnhancements() {
 			label: "Instant messenger",
 			value: false,
 			sideEffects: (newValue) => {
-				bceLog("instantMessenger", newValue);
+				debug("instantMessenger", newValue);
 			},
 			category: "chat",
 			description:
@@ -300,7 +299,7 @@ async function BondageClubEnhancements() {
 			label: "Chat Links and Embeds",
 			value: false,
 			sideEffects: (newValue) => {
-				bceLog("augmentChat", newValue);
+				debug("augmentChat", newValue);
 			},
 			category: "chat",
 			description:
@@ -310,7 +309,7 @@ async function BondageClubEnhancements() {
 			label: "Use Ctrl+Enter to OOC",
 			value: true,
 			sideEffects: (newValue) => {
-				bceLog("ctrlEnterOoc", newValue);
+				debug("ctrlEnterOoc", newValue);
 			},
 			category: "chat",
 			description: "Allows you to use Ctrl+Enter to send OOC messages.",
@@ -319,7 +318,7 @@ async function BondageClubEnhancements() {
 			label: "Use italics for input when whispering",
 			value: true,
 			sideEffects: (newValue) => {
-				bceLog("whisperInput", newValue);
+				debug("whisperInput", newValue);
 			},
 			category: "chat",
 			description:
@@ -334,7 +333,7 @@ async function BondageClubEnhancements() {
 				} else {
 					document.body.classList.remove(BCE_COLOR_ADJUSTMENTS_CLASS_NAME);
 				}
-				bceLog("chatColors", newValue);
+				debug("chatColors", newValue);
 			},
 			category: "chat",
 			description:
@@ -344,7 +343,7 @@ async function BondageClubEnhancements() {
 			label: "Show friend presence notifications",
 			value: false,
 			sideEffects: (newValue) => {
-				bceLog("friendPresenceNotifications", newValue);
+				debug("friendPresenceNotifications", newValue);
 			},
 			category: "chat",
 			description:
@@ -354,7 +353,7 @@ async function BondageClubEnhancements() {
 			label: "Show friends going offline too (requires friend presence)",
 			value: false,
 			sideEffects: (newValue) => {
-				bceLog("friendOfflineNotifications", newValue);
+				debug("friendOfflineNotifications", newValue);
 			},
 			category: "chat",
 			description: "Shows a notification when a friend logs out.",
@@ -363,7 +362,7 @@ async function BondageClubEnhancements() {
 			label: "Save & browse seen profiles (requires refresh)",
 			value: false,
 			sideEffects: (newValue) => {
-				bceLog("pastProfiles", newValue);
+				debug("pastProfiles", newValue);
 			},
 			category: "chat",
 			description:
@@ -373,7 +372,7 @@ async function BondageClubEnhancements() {
 			label: "Show sent messages while waiting for server",
 			value: true,
 			sideEffects: (newValue) => {
-				bceLog("showSentMessages", newValue);
+				debug("showSentMessages", newValue);
 			},
 			category: "chat",
 			description:
@@ -383,17 +382,17 @@ async function BondageClubEnhancements() {
 			label: "Understand All Gagged and when Deafened",
 			value: false,
 			sideEffects: (newValue) => {
-				bceLog("gagspeak", newValue);
+				debug("gagspeak", newValue);
 			},
 			category: "cheats",
 			description:
-				"Bypasses gagged effect on others and deafen effect on yourself. You'll still be unable to understand others if they use BCE's gag anti-cheat.",
+				"Bypasses gagged effect on others and deafen effect on yourself. You'll still be unable to understand others if they use FBC's gag anti-cheat.",
 		},
 		lockpick: {
 			label: "Reveal Lockpicking Order Based on Skill",
 			value: false,
 			sideEffects: (newValue) => {
-				bceLog("lockpick", newValue);
+				debug("lockpick", newValue);
 			},
 			category: "cheats",
 			description:
@@ -403,9 +402,9 @@ async function BondageClubEnhancements() {
 			label: "Allow layering menus while bound",
 			value: false,
 			sideEffects: (newValue) => {
-				bceLog("allowLayeringWhileBound", newValue);
-				if (newValue && !bceSettings.layeringMenu) {
-					bceSettings.layeringMenu = true;
+				debug("allowLayeringWhileBound", newValue);
+				if (newValue && !fbcSettings.layeringMenu) {
+					fbcSettings.layeringMenu = true;
 					defaultSettings.layeringMenu.sideEffects(true);
 				}
 			},
@@ -417,9 +416,9 @@ async function BondageClubEnhancements() {
 			label: "Add option to modify difficulty of restraints to layering menu",
 			value: false,
 			sideEffects: (newValue) => {
-				bceLog("modifyDifficulty", newValue);
-				if (newValue && !bceSettings.layeringMenu) {
-					bceSettings.layeringMenu = true;
+				debug("modifyDifficulty", newValue);
+				if (newValue && !fbcSettings.layeringMenu) {
+					fbcSettings.layeringMenu = true;
 					defaultSettings.layeringMenu.sideEffects(true);
 				}
 			},
@@ -431,7 +430,7 @@ async function BondageClubEnhancements() {
 			label: "Make automatic progress while struggling",
 			value: false,
 			sideEffects: (newValue) => {
-				bceLog("autoStruggle", newValue);
+				debug("autoStruggle", newValue);
 			},
 			category: "cheats",
 			description:
@@ -441,7 +440,7 @@ async function BondageClubEnhancements() {
 			label: "Allow IMs to bypass BCX beep restrictions",
 			value: false,
 			sideEffects: (newValue) => {
-				bceLog("allowIMBypassBCX", newValue);
+				debug("allowIMBypassBCX", newValue);
 			},
 			category: "cheats",
 			description:
@@ -452,7 +451,7 @@ async function BondageClubEnhancements() {
 			value: false,
 			sideEffects: (newValue) => {
 				if (newValue) {
-					bceSettings.bcxDevel = false;
+					fbcSettings.bcxDevel = false;
 					w.BCX_SOURCE = BCX_SOURCE;
 					loadExternalAddon("BCX", BCX_SOURCE).then((success) => {
 						if (success) {
@@ -460,18 +459,18 @@ async function BondageClubEnhancements() {
 						}
 					});
 				}
-				bceLog("bcx", newValue);
+				debug("bcx", newValue);
 			},
 			category: "addons",
 			description:
-				"Load Bondage Club Extended. To see all details, see the link in sidiousious.gitlab.io/bce. This option keeps the loaded BCX code from changing until BCE update.",
+				"Load Bondage Club Extended. To see all details, see the link in sidiousious.gitlab.io/bce. This option keeps the loaded BCX code from changing until FBC update.",
 		},
 		bcxDevel: {
 			label: "Load BCX beta (auto-updates)",
 			value: false,
 			sideEffects: (newValue) => {
 				if (newValue) {
-					bceSettings.bcx = false;
+					fbcSettings.bcx = false;
 					w.BCX_SOURCE = BCX_DEVEL_SOURCE;
 					loadExternalAddon("BCX", BCX_DEVEL_SOURCE).then((success) => {
 						if (success) {
@@ -479,7 +478,7 @@ async function BondageClubEnhancements() {
 						}
 					});
 				}
-				bceLog("bcxDevel", newValue);
+				debug("bcxDevel", newValue);
 			},
 			category: "addons",
 			description:
@@ -496,7 +495,7 @@ async function BondageClubEnhancements() {
 						}
 					});
 				}
-				bceLog("ebch", newValue);
+				debug("ebch", newValue);
 			},
 			category: "addons",
 			description:
@@ -506,7 +505,7 @@ async function BondageClubEnhancements() {
 			label: "Enable buttplug.io (requires refresh)",
 			value: false,
 			sideEffects: (newValue) => {
-				bceLog("toySync", newValue);
+				debug("toySync", newValue);
 			},
 			category: "buttplug",
 			description:
@@ -517,10 +516,10 @@ async function BondageClubEnhancements() {
 			value: false,
 			sideEffects: (newValue) => {
 				if (newValue) {
-					bceSettings.antiAntiGarbleStrong = false;
-					bceSettings.antiAntiGarbleExtra = false;
+					fbcSettings.antiAntiGarbleStrong = false;
+					fbcSettings.antiAntiGarbleExtra = false;
 				}
-				bceLog("antiAntiGarble", newValue);
+				debug("antiAntiGarble", newValue);
 			},
 			category: "immersion",
 			description:
@@ -531,10 +530,10 @@ async function BondageClubEnhancements() {
 			value: false,
 			sideEffects: (newValue) => {
 				if (newValue) {
-					bceSettings.antiAntiGarble = false;
-					bceSettings.antiAntiGarbleExtra = false;
+					fbcSettings.antiAntiGarble = false;
+					fbcSettings.antiAntiGarbleExtra = false;
 				}
-				bceLog("antiAntiGarbleStrong", newValue);
+				debug("antiAntiGarbleStrong", newValue);
 			},
 			category: "immersion",
 			description:
@@ -546,10 +545,10 @@ async function BondageClubEnhancements() {
 			value: false,
 			sideEffects: (newValue) => {
 				if (newValue) {
-					bceSettings.antiAntiGarble = false;
-					bceSettings.antiAntiGarbleStrong = false;
+					fbcSettings.antiAntiGarble = false;
+					fbcSettings.antiAntiGarbleStrong = false;
 				}
-				bceLog("antiAntiGarbleExtra", newValue);
+				debug("antiAntiGarbleExtra", newValue);
 			},
 			category: "immersion",
 			description:
@@ -562,17 +561,17 @@ async function BondageClubEnhancements() {
 				if (!newValue) {
 					removeCustomEffect("BlurLight");
 				}
-				bceLog("blindWithoutGlasses", newValue);
+				debug("blindWithoutGlasses", newValue);
 			},
 			category: "immersion",
 			description: "You will be partially blinded while not wearing glasses.",
 		},
 		leashAlways: {
 			label:
-				"Allow leashing without wearing a leashable item (requires leasher to have BCE too)",
+				"Allow leashing without wearing a leashable item (requires leasher to have FBC too)",
 			value: false,
 			sideEffects: (newValue) => {
-				bceLog("leashAlways", newValue);
+				debug("leashAlways", newValue);
 				if (newValue) {
 					enableLeashing();
 				} else {
@@ -587,7 +586,7 @@ async function BondageClubEnhancements() {
 			label: "Clamping hand over mouth affects speech",
 			value: true,
 			sideEffects: (newValue) => {
-				bceLog("handgag", newValue);
+				debug("handgag", newValue);
 			},
 			category: "immersion",
 			description: "Hand clamp action imposes a 45-second gag effect.",
@@ -596,7 +595,7 @@ async function BondageClubEnhancements() {
 			label: "Hide the hidden items icon",
 			value: false,
 			sideEffects: (newValue) => {
-				bceLog("hideHiddenItemsIcon", newValue);
+				debug("hideHiddenItemsIcon", newValue);
 			},
 			category: "immersion",
 			description:
@@ -606,7 +605,7 @@ async function BondageClubEnhancements() {
 			label: "Enable anti-cheat",
 			value: false,
 			sideEffects: (newValue) => {
-				bceLog("itemAntiCheat", newValue);
+				debug("itemAntiCheat", newValue);
 			},
 			category: "immersion",
 			description:
@@ -616,7 +615,7 @@ async function BondageClubEnhancements() {
 			label: "Blacklist detected cheaters automatically",
 			value: false,
 			sideEffects: (newValue) => {
-				bceLog("antiCheatBlackList", newValue);
+				debug("antiCheatBlackList", newValue);
 			},
 			category: "immersion",
 			description:
@@ -625,16 +624,16 @@ async function BondageClubEnhancements() {
 		checkUpdates: {
 			label: "Check for updates",
 			sideEffects: (newValue) => {
-				bceLog("checkUpdates", newValue);
+				debug("checkUpdates", newValue);
 			},
 			value: true,
 			category: "misc",
-			description: "Check for BCE updates on startup.",
+			description: "Check for FBC updates on startup.",
 		},
 		relogin: {
 			label: "Automatic Relogin on Disconnect",
 			sideEffects: (newValue) => {
-				bceLog("relogin", newValue);
+				debug("relogin", newValue);
 			},
 			value: true,
 			category: "misc",
@@ -645,7 +644,7 @@ async function BondageClubEnhancements() {
 			label: "Show gag cheat and anti-cheat options in chat",
 			value: false,
 			sideEffects: (newValue) => {
-				bceLog("showQuickAntiGarble", newValue);
+				debug("showQuickAntiGarble", newValue);
 			},
 			category: "misc",
 			description:
@@ -655,7 +654,7 @@ async function BondageClubEnhancements() {
 			label: "Automatically ghost+blocklist unnaturally new users",
 			value: false,
 			sideEffects: (newValue) => {
-				bceLog("ghostNewUsers", newValue);
+				debug("ghostNewUsers", newValue);
 			},
 			category: "misc",
 			description:
@@ -665,7 +664,7 @@ async function BondageClubEnhancements() {
 			label: "Use accurate timer inputs",
 			value: false,
 			sideEffects: (newValue) => {
-				bceLog("accurateTimerLocks", newValue);
+				debug("accurateTimerLocks", newValue);
 			},
 			category: "misc",
 			description: "Allows you to set specific durations for timer locks.",
@@ -674,7 +673,7 @@ async function BondageClubEnhancements() {
 			label: "Confirm leaving the game",
 			value: true,
 			sideEffects: (newValue) => {
-				bceLog("confirmLeave", newValue);
+				debug("confirmLeave", newValue);
 			},
 			category: "misc",
 			description:
@@ -684,7 +683,7 @@ async function BondageClubEnhancements() {
 			label: "Discreet mode (disable drawing)",
 			value: false,
 			sideEffects: (newValue) => {
-				bceLog("discreetMode", newValue);
+				debug("discreetMode", newValue);
 				if (newValue) {
 					/** @type {HTMLLinkElement} */
 					(document.getElementById("favicon")).href =
@@ -700,7 +699,7 @@ async function BondageClubEnhancements() {
 			label: "Show FPS counter",
 			value: false,
 			sideEffects: (newValue) => {
-				bceLog("fpsCounter", newValue);
+				debug("fpsCounter", newValue);
 			},
 			category: "performance",
 			description:
@@ -710,7 +709,7 @@ async function BondageClubEnhancements() {
 			label: "Limit FPS in background",
 			value: false,
 			sideEffects: (newValue) => {
-				bceLog("limitFPSInBackground", newValue);
+				debug("limitFPSInBackground", newValue);
 			},
 			category: "performance",
 			description:
@@ -720,10 +719,10 @@ async function BondageClubEnhancements() {
 			label: "Limit FPS to ~15",
 			value: false,
 			sideEffects: (newValue) => {
-				bceLog("limitFPSTo15", newValue);
+				debug("limitFPSTo15", newValue);
 				if (newValue) {
-					bceSettings.limitFPSTo30 = false;
-					bceSettings.limitFPSTo60 = false;
+					fbcSettings.limitFPSTo30 = false;
+					fbcSettings.limitFPSTo60 = false;
 				}
 			},
 			category: "performance",
@@ -733,10 +732,10 @@ async function BondageClubEnhancements() {
 			label: "Limit FPS to ~30",
 			value: false,
 			sideEffects: (newValue) => {
-				bceLog("limitFPSTo30", newValue);
+				debug("limitFPSTo30", newValue);
 				if (newValue) {
-					bceSettings.limitFPSTo15 = false;
-					bceSettings.limitFPSTo60 = false;
+					fbcSettings.limitFPSTo15 = false;
+					fbcSettings.limitFPSTo60 = false;
 				}
 			},
 			category: "performance",
@@ -746,10 +745,10 @@ async function BondageClubEnhancements() {
 			label: "Limit FPS to ~60",
 			value: false,
 			sideEffects: (newValue) => {
-				bceLog("limitFPSTo60", newValue);
+				debug("limitFPSTo60", newValue);
 				if (newValue) {
-					bceSettings.limitFPSTo30 = false;
-					bceSettings.limitFPSTo15 = false;
+					fbcSettings.limitFPSTo30 = false;
+					fbcSettings.limitFPSTo15 = false;
 				}
 			},
 			category: "performance",
@@ -759,7 +758,7 @@ async function BondageClubEnhancements() {
 			label: "Nickname",
 			value: "",
 			sideEffects: (newValue) => {
-				bceLog("nickname", newValue);
+				debug("nickname", newValue);
 			},
 			category: "hidden",
 			description: "",
@@ -768,7 +767,7 @@ async function BondageClubEnhancements() {
 			label: "Buttplug Devices",
 			value: "",
 			sideEffects: (newValue) => {
-				bceLog("buttplugDevices", newValue);
+				debug("buttplugDevices", newValue);
 				// Don't handle empty string
 				if (newValue === "") {
 					return;
@@ -787,7 +786,7 @@ async function BondageClubEnhancements() {
 						toySyncState.deviceSettings.set(device.Name, device);
 					}
 				} catch (ex) {
-					bceError(ex);
+					logError(ex);
 				}
 			},
 			category: "hidden",
@@ -821,7 +820,7 @@ async function BondageClubEnhancements() {
 	}
 
 	function settingsLoaded() {
-		return Object.keys(bceSettings).length > 0;
+		return Object.keys(fbcSettings).length > 0;
 	}
 
 	const bceSettingKey = () => `bce.settings.${Player?.AccountName}`;
@@ -832,7 +831,7 @@ async function BondageClubEnhancements() {
 	const bceLoadSettings = async () => {
 		await waitFor(() => !!Player?.AccountName);
 		const key = bceSettingKey();
-		bceLog("loading settings", key);
+		debug("loading settings", key);
 		if (!settingsLoaded()) {
 			/** @type {Settings} */
 			// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
@@ -851,7 +850,7 @@ async function BondageClubEnhancements() {
 				settings = onlineSettings;
 			}
 			if (!settings) {
-				bceLog("no settings", key);
+				debug("no settings", key);
 				settings = {};
 			}
 
@@ -874,21 +873,21 @@ async function BondageClubEnhancements() {
 				beepChangelog();
 			}
 			settings.version = settingsVersion;
-			bceSettings = settings;
+			fbcSettings = settings;
 			return settings;
 		}
-		return bceSettings;
+		return fbcSettings;
 	};
 
 	const bceSaveSettings = () => {
 		if (toySyncState.deviceSettings.size > 0) {
-			bceSettings.buttplugDevices = JSON.stringify(
+			fbcSettings.buttplugDevices = JSON.stringify(
 				Array.from(toySyncState.deviceSettings.values())
 			);
 		}
-		localStorage.setItem(bceSettingKey(), JSON.stringify(bceSettings));
+		localStorage.setItem(bceSettingKey(), JSON.stringify(fbcSettings));
 		Player.OnlineSettings.BCE = LZString.compressToBase64(
-			JSON.stringify(bceSettings)
+			JSON.stringify(fbcSettings)
 		);
 		ServerAccountUpdate.QueueData({
 			OnlineSettings: Player.OnlineSettings,
@@ -896,8 +895,8 @@ async function BondageClubEnhancements() {
 	};
 
 	function postSettings() {
-		bceLog("handling settings side effects");
-		for (const [k, v] of Object.entries(bceSettings)) {
+		debug("handling settings side effects");
+		for (const [k, v] of Object.entries(fbcSettings)) {
 			if (k in defaultSettings) {
 				// @ts-ignore
 				defaultSettings[k].sideEffects(v);
@@ -913,6 +912,8 @@ async function BondageClubEnhancements() {
 
 	// ICONS
 	const ICONS = Object.freeze({
+		BCE_USER:
+			"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADIAAAAyEAYAAABOr1TyAAABb2lDQ1BpY2MAACiRdZE7SwNBFIU/o+IrkkIFEYstVCwUooJYSgRt1CJG8NXsrnkI2c2yu0HEVrCxECxEG1+F/0BbwVZBEBRBxMY/4KuRsN4xgQTRWWbvx5k5l5kzEJrMmpZXEwXL9t34REybm1/Q6l4I00AbA/TqpudMzYwn+Hd83lGl6m2/6vX/vj9H03LSM6GqXnjYdFxfeFR4ctV3FG8Jt5oZfVn4ULjPlQMKXyndKPKz4nSR3xW7ifgYhFRPLV3BRgWbGdcS7hXusrJ5s3QedZNw0p6dkdohsxOPOBPE0DDIs0IWn36ptmT2ty/645smJx5T/g5ruOJIkxFvn6h56ZqUmhI9KV+WNZX77zy91NBgsXs4BrVPQfDWDXU7UNgOgq+jICgcQ/UjXNhlf05yGvkQfbusdR1AZAPOLsuasQvnm9D+4Oiu/iNVywylUvB6Cs3z0HIDjYvFrErrnNxDYl2e6Br29qFH9keWvgFCv2gp6TqA8wAAAAlwSFlzAAAuIwAALiMBeKU/dgAABMZJREFUeF7tWk9IFFEY1zIM7bBIgoKoHRQMl7A0skCkix02YU9qrFiCIdGhLoF4kKKICILyzx48ZUTsIU1EaPXoYgRBKMGWe1kjEimCNrOlNU399RE7O2/em53dYVe+uXzM+/7/vve+efNmcnL4YgQYAUYgaxDIlUW6tXv190Ouqgq0sxN03z7Qx4/17ayvY/z9e9DJydzda3lZ5lfERzxnzoDf0wPa0ABaVAS6tga6uAj69CnoxAT8b20Z2z99GvzLl0Hb20Hz80GnpkC/fRPZMR6/cgVxED4mrACAQADU6rWxAQv374Pu3y8LBXI7EO5cDx5Yi2B6GvoFBcYF8Xis+ZFpOxyyvIV8mE5VQbSB3rkjCwwa167JUjTHHxvL1IIotqxAAAlQq9Cm8/x5/EjuP7uVlRg/flwfgN+/MV5aiiX8vwUA4MJC8D99AhXNrNlZ8OfnQaurQdvaQKm1aqNwOuH33TviwK/Hg/snT7QauH/9GpTi0pcSj3Z1we/Pn2Y1c4xXyMuXMoPQv3XLeAa3tmrtQN7tNtYbHASfJsB/Kxi/eNFY/+ZNfb+yllVWJss7Wf6/h3Ky6qp6o6PGkqWl+vy6OmO9u3eNH9LUmlZX9e0cO6aagV1yNhXk1y/jhBJnOOSLi/X1IhEU4vNnkV3wNzfB//BBX05k3y74E/3YVJBkExQVKhYzZ1EkL9/lmfNjXTrPugkVCyJgVXRTIXP+PKxoC0ArKBU+UmPDpoIcPmwcbrIvWHIQ0LpkLVNuxy4Jm1pWd7d+QjRD5+bsSjjT/VhcIS0t2Fbevh2fKLWo2lqMJ25rMe71YgavrGQ6UHbFZ7EgFCaddcnCpofr8DAkb9yQaWQmPxzGRDT7YtjcjAkYDovySlFBVGF7+xaSr16BbmyoamaWHG0OKirMxZUnxVsqoOaQjhJImlrWkSMYof3+yZO49/lAGxtBr19X87P3pSwWxO/HEjx3TgsVlvSBAxh/9Ai0tzdejg4Nx8dhJ1se7vfuIQ+zLevrV9mUslgQsXkAHIuhMLQC6LuC9pCwowOWsqUgQ0PIz2xBZOXYPgaVi1iTQODRKKwsLOhbo9NZa772gnbaCxIPEhVGC538YbcXwFbJIW0tS8W5HTJomQMD8OV0xvsMhbCC+/rsiEXFR5YWxOzZWFMTwDh7Nh4U7e5QBbL0ytjcssyeroq+qDkcmPkHD6rBU1KiL/fjh5q+fVJpLwiAO3QIKYk+CEUi+ikvLemP0ydZt1sEFfzW1IB/9Ki+XChkH9Rqniy2LDrLcrni3VFLoRdCev8QfRB680Y/3JkZ4zRGRgA8rTw6AaDflR4+NNb3+9Vg0kq5XMkdnZAden8z+11nWx+O0/XXSTQK++XlxjPd54Ncqq5gEJYSd3cYl31TtxqH+DegtLcsfaDpDOvSJexyPn40nqlXr4IvamGq8/z7d0heuAC/mXeWluaCUMIEOP10cOIEAHn2TAYl5L58gdypU6BeL6jsz78/fyD34gVofT3s0SGnzLv9fOl/WfaHpOYRTYN2WfTwpl9JaXcWDKIAtDLUbLMUI8AIMAKMACPACDACjAAjwAgwAowAI8AIMAKMACPACDACjAAjwAgwAowAI8AIMAKMACOwjcBfFLlPT+Rm5VcAAAAASUVORK5CYII=",
 		LAYERS:
 			"data:image/png;base64,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",
 		LOGO: "data:image/png;base64,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d3cudzMub3JnLzE5OTkvMDIvMjItcmRmLXN5bnRheC1ucyMiPgogIDxyZGY6RGVzY3JpcHRpb24gcmRmOmFib3V0PSIiCiAgICB4bWxuczppcHRjRXh0PSJodHRwOi8vaXB0Yy5vcmcvc3RkL0lwdGM0eG1wRXh0LzIwMDgtMDItMjkvIgogICAgeG1sbnM6eG1wTU09Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC9tbS8iCiAgICB4bWxuczpzdEV2dD0iaHR0cDovL25zLmFkb2JlLmNvbS94YXAvMS4wL3NUeXBlL1Jlc291cmNlRXZlbnQjIgogICAgeG1sbnM6cGx1cz0iaHR0cDovL25zLnVzZXBsdXMub3JnL2xkZi94bXAvMS4wLyIKICAgIHhtbG5zOkdJTVA9Imh0dHA6Ly93d3cuZ2ltcC5vcmcveG1wLyIKICAgIHhtbG5zOmRjPSJodHRwOi8vcHVybC5vcmcvZGMvZWxlbWVudHMvMS4xLyIKICAgIHhtbG5zOnRpZmY9Imh0dHA6Ly9ucy5hZG9iZS5jb20vdGlmZi8xLjAvIgogICAgeG1sbnM6eG1wPSJodHRwOi8vbnMuYWRvYmUuY29tL3hhcC8xLjAvIgogICB4bXBNTTpEb2N1bWVudElEPSJnaW1wOmRvY2lkOmdpbXA6ZjI0Zjk4NjItYjMyMC00ZWZiLWIwOTEtZjIzYTQwYTYwNjAxIgogICB4bXBNTTpJbnN0YW5jZUlEPSJ4bXAuaWlkOjhhMGY1NmRjLTljYmUtNDMzYS1iMzQ5LWEwOTJmNzczMjFmYiIKICAgeG1wTU06T3JpZ2luYWxEb2N1bWVudElEPSJ4bXAuZGlkOjQzZjM5ZWU5LWQxODEtNGE4NS04ZDg3LWFiNTcyYjYxNGMzNCIKICAgR0lNUDpBUEk9IjIuMCIKICAgR0lNUDpQbGF0Zm9ybT0iV2luZG93cyIKICAgR0lNUDpUaW1lU3RhbXA9IjE2NDIxMjc4ODYyNDUzMTQiCiAgIEdJTVA6VmVyc2lvbj0iMi4xMC4yMiIKICAgZGM6Rm9ybWF0PSJpbWFnZS9wbmciCiAgIHRpZmY6T3JpZW50YXRpb249IjEiCiAgIHhtcDpDcmVhdG9yVG9vbD0iR0lNUCAyLjEwIj4KICAgPGlwdGNFeHQ6TG9jYXRpb25DcmVhdGVkPgogICAgPHJkZjpCYWcvPgogICA8L2lwdGNFeHQ6TG9jYXRpb25DcmVhdGVkPgogICA8aXB0Y0V4dDpMb2NhdGlvblNob3duPgogICAgPHJkZjpCYWcvPgogICA8L2lwdGNFeHQ6TG9jYXRpb25TaG93bj4KICAgPGlwdGNFeHQ6QXJ0d29ya09yT2JqZWN0PgogICAgPHJkZjpCYWcvPgogICA8L2lwdGNFeHQ6QXJ0d29ya09yT2JqZWN0PgogICA8aXB0Y0V4dDpSZWdpc3RyeUlkPgogICAgPHJkZjpCYWcvPgogICA8L2lwdGNFeHQ6UmVnaXN0cnlJZD4KICAgPHhtcE1NOkhpc3Rvcnk+CiAgICA8cmRmOlNlcT4KICAgICA8cmRmOmxpCiAgICAgIHN0RXZ0OmFjdGlvbj0ic2F2ZWQiCiAgICAgIHN0RXZ0OmNoYW5nZWQ9Ii8iCiAgICAgIHN0RXZ0Omluc3RhbmNlSUQ9InhtcC5paWQ6Y2I4MGJiZmUtMDUzYi00OTU2LTk1ZjQtNzQxZjExNDY4OTJhIgogICAgICBzdEV2dDpzb2Z0d2FyZUFnZW50PSJHaW1wIDIuMTAgKFdpbmRvd3MpIgogICAgICBzdEV2dDp3aGVuPSIyMDIyLTAxLTEzVDIxOjM4OjA2Ii8+CiAgICA8L3JkZjpTZXE+CiAgIDwveG1wTU06SGlzdG9yeT4KICAgPHBsdXM6SW1hZ2VTdXBwbGllcj4KICAgIDxyZGY6U2VxLz4KICAgPC9wbHVzOkltYWdlU3VwcGxpZXI+CiAgIDxwbHVzOkltYWdlQ3JlYXRvcj4KICAgIDxyZGY6U2VxLz4KICAgPC9wbHVzOkltYWdlQ3JlYXRvcj4KICAgPHBsdXM6Q29weXJpZ2h0T3duZXI+CiAgICA8cmRmOlNlcS8+CiAgIDwvcGx1czpDb3B5cmlnaHRPd25lcj4KICAgPHBsdXM6TGljZW5zb3I+CiAgICA8cmRmOlNlcS8+CiAgIDwvcGx1czpMaWNlbnNvcj4KICA8L3JkZjpEZXNjcmlwdGlvbj4KIDwvcmRmOlJERj4KPC94OnhtcG1ldGE+CiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAKICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIAogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAKICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIAogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAKICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIAogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAKICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIAogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAKICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIAogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAKICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIAogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAKICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIAogICAgICAgICAgICAgICAgICAgICAgICAgICAKPD94cGFja2V0IGVuZD0idyI/Pmcw/BEAAAACYktHRAD/h4/MvwAAAAlwSFlzAAAuIwAALiMBeKU/dgAAAAd0SU1FB+YBDgImBvhP/sMAAAAZdEVYdENvbW1lbnQAQ3JlYXRlZCB3aXRoIEdJTVBXgQ4XAAAV50lEQVRo3qXbeYxleXUf8M+977611u7qfZuZnl5mZxiWGQ/YDJjNHmJjTJxEcSQUOf8QW9ixUKLEUXAiWQrGiSI7kWJLJo4dgrETO8IQSARhWMaAGWDGs/dMd0/vXdW119vvkj/er16/qq7qGfAtlfSq7nbuued8z/d8f+dFRVEgR6GrL1UY07ZsUt2ylmkrZpRBgcirb7lUW1suVhbryURiZRV09RQiiUhJoSdRGp5bNWVFW0VFIlFSEomQFAqFTI5VbR2FvjUXHFa4YMGMVWPScKniNRkLibJrFvRFxuy0bEUuUlLVUFjTVUhM6MmNhbMiZVRdVBhXV1NVliCSDLzQk0osWtFVSHVcMqPunBWzalKZH3wr2WPSFa94Ra7qgKpZq8NrlZApNBQmNEAsFjkh8oqdJowbMyZSQpJLdbV0jFt02qRYrK8p13ZF2RX3yV+TccXI5yiETNkhey067aonZUpqGsq6WloolB2w4qJdquEKZUuOeNFlPV19hUJNSZLralq1pqJpFo0QDJGLFt3qkkMbzHg1M0f/s27wHrt0zLlsRduSjn54JFLfN6aNnRKFyJJlk3Z7XjJ8p2WxJNW2YtWqGbEVZWUtTSVdL4pdNmbyhzB28/5I3RGHZPrWLGrqSqUKibIdlj2LGdCxZK+7PG9RhFjJmJIk1bKkrSk1KbVoRk8TL7viiOe9dSRTfzhT1xGkEIuVNew2SOzBvkikL/es2DRSV+23yx2+rSaSqOqpDjy7qq+rY1pVS65nVddV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",
@@ -921,7 +922,7 @@ async function BondageClubEnhancements() {
 			"data:image/png;base64,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",
 		TIGHTEN:
 			"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADAAAAAwEAYAAAAHkiXEAAACfklEQVR4Xu2bsU4CQRCGT7ERjbFQMTH4AhpjYeEbGC1MbKww4Q2sodAGW2PjA9jb2RkKjMHeBhsrIxRQKQnGgGDi3MRIwNvBndtdd2gW7ib/zHz/7t5xgSCQlxD4JnBwC+8nV4VKLARSKUhzeQljrwdjPh9Len+T7O9D7/X6T/BowMsLHJ+b85cRS+fLyyCLgBH4sPHsjKUMf0WvrgbP+GEGvL9D/NKjv8y0dH54SAOPhjxsaUnvr8j0NPTebNIMKO/5y0xr59SZL+C14g+CiwvazNec3gG5cd4a19d59UV9CIFEAk50OrICfp8kTCtgZQXSohFRM7XRiIr4r+eZDPj4oAGbmqLFS7QigddXN7YgfCal2JY7YeWy3QakF39eq66v4XM2C+PMjDusB1Z6fk4zYOIknoaT4RYZ9Szq7Q3qWXiOpy7tWTIZmgEIZGxHeylfgolNWj3VKk8dsatWKrTG0QhthRK3Qsx/dKStArNC29ujGaDLiKitpv98qWSWF1v209O/GUEFSY1vt6G+tTU2BHYI39/baUQuZwcf9irSaUhRLNphxPExe8t2J8CZh1sAdeugxt/dAY+NDbu5xF4d7r2lWc0rI7ytLRRib8nNhPhoAGd29+lvhrRatnJgehinvd3w7km7rnFBVwwwDoqrAFcMmOQCYFpXDDDsgCsGGMbEl94VA2QL4psDSspigBImviAxgI+t38pyDTDsvxggBhgmYDi9rAAxQIlAUinKwSBXVoCDaNVKdsUA+R6g5idblBjAhlZNWAxQ4yRRVAJyDaAS0xw/oVmPSW7sJhSeD8du34h/COk/vstUkC+ytRp02g3Bjjrij4Pt4/YJN03BbYn5mYwAAAAASUVORK5CYII=",
-		USER: "data:image/png;base64,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",
+		USER: "data:image/png;base64,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",
 	});
 
 	const DEVS = [23476];
@@ -986,8 +987,8 @@ async function BondageClubEnhancements() {
 				"Limit FPS to ~30": "限制 FPS 最高为 ~30",
 				"Limit FPS to ~60": "限制 FPS 最高为 ~60",
 				"Make automatic progress while struggling": "在挣扎时自动增加进度",
-				"Allow leashing without wearing a leashable item (requires leasher to have BCE too)":
-					"允许在不佩戴牵引绳的情况下也可以进行牵引（需要牵引者也安装有BCE）",
+				"Allow leashing without wearing a leashable item (requires leasher to have FBC too)":
+					"允许在不佩戴牵引绳的情况下也可以进行牵引（需要牵引者也安装有FBC）",
 				"Enable buttplug.io (requires refresh)":
 					"启用buttplug.io（需要刷新网页)",
 				"This page allows configuration of the synchronization of bluetooth connected toys.":
@@ -1029,6 +1030,8 @@ async function BondageClubEnhancements() {
 		return text;
 	}
 
+	window.fbcDisplayText = (original, replacements = {}) =>
+		displayText(original, replacements);
 	window.bceDisplayText = (original, replacements = {}) =>
 		displayText(original, replacements);
 
@@ -1203,32 +1206,32 @@ async function BondageClubEnhancements() {
 	/**
 	 * @type {(...args: unknown[]) => void}
 	 */
-	const bceLog = (...args) => {
-		console.debug("BCE", `${w.BCE_VERSION}:`, ...args);
+	const debug = (...args) => {
+		console.debug("FBC", `${w.FBC_VERSION}:`, ...args);
 		pushLog("debug", ...args);
 	};
 
 	/**
 	 * @type {(...args: unknown[]) => void}
 	 */
-	const bceInfo = (...args) => {
-		console.info("BCE", `${w.BCE_VERSION}:`, ...args);
+	const logInfo = (...args) => {
+		console.info("FBC", `${w.FBC_VERSION}:`, ...args);
 		pushLog("info", ...args);
 	};
 
 	/**
 	 * @type {(...args: unknown[]) => void}
 	 */
-	const bceWarn = (...args) => {
-		console.warn("BCE", `${w.BCE_VERSION}:`, ...args);
+	const logWarn = (...args) => {
+		console.warn("FBC", `${w.FBC_VERSION}:`, ...args);
 		pushLog("warn", ...args);
 	};
 
 	/**
 	 * @type {(...args: unknown[]) => void}
 	 */
-	const bceError = (...args) => {
-		console.error("BCE", `${w.BCE_VERSION}:`, ...args);
+	const logError = (...args) => {
+		console.error("FBC", `${w.FBC_VERSION}:`, ...args);
 		pushLog("error", ...args);
 	};
 
@@ -1244,7 +1247,7 @@ async function BondageClubEnhancements() {
 			deviatingHashes.includes(functionName) &&
 			SUPPORTED_GAME_VERSIONS.includes(GameVersion)
 		) {
-			bceError(
+			logError(
 				`Skipping patching of ${functionName} due to detected deviation. Impact: ${affectedFunctionality}\n\nSee /bcedebug in a chatroom for more information.`
 			);
 			skippedFunctionality.push(affectedFunctionality);
@@ -1256,7 +1259,7 @@ async function BondageClubEnhancements() {
 	/**
 	 * @type {(node: HTMLElement | HTMLElement[] | string) => void}
 	 */
-	const bceChatNotify = (node) => {
+	const fbcChatNotify = (node) => {
 		const div = document.createElement("div");
 		div.setAttribute("class", "ChatMessage bce-notification");
 		div.setAttribute("data-time", ChatRoomCurrentTime());
@@ -1281,11 +1284,11 @@ async function BondageClubEnhancements() {
 	/**
 	 * @type {(title: string, text: string) => void}
 	 */
-	const bceBeepNotify = (title, text) => {
+	const fbcBeepNotify = (title, text) => {
 		SDK.callOriginal("ServerAccountBeep", [
 			{
 				MemberNumber: Player.MemberNumber,
-				MemberName: "BCE",
+				MemberName: "FBC",
 				ChatRoomName: title,
 				Private: true,
 				Message: text,
@@ -1297,7 +1300,7 @@ async function BondageClubEnhancements() {
 	/**
 	 * @type {(text: string, duration?: number, properties?: Partial<ServerBeep>) => Promise<void>}
 	 */
-	const bceNotify = async (text, duration = 5000, properties = {}) => {
+	const fbcNotify = async (text, duration = 5000, properties = {}) => {
 		await waitFor(
 			() => !!Player && new Date(ServerBeep?.Timer || 0) < new Date()
 		);
@@ -1328,11 +1331,11 @@ async function BondageClubEnhancements() {
 		});
 	};
 
-	w.bceSettingValue = (key) =>
-		key in bceSettings ? bceSettings[key] : defaultSettings[key].value;
+	w.bceSettingValue = (key) => fbcSettingValue(key);
+	w.fbcSettingValue = (key) =>
+		key in fbcSettings ? fbcSettings[key] : defaultSettings[key].value;
 
-	w.bceAnimationEngineEnabled = () =>
-		!!bceSettings.expressions || !!bceSettings.activityExpressions;
+	w.bceAnimationEngineEnabled = () => !!fbcSettings.animationEngine;
 
 	// Expressions init method for custom expressions
 	// eslint-disable-next-line camelcase
@@ -1402,7 +1405,7 @@ async function BondageClubEnhancements() {
 	await bceLoadSettings();
 	postSettings();
 	appendSocketListenersToInit();
-	bceLog(bceSettings);
+	debug(fbcSettings);
 	discreetMode();
 	beepImprovements();
 	settingsPage();
@@ -1435,10 +1438,10 @@ async function BondageClubEnhancements() {
 	itemAntiCheat();
 
 	// Post ready when in a chat room
-	await bceNotify(`Bondage Club Enhancements v${w.BCE_VERSION} Loaded`);
+	await fbcNotify(`For Better Club v${w.FBC_VERSION} Loaded`);
 
-	Player.BCE = BCE_VERSION;
-	if (bceSettings.checkUpdates) {
+	Player.FBC = FBC_VERSION;
+	if (fbcSettings.checkUpdates) {
 		checkUpdate();
 	}
 
@@ -1446,18 +1449,18 @@ async function BondageClubEnhancements() {
 		await waitFor(() => GameVersion !== "R0");
 		for (const [func, hash] of Object.entries(expectedHashes(GameVersion))) {
 			if (!w[func]) {
-				bceWarn(`Expected function ${func} not found.`);
+				logWarn(`Expected function ${func} not found.`);
 				continue;
 			}
 			if (typeof w[func] !== "function") {
-				bceWarn(`Expected function ${func} is not a function.`);
+				logWarn(`Expected function ${func} is not a function.`);
 				continue;
 			}
 			// eslint-disable-next-line
 			const actualHash = SDK.getOriginalHash(func);
 			if (actualHash !== hash) {
-				bceError(
-					`Function ${func} has been modified before BCE, potential incompatibility: ${actualHash}`
+				logError(
+					`Function ${func} has been modified before FBC, potential incompatibility: ${actualHash}`
 				);
 				deviatingHashes.push(func);
 			}
@@ -1467,7 +1470,7 @@ async function BondageClubEnhancements() {
 	async function checkUpdate() {
 		await sleep(5000);
 		// Version check
-		bceLog("checking for updates...");
+		debug("checking for updates...");
 		fetch(
 			`https://sidiousious.gitlab.io/bce/bce.user.js?_=${
 				(Date.now() / 1000 / 3600) | 0
@@ -1476,13 +1479,13 @@ async function BondageClubEnhancements() {
 			.then((r) => r.text())
 			.then((r) => {
 				const [, latest] = /@version (.*)$/mu.exec(r);
-				bceLog("latest version:", latest);
-				if (latest !== BCE_VERSION) {
+				debug("latest version:", latest);
+				if (latest !== FBC_VERSION) {
 					// Create beep
-					bceBeepNotify(
+					fbcBeepNotify(
 						displayText("Update"),
 						displayText(
-							`Your version of BCE is outdated and may not be supported. Please update.
+							`Your version of FBC is outdated and may not be supported. Please update.
 
 	Your version: $Version
 	Latest version: $Latest
@@ -1491,7 +1494,7 @@ async function BondageClubEnhancements() {
 	- https://gitlab.com/Sidiousious/bce/-/commits/main/
 	- $DiscordUrl`,
 							{
-								$Version: BCE_VERSION,
+								$Version: FBC_VERSION,
 								$Latest: latest,
 								$DiscordUrl: DISCORD_INVITE_URL,
 							}
@@ -1500,7 +1503,7 @@ async function BondageClubEnhancements() {
 				}
 			})
 			.catch((e) => {
-				bceError("BCE update checker error:", e);
+				logError("FBC update checker error:", e);
 			});
 	}
 
@@ -1576,13 +1579,13 @@ async function BondageClubEnhancements() {
 				const [time] = args;
 				if (lastFrame >= 0 && time > 0) {
 					let ftl = 0;
-					if (bceSettings.limitFPSInBackground && !document.hasFocus()) {
+					if (fbcSettings.limitFPSInBackground && !document.hasFocus()) {
 						ftl = 10;
-					} else if (bceSettings.limitFPSTo15) {
+					} else if (fbcSettings.limitFPSTo15) {
 						ftl = 15;
-					} else if (bceSettings.limitFPSTo30) {
+					} else if (fbcSettings.limitFPSTo30) {
 						ftl = 30;
-					} else if (bceSettings.limitFPSTo60) {
+					} else if (fbcSettings.limitFPSTo60) {
 						ftl = 60;
 					}
 					if (lastFrame + expectedFrameTime(ftl) > time) {
@@ -1596,7 +1599,7 @@ async function BondageClubEnhancements() {
 					lastFrame = time;
 				}
 				next(args);
-				if (time > 0 && bceSettings.fpsCounter) {
+				if (time > 0 && fbcSettings.fpsCounter) {
 					DrawTextFit(
 						(Math.round(10000 / frameTime) / 10).toString(),
 						15,
@@ -1612,10 +1615,10 @@ async function BondageClubEnhancements() {
 
 	function beepImprovements() {
 		if (typeof StartBcUtil === "function") {
-			bceBeepNotify(
+			fbcBeepNotify(
 				displayText("Incompatibility"),
 				displayText(
-					"BCE is incompatible with BCUtil. Some functionality from BCE may not work. BCUtil's wardrobe, appearance, and instant messaging functionality are all available within BCE. Go to BCE settings and enable the relevant options, then disable BCUtil to migrate fully to BCE. This beep will appear every time BCE detects BCUtil as having loaded before BCE."
+					"FBC is incompatible with BCUtil. Some functionality from FBC may not work. BCUtil's wardrobe, appearance, and instant messaging functionality are all available within FBC. Go to FBC settings and enable the relevant options, then disable BCUtil to migrate fully to FBC. This beep will appear every time FBC detects BCUtil as having loaded before FBC."
 				)
 			);
 			return;
@@ -1645,7 +1648,7 @@ async function BondageClubEnhancements() {
 					}
 				}`,
 			},
-			"Beeps are not enhanced by BCE."
+			"Beeps are not enhanced by FBC."
 		);
 	}
 
@@ -1854,7 +1857,7 @@ async function BondageClubEnhancements() {
 				// eslint-disable-next-line no-loop-func
 				(args, next) => {
 					const ret = next(args);
-					if (bceSettings.accurateTimerLocks) {
+					if (fbcSettings.accurateTimerLocks) {
 						loadLockTimerInput();
 					}
 					return ret;
@@ -1869,7 +1872,7 @@ async function BondageClubEnhancements() {
 				// eslint-disable-next-line no-loop-func
 				(args, next) => {
 					const ret = next(args);
-					if (bceSettings.accurateTimerLocks) {
+					if (fbcSettings.accurateTimerLocks) {
 						ElementRemove(TIMER_INPUT_ID);
 					}
 					return ret;
@@ -1885,18 +1888,18 @@ async function BondageClubEnhancements() {
 
 		function hookBCX() {
 			if (addon === "BCX") {
-				BCX = w.bcx?.getModApi("BCE");
+				BCX = w.bcx?.getModApi("FBC");
 			}
 		}
 
 		if (bcModSdk.getModsInfo().some((mod) => mod.name === addon)) {
 			addonTypes[addon] = "external";
-			bceLog(`${addon} already loaded, skipping loadExternalAddon()`);
+			debug(`${addon} already loaded, skipping loadExternalAddon()`);
 			hookBCX();
 			return false;
 		}
 
-		bceInfo("Loading", addon, "from", source);
+		logInfo("Loading", addon, "from", source);
 		await fetch(source)
 			.then((resp) => resp.text())
 			.then((resp) => {
@@ -1906,14 +1909,14 @@ async function BondageClubEnhancements() {
 				);
 				eval(resp);
 			});
-		bceInfo("Loaded", addon);
+		logInfo("Loaded", addon);
 		hookBCX();
 		return true;
 	}
 
 	async function commands() {
 		await waitFor(() => !!Commands);
-		bceLog("registering additional commands");
+		debug("registering additional commands");
 
 		/** @type {Command[]} */
 		const cmds = [
@@ -1935,10 +1938,10 @@ async function BondageClubEnhancements() {
 						}`
 					);
 					info.set("WebGL Version", GLVersion);
-					info.set("BCE Version", BCE_VERSION);
+					info.set("FBC Version", FBC_VERSION);
 					info.set(
-						"BCE Enabled Settings",
-						`\n- ${Object.entries(bceSettings)
+						"FBC Enabled Settings",
+						`\n- ${Object.entries(fbcSettings)
 							.filter(([k, v]) => v || k === "version")
 							.map(([k, v]) => `${k}: ${v.toString()}`)
 							.join("\n- ")}`
@@ -1973,10 +1976,10 @@ async function BondageClubEnhancements() {
 					const print = Array.from(info)
 						.map(([k, v]) => `${k}: ${v}`)
 						.join("\n");
-					bceChatNotify(`${print}\n\nThis has been copied to your clipboard.`);
+					fbcChatNotify(`${print}\n\nThis has been copied to your clipboard.`);
 					await navigator.clipboard.writeText(print);
 					if (skippedFunctionality.length > 0) {
-						bceChatNotify(
+						fbcChatNotify(
 							"If you are running another addon that modifies the game, but is not listed above, please tell its developer to use https://github.com/Jomshir98/bondage-club-mod-sdk to hook into the game instead. This is a very cheap and easy way for addon developers to almost guarantee compatibility with other addons."
 						);
 					}
@@ -1984,15 +1987,15 @@ async function BondageClubEnhancements() {
 			},
 			{
 				Tag: "bcechangelog",
-				Description: displayText("Show recent BCE changelog"),
+				Description: displayText("Show recent FBC changelog"),
 				Action: () => {
-					bceChatNotify(bceChangelog);
+					fbcChatNotify(fbcChangelog);
 				},
 			},
 			{
 				Tag: "exportlooks",
 				Description: displayText(
-					"[target member number]: Copy your or another player's appearance in a format that can be imported with BCE or BCX"
+					"[target member number]: Copy your or another player's appearance in a format that can be imported with FBC or BCX"
 				),
 				Action: async (_, _command, args) => {
 					const [target] = args;
@@ -2006,7 +2009,7 @@ async function BondageClubEnhancements() {
 						);
 					}
 					if (!targetMember) {
-						bceInfo("Could not find member", target);
+						logInfo("Could not find member", target);
 						return;
 					}
 					const includeBinds = window.confirm(displayText("Include binds?"));
@@ -2067,7 +2070,7 @@ async function BondageClubEnhancements() {
 					await navigator.clipboard.writeText(
 						LZString.compressToBase64(JSON.stringify(looks))
 					);
-					bceChatNotify(
+					fbcChatNotify(
 						displayText(`Exported looks for $TargetName copied to clipboard`, {
 							$TargetName: targetName,
 						})
@@ -2077,11 +2080,11 @@ async function BondageClubEnhancements() {
 			{
 				Tag: "importlooks",
 				Description: displayText(
-					"Import looks from a string (BCX or BCE export)"
+					"Import looks from a string (BCX or FBC export)"
 				),
 				Action: () => {
 					if (!Player.CanChange() || !OnlineGameAllowChange()) {
-						bceChatNotify(
+						fbcChatNotify(
 							displayText(
 								"You cannot change your appearance while bound or during online games, such as LARP."
 							)
@@ -2093,7 +2096,7 @@ async function BondageClubEnhancements() {
 						displayText("Paste your looks here")
 					);
 					if (!bundleString) {
-						bceChatNotify(displayText("No looks string provided"));
+						fbcChatNotify(displayText("No looks string provided"));
 						return;
 					}
 					try {
@@ -2139,10 +2142,10 @@ async function BondageClubEnhancements() {
 							Player.MemberNumber
 						);
 						ChatRoomCharacterUpdate(Player);
-						bceChatNotify(displayText("Applied looks"));
+						fbcChatNotify(displayText("Applied looks"));
 					} catch (e) {
 						console.error(e);
-						bceChatNotify(displayText("Could not parse looks"));
+						fbcChatNotify(displayText("Could not parse looks"));
 					}
 				},
 			},
@@ -2154,12 +2157,12 @@ async function BondageClubEnhancements() {
 						[, , ...message] = command.split(" "),
 						msg = message?.join(" ");
 					if (!target || !msg || !/^\d+$/u.test(target)) {
-						bceChatNotify(displayText(`beep target or message not provided`));
+						fbcChatNotify(displayText(`beep target or message not provided`));
 						return;
 					}
 					const targetMemberNumber = parseInt(target);
 					if (!Player.FriendList.includes(targetMemberNumber)) {
-						bceChatNotify(
+						fbcChatNotify(
 							displayText(`$Target is not in your friend list`, {
 								$Target: target,
 							})
@@ -2199,7 +2202,7 @@ async function BondageClubEnhancements() {
 						}
 					);
 					link.classList.add("bce-beep-link");
-					bceChatNotify(link);
+					fbcChatNotify(link);
 				},
 			},
 			{
@@ -2228,9 +2231,9 @@ async function BondageClubEnhancements() {
 						);
 					}
 					if (!target || targetMembers.length === 0) {
-						bceChatNotify(`Whisper target not found: ${target}`);
+						fbcChatNotify(`Whisper target not found: ${target}`);
 					} else if (targetMembers.length > 1) {
-						bceChatNotify(
+						fbcChatNotify(
 							displayText(
 								"Multiple whisper targets found: $Targets. You can still whisper the player by clicking their name or by using their member number.",
 								{
@@ -2241,7 +2244,7 @@ async function BondageClubEnhancements() {
 							)
 						);
 					} else if (!msg) {
-						bceChatNotify(displayText(`No message provided`));
+						fbcChatNotify(displayText(`No message provided`));
 					} else {
 						const targetMemberNumber = targetMembers[0].MemberNumber;
 						const originalTarget = ChatRoomTargetMemberNumber;
@@ -2261,7 +2264,7 @@ async function BondageClubEnhancements() {
 			{
 				Tag: "versions",
 				Description: displayText(
-					"show versions of the club, BCE, and BCX in use by players"
+					"show versions of the club, FBC, and BCX in use by players"
 				),
 				Action: () => {
 					/** @type {(chars: Character[]) => string} */
@@ -2276,9 +2279,9 @@ async function BondageClubEnhancements() {
 											? ` BCX ${bcx.getCharacterVersion(a.MemberNumber)}`
 											: ""
 									}${
-										a.BCE
-											? `\nBCE v${
-													a.BCE
+										a.FBC
+											? `\nFBC v${
+													a.FBC
 											  } Alt Arousal: ${a.BCEArousal?.toString()}`
 											: ""
 									}`
@@ -2286,8 +2289,8 @@ async function BondageClubEnhancements() {
 							.filter((a) => a)
 							.join("\n\n");
 
-					bceChatNotify(versionOutput(ChatRoomCharacterDrawlist));
-					bceLog(versionOutput(ChatRoomCharacter));
+					fbcChatNotify(versionOutput(ChatRoomCharacterDrawlist));
+					debug(versionOutput(ChatRoomCharacter));
 				},
 			},
 		];
@@ -2304,7 +2307,7 @@ async function BondageClubEnhancements() {
 
 		for (const c of cmds) {
 			if (Commands.some((a) => a.Tag === c.Tag)) {
-				bceLog("already registered", c);
+				debug("already registered", c);
 				continue;
 			}
 			Commands.push(c);
@@ -2315,7 +2318,7 @@ async function BondageClubEnhancements() {
 	async function settingsPage() {
 		await waitFor(() => !!PreferenceSubscreenList);
 
-		bceLog("initializing");
+		debug("initializing");
 
 		const settingsPerPage = 8,
 			settingsYIncrement = 70,
@@ -2396,7 +2399,7 @@ async function BondageClubEnhancements() {
 		w.PreferenceSubscreenBCESettingsRun = function () {
 			w.MainCanvas.getContext("2d").textAlign = "left";
 			DrawText(
-				displayText("Bondage Club Enhancements Settings"),
+				displayText("For Better Club Settings (formerly BCE)"),
 				300,
 				125,
 				"Black",
@@ -2442,7 +2445,7 @@ async function BondageClubEnhancements() {
 						64,
 						64,
 						displayText(defaultSetting.label),
-						!!bceSettings[settingName],
+						!!fbcSettings[settingName],
 						false,
 						currentSetting === settingName ? "Red" : "Black"
 					);
@@ -2458,7 +2461,7 @@ async function BondageClubEnhancements() {
 						"Black",
 						"Gray"
 					);
-					if (bceSettings.toySync) {
+					if (fbcSettings.toySync) {
 						if (!toySyncState.client?.Connected) {
 							DrawText(
 								displayText("Still connecting or connection failed..."),
@@ -2606,11 +2609,11 @@ async function BondageClubEnhancements() {
 						currentPageNumber * settingsPerPage + settingsPerPage
 					)) {
 						if (MouseIn(300, y, 64, 64)) {
-							bceSettings[settingName] = !bceSettings[settingName];
-							defaultSetting.sideEffects(bceSettings[settingName]);
+							fbcSettings[settingName] = !fbcSettings[settingName];
+							defaultSetting.sideEffects(fbcSettings[settingName]);
 						} else if (MouseIn(364, y, 1000, 64)) {
 							currentSetting = settingName;
-							bceLog("currentSetting", currentSetting);
+							debug("currentSetting", currentSetting);
 						}
 						y += settingsYIncrement;
 					}
@@ -2691,7 +2694,7 @@ async function BondageClubEnhancements() {
 			(args, next) => {
 				switch (args[0]) {
 					case "HomepageBCESettings":
-						return displayText("BCE Settings");
+						return displayText("FBC Settings");
 					default:
 						return next(args);
 				}
@@ -2731,7 +2734,7 @@ async function BondageClubEnhancements() {
 			"StruggleDrawLockpickProgress",
 			HOOK_PRIORITIES.AddBehaviour,
 			(args, next) => {
-				if (bceSettings.lockpick) {
+				if (fbcSettings.lockpick) {
 					const seed = parseInt(StruggleLockPickOrder.join(""));
 					const rand = newRand(seed);
 					const threshold = SkillGetWithRatio("LockPicking") / 20;
@@ -2815,14 +2818,14 @@ async function BondageClubEnhancements() {
 				const ret = next(args);
 				if (Object.keys(loginData.passwords).length > 0) {
 					DrawText(
-						displayText("Saved Logins (BCE)"),
+						displayText("Saved Logins (FBC)"),
 						170,
 						35,
 						"White",
 						"Black"
 					);
 				}
-				DrawButton(1250, 385, 180, 60, displayText("Save (BCE)"), "White");
+				DrawButton(1250, 385, 180, 60, displayText("Save (FBC)"), "White");
 
 				let y = 60;
 				for (const user in loginData.passwords) {
@@ -2887,7 +2890,7 @@ async function BondageClubEnhancements() {
 				!ServerSocket.connected ||
 				breakCircuit ||
 				breakCircuitFull ||
-				!bceSettings.relogin
+				!fbcSettings.relogin
 			) {
 				return;
 			}
@@ -2897,12 +2900,12 @@ async function BondageClubEnhancements() {
 			let passwords = JSON.parse(
 				localStorage.getItem(localStoragePasswordsKey)
 			);
-			bceLog("Attempting to log in again as", Player.AccountName);
+			debug("Attempting to log in again as", Player.AccountName);
 			if (!passwords) {
 				passwords = {};
 			}
 			if (!passwords[Player.AccountName]) {
-				bceWarn("No saved credentials for account", Player.AccountName);
+				logWarn("No saved credentials for account", Player.AccountName);
 				return;
 			}
 			LoginSetSubmitted();
@@ -2916,7 +2919,7 @@ async function BondageClubEnhancements() {
 					() => !breakCircuit
 				))
 			) {
-				bceWarn("Relogin failed, circuit was restored");
+				logWarn("Relogin failed, circuit was restored");
 			}
 			await sleep(500);
 			SDK.callOriginal("ServerAccountBeep", [
@@ -2973,20 +2976,20 @@ async function BondageClubEnhancements() {
 				args[1] = false;
 				const ret = next(args);
 				if (force) {
-					bceWarn("Forcefully disconnected", args);
+					logWarn("Forcefully disconnected", args);
 					ServerSocket.disconnect();
 					if (
 						isString(args[0]) &&
 						["ErrorRateLimited", "ErrorDuplicatedLogin"].includes(args[0])
 					) {
 						// Reconnect after 3-6 seconds if rate limited
-						bceWarn("Reconnecting...");
+						logWarn("Reconnecting...");
 						setTimeout(() => {
-							bceWarn("Connecting...");
+							logWarn("Connecting...");
 							ServerInit();
 						}, 3000 + Math.round(Math.random() * 3000));
 					} else {
-						bceWarn("Disconnected.");
+						logWarn("Disconnected.");
 					}
 				}
 				return ret;
@@ -3412,7 +3415,7 @@ async function BondageClubEnhancements() {
 					newWords.push("( ");
 					newWords.push(words[i]);
 					newWords.push(" )");
-				} else if (bceSettings.stutters && !inOOC) {
+				} else if (fbcSettings.stutters && !inOOC) {
 					newWords.push(...stutterWord(words[i], firstStutter));
 					firstStutter = false;
 				} else {
@@ -3427,7 +3430,7 @@ async function BondageClubEnhancements() {
 		};
 
 		function bceChatAugments() {
-			if (CurrentScreen !== "ChatRoom" || !bceSettings.augmentChat) {
+			if (CurrentScreen !== "ChatRoom" || !fbcSettings.augmentChat) {
 				return;
 			}
 			const chatLogContainerId = "TextAreaChatLog",
@@ -3583,14 +3586,14 @@ async function BondageClubEnhancements() {
 			switch (evt.Type) {
 				case AUTOMATED_AROUSAL_EVENT_TYPE:
 				case POST_ORGASM_EVENT_TYPE:
-					if (!bceSettings.expressions) {
+					if (!fbcSettings.expressions) {
 						return;
 					}
 					break;
 				case MANUAL_OVERRIDE_EVENT_TYPE:
 					break;
 				default:
-					if (!bceSettings.activityExpressions) {
+					if (!fbcSettings.activityExpressions) {
 						return;
 					}
 			}
@@ -4244,7 +4247,7 @@ async function BondageClubEnhancements() {
 					Type: "Emote",
 					Matchers: [
 						{
-							Tester: /^stretches($| her)/u,
+							Tester: /^stretches her whole body/u,
 						},
 					],
 				},
@@ -4280,7 +4283,7 @@ async function BondageClubEnhancements() {
 					Type: "Emote",
 					Matchers: [
 						{
-							Tester: /^spreads her legs/u,
+							Tester: /^spreads her legs apart/u,
 						},
 					],
 				},
@@ -4886,7 +4889,7 @@ async function BondageClubEnhancements() {
 							.splice(0, bceExpressionsQueue.length)
 							.filter((e) => e.Type === MANUAL_OVERRIDE_EVENT_TYPE && e.Poses)
 					);
-					bceChatNotify(displayText("Reset all expressions"));
+					fbcChatNotify(displayText("Reset all expressions"));
 				} else {
 					const component = `${args[0].toUpperCase()}${args
 						.substring(1)
@@ -4899,7 +4902,7 @@ async function BondageClubEnhancements() {
 							delete e.Expression[component];
 						}
 					}
-					bceChatNotify(
+					fbcChatNotify(
 						displayText(`Reset expression on $component`, {
 							$component: component,
 						})
@@ -4912,16 +4915,16 @@ async function BondageClubEnhancements() {
 			Tag: "anim",
 			Description: displayText("['list' or name of emote]: run an animation"),
 			Action: (_1, _2, args) => {
-				if (!bceSettings.activityExpressions) {
-					bceChatNotify(
+				if (!fbcSettings.activityExpressions) {
+					fbcChatNotify(
 						displayText(
-							"Activity expressions are not enabled in BCE settings. Unable to run animations."
+							"Activity expressions are not enabled in FBC settings. Unable to run animations."
 						)
 					);
 					return;
 				}
 				if (args[0] === "list") {
-					bceChatNotify(
+					fbcChatNotify(
 						displayText(`Available animations: $anims`, {
 							$anims: Object.keys(w.bce_EventExpressions).join(", "),
 						})
@@ -4949,14 +4952,14 @@ async function BondageClubEnhancements() {
 							(a) => a.Category === category
 						)?.map((a) => a.Name);
 						list.sort();
-						bceChatNotify(`=> ${category}:\n${list.join("\n")}\n\n`);
+						fbcChatNotify(`=> ${category}:\n${list.join("\n")}\n\n`);
 					}
 					return;
 				}
 				if (!bceAnimationEngineEnabled()) {
-					bceChatNotify(
+					fbcChatNotify(
 						displayText(
-							"Warning: both expression settings in BCE are disabled. Animation engine disabled. Pose may not be synchronized or set."
+							"Warning: animation engine in FBC is disabled. Pose may not be synchronized or set. Enable animation engine in FBC settings."
 						)
 					);
 				}
@@ -5303,7 +5306,7 @@ async function BondageClubEnhancements() {
 					const last = bceExpressionsQueue.splice(j, 1);
 					j--;
 					if (
-						!bceSettings.expressions &&
+						!fbcSettings.expressions &&
 						last.length > 0 &&
 						last[0].Expression
 					) {
@@ -5544,8 +5547,8 @@ async function BondageClubEnhancements() {
 		const canAccessLayeringMenus = () => {
 			const c = CharacterGetCurrent();
 			return (
-				bceSettings.layeringMenu &&
-				(bceSettings.allowLayeringWhileBound ||
+				fbcSettings.layeringMenu &&
+				(fbcSettings.allowLayeringWhileBound ||
 					(Player.CanInteract() &&
 						c?.FocusGroup?.Name &&
 						!InventoryGroupIsBlocked(c, c.FocusGroup.Name)))
@@ -5554,7 +5557,7 @@ async function BondageClubEnhancements() {
 		const canAccessDifficultyMenu = () => {
 			const c = CharacterGetCurrent();
 			return (
-				bceSettings.layeringMenu &&
+				fbcSettings.layeringMenu &&
 				Player.CanInteract() &&
 				c?.FocusGroup?.Name &&
 				!InventoryGroupIsBlocked(c, c.FocusGroup.Name)
@@ -5624,7 +5627,7 @@ async function BondageClubEnhancements() {
 			HOOK_PRIORITIES.AddBehaviour,
 			(args, next) => {
 				const ret = next(args);
-				if (bceSettings.layeringMenu) {
+				if (fbcSettings.layeringMenu) {
 					const C = CharacterAppearanceSelection;
 					if (CharacterAppearanceMode === "Cloth") {
 						DrawText(displayText("Priority"), 70, 35, "White", "Black");
@@ -5668,7 +5671,7 @@ async function BondageClubEnhancements() {
 			"AppearanceClick",
 			HOOK_PRIORITIES.AddBehaviour,
 			(args, next) => {
-				if (bceSettings.layeringMenu) {
+				if (fbcSettings.layeringMenu) {
 					const C = CharacterAppearanceSelection;
 					if (MouseIn(110, 70, 90, 90) && CharacterAppearanceMode === "Cloth") {
 						const item = C.Appearance.find(
@@ -5752,7 +5755,7 @@ async function BondageClubEnhancements() {
 				if (isCharacter(C) && canAccessLayeringMenus()) {
 					const focusItem = InventoryGet(C, C.FocusGroup?.Name);
 					if (assetWorn(C, focusItem)) {
-						if (bceSettings.modifyDifficulty && canAccessDifficultyMenu()) {
+						if (fbcSettings.modifyDifficulty && canAccessDifficultyMenu()) {
 							DrawButton(
 								10,
 								890,
@@ -5861,7 +5864,7 @@ async function BondageClubEnhancements() {
 					if (
 						assetWorn(C, focusItem) &&
 						MouseIn(10, 890, 52, 52) &&
-						bceSettings.modifyDifficulty &&
+						fbcSettings.modifyDifficulty &&
 						canAccessDifficultyMenu()
 					) {
 						prioritySubscreenEnter(C, focusItem, FIELDS.Difficulty);
@@ -5959,7 +5962,7 @@ async function BondageClubEnhancements() {
 				default:
 					break;
 			}
-			bceLog("updated item", focusItem);
+			debug("updated item", focusItem);
 			CharacterRefresh(C, false, false);
 			ChatRoomCharacterItemUpdate(C, C.FocusGroup?.Name);
 			prioritySubscreenExit();
@@ -5980,17 +5983,17 @@ async function BondageClubEnhancements() {
 			) {
 				return;
 			}
-			if (!bceSettings.automateCacheClear) {
+			if (!fbcSettings.automateCacheClear) {
 				return;
 			}
 
-			bceLog("Clearing caches");
+			debug("Clearing caches");
 			if (GLDrawCanvas.GL.textureCache) {
 				GLDrawCanvas.GL.textureCache.clear();
 			}
 			GLDrawResetCanvas();
 
-			bceLog("Clearing old characters from cache");
+			debug("Clearing old characters from cache");
 			const oldOnlineCharacters = Character.filter(
 				(c) =>
 					c.IsOnline?.() &&
@@ -6003,7 +6006,7 @@ async function BondageClubEnhancements() {
 		};
 
 		const clearCaches = () => {
-			if (bceSettings.automateCacheClear) {
+			if (fbcSettings.automateCacheClear) {
 				w.bceClearCaches();
 			}
 		};
@@ -6023,18 +6026,21 @@ async function BondageClubEnhancements() {
 					typeof CharX === "number" &&
 					typeof CharY === "number" &&
 					typeof Zoom === "number" &&
-					C.BCE &&
+					C.FBC &&
 					ChatRoomHideIconState === 0
 				) {
+					const icon = ["1", "2", "3"].includes(C.FBC.split(".")[0])
+						? ICONS.BCE_USER
+						: ICONS.USER;
 					DrawImageResize(
-						ICONS.USER,
+						icon,
 						CharX + 275 * Zoom,
 						CharY,
 						50 * Zoom,
 						50 * Zoom
 					);
 					DrawTextFit(
-						/^\d+\.\d+(\.\d+)?$/u.test(C.BCE) ? C.BCE : "",
+						/^\d+\.\d+(\.\d+)?$/u.test(C.FBC) ? C.FBC : "",
 						CharX + 300 * Zoom,
 						CharY + 40 * Zoom,
 						50 * Zoom,
@@ -6042,7 +6048,7 @@ async function BondageClubEnhancements() {
 						"Black"
 					);
 					if (
-						C.BCE &&
+						C.FBC &&
 						characterStates.get(C.MemberNumber)?.clamped > Date.now()
 					) {
 						DrawImageResize(
@@ -6070,11 +6076,10 @@ async function BondageClubEnhancements() {
 				{
 					message: {
 						type: MESSAGE_TYPES.Hello,
-						version: BCE_VERSION,
-						alternateArousal: !!bceSettings.alternateArousal,
+						version: FBC_VERSION,
+						alternateArousal: !!fbcSettings.alternateArousal,
 						replyRequested: requestReply,
 						capabilities: CAPABILITIES,
-						crafts: Player.Crafting?.filter((_c, i) => sharedCrafts[i]),
 					},
 				},
 			],
@@ -6082,7 +6087,7 @@ async function BondageClubEnhancements() {
 		if (target) {
 			message.Target = target;
 		}
-		if (bceSettings.alternateArousal) {
+		if (fbcSettings.alternateArousal) {
 			message.Dictionary[0].message.progress =
 				Player.BCEArousalProgress || Player.ArousalSettings.Progress || 0;
 			message.Dictionary[0].message.enjoyment = Player.BCEEnjoyment || 1;
@@ -6124,7 +6129,7 @@ async function BondageClubEnhancements() {
 					}
 					switch (message.type) {
 						case MESSAGE_TYPES.Hello:
-							sender.BCE = message.version;
+							sender.FBC = message.version;
 							sender.BCEArousal = message.alternateArousal || false;
 							sender.BCEArousalProgress =
 								message.progress || sender.ArousalSettings.Progress || 0;
@@ -6132,9 +6137,6 @@ async function BondageClubEnhancements() {
 							sender.BCECapabilities = message.capabilities;
 							if (message.replyRequested) {
 								sendHello(sender.MemberNumber);
-							}
-							if (!sender.IsPlayer()) {
-								sender.Crafting = message.crafts || [];
 							}
 							break;
 						case MESSAGE_TYPES.ArousalSync:
@@ -6194,7 +6196,7 @@ async function BondageClubEnhancements() {
 			HOOK_PRIORITIES.OverrideBehaviour,
 			(args, next) => {
 				const [C] = args;
-				if (bceSettings.privateWardrobe && CurrentScreen === "Appearance") {
+				if (fbcSettings.privateWardrobe && CurrentScreen === "Appearance") {
 					inCustomWardrobe = true;
 					targetCharacter = isCharacter(C) ? C : CharacterGetCurrent();
 					CommonSetScreen("Character", "Wardrobe");
@@ -6357,7 +6359,7 @@ async function BondageClubEnhancements() {
 
 		/** @type {(e: KeyboardEvent) => void} */
 		function keyHandler(e) {
-			if (!bceSettings.privateWardrobe) {
+			if (!fbcSettings.privateWardrobe) {
 				return;
 			}
 			if (e.key === "Escape" && inCustomWardrobe) {
@@ -6425,9 +6427,9 @@ async function BondageClubEnhancements() {
 							);
 							if (
 								idx >= 0 &&
-								(bceSettings.antiAntiGarble ||
-									bceSettings.antiAntiGarbleStrong ||
-									bceSettings.antiAntiGarbleExtra)
+								(fbcSettings.antiAntiGarble ||
+									fbcSettings.antiAntiGarbleStrong ||
+									fbcSettings.antiAntiGarbleExtra)
 							) {
 								data.Dictionary.splice(idx, 1);
 							}
@@ -6437,11 +6439,11 @@ async function BondageClubEnhancements() {
 						{
 							const gagLevel = SpeechGetTotalGagLevel(Player);
 							if (gagLevel > 0) {
-								if (bceSettings.antiAntiGarble) {
+								if (fbcSettings.antiAntiGarble) {
 									data.Content =
 										SpeechGarbleByGagLevel(1, data.Content) +
 										GAGBYPASSINDICATOR;
-								} else if (bceSettings.antiAntiGarbleExtra && gagLevel > 24) {
+								} else if (fbcSettings.antiAntiGarbleExtra && gagLevel > 24) {
 									const icIndicator = "\uF124";
 									let inOOC = false;
 									data.Content = `${data.Content.split("")
@@ -6463,8 +6465,8 @@ async function BondageClubEnhancements() {
 											"m"
 										)}${GAGBYPASSINDICATOR}`;
 								} else if (
-									bceSettings.antiAntiGarbleStrong ||
-									bceSettings.antiAntiGarbleExtra
+									fbcSettings.antiAntiGarbleStrong ||
+									fbcSettings.antiAntiGarbleExtra
 								) {
 									data.Content =
 										SpeechGarbleByGagLevel(gagLevel, data.Content) +
@@ -6486,8 +6488,8 @@ async function BondageClubEnhancements() {
 			(args, next) => {
 				const ret = next(args);
 				if (
-					bceSettings.showQuickAntiGarble &&
-					!bceSettings.discreetMode &&
+					fbcSettings.showQuickAntiGarble &&
+					!fbcSettings.discreetMode &&
 					CharacterGetCurrent() === null &&
 					CurrentScreen === "ChatRoom" &&
 					document.getElementById("InputChat")
@@ -6521,7 +6523,7 @@ async function BondageClubEnhancements() {
 						!isWhispering()
 					) {
 						w.InputChat.classList.remove(WHISPER_CLASS);
-					} else if (bceSettings.whisperInput && isWhispering()) {
+					} else if (fbcSettings.whisperInput && isWhispering()) {
 						w.InputChat?.classList.add(WHISPER_CLASS);
 					}
 					if (Player.ChatSettings?.ColorTheme?.startsWith("Dark")) {
@@ -6533,7 +6535,7 @@ async function BondageClubEnhancements() {
 					}
 				}
 
-				if (!bceSettings.showQuickAntiGarble || bceSettings.discreetMode) {
+				if (!fbcSettings.showQuickAntiGarble || fbcSettings.discreetMode) {
 					return ret;
 				}
 				const shorttip = displayText("Gagging"),
@@ -6551,17 +6553,17 @@ async function BondageClubEnhancements() {
 				let next = enableLimited,
 					previous = enableExtra;
 
-				if (bceSettings.antiAntiGarble) {
+				if (fbcSettings.antiAntiGarble) {
 					color = "yellow";
 					label = "Limited";
 					next = enableStrong;
 					previous = disableBoth;
-				} else if (bceSettings.antiAntiGarbleStrong) {
+				} else if (fbcSettings.antiAntiGarbleStrong) {
 					color = "red";
 					label = "Full";
 					next = enableExtra;
 					previous = enableLimited;
-				} else if (bceSettings.antiAntiGarbleExtra) {
+				} else if (fbcSettings.antiAntiGarbleExtra) {
 					color = "purple";
 					label = "Extra";
 					next = disableBoth;
@@ -6583,7 +6585,7 @@ async function BondageClubEnhancements() {
 				);
 
 				/** @type {[string, string, string, () => string, () => string, boolean, number, Position]} */
-				const gagCheatMenuParams = bceSettings.gagspeak
+				const gagCheatMenuParams = fbcSettings.gagspeak
 					? [
 							displayText("Understand: Yes"),
 							"green",
@@ -6618,38 +6620,38 @@ async function BondageClubEnhancements() {
 			"ChatRoomClick",
 			HOOK_PRIORITIES.ModifyBehaviourHigh,
 			(args, nextFunc) => {
-				if (bceSettings.showQuickAntiGarble && !bceSettings.discreetMode) {
+				if (fbcSettings.showQuickAntiGarble && !fbcSettings.discreetMode) {
 					if (MouseIn(...gagAntiCheatMenuPosition)) {
 						const disableAll = () => {
-								bceSettings.antiAntiGarble = false;
-								bceSettings.antiAntiGarbleStrong = false;
-								bceSettings.antiAntiGarbleExtra = false;
+								fbcSettings.antiAntiGarble = false;
+								fbcSettings.antiAntiGarbleStrong = false;
+								fbcSettings.antiAntiGarbleExtra = false;
 								defaultSettings.antiAntiGarble.sideEffects(false);
 								defaultSettings.antiAntiGarbleStrong.sideEffects(false);
 								defaultSettings.antiAntiGarbleExtra.sideEffects(false);
 							},
 							enableLimited = () => {
-								bceSettings.antiAntiGarble = true;
+								fbcSettings.antiAntiGarble = true;
 								defaultSettings.antiAntiGarble.sideEffects(true);
 							},
 							enableStrong = () => {
-								bceSettings.antiAntiGarbleStrong = true;
+								fbcSettings.antiAntiGarbleStrong = true;
 								defaultSettings.antiAntiGarbleStrong.sideEffects(true);
 							},
 							// eslint-disable-next-line sort-vars
 							enableExtra = () => {
-								bceSettings.antiAntiGarbleExtra = true;
+								fbcSettings.antiAntiGarbleExtra = true;
 								defaultSettings.antiAntiGarbleExtra.sideEffects(true);
 							};
 						let next = enableLimited,
 							previous = enableExtra;
-						if (bceSettings.antiAntiGarble) {
+						if (fbcSettings.antiAntiGarble) {
 							next = enableStrong;
 							previous = disableAll;
-						} else if (bceSettings.antiAntiGarbleStrong) {
+						} else if (fbcSettings.antiAntiGarbleStrong) {
 							next = enableExtra;
 							previous = enableLimited;
-						} else if (bceSettings.antiAntiGarbleExtra) {
+						} else if (fbcSettings.antiAntiGarbleExtra) {
 							next = disableAll;
 							previous = enableStrong;
 						}
@@ -6664,8 +6666,8 @@ async function BondageClubEnhancements() {
 							bceSaveSettings();
 						}
 					} else if (MouseIn(...gagCheatMenuPosition)) {
-						bceSettings.gagspeak = !bceSettings.gagspeak;
-						defaultSettings.gagspeak.sideEffects(bceSettings.gagspeak);
+						fbcSettings.gagspeak = !fbcSettings.gagspeak;
+						defaultSettings.gagspeak.sideEffects(fbcSettings.gagspeak);
 						bceSaveSettings();
 					}
 				}
@@ -6762,8 +6764,8 @@ async function BondageClubEnhancements() {
 						Dictionary: {
 							message: {
 								type: MESSAGE_TYPES.ArousalSync,
-								version: BCE_VERSION,
-								alternateArousal: bceSettings.alternateArousal,
+								version: FBC_VERSION,
+								alternateArousal: fbcSettings.alternateArousal,
 								progress: C.BCEArousalProgress,
 								enjoyment: C.BCEEnjoyment,
 							},
@@ -6929,7 +6931,7 @@ async function BondageClubEnhancements() {
 				data
 			) => {
 				if (
-					bceSettings.ghostNewUsers &&
+					fbcSettings.ghostNewUsers &&
 					Date.now() - data.Character.Creation < 30000
 				) {
 					ChatRoomListManipulation(
@@ -6942,7 +6944,7 @@ async function BondageClubEnhancements() {
 						true,
 						data.Character.MemberNumber
 					);
-					bceLog(
+					debug(
 						"Blacklisted",
 						data.Character.Name,
 						CharacterNickname(data.Character),
@@ -6960,7 +6962,7 @@ async function BondageClubEnhancements() {
 		await waitFor(() => !!Player && !!Player.Appearance);
 
 		function checkBlindness() {
-			if (!bceSettings.blindWithoutGlasses) {
+			if (!fbcSettings.blindWithoutGlasses) {
 				return;
 			}
 
@@ -6987,12 +6989,12 @@ async function BondageClubEnhancements() {
 
 			if (hasGlasses) {
 				if (removeCustomEffect("BlurLight")) {
-					bceChatNotify(
+					fbcChatNotify(
 						displayText("Having recovered your glasses you can see again!")
 					);
 				}
 			} else if (addCustomEffect("BlurLight")) {
-				bceChatNotify(
+				fbcChatNotify(
 					displayText("Having lost your glasses your eyesight is impaired!")
 				);
 			}
@@ -7009,8 +7011,8 @@ async function BondageClubEnhancements() {
 
 		function checkFriends() {
 			if (
-				!bceSettings.friendPresenceNotifications &&
-				!bceSettings.instantMessenger
+				!fbcSettings.friendPresenceNotifications &&
+				!fbcSettings.instantMessenger
 			) {
 				return;
 			}
@@ -7033,7 +7035,7 @@ async function BondageClubEnhancements() {
 				) {
 					return;
 				}
-				if (!bceSettings.friendPresenceNotifications) {
+				if (!fbcSettings.friendPresenceNotifications) {
 					return;
 				}
 				if (data.Query !== "OnlineFriends") {
@@ -7055,11 +7057,11 @@ async function BondageClubEnhancements() {
 							return `${MemberName} (${MemberNumber})`;
 						})
 						.join(", ");
-					bceNotify(displayText(`Now online: $list`, { $list: list }), 5000, {
+					fbcNotify(displayText(`Now online: $list`, { $list: list }), 5000, {
 						ClickAction: BEEP_CLICK_ACTIONS.FriendList,
 					});
 				}
-				if (bceSettings.friendOfflineNotifications && offlineFriends.length) {
+				if (fbcSettings.friendOfflineNotifications && offlineFriends.length) {
 					const list = offlineFriends
 						.map((f) => {
 							const { MemberNumber, MemberName } = lastFriends.find(
@@ -7068,7 +7070,7 @@ async function BondageClubEnhancements() {
 							return `${MemberName} (${MemberNumber})`;
 						})
 						.join(", ");
-					bceNotify(displayText(`Now offline: $list`, { $list: list }), 5000, {
+					fbcNotify(displayText(`Now offline: $list`, { $list: list }), 5000, {
 						ClickAction: BEEP_CLICK_ACTIONS.FriendList,
 					});
 				}
@@ -7108,7 +7110,7 @@ async function BondageClubEnhancements() {
 				return true;
 			}
 			if (newItem.Property?.LockMemberNumber !== sourceCharacter.MemberNumber) {
-				bceLog(
+				debug(
 					"Bad lock member number",
 					newItem.Property?.LockMemberNumber,
 					"from",
@@ -7171,7 +7173,7 @@ async function BondageClubEnhancements() {
 					(oldItem?.Property?.LockedBy === "MistressTimerPadlock" &&
 						newItem.Property?.LockedBy !== "MistressTimerPadlock")
 				) {
-					bceLog(
+					debug(
 						"Not a mistress attempting to remove mistress lock",
 						sourceName
 					);
@@ -7185,7 +7187,7 @@ async function BondageClubEnhancements() {
 					(oldItem?.Property?.LockedBy !== "MistressTimerPadlock" &&
 						newItem.Property?.LockedBy === "MistressTimerPadlock")
 				) {
-					bceLog("Not a mistress attempting to add mistress lock", sourceName);
+					debug("Not a mistress attempting to add mistress lock", sourceName);
 					changes.prohibited = true;
 				}
 
@@ -7197,7 +7199,7 @@ async function BondageClubEnhancements() {
 					) >
 						31 * 60 * 1000
 				) {
-					bceLog(
+					debug(
 						"Not a mistress attempting to change mistress lock timer more than allowed by public entry",
 						sourceName
 					);
@@ -7219,7 +7221,7 @@ async function BondageClubEnhancements() {
 			deleteUnneededLockData(oldItem);
 
 			if (JSON.stringify(newItem) !== JSON.stringify(oldItem)) {
-				bceLog(
+				debug(
 					sourceName,
 					"changed",
 					JSON.stringify(oldItem),
@@ -7236,8 +7238,8 @@ async function BondageClubEnhancements() {
 			const sourceName = `${CharacterNickname(sourceCharacter)} (${
 				sourceCharacter.MemberNumber
 			})`;
-			bceLog("Rejected changes from", sourceName);
-			bceChatNotify(
+			debug("Rejected changes from", sourceName);
+			fbcChatNotify(
 				displayText(
 					`[Anti-Cheat] ${sourceName} tried to make suspicious changes! Appearance changes rejected. Consider telling the user to stop, whitelisting the user (if trusted friend), or blacklisting the user (if the behaviour continues, chat command: "/blacklistadd ${sourceCharacter.MemberNumber}").`
 				)
@@ -7249,12 +7251,12 @@ async function BondageClubEnhancements() {
 					displayText(
 						`A magical shield on ${CharacterNickname(
 							Player
-						)} repelled the suspiciously magical changes attempted by ${sourceName}! [BCE Anti-Cheat]`
+						)} repelled the suspiciously magical changes attempted by ${sourceName}! [FBC Anti-Cheat]`
 					)
 				);
 			}
 			if (
-				bceSettings.antiCheatBlackList &&
+				fbcSettings.antiCheatBlackList &&
 				!Player.WhiteList.includes(sourceCharacter.MemberNumber) &&
 				!Player.BlackList.includes(sourceCharacter.MemberNumber)
 			) {
@@ -7263,7 +7265,7 @@ async function BondageClubEnhancements() {
 					true,
 					sourceCharacter.MemberNumber
 				);
-				bceChatNotify(displayText(`[AntiCheat] ${sourceName} blacklisted.`));
+				fbcChatNotify(displayText(`[AntiCheat] ${sourceName} blacklisted.`));
 			}
 			ChatRoomCharacterUpdate(Player);
 		}
@@ -7274,7 +7276,7 @@ async function BondageClubEnhancements() {
 			/** @type {(args: [ChatRoomSyncItemEvent], next: (args: [ChatRoomSyncItemEvent]) => void) => void} */
 			(args, next) => {
 				const [data] = args;
-				if (!bceSettings.itemAntiCheat) {
+				if (!fbcSettings.itemAntiCheat) {
 					return next(args);
 				}
 				if (data?.Item?.Target !== Player.MemberNumber) {
@@ -7312,7 +7314,7 @@ async function BondageClubEnhancements() {
 			/** @type {(args: [ChatRoomSyncSingleEvent], next: (args: [ChatRoomSyncSingleEvent]) => void) => void} */
 			(args, next) => {
 				const [data] = args;
-				if (!bceSettings.itemAntiCheat) {
+				if (!fbcSettings.itemAntiCheat) {
 					return next(args);
 				}
 				if (!data?.Character) {
@@ -7368,7 +7370,7 @@ async function BondageClubEnhancements() {
 						(i) => i.Name === "FuturisticCollar"
 					);
 
-				bceLog(
+				debug(
 					"Anti-Cheat validating bulk change from",
 					sourceCharacter.MemberNumber
 				);
@@ -7410,7 +7412,7 @@ async function BondageClubEnhancements() {
 					newAndChanges.new + newAndChanges.changed + removed > 2 ||
 					newAndChanges.prohibited
 				) {
-					bceLog(
+					debug(
 						"Anti-Cheat tripped on bulk change from",
 						sourceCharacter.MemberNumber,
 						newAndChanges,
@@ -7437,7 +7439,7 @@ async function BondageClubEnhancements() {
 				[
 					"160",
 					"100",
-					displayText("([BCE] Force her to become a Club Slave.)"),
+					displayText("([FBC] Force her to become a Club Slave.)"),
 					displayText("(She will become a Club Slave for the next hour.)"),
 					"bceSendToClubSlavery()",
 					"bceCanSendToClubSlavery()",
@@ -7445,9 +7447,9 @@ async function BondageClubEnhancements() {
 				[
 					"160",
 					"",
-					displayText("([BCE] Force her to become a Club Slave.)"),
+					displayText("([FBC] Force her to become a Club Slave.)"),
 					displayText(
-						"(Requires both to use compatible versions of BCE and the target to not already be a club slave.)"
+						"(Requires both to use compatible versions of FBC and the target to not already be a club slave.)"
 					),
 					"",
 					"!bceCanSendToClubSlavery()",
@@ -7519,7 +7521,7 @@ async function BondageClubEnhancements() {
 				Dictionary: {
 					message: {
 						type: MESSAGE_TYPES.Activity,
-						version: BCE_VERSION,
+						version: FBC_VERSION,
 						activity: "ClubSlavery",
 					},
 				},
@@ -7733,7 +7735,7 @@ async function BondageClubEnhancements() {
 				.trimEnd();
 
 			if (!messageText) {
-				bceLog("skipped empty beep", friendId, beep, sent, skipHistory);
+				debug("skipped empty beep", friendId, beep, sent, skipHistory);
 				return;
 			}
 
@@ -7896,9 +7898,9 @@ async function BondageClubEnhancements() {
 				e.preventDefault();
 				if (
 					BCX?.getRuleState("speech_restrict_beep_send").isEnforced &&
-					!bceSettings.allowIMBypassBCX
+					!fbcSettings.allowIMBypassBCX
 				) {
-					bceNotify(
+					fbcNotify(
 						displayText("Sending beeps is currently restricted by BCX rules")
 					);
 					return;
@@ -7981,7 +7983,7 @@ async function BondageClubEnhancements() {
 				if (data.Query !== "OnlineFriends") {
 					return;
 				}
-				if (data.Result && bceSettings.instantMessenger) {
+				if (data.Result && fbcSettings.instantMessenger) {
 					for (const friend of data.Result) {
 						const f = handleUnseenFriend(friend.MemberNumber);
 						f.online = true;
@@ -8042,7 +8044,7 @@ async function BondageClubEnhancements() {
 					beep &&
 					typeof beep === "object" &&
 					!beep.BeepType &&
-					bceSettings.instantMessenger
+					fbcSettings.instantMessenger
 				) {
 					addMessage(beep.MemberNumber, false, beep, false, new Date());
 				}
@@ -8088,9 +8090,9 @@ async function BondageClubEnhancements() {
 			/** @type {(args: DOMHighResTimeStamp[], next: (args: DOMHighResTimeStamp[]) => void) => void} */
 			(args, next) => {
 				next(args);
-				if (bceSettings.instantMessenger) {
+				if (fbcSettings.instantMessenger) {
 					if (
-						!bceSettings.allowIMBypassBCX &&
+						!fbcSettings.allowIMBypassBCX &&
 						(BCX?.getRuleState("speech_restrict_beep_receive").isEnforced ||
 							(BCX?.getRuleState("alt_hide_friends").isEnforced &&
 								Player.GetBlindLevel() >= 3))
@@ -8125,7 +8127,7 @@ async function BondageClubEnhancements() {
 			HOOK_PRIORITIES.OverrideBehaviour,
 			/** @type {(args: (MouseEvent | TouchEvent)[], next: (args: (MouseEvent | TouchEvent)[]) => void) => void} */
 			(args, next) => {
-				if (bceSettings.instantMessenger && MouseIn(...buttonPosition())) {
+				if (fbcSettings.instantMessenger && MouseIn(...buttonPosition())) {
 					sortIM();
 					container.classList.toggle("bce-hidden");
 					ServerSend("AccountQuery", { Query: "OnlineFriends" });
@@ -8152,7 +8154,7 @@ async function BondageClubEnhancements() {
 
 		/** @type {(e: KeyboardEvent) => void} */
 		function keyHandler(e) {
-			if (!bceSettings.instantMessenger) {
+			if (!fbcSettings.instantMessenger) {
 				return;
 			}
 			if (e.key === "Escape" && !container.classList.contains("bce-hidden")) {
@@ -8176,7 +8178,7 @@ async function BondageClubEnhancements() {
 				let wardrobe = next(args);
 				if (
 					isWardrobe(wardrobe) &&
-					bceSettings.expandedWardrobe &&
+					fbcSettings.expandedWardrobe &&
 					wardrobe.length < EXPANDED_WARDROBE_SIZE
 				) {
 					wardrobe = loadExtendedWardrobe(wardrobe);
@@ -8223,7 +8225,7 @@ async function BondageClubEnhancements() {
 
 	/** @type {(wardrobe: ItemBundle[][]) => ItemBundle[][]} */
 	function loadExtendedWardrobe(wardrobe) {
-		if (bceSettings.extendedWardrobe) {
+		if (fbcSettings.extendedWardrobe) {
 			WardrobeSize = EXPANDED_WARDROBE_SIZE;
 			WardrobeFixLength();
 		}
@@ -8252,8 +8254,8 @@ async function BondageClubEnhancements() {
 					}
 				}
 			} catch (e) {
-				bceError("Failed to load extended wardrobe", e);
-				bceBeepNotify(
+				logError("Failed to load extended wardrobe", e);
+				fbcBeepNotify(
 					"Wardrobe error",
 					`Failed to load extended wardrobe.\n\nBackup: ${Player.OnlineSettings.BCEWardrobe}`
 				);
@@ -8265,11 +8267,15 @@ async function BondageClubEnhancements() {
 	async function beepChangelog() {
 		await waitFor(() => !!Player?.AccountName);
 		await sleep(5000);
-		bceBeepNotify(
-			displayText("BCE Changelog"),
+		fbcBeepNotify(
+			displayText("FBC Changelog"),
 			displayText(
-				`BCE has received significant updates since you last used it. See /bcechangelog in a chatroom.`
+				`FBC has received significant updates since you last used it. See /bcechangelog in a chatroom.`
 			)
+		);
+		await waitFor(() => !!document.getElementById("TextAreaChatLog"));
+		fbcChatNotify(
+			`For Better Club (formerly BCE - Bondage Club Enhancements) changelog:\n${fbcChangelog}`
 		);
 	}
 
@@ -8387,7 +8393,7 @@ async function BondageClubEnhancements() {
 	function discreetMode() {
 		/** @type {(args: [unknown], next: (args: [unknown]) => unknown) => unknown} */
 		const discreetModeHook = (args, next) => {
-			if (bceSettings.discreetMode) {
+			if (fbcSettings.discreetMode) {
 				return;
 			}
 			// eslint-disable-next-line consistent-return
@@ -8412,7 +8418,7 @@ async function BondageClubEnhancements() {
 			HOOK_PRIORITIES.Top,
 			/** @type {(args: [string | HTMLImageElement | HTMLCanvasElement], next: (args: [string | HTMLImageElement | HTMLCanvasElement]) => boolean) => boolean} */
 			(args, next) => {
-				if (bceSettings.discreetMode) {
+				if (fbcSettings.discreetMode) {
 					if (!args) {
 						return false;
 					}
@@ -8435,7 +8441,7 @@ async function BondageClubEnhancements() {
 			"NotificationTitleUpdate",
 			HOOK_PRIORITIES.Top,
 			(args, next) => {
-				if (bceSettings.discreetMode) {
+				if (fbcSettings.discreetMode) {
 					const notificationCount = NotificationGetTotalCount(1);
 					document.title = `${
 						notificationCount > 0 ? `(${notificationCount}) ` : ""
@@ -8466,7 +8472,7 @@ async function BondageClubEnhancements() {
 		};
 
 		createTimer(() => {
-			if (!bceSettings.autoStruggle) {
+			if (!fbcSettings.autoStruggle) {
 				return;
 			}
 
@@ -8487,7 +8493,7 @@ async function BondageClubEnhancements() {
 		}, 60);
 
 		createTimer(() => {
-			if (!bceSettings.autoStruggle) {
+			if (!fbcSettings.autoStruggle) {
 				return;
 			}
 
@@ -8524,7 +8530,7 @@ async function BondageClubEnhancements() {
 		let updated = false;
 		const emoticon = Player.Appearance.find((a) => a.Asset.Name === "Emoticon");
 		if (!emoticon) {
-			bceWarn("Could not find emoticon asset.");
+			logWarn("Could not find emoticon asset.");
 			return updated;
 		}
 		if (!emoticon.Property) {
@@ -8579,7 +8585,7 @@ async function BondageClubEnhancements() {
 		}
 		emoticon.Asset.AllowEffect.push("BlurLight");
 
-		if (bceSettings.leashAlways) {
+		if (fbcSettings.leashAlways) {
 			enableLeashing();
 		} else {
 			disableLeashing();
@@ -8621,7 +8627,7 @@ async function BondageClubEnhancements() {
 			(args, next) => {
 				let level = next(args);
 				if (
-					bceSettings.handgag &&
+					fbcSettings.handgag &&
 					characterStates.get(args[0].MemberNumber)?.clamped > Date.now()
 				) {
 					level += 2;
@@ -8633,7 +8639,7 @@ async function BondageClubEnhancements() {
 
 	function toySync() {
 		// Handles synchronizing in-game vibrators with real bluetooth devices via buttplut.io
-		if (!bceSettings.toySync) {
+		if (!fbcSettings.toySync) {
 			return;
 		}
 
@@ -8646,10 +8652,10 @@ async function BondageClubEnhancements() {
 			frame.contentDocument.head.appendChild(notifierScript);
 			frame.contentDocument.head.appendChild(script);
 		};
-		bceInfo("Loading buttplug.io");
+		logInfo("Loading buttplug.io");
 
 		const onload = async () => {
-			bceInfo("Loaded Buttplug.io");
+			logInfo("Loaded Buttplug.io");
 			/** @type {import('./types/buttplug.io.1.0.17')} */
 			// @ts-ignore
 			// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
@@ -8663,8 +8669,8 @@ async function BondageClubEnhancements() {
 					/** @type {import('./types/buttplug.io.1.0.17').ButtplugClientDevice} */
 					device
 				) => {
-					bceLog("Device connected", device);
-					bceChatNotify(
+					debug("Device connected", device);
+					fbcChatNotify(
 						displayText(`Vibrator connected: $DeviceName`, {
 							$DeviceName: device.Name,
 						})
@@ -8681,8 +8687,8 @@ async function BondageClubEnhancements() {
 					/** @type {import('./types/buttplug.io.1.0.17').ButtplugClientDevice} */
 					device
 				) => {
-					bceLog("Device disconnected", device);
-					bceChatNotify(
+					debug("Device disconnected", device);
+					fbcChatNotify(
 						displayText(`Vibrator disconnected: $DeviceName`, {
 							$DeviceName: device.Name,
 						})
@@ -8690,14 +8696,14 @@ async function BondageClubEnhancements() {
 				}
 			);
 			client.addListener("scanningfinished", (data) => {
-				bceLog("Scanning finished", data);
+				debug("Scanning finished", data);
 			});
 
 			const connector = new bp.ButtplugWebsocketConnectorOptions();
 			connector.Address = "ws://127.0.0.1:12345";
 			try {
 				await client.connect(connector);
-				bceInfo("Connected buttplug.io");
+				logInfo("Connected buttplug.io");
 			} catch (ex) {
 				if (ex) {
 					// eslint-disable-next-line no-alert
@@ -8706,7 +8712,7 @@ async function BondageClubEnhancements() {
 							"buttplug.io is enabled, but server could not be contacted at ws://127.0.0.1:12345. Is Intiface Desktop running? Is another client connected to it?"
 						)
 					);
-					bceError("buttplug.io could not connect to server", ex);
+					logError("buttplug.io could not connect to server", ex);
 					return;
 				}
 			}
@@ -8747,22 +8753,22 @@ async function BondageClubEnhancements() {
 						switch (intensity) {
 							case 0:
 								d.vibrate(0.1);
-								bceLog(d.Name, slot, "intensity 0.1");
+								debug(d.Name, slot, "intensity 0.1");
 								break;
 							case 1:
 								d.vibrate(0.4);
-								bceLog(d.Name, slot, "intensity 0.4");
+								debug(d.Name, slot, "intensity 0.4");
 								break;
 							case 2:
 								d.vibrate(0.75);
-								bceLog(d.Name, slot, "intensity 0.75");
+								debug(d.Name, slot, "intensity 0.75");
 								break;
 							case 3:
 								d.vibrate(1.0);
-								bceLog(d.Name, slot, "intensity 1");
+								debug(d.Name, slot, "intensity 1");
 								break;
 							default:
-								bceWarn("Invalid intensity in ", slot, ":", intensity);
+								logWarn("Invalid intensity in ", slot, ":", intensity);
 								break;
 						}
 					}
@@ -8776,7 +8782,7 @@ async function BondageClubEnhancements() {
 				),
 				Action: async () => {
 					if (!client.Connected) {
-						bceChatNotify("buttplug.io is not connected");
+						fbcChatNotify("buttplug.io is not connected");
 						return;
 					}
 
@@ -8784,7 +8790,7 @@ async function BondageClubEnhancements() {
 						dev.AllowedMessages.includes(8)
 					);
 					if (batteryDevices.length === 0) {
-						bceChatNotify("No battery devices connected");
+						fbcChatNotify("No battery devices connected");
 						return;
 					}
 
@@ -8793,7 +8799,7 @@ async function BondageClubEnhancements() {
 					);
 					for (let i = 0; i < batteryDevices.length; i++) {
 						const battery = batteryStatus[i] * 100;
-						bceChatNotify(`${batteryDevices[i].Name}: ${battery}%`);
+						fbcChatNotify(`${batteryDevices[i].Name}: ${battery}%`);
 					}
 				},
 			});
@@ -8803,18 +8809,18 @@ async function BondageClubEnhancements() {
 				Description: displayText("Scans for connected buttplug.io toys"),
 				Action: () => {
 					if (!client.Connected) {
-						bceChatNotify(displayText("buttplug.io is not connected"));
+						fbcChatNotify(displayText("buttplug.io is not connected"));
 						return;
 					}
 
 					if (client.isScanning) {
 						client.stopScanning();
-						bceChatNotify(displayText("Scanning stopped"));
+						fbcChatNotify(displayText("Scanning stopped"));
 						return;
 					}
 
 					client.startScanning();
-					bceChatNotify(displayText("Scanning for toys"));
+					fbcChatNotify(displayText("Scanning for toys"));
 				},
 			});
 
@@ -8852,7 +8858,7 @@ async function BondageClubEnhancements() {
 	}
 
 	async function pastProfiles() {
-		if (!bceSettings.pastProfiles) {
+		if (!fbcSettings.pastProfiles) {
 			return;
 		}
 
@@ -8893,7 +8899,7 @@ async function BondageClubEnhancements() {
 					characterBundle: JSON.stringify(characterBundle),
 				});
 			} catch (e) {
-				bceError("saving profile", e);
+				logError("saving profile", e);
 			}
 		}
 
@@ -8965,8 +8971,8 @@ async function BondageClubEnhancements() {
 				}
 				InformationSheetLoadCharacter(C);
 			} catch (e) {
-				bceChatNotify(displayText("No profile found"));
-				bceError("reading profile", e);
+				fbcChatNotify(displayText("No profile found"));
+				logError("reading profile", e);
 			}
 		}
 
@@ -9020,7 +9026,7 @@ async function BondageClubEnhancements() {
 						$num: list.length.toLocaleString(),
 					}
 				);
-				bceChatNotify([header, ...lines, footer]);
+				fbcChatNotify([header, ...lines, footer]);
 			},
 		});
 
@@ -9039,7 +9045,7 @@ async function BondageClubEnhancements() {
 				})
 				.catch((reason) => {
 					noteInput.value = "";
-					bceError("getting note", reason);
+					logError("getting note", reason);
 				});
 		}
 
@@ -9092,7 +9098,7 @@ async function BondageClubEnhancements() {
 					"",
 					"White",
 					"Icons/Notifications.png",
-					displayText("[BCE] Notes")
+					displayText("[FBC] Notes")
 				);
 				return next(args);
 			}
@@ -9126,7 +9132,7 @@ async function BondageClubEnhancements() {
 			!(await navigator.storage.persisted())
 		) {
 			if (!(await navigator.storage.persist())) {
-				bceWarn("Profile storage may not be persistent.");
+				logWarn("Profile storage may not be persistent.");
 			}
 		}
 	}
@@ -9149,7 +9155,7 @@ async function BondageClubEnhancements() {
 			(args, next) => {
 				const ret = next(args);
 				if (
-					bceSettings.pendingMessages &&
+					fbcSettings.pendingMessages &&
 					args?.length &&
 					isChatMessage(args[0]) &&
 					Array.isArray(args[0].Dictionary)
@@ -9172,7 +9178,7 @@ async function BondageClubEnhancements() {
 			HOOK_PRIORITIES.AddBehaviour,
 			(args, next) => {
 				if (
-					bceSettings.pendingMessages &&
+					fbcSettings.pendingMessages &&
 					args?.length >= 2 &&
 					args[0] === "ChatRoomChat" &&
 					isChatMessage(args[1]) &&
@@ -9250,7 +9256,7 @@ async function BondageClubEnhancements() {
 			/** @type {(args: [Character], next: (args: [Character]) => void) => void} */
 			(args, next) => {
 				const [c] = args;
-				if (!c || !bceSettings.hideHiddenItemsIcon) {
+				if (!c || !fbcSettings.hideHiddenItemsIcon) {
 					return next(args);
 				}
 				const backup = c.HasHiddenItems;
@@ -9280,7 +9286,7 @@ async function BondageClubEnhancements() {
 				// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
 				const craft = JSON.parse(LZString.decompressFromBase64(str));
 				if (!isNonNullObject(craft)) {
-					bceError(craft);
+					logError(craft);
 					throw new Error("invalid craft type");
 				}
 				for (const [key, value] of Object.entries(craft)) {
@@ -9290,14 +9296,14 @@ async function BondageClubEnhancements() {
 						value !== false &&
 						value !== true
 					) {
-						bceError(key, "was", value);
+						logError(key, "was", value);
 						throw new Error("invalid craft properties");
 					}
 				}
 				CraftingSelectedItem = CraftingConvertItemToSelected(craft);
 				CraftingModeSet("Name");
 			} catch (e) {
-				bceError("importing craft", e);
+				logError("importing craft", e);
 			}
 		}
 
@@ -9374,7 +9380,7 @@ async function BondageClubEnhancements() {
 	(function () {
 		const sendHeartbeat = () => {
 			const payload = {
-				Version: BCE_VERSION,
+				Version: FBC_VERSION,
 				GameVersion,
 				// !! to avoid passing room name to statbot, only presence inside a room or not
 				InRoom: !!Player.LastChatRoom,
@@ -9397,7 +9403,7 @@ async function BondageClubEnhancements() {
 				"AccountBeep",
 				{
 					BeepType: "Leash",
-					// BCE statbot, which only collects anonymous aggregate version and usage data to justify supporting or dropping support for features
+					// FBC statbot, which only collects anonymous aggregate version and usage data to justify supporting or dropping support for features
 					MemberNumber: 61197,
 					Message: JSON.stringify(payload),
 					// IsSecret: true to avoid passing room name to statbot
@@ -9533,7 +9539,7 @@ async function BondageClubEnhancements() {
 					device.vibrate(0);
 				}
 			}
-			if (bceSettings.confirmLeave) {
+			if (fbcSettings.confirmLeave) {
 				e.preventDefault();
 				// The connection is closed, this call gets you relogin immediately
 				ServerSocket.io.disconnect();
@@ -9549,4 +9555,4 @@ async function BondageClubEnhancements() {
 	);
 }
 
-BondageClubEnhancements();
+ForBetterClub();

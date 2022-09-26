@@ -1,12 +1,12 @@
 [About](.) | [Mobile](mobile.html) | [Toys](toys.html) | [Discord](https://discord.gg/SHJMjEh9VH)
 
-# BCE - Bondage Club Enhancements
+# FBC - For Better Club (formerly BCE - Bondage Club Enhancements)
 
 This addon to [Bondage Club](https://www.bondageprojects.com/club_game/) offers various mostly small improvements to the game experience. Making the game easier, safer and, in some cases, more immersive for certain types of people. See features below for more details.
 
 ## How to install and use
 
-With Tampermonkey you can control when and if you want to update BCE and BCE will be automatically loaded whenever you open the club. Tampermonkey will by default check for updates daily. The manual bookmark will always load the latest version, but has to be clicked each time you (re)open the club. You can use different methods on different devices, but be mindful of using wildly different versions of BCE: some settings may reset.
+With Tampermonkey you can control when and if you want to update FBC and FBC will be automatically loaded whenever you open the club. Tampermonkey will by default check for updates daily. The manual bookmark will always load the latest version, but has to be clicked each time you (re)open the club. You can use different methods on different devices, but be mindful of using wildly different versions of FBC: some settings may reset.
 
 ### Autoload with Tampermonkey
 
@@ -19,13 +19,13 @@ If clicking the links above does not give you the option to install:
 1. Open Tampermonkey's dashboard from its button top-right, and go to the Utilities on the right.
 1. Paste the URL into the "Install from URL" field, and click "Install". Tampermonkey should ask for a confirmation, and then the script will show up in its main view.
 
-Once the script has been installed reload your BC tab (F5, Ctrl-R), as changes to the script are only picked up on a page refresh. You should see a "SAVE (BCE)" button on the login screen. You do not need to use this, unless you want to use the automatic relogin feature.
-Then login and go to the preferences screen and click onto "BCE Settings" to enable (or disable) components you wish to use.
+Once the script has been installed reload your BC tab (F5, Ctrl-R), as changes to the script are only picked up on a page refresh. You should see a "SAVE (FBC)" button on the login screen. You do not need to use this, unless you want to use the automatic relogin feature.
+Then login and go to the preferences screen and click onto "FBC Settings" to enable (or disable) components you wish to use.
 
 ### Manual bookmark
 
 1. Save `javascript:(()=>{fetch('https://sidiousious.gitlab.io/bce/bce.user.js').then(r=>r.text()).then(r=>eval(r));})();` as a bookmark on your devices, or [bookmark this link][bookmarklet]
-1. Use by opening the bookmark in the bondage club tab on your browser. If used on the login page you should see the "SAVE (BCE)" button appear.
+1. Use by opening the bookmark in the bondage club tab on your browser. If used on the login page you should see the "SAVE (FBC)" button appear.
 
 - Desktop: use from your bookmarks menu
 - Android (Chrome) or iOS (Safari): search for your bookmark in the navigation bar, _not in the bookmarks menu_!
@@ -37,7 +37,7 @@ Then login and go to the preferences screen and click onto "BCE Settings" to ena
 
 ## Features
 
-At a glance, **everything is entirely optional, enable in settings** (profile -> preferences -> BCE Settings):
+At a glance, **everything is entirely optional, enable in settings** (profile -> preferences -> FBC Settings):
 
 - Integration with remote controlled sex toys that work with [buttplug.io](https://buttplug.io) ([Instructions](toys.html))
 - Improved automatic facial expressions that play nice with manual control
@@ -71,37 +71,37 @@ At a glance, **everything is entirely optional, enable in settings** (profile ->
 
 ![](static/bceEmbeds.png)
 
-BCE allows clicking links posted in chat and embeds images from trusted domains, such as Discord, Imgur and Tenor. Additionally any links you send will always be inside OOC brackets to ensure stutter algorithms do not break your links.
+FBC allows clicking links posted in chat and embeds images from trusted domains, such as Discord, Imgur and Tenor. Additionally any links you send will always be inside OOC brackets to ensure stutter algorithms do not break your links.
 
 ### Instant Messenger
 
 ![](static/bceInstantMessenger.png)
 
-BCE includes an optional instant messenger that can be used to message with your friends.
+FBC includes an optional instant messenger that can be used to message with your friends.
 
 ### Require Glasses to See
 
 ![](static/bceGlasses.png)
 
-BCE can blur your vision, when your character is not wearing glasses or visors.
+FBC can blur your vision, when your character is not wearing glasses or visors.
 
 ### Confirm Leaving the Club
 
 ![](static/bceLeaveProtect.png)
 
-BCE can ask you to confirm when navigating away from the club. This protects against accidental back button or refresh. Best combined with saved credentials for automatic relogin, as relogin will still be required.
+FBC can ask you to confirm when navigating away from the club. This protects against accidental back button or refresh. Best combined with saved credentials for automatic relogin, as relogin will still be required.
 
 ### Lockpick Helper
 
 ![](static/bceLockPick.png)
 
-BCE can give hints in the lockpicking minigame, based on your skill. Do note that lockpicking can still be impossible, if you are tied up too tightly or your skill is too low.
+FBC can give hints in the lockpicking minigame, based on your skill. Do note that lockpicking can still be impossible, if you are tied up too tightly or your skill is too low.
 
 ### Full Wardrobe in Chatrooms
 
 ![](static/bceFullWardrobe.png)
 
-BCE can allow using the full wardrobe with previews from the singleplayer private room inside online chatrooms.
+FBC can allow using the full wardrobe with previews from the singleplayer private room inside online chatrooms.
 
 ### Additional Chat Commands for Convenience
 
@@ -110,7 +110,7 @@ BCE can allow using the full wardrobe with previews from the singleplayer privat
 - `/exportlooks <member number> <include restraints: true/false> <include body, eyes, etc: true/false>` allows you to save your or another player's last seen appearance as a string you can later import with BCX or on yourself `/importlooks`. If no member number is given, copies your own appearance. Additional parameters default to "false".
 - `/importlooks [looks string]` sets your current appearance to the copied appearance.
 - `/w [target's first name] [message]` sends a whisper to the target. No message will be sent if the target cannot be found or if many people with the same name are present in the room. No more danger of the other player disconnecting and you uttering the message out loud in public.
-- `/versions` show what versions of BC, BCX and BCE other players in the room are using.
+- `/versions` show what versions of BC, BCX and FBC other players in the room are using.
 - `/r` resets animations and expressions. You can optionally define part of the face to reset, leaving other parts intact, e.g. `/r eyes`
 - `/pose <space separated list of poses>` allows setting or resetting your character's pose. Note that this bypasses restrictions, but will not override poses imposed by items, e.g. short collar chain.
 - `/pose list` lists all available poses.
@@ -119,42 +119,42 @@ BCE can allow using the full wardrobe with previews from the singleplayer privat
 
 ![](static/bceNowOnline.png)
 
-BCE can notify you when friends come and go.
+FBC can notify you when friends come and go.
 
 ### Beep Enhancements
 
 ![](static/bceMessagePreviewDemo.png)
 
-BCE will display a snippet of the message received in beeps in chat, and clicking the message takes you directly to the beep. This functionality is incompatible with BcUtil and disabled, when that addon is detected.
+FBC will display a snippet of the message received in beeps in chat, and clicking the message takes you directly to the beep. This functionality is incompatible with BcUtil and disabled, when that addon is detected.
 
 ### Accurate Timer Durations
 
 ![](static/bceTimerInput.png)
 
-BCE allows you to set timer locks at a greater accuracy. Does not allow exceeding maximum duration of the locks.
+FBC allows you to set timer locks at a greater accuracy. Does not allow exceeding maximum duration of the locks.
 
 ### Automatic relogin
 
-BCE can automatically enter your password, when you lose connection to the game. You can enable this by choosing to save your login after entering your details, but before clicking login, by clicking on the "Save (BCE)" button. You can then populate the login by pressing the name on the left for future logins, and remove it there, also disabling the auto-relogin. **Warning**: this does store your password in plaintext in your local storage, where malicious scripts could theoretically read it.
+FBC can automatically enter your password, when you lose connection to the game. You can enable this by choosing to save your login after entering your details, but before clicking login, by clicking on the "Save (FBC)" button. You can then populate the login by pressing the name on the left for future logins, and remove it there, also disabling the auto-relogin. **Warning**: this does store your password in plaintext in your local storage, where malicious scripts could theoretically read it.
 
 ### Forced Labor: Club Slave
 
 ![](static/bceForceCS.png)
 
-BCE allows owners to send their submissives to work as club slaves, when both are running the same version of BCE.
+FBC allows owners to send their submissives to work as club slaves, when both are running the supported versions of FBC.
 
 ### Extended Wardrobe
 
 ![](static/bceExtendedWardrobe.png)
 
-BCE allows expanding your wardrobe to 96 slots. Note that this will make the wardrobe open a bit slower.
+FBC allows expanding your wardrobe to 96 slots. Note that this will make the wardrobe open a bit slower.
 
 ### Layer-priority editor and ability to loosen/tighten restraints
 
 ![](static/bceLayering1.png)
 ![](static/bceLayering2.png)
 
-BCE allows manual editing of an asset's priority — the value the game uses to decide what item shows over others — as well as the difficulty to struggle out of a restraint. When you select an item, you should see either:
+FBC allows manual editing of an asset's priority — the value the game uses to decide what item shows over others — as well as the difficulty to struggle out of a restraint. When you select an item, you should see either:
 
 - a number field and a validate button at the top-right for clothing,
 - two white boxes at bottom-left for restraints: one will open the option to modify layer priority while the other allows loosening/tightening restraints.
@@ -165,11 +165,11 @@ This allow manually overriding the assets' relative positioning, giving better f
 
 ### Anti-cheat
 
-BCE can be set to prevent certain console-based cheats from impacting your character and allows you to optionally blacklist detected bad actors automatically.
+FBC can be set to prevent certain console-based cheats from impacting your character and allows you to optionally blacklist detected bad actors automatically.
 
 ### Customizable automated expressions
 
-BCE has an expression animator that replaces the game's default animator. It uses both the arousal meter, and messages posted in chat, and respects manual changes you make to your face (not overriding them every 2 seconds like the game's own face animator).
+FBC has an expression animator that replaces the game's default animator. It uses both the arousal meter, and messages posted in chat, and respects manual changes you make to your face (not overriding them every 2 seconds like the game's own face animator).
 
 Yield control of manual expressions back to the automator by using the chat command `/r`, or you can choose which part of your face to give back e.g. `/r eyes`.
 

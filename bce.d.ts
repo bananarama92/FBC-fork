@@ -4,9 +4,13 @@ export {};
 
 declare global {
   var Dexie: import("dexie").DexieConstructor;
-  var BCE_VERSION: string;
+  var FBC_VERSION: string;
+  /** @deprecated */
   var bceSendAction: (text: string) => void;
+  var fbcSendAction: (text: string) => void;
+  /** @deprecated */
   var bceSettingValue: (key: string) => boolean | number | string;
+  var fbcSettingValue: (key: string) => boolean | number | string;
   var bceAnimationEngineEnabled: () => boolean;
   var bce_initializeDefaultExpression: () => void;
   var bceUpdatePasswordForReconnect: () => void;
@@ -14,6 +18,11 @@ declare global {
   var bce_EventExpressions: { [key: string]: Expression };
   var bceClearPassword: (name: string) => void;
   var bceClearCaches: () => Promise<void>;
+  var fbcDisplayText: (
+    original: string,
+    replacements?: Record<string, string>
+  ) => string;
+  /** @deprecated */
   var bceDisplayText: (
     original: string,
     replacements?: Record<string, string>
@@ -541,7 +550,7 @@ declare global {
     GetBlindLevel: () => number;
     ActivePose: string[] | null;
     Crafting: Craft[];
-    BCE: string;
+    FBC: string;
     BCEArousal: boolean;
     BCECapabilities: string[];
     BCEArousalProgress: number;
@@ -786,7 +795,6 @@ declare global {
     progress?: number;
     enjoyment?: number;
     activity?: BCEActivity;
-    crafts?: Craft[];
   };
   type ChatMessageDictionary = {
     Tag?: string;

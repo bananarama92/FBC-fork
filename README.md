@@ -1,4 +1,4 @@
-# Bondage Club Enhancements
+# For Better Club (formerly Bondage Club Enhancements)
 
 This is a userscript meant for enhancing the Bondage Club game. For more information including usage and installation, please refer to the [website](https://sidiousious.gitlab.io/bce/).
 
