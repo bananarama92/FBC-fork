@@ -1248,7 +1248,7 @@ async function ForBetterClub() {
 			SUPPORTED_GAME_VERSIONS.includes(GameVersion)
 		) {
 			logError(
-				`Skipping patching of ${functionName} due to detected deviation. Impact: ${affectedFunctionality}\n\nSee /bcedebug in a chatroom for more information.`
+				`Skipping patching of ${functionName} due to detected deviation. Impact: ${affectedFunctionality}\n\nSee /fbcdebug in a chatroom for more information.`
 			);
 			skippedFunctionality.push(affectedFunctionality);
 			return;
@@ -1921,7 +1921,7 @@ async function ForBetterClub() {
 		/** @type {Command[]} */
 		const cmds = [
 			{
-				Tag: "bcedebug",
+				Tag: "fbcdebug",
 				Description: displayText(
 					"Get debug information to share with developers."
 				),
@@ -1986,7 +1986,7 @@ async function ForBetterClub() {
 				},
 			},
 			{
-				Tag: "bcechangelog",
+				Tag: "fbcchangelog",
 				Description: displayText("Show recent FBC changelog"),
 				Action: () => {
 					fbcChatNotify(fbcChangelog);
@@ -8270,7 +8270,7 @@ async function ForBetterClub() {
 		fbcBeepNotify(
 			displayText("FBC Changelog"),
 			displayText(
-				`FBC has received significant updates since you last used it. See /bcechangelog in a chatroom.`
+				`FBC has received significant updates since you last used it. See /fbcchangelog in a chatroom.`
 			)
 		);
 		await waitFor(() => !!document.getElementById("TextAreaChatLog"));
