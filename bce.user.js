@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Bondage Club Enhancements
 // @namespace https://www.bondageprojects.com/
-// @version 4.0
+// @version 4.1
 // @description FBC - For Better Club - enhancements for the bondage club - old name kept in tampermonkey for compatibility
 // @author Sidious
 // @match https://bondageprojects.elementfx.com/*
@@ -39,10 +39,13 @@
  *  along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-const FBC_VERSION = "4.0";
+const FBC_VERSION = "4.1";
 const settingsVersion = 44;
 
 const fbcChangelog = `${FBC_VERSION}
+- fix whitelisting for anti-cheat, additional logging in lock validation
+
+4.0
 - BCE is now known as FBC (For Better Club) to reduce confusion with BCX
 
 BCE:
@@ -50,12 +53,6 @@ BCE:
 - compatibility for R84
 - potential fix for anti-cheat sometimes triggering on own changes e.g. locks expiring
 - added a cheat for IM to bypass BCX beep rules
-
-3.11
-- BCX 0.9.1
-- initial support for BCX rules (beeps, emoticon locking)
-- nicknames will now be used instead of or in addition to names in many places
-- member number support for /w
 `;
 
 /*
@@ -7199,6 +7196,7 @@ async function ForBetterClub() {
 					) >
 						31 * 60 * 1000
 				) {
+					changes.prohibited = true;
 					debug(
 						"Not a mistress attempting to change mistress lock timer more than allowed by public entry",
 						sourceName
@@ -7226,7 +7224,9 @@ async function ForBetterClub() {
 					"changed",
 					JSON.stringify(oldItem),
 					"to",
-					JSON.stringify(newItem)
+					JSON.stringify(newItem),
+					"changes:",
+					changes
 				);
 				changes.changed++;
 			}
@@ -7280,6 +7280,9 @@ async function ForBetterClub() {
 					return next(args);
 				}
 				if (data?.Item?.Target !== Player.MemberNumber) {
+					return next(args);
+				}
+				if (Player.WhiteList.includes(data.Source)) {
 					return next(args);
 				}
 				const sourceCharacter =
