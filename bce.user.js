@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Bondage Club Enhancements
 // @namespace https://www.bondageprojects.com/
-// @version 4.1
+// @version 4.2
 // @description FBC - For Better Club - enhancements for the bondage club - old name kept in tampermonkey for compatibility
 // @author Sidious
 // @match https://bondageprojects.elementfx.com/*
@@ -39,20 +39,17 @@
  *  along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-const FBC_VERSION = "4.1";
+const FBC_VERSION = "4.2";
 const settingsVersion = 44;
 
 const fbcChangelog = `${FBC_VERSION}
+- R85 beta 1 compatibility
+
+4.1
 - fix whitelisting for anti-cheat, additional logging in lock validation
 
 4.0
 - BCE is now known as FBC (For Better Club) to reduce confusion with BCX
-
-BCE:
-3.12
-- compatibility for R84
-- potential fix for anti-cheat sometimes triggering on own changes e.g. locks expiring
-- added a cheat for IM to bypass BCX beep rules
 `;
 
 /*
@@ -69,7 +66,7 @@ const bcModSdk=function(){"use strict";const o="1.0.2";function e(o){alert("Mod 
 async function ForBetterClub() {
 	"use strict";
 
-	const SUPPORTED_GAME_VERSIONS = ["R84"];
+	const SUPPORTED_GAME_VERSIONS = ["R84", "R85Beta1"];
 	const CAPABILITIES = ["clubslave"];
 
 	const w = window;
@@ -1173,6 +1170,21 @@ async function ForBetterClub() {
 		};
 
 		switch (gameVersion) {
+			case "R85Beta1":
+				hashes.AppearanceClick = "D29F295D";
+				hashes.AppearanceRun = "C65F23EF";
+				hashes.ChatRoomMessage = "BC1AF8B4";
+				hashes.CommandParse = "6E46F29E";
+				hashes.CraftingClick = "8C0B062E";
+				hashes.CraftingRun = "E41A3822";
+				hashes.DialogDrawItemMenu = "E8711B10";
+
+				// New in R85
+				hashes.ChatRoomHTMLEntities = "0A7ADB1D";
+				hashes.ChatRoomMessageDisplay = "C56FD561";
+				hashes.ChatRoomRegisterMessageHandler = "C432923A";
+				hashes.SpeechGarble = "9D669F73";
+				break;
 			default:
 				break;
 		}
@@ -3290,7 +3302,7 @@ async function ForBetterClub() {
 			"CommandParse",
 			{
 				"// Regular chat can be prevented with an owner presence rule":
-					"// Regular chat can be prevented with an owner presence rule\nmsg = bceMessageReplacements(msg);",
+					"// Regular chat can be prevented with an owner presence rule\nmsg = bceMessageReplacements(msg);\n// ",
 				"// The whispers get sent to the server and shown on the client directly":
 					"// The whispers get sent to the server and shown on the client directly\nmsg = bceMessageReplacements(msg);",
 			},
@@ -6188,6 +6200,13 @@ async function ForBetterClub() {
 
 		let excludeBodyparts = false;
 
+		function currentWardrobeTargetIsPlayer() {
+			return (
+				(inCustomWardrobe && targetCharacter?.IsPlayer()) ||
+				CharacterAppearanceSelection?.IsPlayer()
+			);
+		}
+
 		SDK.hookFunction(
 			"CharacterAppearanceWardrobeLoad",
 			HOOK_PRIORITIES.OverrideBehaviour,
@@ -6219,7 +6238,10 @@ async function ForBetterClub() {
 			"AppearanceRun",
 			HOOK_PRIORITIES.AddBehaviour,
 			(args, next) => {
-				if (CharacterAppearanceMode === "Wardrobe") {
+				if (
+					CharacterAppearanceMode === "Wardrobe" &&
+					currentWardrobeTargetIsPlayer()
+				) {
 					DrawCheckbox(1300, 350, 64, 64, "", excludeBodyparts, false, "white");
 					drawTextFitLeft(
 						displayText("Load without body parts"),
@@ -6239,7 +6261,8 @@ async function ForBetterClub() {
 			(args, next) => {
 				if (
 					CharacterAppearanceMode === "Wardrobe" &&
-					MouseIn(1300, 350, 64, 64)
+					MouseIn(1300, 350, 64, 64) &&
+					currentWardrobeTargetIsPlayer()
 				) {
 					excludeBodyparts = !excludeBodyparts;
 					return null;
@@ -6374,10 +6397,12 @@ async function ForBetterClub() {
 		await waitFor(() => !!SpeechGarbleByGagLevel);
 
 		// Antigarble patch for message printing
-		patchFunction(
-			"ChatRoomMessage",
-			{
-				"div.innerHTML = msg;": `div.innerHTML = msg;
+		if (GameVersion.startsWith("R85")) {
+			// Whisper reply button
+			patchFunction(
+				"ChatRoomMessageDisplay",
+				{
+					"div.innerHTML = msg;": `div.innerHTML = msg;
 				if (data.Type === "Whisper") {
 					let repl = document.createElement("a");
 					repl.href = "#";
@@ -6390,21 +6415,101 @@ async function ForBetterClub() {
 					repl.textContent = '\u21a9\ufe0f';
 					div.prepend(repl);
 				}`,
-				"const chatMsg": `const clientGagged = data.Content.endsWith('\\uf123');data.Content = data.Content.replace(/[\\uE000-\\uF8FF]/gu, '');const chatMsg`,
-				"msg += chatMsg;": `msg += chatMsg;
-			if (bceSettingValue("gagspeak") && SpeechGetTotalGagLevel(SenderCharacter) > 0 && !clientGagged) {
-				let original = data.Content;
-				if (data.Type === "Whisper" && data.Dictionary?.some(d => d.Tag === "${BCX_ORIGINAL_MESSAGE}")) {
-					original = data.Dictionary.find(d => d.Tag === "${BCX_ORIGINAL_MESSAGE}").Text;
-				}
-				original = ChatRoomHTMLEntities(original);
-				if (original.toLowerCase().trim() !== chatMsg.toLowerCase().trim()) {
-					msg += \` (\${original})\`
-				}
-			}`,
-			},
-			"No anti-garbling."
-		);
+				},
+				"No whisper reply button in chat"
+			);
+
+			ChatRoomRegisterMessageHandler({
+				Priority: 1,
+				Description: "Anti-garbling by FBC",
+				Callback: (data, sender, msg) => {
+					const clientGagged = msg.endsWith(GAGBYPASSINDICATOR);
+					msg = msg.replace(/[\uE000-\uF8FF]/gu, "");
+					let handled = clientGagged;
+					if (fbcSettings.gagspeak && !clientGagged) {
+						switch (data.Type) {
+							case "Whisper":
+								{
+									let original = msg;
+									if (
+										data.Dictionary?.some((d) => d.Tag === BCX_ORIGINAL_MESSAGE)
+									) {
+										original = ChatRoomHTMLEntities(
+											data.Dictionary.find(
+												(d) => d.Tag === BCX_ORIGINAL_MESSAGE
+											).Text
+										);
+									}
+									if (
+										original.toLowerCase().trim() !== msg.toLowerCase().trim()
+									) {
+										msg += ` (${original})`;
+										handled = true;
+									}
+								}
+								break;
+							case "Chat":
+								{
+									const original = msg;
+									msg = SpeechGarble(sender, msg);
+									if (
+										original.toLowerCase().trim() !==
+											msg.toLowerCase().trim() &&
+										SpeechGetTotalGagLevel(sender) > 0
+									) {
+										msg += ` (${original})`;
+										handled = true;
+									}
+								}
+								break;
+							default:
+								break;
+						}
+					}
+
+					const skip = (
+						/** @type {ChatRoomMessageHandler} */
+						handler
+					) =>
+						handler.Description === "Sensory-deprivation processing" &&
+						!!fbcSettings.gagspeak &&
+						handled;
+					return { skip, msg };
+				},
+			});
+		} else {
+			patchFunction(
+				"ChatRoomMessage",
+				{
+					"div.innerHTML = msg;": `div.innerHTML = msg;
+					if (data.Type === "Whisper") {
+						let repl = document.createElement("a");
+						repl.href = "#";
+						repl.onclick = (e) => {
+							e.preventDefault();
+							ElementValue("InputChat", \`/w \${SenderCharacter.MemberNumber} \${ElementValue("InputChat").replace(/^\\/(beep|w) \\S+ ?/u, '')}\`);
+							window.InputChat.focus();
+						};
+						repl.classList.add("bce-button");
+						repl.textContent = '\u21a9\ufe0f';
+						div.prepend(repl);
+					}`,
+					"const chatMsg": `const clientGagged = data.Content.endsWith('\\uf123');data.Content = data.Content.replace(/[\\uE000-\\uF8FF]/gu, '');const chatMsg`,
+					"msg += chatMsg;": `msg += chatMsg;
+				if (bceSettingValue("gagspeak") && SpeechGetTotalGagLevel(SenderCharacter) > 0 && !clientGagged) {
+					let original = data.Content;
+					if (data.Type === "Whisper" && data.Dictionary?.some(d => d.Tag === "${BCX_ORIGINAL_MESSAGE}")) {
+						original = data.Dictionary.find(d => d.Tag === "${BCX_ORIGINAL_MESSAGE}").Text;
+					}
+					original = ChatRoomHTMLEntities(original);
+					if (original.toLowerCase().trim() !== chatMsg.toLowerCase().trim()) {
+						msg += \` (\${original})\`
+					}
+				}`,
+				},
+				"No anti-garbling."
+			);
+		}
 
 		// ServerSend hook for client-side gagspeak, priority lower than BCX's whisper dictionary hook
 		SDK.hookFunction("ServerSend", 0, (args, next) => {
@@ -7010,6 +7115,13 @@ async function ForBetterClub() {
 			if (
 				!fbcSettings.friendPresenceNotifications &&
 				!fbcSettings.instantMessenger
+			) {
+				return;
+			}
+			if (
+				CurrentScreen === "FriendList" ||
+				CurrentScreen === "Relog" ||
+				CurrentScreen === "Login"
 			) {
 				return;
 			}
