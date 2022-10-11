@@ -1,5 +1,7 @@
 /* eslint-disable */
 
+import { ModSDKGlobalAPI } from "./types/bcModSdk";
+
 export {};
 
 declare global {
@@ -30,6 +32,7 @@ declare global {
   var bceStripBeepMetadata: (text: string) => string;
   var bce_ArousalExpressionStages: ArousalExpressionStages;
   var bce_ActivityTriggers: ActivityTrigger[];
+  var bcModSdk: ModSDKGlobalAPI | undefined;
   var ActivityDictionary: string[][];
   var ActivityCheckPrerequisite: (
     pre: string,
