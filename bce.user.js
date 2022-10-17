@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Bondage Club Enhancements
 // @namespace https://www.bondageprojects.com/
-// @version 4.3
+// @version 4.4
 // @description FBC - For Better Club - enhancements for the bondage club - old name kept in tampermonkey for compatibility
 // @author Sidious
 // @match https://bondageprojects.elementfx.com/*
@@ -39,17 +39,17 @@
  *  along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-const FBC_VERSION = "4.3";
+const FBC_VERSION = "4.4";
 const settingsVersion = 44;
 
 const fbcChangelog = `${FBC_VERSION}
+- R85 compatibility
+
+4.3
 - fix race condition in bcModSdk initialization
 
 4.2
 - R85 beta 1 compatibility
-
-4.1
-- fix whitelisting for anti-cheat, additional logging in lock validation
 `;
 
 /*
@@ -66,7 +66,7 @@ window.bcModSdk=function(){"use strict";const o="1.0.2";function e(o){alert("Mod
 async function ForBetterClub() {
 	"use strict";
 
-	const SUPPORTED_GAME_VERSIONS = ["R84", "R85Beta1"];
+	const SUPPORTED_GAME_VERSIONS = ["R84", "R85Beta1", "R85"];
 	const CAPABILITIES = ["clubslave"];
 
 	const w = window;
@@ -1175,6 +1175,22 @@ async function ForBetterClub() {
 		};
 
 		switch (gameVersion) {
+			case "R85":
+				hashes.AppearanceClick = "D29F295D";
+				hashes.AppearanceRun = "C65F23EF";
+				hashes.ChatRoomMessage = "91C72542";
+				hashes.CommandParse = "6E46F29E";
+				hashes.CraftingClick = "8C0B062E";
+				hashes.CraftingRun = "E41A3822";
+				hashes.DialogDrawItemMenu = "E8711B10";
+				hashes.ElementIsScrolledToEnd = "1CC4FE11";
+
+				// New in R85
+				hashes.ChatRoomHTMLEntities = "0A7ADB1D";
+				hashes.ChatRoomMessageDisplay = "A11BF94B";
+				hashes.ChatRoomRegisterMessageHandler = "C432923A";
+				hashes.SpeechGarble = "9D669F73";
+				break;
 			case "R85Beta1":
 				hashes.AppearanceClick = "D29F295D";
 				hashes.AppearanceRun = "C65F23EF";
