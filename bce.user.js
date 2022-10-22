@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Bondage Club Enhancements
 // @namespace https://www.bondageprojects.com/
-// @version 4.4
+// @version 4.5
 // @description FBC - For Better Club - enhancements for the bondage club - old name kept in tampermonkey for compatibility
 // @author Sidious
 // @match https://bondageprojects.elementfx.com/*
@@ -39,10 +39,13 @@
  *  along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-const FBC_VERSION = "4.4";
+const FBC_VERSION = "4.5";
 const settingsVersion = 44;
 
 const fbcChangelog = `${FBC_VERSION}
+- BCX update
+
+4.4
 - R85 compatibility
 
 4.3
@@ -93,7 +96,7 @@ async function ForBetterClub() {
 	const BCX_DEVEL_SOURCE =
 			"https://jomshir98.github.io/bondage-club-extended/devel/bcx.js",
 		BCX_SOURCE =
-			"https://raw.githubusercontent.com/Jomshir98/bondage-club-extended/a83bd0b7ed44355232c0a0da9cec8bbc0390bcf5/bcx.js",
+			"https://raw.githubusercontent.com/Jomshir98/bondage-club-extended/29245b7890fd38cf7d9f74ca5a857740079fd503/bcx.js",
 		EBCH_SOURCE = "https://e2466.gitlab.io/ebch/master/EBCH.js";
 
 	const BCE_COLOR_ADJUSTMENTS_CLASS_NAME = "bce-colors",
