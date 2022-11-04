@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Bondage Club Enhancements
 // @namespace https://www.bondageprojects.com/
-// @version 4.5
+// @version 4.6
 // @description FBC - For Better Club - enhancements for the bondage club - old name kept in tampermonkey for compatibility
 // @author Sidious
 // @match https://bondageprojects.elementfx.com/*
@@ -39,20 +39,17 @@
  *  along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-const FBC_VERSION = "4.5";
+const FBC_VERSION = "4.6";
 const settingsVersion = 44;
 
 const fbcChangelog = `${FBC_VERSION}
+- fix "nonce" in messages becoming a number when pending messages are used
+
+4.5
 - BCX update
 
 4.4
 - R85 compatibility
-
-4.3
-- fix race condition in bcModSdk initialization
-
-4.2
-- R85 beta 1 compatibility
 `;
 
 /*
@@ -9300,7 +9297,7 @@ async function ForBetterClub() {
 					Array.isArray(args[0].Dictionary)
 				) {
 					const [message] = args;
-					const tag = message.Dictionary?.find?.((d) => d.Tag === "nonce");
+					const tag = message.Dictionary?.find?.((d) => d.Tag === "fbc_nonce");
 					if (tag) {
 						const el = document.querySelector(`[data-nonce='${tag.Text}']`);
 						if (el) {
@@ -9330,7 +9327,7 @@ async function ForBetterClub() {
 					}
 					args[1].Dictionary = addToDictionary(
 						args[1].Dictionary,
-						"nonce",
+						"fbc_nonce",
 						nonce
 					);
 					const div = document.createElement("div");
