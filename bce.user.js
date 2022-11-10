@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Bondage Club Enhancements
 // @namespace https://www.bondageprojects.com/
-// @version 4.6
+// @version 4.7
 // @description FBC - For Better Club - enhancements for the bondage club - old name kept in tampermonkey for compatibility
 // @author Sidious
 // @match https://bondageprojects.elementfx.com/*
@@ -39,17 +39,19 @@
  *  along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-const FBC_VERSION = "4.6";
+const FBC_VERSION = "4.7";
 const settingsVersion = 44;
 
 const fbcChangelog = `${FBC_VERSION}
+4.7
+- removed R84 compatibility
+- added preliminary R86Beta1 compatibility
+
+4.6
 - fix "nonce" in messages becoming a number when pending messages are used
 
 4.5
 - BCX update
-
-4.4
-- R85 compatibility
 `;
 
 /*
@@ -66,7 +68,7 @@ window.bcModSdk=function(){"use strict";const o="1.0.2";function e(o){alert("Mod
 async function ForBetterClub() {
 	"use strict";
 
-	const SUPPORTED_GAME_VERSIONS = ["R84", "R85Beta1", "R85"];
+	const SUPPORTED_GAME_VERSIONS = ["R85", "R86Beta1"];
 	const CAPABILITIES = ["clubslave"];
 
 	const w = window;
@@ -1043,10 +1045,10 @@ async function ForBetterClub() {
 			ActivitySetArousal: "3AE28123",
 			ActivitySetArousalTimer: "A034E6C0",
 			ActivityTimerProgress: "6CD388A7",
-			AppearanceClick: "0D1455A9",
+			AppearanceClick: "D29F295D",
 			AppearanceExit: "AA300341",
 			AppearanceLoad: "A14CB302",
-			AppearanceRun: "6DDA14A1",
+			AppearanceRun: "C65F23EF",
 			CharacterAppearanceWardrobeLoad: "A5B63A03",
 			CharacterBuildDialog: "3CC4F4AA",
 			CharacterCompressWardrobe: "8D3B1AB1",
@@ -1069,25 +1071,28 @@ async function ForBetterClub() {
 			ChatRoomCurrentTime: "A462DD3A",
 			ChatRoomDrawBackground: "597B062C",
 			ChatRoomDrawCharacterOverlay: "4AE4AD9E",
+			ChatRoomHTMLEntities: "0A7ADB1D",
 			ChatRoomKeyDown: "B4BFDB0C",
 			ChatRoomListManipulation: "75D28A8B",
-			ChatRoomMessage: "F6D15264",
+			ChatRoomMessage: "91C72542",
+			ChatRoomMessageDisplay: "A11BF94B",
+			ChatRoomRegisterMessageHandler: "C432923A",
 			ChatRoomResize: "9D52CF52",
-			ChatRoomRun: "685FF69C",
+			ChatRoomRun: "E41A3822",
 			ChatRoomSendChat: "7F540ED0",
 			ChatRoomStart: "9CB3783A",
 			CommandExecute: "12B2BAA4",
-			CommandParse: "B398E685",
+			CommandParse: "6E46F29E",
 			CommonClick: "1F6DF7CB",
 			CommonColorIsValid: "390A2CE4",
 			CommonSetScreen: "17692CD7",
-			CraftingClick: "233CD295",
+			CraftingClick: "8C0B062E",
 			CraftingConvertSelectedToItem: "EB2512A3",
 			CraftingRun: "8344BFEB",
 			CraftingUpdatePreview: "036B150C",
 			DialogClick: "592A4F65",
 			DialogDraw: "7AD8C0F6",
-			DialogDrawItemMenu: "FB5172D2",
+			DialogDrawItemMenu: "E8711B10",
 			DialogLeave: "354CBC00",
 			DrawAssetPreview: "5BD59B42",
 			DrawBackNextButton: "0DE5491B",
@@ -1101,7 +1106,7 @@ async function ForBetterClub() {
 			DrawTextFit: "F9A1B11E",
 			ElementCreateInput: "2B2603E4",
 			ElementCreateTextArea: "9A16F87A",
-			ElementIsScrolledToEnd: "D28B0638",
+			ElementIsScrolledToEnd: "1CC4FE11",
 			ElementPosition: "CC4E3C82",
 			ElementRemove: "60809E60",
 			ElementScrollToEnd: "1AC45575",
@@ -1154,6 +1159,7 @@ async function ForBetterClub() {
 			ServerOpenFriendList: "FA8D3CDE",
 			ServerSend: "90A61F57",
 			SkillGetWithRatio: "16620445",
+			SpeechGarble: "9D669F73",
 			SpeechGarbleByGagLevel: "2AEDED9D",
 			SpeechGetTotalGagLevel: "C55B705A",
 			StruggleDexterity: "95812A41",
@@ -1175,36 +1181,27 @@ async function ForBetterClub() {
 		};
 
 		switch (gameVersion) {
-			case "R85":
-				hashes.AppearanceClick = "D29F295D";
-				hashes.AppearanceRun = "C65F23EF";
-				hashes.ChatRoomMessage = "91C72542";
-				hashes.CommandParse = "6E46F29E";
-				hashes.CraftingClick = "8C0B062E";
-				hashes.CraftingRun = "E41A3822";
-				hashes.DialogDrawItemMenu = "E8711B10";
-				hashes.ElementIsScrolledToEnd = "1CC4FE11";
-
-				// New in R85
-				hashes.ChatRoomHTMLEntities = "0A7ADB1D";
-				hashes.ChatRoomMessageDisplay = "A11BF94B";
-				hashes.ChatRoomRegisterMessageHandler = "C432923A";
-				hashes.SpeechGarble = "9D669F73";
-				break;
-			case "R85Beta1":
-				hashes.AppearanceClick = "D29F295D";
-				hashes.AppearanceRun = "C65F23EF";
-				hashes.ChatRoomMessage = "BC1AF8B4";
-				hashes.CommandParse = "6E46F29E";
-				hashes.CraftingClick = "8C0B062E";
-				hashes.CraftingRun = "E41A3822";
-				hashes.DialogDrawItemMenu = "E8711B10";
-
-				// New in R85
-				hashes.ChatRoomHTMLEntities = "0A7ADB1D";
-				hashes.ChatRoomMessageDisplay = "C56FD561";
-				hashes.ChatRoomRegisterMessageHandler = "C432923A";
-				hashes.SpeechGarble = "9D669F73";
+			case "R86Beta1":
+				hashes.ActivitySetArousalTimer = "B94F0FC6";
+				hashes.AppearanceClick = "0D1455A9";
+				hashes.AppearanceRun = "6DDA14A1";
+				hashes.CharacterGetCurrent = "45608177";
+				hashes.ChatRoomRun = "685FF69C";
+				hashes.ChatRoomStart = "9B822A9A";
+				hashes.CraftingClick = "652CFC95";
+				hashes.CraftingConvertSelectedToItem = "95C85D84";
+				hashes.CraftingRun = "ADEAFA91";
+				hashes.CraftingUpdatePreview = "5F3030D4";
+				hashes.DialogClick = "EC7CDA6E";
+				hashes.DialogDrawItemMenu = "082820A7";
+				hashes.DrawCharacter = "0BBAEBAF";
+				hashes.InformationSheetRun = "5CF880E9";
+				hashes.InventoryItemMiscLoversTimerPadlockDraw = "17B011B6";
+				hashes.InventoryItemMiscMistressTimerPadlockExit = "0C006666";
+				hashes.InventoryItemMiscOwnerTimerPadlockClick = "86A9C007";
+				hashes.InventoryItemMiscOwnerTimerPadlockDraw = "E63EF60F";
+				hashes.InventoryItemMiscOwnerTimerPadlockExit = "C04C32ED";
+				hashes.ServerAccountBeep = "F16771D4";
 				break;
 			default:
 				break;
@@ -1425,6 +1422,71 @@ async function ForBetterClub() {
 		date.setSeconds(date.getSeconds() + seconds);
 		return date.getTime();
 	};
+
+	const fbcDebug = async () => {
+		/** @type {Map<string, string>} */
+		const info = new Map();
+		info.set("Browser", navigator.userAgent);
+		info.set(
+			"Game Version",
+			`${GameVersion}${
+				SUPPORTED_GAME_VERSIONS.includes(GameVersion) ? "" : " (unsupported)"
+			}`
+		);
+		info.set("WebGL Version", GLVersion);
+		info.set("FBC Version", FBC_VERSION);
+		info.set(
+			"FBC Enabled Settings",
+			`\n- ${Object.entries(fbcSettings)
+				.filter(([k, v]) => v || k === "version")
+				.map(([k, v]) => `${k}: ${v.toString()}`)
+				.join("\n- ")}`
+		);
+		if (toySyncState.client?.Connected) {
+			info.set(
+				"Buttplug.io Devices",
+				toySyncState.client.Devices.map(
+					(d) => `${d.Name} (${d.AllowedMessages.join(",")})`
+				).join(", ")
+			);
+		}
+		info.set(
+			"SDK Mods",
+			`\n- ${bcModSdk
+				.getModsInfo()
+				.map((m) => `${m.name} @ ${m.version}`)
+				.join("\n- ")}`
+		);
+		info.set("Modified Functions (non-SDK)", deviatingHashes.join(", "));
+		info.set(
+			"Skipped Functionality for Compatibility",
+			`\n- ${skippedFunctionality.join("\n- ")}`
+		);
+		info.set(
+			"Log",
+			pastLogs
+				.filter((v) => v)
+				.map((v) => `[${v.level.toUpperCase()}] ${v.message}`)
+				.join("\n")
+		);
+		const print = Array.from(info)
+			.map(([k, v]) => `${k}: ${v}`)
+			.join("\n");
+		fbcChatNotify(
+			`${print}\n\n**The report has been copied to your clipboard.**`
+		);
+		// Not using FBC's debug() to avoid the report ending up on future reports
+		console.debug(
+			`${print}\n\n**The report has been copied to your clipboard.**`
+		);
+		await navigator.clipboard.writeText(print);
+		if (skippedFunctionality.length > 0) {
+			fbcChatNotify(
+				"If you are running another addon that modifies the game, but is not listed above, please tell its developer to use https://github.com/Jomshir98/bondage-club-mod-sdk to hook into the game instead. This is a very cheap and easy way for addon developers to almost guarantee compatibility with other addons."
+			);
+		}
+	};
+	w.fbcDebug = fbcDebug;
 
 	await functionIntegrityCheck();
 	bceStyles();
@@ -1955,65 +2017,7 @@ async function ForBetterClub() {
 				Description: displayText(
 					"Get debug information to share with developers."
 				),
-				Action: async () => {
-					/** @type {Map<string, string>} */
-					const info = new Map();
-					info.set("Browser", navigator.userAgent);
-					info.set(
-						"Game Version",
-						`${GameVersion}${
-							SUPPORTED_GAME_VERSIONS.includes(GameVersion)
-								? ""
-								: " (unsupported)"
-						}`
-					);
-					info.set("WebGL Version", GLVersion);
-					info.set("FBC Version", FBC_VERSION);
-					info.set(
-						"FBC Enabled Settings",
-						`\n- ${Object.entries(fbcSettings)
-							.filter(([k, v]) => v || k === "version")
-							.map(([k, v]) => `${k}: ${v.toString()}`)
-							.join("\n- ")}`
-					);
-					if (toySyncState.client?.Connected) {
-						info.set(
-							"Buttplug.io Devices",
-							toySyncState.client.Devices.map(
-								(d) => `${d.Name} (${d.AllowedMessages.join(",")})`
-							).join(", ")
-						);
-					}
-					info.set(
-						"SDK Mods",
-						`\n- ${bcModSdk
-							.getModsInfo()
-							.map((m) => `${m.name} @ ${m.version}`)
-							.join("\n- ")}`
-					);
-					info.set("Modified Functions (non-SDK)", deviatingHashes.join(", "));
-					info.set(
-						"Skipped Functionality for Compatibility",
-						`\n- ${skippedFunctionality.join("\n- ")}`
-					);
-					info.set(
-						"Log",
-						pastLogs
-							.filter((v) => v)
-							.map((v) => `[${v.level.toUpperCase()}] ${v.message}`)
-							.join("\n")
-					);
-					const print = Array.from(info)
-						.map(([k, v]) => `${k}: ${v}`)
-						.join("\n");
-					fbcChatNotify(`${print}\n\nThis has been copied to your clipboard.`);
-					await navigator.clipboard.writeText(print);
-					if (skippedFunctionality.length > 0) {
-						fbcChatNotify(
-							"If you are running another addon that modifies the game, but is not listed above, please tell its developer to use https://github.com/Jomshir98/bondage-club-mod-sdk to hook into the game instead. This is a very cheap and easy way for addon developers to almost guarantee compatibility with other addons."
-						);
-					}
-				},
+				Action: fbcDebug,
 			},
 			{
 				Tag: "fbcchangelog",
@@ -6418,12 +6422,11 @@ async function ForBetterClub() {
 		await waitFor(() => !!SpeechGarbleByGagLevel);
 
 		// Antigarble patch for message printing
-		if (GameVersion.startsWith("R85")) {
-			// Whisper reply button
-			patchFunction(
-				"ChatRoomMessageDisplay",
-				{
-					"div.innerHTML = msg;": `div.innerHTML = msg;
+		// Whisper reply button
+		patchFunction(
+			"ChatRoomMessageDisplay",
+			{
+				"div.innerHTML = msg;": `div.innerHTML = msg;
 				if (data.Type === "Whisper") {
 					let repl = document.createElement("a");
 					repl.href = "#";
@@ -6436,101 +6439,66 @@ async function ForBetterClub() {
 					repl.textContent = '\u21a9\ufe0f';
 					div.prepend(repl);
 				}`,
-				},
-				"No whisper reply button in chat"
-			);
+			},
+			"No whisper reply button in chat"
+		);
 
-			ChatRoomRegisterMessageHandler({
-				Priority: 1,
-				Description: "Anti-garbling by FBC",
-				Callback: (data, sender, msg) => {
-					const clientGagged = msg.endsWith(GAGBYPASSINDICATOR);
-					msg = msg.replace(/[\uE000-\uF8FF]/gu, "");
-					let handled = clientGagged;
-					if (fbcSettings.gagspeak && !clientGagged) {
-						switch (data.Type) {
-							case "Whisper":
-								{
-									let original = msg;
-									if (
-										data.Dictionary?.some((d) => d.Tag === BCX_ORIGINAL_MESSAGE)
-									) {
-										original = ChatRoomHTMLEntities(
-											data.Dictionary.find(
-												(d) => d.Tag === BCX_ORIGINAL_MESSAGE
-											).Text
-										);
-									}
-									if (
-										original.toLowerCase().trim() !== msg.toLowerCase().trim()
-									) {
-										msg += ` (${original})`;
-										handled = true;
-									}
+		ChatRoomRegisterMessageHandler({
+			Priority: 1,
+			Description: "Anti-garbling by FBC",
+			Callback: (data, sender, msg) => {
+				const clientGagged = msg.endsWith(GAGBYPASSINDICATOR);
+				msg = msg.replace(/[\uE000-\uF8FF]/gu, "");
+				let handled = clientGagged;
+				if (fbcSettings.gagspeak && !clientGagged) {
+					switch (data.Type) {
+						case "Whisper":
+							{
+								let original = msg;
+								if (
+									data.Dictionary?.some((d) => d.Tag === BCX_ORIGINAL_MESSAGE)
+								) {
+									original = ChatRoomHTMLEntities(
+										data.Dictionary.find((d) => d.Tag === BCX_ORIGINAL_MESSAGE)
+											.Text
+									);
 								}
-								break;
-							case "Chat":
-								{
-									const original = msg;
-									msg = SpeechGarble(sender, msg);
-									if (
-										original.toLowerCase().trim() !==
-											msg.toLowerCase().trim() &&
-										SpeechGetTotalGagLevel(sender) > 0
-									) {
-										msg += ` (${original})`;
-										handled = true;
-									}
+								if (
+									original.toLowerCase().trim() !== msg.toLowerCase().trim()
+								) {
+									msg += ` (${original})`;
+									handled = true;
 								}
-								break;
-							default:
-								break;
-						}
+							}
+							break;
+						case "Chat":
+							{
+								const original = msg;
+								msg = SpeechGarble(sender, msg);
+								if (
+									original.toLowerCase().trim() !== msg.toLowerCase().trim() &&
+									SpeechGetTotalGagLevel(sender) > 0
+								) {
+									msg += ` (${original})`;
+									handled = true;
+								}
+							}
+							break;
+						default:
+							break;
 					}
+				}
 
-					const skip = (
-						/** @type {ChatRoomMessageHandler} */
-						handler
-					) =>
-						handler.Description === "Sensory-deprivation processing" &&
-						!!fbcSettings.gagspeak &&
-						handled;
-					return { skip, msg };
-				},
-			});
-		} else {
-			patchFunction(
-				"ChatRoomMessage",
-				{
-					"div.innerHTML = msg;": `div.innerHTML = msg;
-					if (data.Type === "Whisper") {
-						let repl = document.createElement("a");
-						repl.href = "#";
-						repl.onclick = (e) => {
-							e.preventDefault();
-							ElementValue("InputChat", \`/w \${SenderCharacter.MemberNumber} \${ElementValue("InputChat").replace(/^\\/(beep|w) \\S+ ?/u, '')}\`);
-							window.InputChat.focus();
-						};
-						repl.classList.add("bce-button");
-						repl.textContent = '\u21a9\ufe0f';
-						div.prepend(repl);
-					}`,
-					"const chatMsg": `const clientGagged = data.Content.endsWith('\\uf123');data.Content = data.Content.replace(/[\\uE000-\\uF8FF]/gu, '');const chatMsg`,
-					"msg += chatMsg;": `msg += chatMsg;
-				if (bceSettingValue("gagspeak") && SpeechGetTotalGagLevel(SenderCharacter) > 0 && !clientGagged) {
-					let original = data.Content;
-					if (data.Type === "Whisper" && data.Dictionary?.some(d => d.Tag === "${BCX_ORIGINAL_MESSAGE}")) {
-						original = data.Dictionary.find(d => d.Tag === "${BCX_ORIGINAL_MESSAGE}").Text;
-					}
-					original = ChatRoomHTMLEntities(original);
-					if (original.toLowerCase().trim() !== chatMsg.toLowerCase().trim()) {
-						msg += \` (\${original})\`
-					}
-				}`,
-				},
-				"No anti-garbling."
-			);
-		}
+				const skip = (
+					/** @type {ChatRoomMessageHandler} */
+					handler
+				) =>
+					handler.Description === "Sensory-deprivation processing" &&
+					!!fbcSettings.gagspeak &&
+					handled;
+				return { skip, msg };
+			},
+		});
 
 		// ServerSend hook for client-side gagspeak, priority lower than BCX's whisper dictionary hook
 		SDK.hookFunction("ServerSend", 0, (args, next) => {
@@ -6808,6 +6776,14 @@ async function ForBetterClub() {
 
 	async function alternateArousal() {
 		await waitFor(() => !!ServerSocket && ServerIsConnected);
+
+		if (GameVersion.startsWith("R86")) {
+			debug(
+				"R86 beta 1 arousal is broken, disabling attempts to hook into arousal"
+			);
+			return;
+		}
+
 		Player.BCEArousalProgress = Math.min(
 			BCE_MAX_AROUSAL,
 			Player.ArousalSettings.Progress
@@ -7685,7 +7661,12 @@ async function ForBetterClub() {
 				ServerSend("ChatRoomLeave", "");
 				CommonSetScreen("Online", "ChatSearch");
 			} else {
-				ChatRoomStart("", "", "MainHall", "Introduction", BackgroundsTagList);
+				if (GameVersion.startsWith("R86")) {
+					ChatRoomStart("", "", null, null, "Introduction", BackgroundsTagList);
+				} else {
+					// @ts-ignore - R85 call signature
+					ChatRoomStart("", "", "MainHall", "Introduction", BackgroundsTagList);
+				}
 			}
 		};
 

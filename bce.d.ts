@@ -10,6 +10,7 @@ declare global {
   /** @deprecated */
   var bceSendAction: (text: string) => void;
   var fbcSendAction: (text: string) => void;
+  var fbcDebug: () => Promise<void>;
   /** @deprecated */
   var bceSettingValue: (key: string) => boolean | number | string;
   var fbcSettingValue: (key: string) => boolean | number | string;
@@ -408,7 +409,8 @@ declare global {
   var ChatRoomStart: (
     space: string,
     game: string,
-    leaveRoom: string,
+    leaveRoom: string | null,
+    leaveSpace: string | null,
     background: string,
     bgTagList: string[]
   ) => void;
