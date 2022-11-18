@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Bondage Club Enhancements
 // @namespace https://www.bondageprojects.com/
-// @version 4.7
+// @version 4.8
 // @description FBC - For Better Club - enhancements for the bondage club - old name kept in tampermonkey for compatibility
 // @author Sidious
 // @match https://bondageprojects.elementfx.com/*
@@ -39,19 +39,19 @@
  *  along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-const FBC_VERSION = "4.7";
+const FBC_VERSION = "4.8";
 const settingsVersion = 44;
 
 const fbcChangelog = `${FBC_VERSION}
+- added R86 compatibility
+- removed R85 compatibility
+
 4.7
 - removed R84 compatibility
 - added preliminary R86Beta1 compatibility
 
 4.6
 - fix "nonce" in messages becoming a number when pending messages are used
-
-4.5
-- BCX update
 `;
 
 /*
@@ -68,7 +68,7 @@ window.bcModSdk=function(){"use strict";const o="1.0.2";function e(o){alert("Mod
 async function ForBetterClub() {
 	"use strict";
 
-	const SUPPORTED_GAME_VERSIONS = ["R85", "R86Beta1"];
+	const SUPPORTED_GAME_VERSIONS = ["R86"];
 	const CAPABILITIES = ["clubslave"];
 
 	const w = window;
@@ -1043,18 +1043,18 @@ async function ForBetterClub() {
 		const hashes = {
 			ActivityChatRoomArousalSync: "21318CAF",
 			ActivitySetArousal: "3AE28123",
-			ActivitySetArousalTimer: "A034E6C0",
+			ActivitySetArousalTimer: "AC563FD4",
 			ActivityTimerProgress: "6CD388A7",
-			AppearanceClick: "D29F295D",
+			AppearanceClick: "0D1455A9",
 			AppearanceExit: "AA300341",
 			AppearanceLoad: "A14CB302",
-			AppearanceRun: "C65F23EF",
+			AppearanceRun: "6DDA14A1",
 			CharacterAppearanceWardrobeLoad: "A5B63A03",
 			CharacterBuildDialog: "3CC4F4AA",
 			CharacterCompressWardrobe: "8D3B1AB1",
 			CharacterDecompressWardrobe: "A9FD29CC",
 			CharacterDelete: "398D1116",
-			CharacterGetCurrent: "A4EA6438",
+			CharacterGetCurrent: "45608177",
 			CharacterLoadCanvas: "678F3155",
 			CharacterLoadSimple: "7F6FA9F2",
 			CharacterNickname: "EB452E5E",
@@ -1074,30 +1074,30 @@ async function ForBetterClub() {
 			ChatRoomHTMLEntities: "0A7ADB1D",
 			ChatRoomKeyDown: "B4BFDB0C",
 			ChatRoomListManipulation: "75D28A8B",
-			ChatRoomMessage: "91C72542",
+			ChatRoomMessage: "BBD61334",
 			ChatRoomMessageDisplay: "A11BF94B",
 			ChatRoomRegisterMessageHandler: "C432923A",
 			ChatRoomResize: "9D52CF52",
-			ChatRoomRun: "E41A3822",
+			ChatRoomRun: "685FF69C",
 			ChatRoomSendChat: "7F540ED0",
-			ChatRoomStart: "9CB3783A",
+			ChatRoomStart: "9B822A9A",
 			CommandExecute: "12B2BAA4",
 			CommandParse: "6E46F29E",
 			CommonClick: "1F6DF7CB",
 			CommonColorIsValid: "390A2CE4",
 			CommonSetScreen: "17692CD7",
-			CraftingClick: "8C0B062E",
-			CraftingConvertSelectedToItem: "EB2512A3",
-			CraftingRun: "8344BFEB",
-			CraftingUpdatePreview: "036B150C",
-			DialogClick: "592A4F65",
+			CraftingClick: "BF7CE7B2",
+			CraftingConvertSelectedToItem: "46CE5BE0",
+			CraftingRun: "ADEAFA91",
+			CraftingUpdatePreview: "5F3030D4",
+			DialogClick: "EC7CDA6E",
 			DialogDraw: "7AD8C0F6",
-			DialogDrawItemMenu: "E8711B10",
-			DialogLeave: "354CBC00",
+			DialogDrawItemMenu: "082820A7",
+			DialogLeave: "E929C751",
 			DrawAssetPreview: "5BD59B42",
 			DrawBackNextButton: "0DE5491B",
 			DrawButton: "63FDE2B2",
-			DrawCharacter: "C8F13D85",
+			DrawCharacter: "0BBAEBAF",
 			DrawCheckbox: "00FD87EB",
 			DrawImageEx: "3D3D74F5",
 			DrawImageResize: "8CF55F04",
@@ -1110,23 +1110,23 @@ async function ForBetterClub() {
 			ElementPosition: "CC4E3C82",
 			ElementRemove: "60809E60",
 			ElementScrollToEnd: "1AC45575",
-			ElementValue: "429E34AA",
+			ElementValue: "4F26C62F",
 			FriendListShowBeep: "6C0449BB",
 			GLDrawResetCanvas: "EDF1631A",
-			InformationSheetRun: "EE8678A4",
+			InformationSheetRun: "5CF880E9",
 			InventoryGet: "E666F671",
-			InventoryItemMiscLoversTimerPadlockClick: "B8F431EB",
-			InventoryItemMiscLoversTimerPadlockDraw: "87818D41",
-			InventoryItemMiscLoversTimerPadlockExit: "D316C21B",
-			InventoryItemMiscLoversTimerPadlockLoad: "6931D8FF",
+			InventoryItemMiscLoversTimerPadlockClick: "CC5C05E9",
+			InventoryItemMiscLoversTimerPadlockDraw: "2D5A1761",
+			InventoryItemMiscLoversTimerPadlockExit: "87644C62",
+			InventoryItemMiscLoversTimerPadlockLoad: "5394C9F2",
 			InventoryItemMiscMistressTimerPadlockClick: "7DCDC57B",
 			InventoryItemMiscMistressTimerPadlockDraw: "DC5D4BB4",
-			InventoryItemMiscMistressTimerPadlockExit: "479A8F6F",
+			InventoryItemMiscMistressTimerPadlockExit: "0C006666",
 			InventoryItemMiscMistressTimerPadlockLoad: "8B23B841",
-			InventoryItemMiscOwnerTimerPadlockClick: "B36A6AD3",
-			InventoryItemMiscOwnerTimerPadlockDraw: "2E431407",
-			InventoryItemMiscOwnerTimerPadlockExit: "4A0243F9",
-			InventoryItemMiscOwnerTimerPadlockLoad: "06E1141F",
+			InventoryItemMiscOwnerTimerPadlockClick: "2D1A50EC",
+			InventoryItemMiscOwnerTimerPadlockDraw: "6E3EAC17",
+			InventoryItemMiscOwnerTimerPadlockExit: "624990EF",
+			InventoryItemMiscOwnerTimerPadlockLoad: "18A3E78D",
 			InventoryItemMiscTimerPasswordPadlockClick: "CB736461",
 			InventoryItemMiscTimerPasswordPadlockDraw: "953C9EF8",
 			InventoryItemMiscTimerPasswordPadlockExit: "7323E56D",
@@ -1149,8 +1149,8 @@ async function ForBetterClub() {
 			OnlineProfileRun: "B0AF608D",
 			RelogRun: "10AF5A60",
 			RelogExit: "2DFB2DAD",
-			ServerAccountBeep: "6A6EC803",
-			ServerAppearanceBundle: "56C7E218",
+			ServerAccountBeep: "F16771D4",
+			ServerAppearanceBundle: "01223601",
 			ServerAppearanceLoadFromBundle: "7658C7FA",
 			ServerClickBeep: "3E6277BE",
 			ServerConnect: "845E50A6",
@@ -1181,28 +1181,6 @@ async function ForBetterClub() {
 		};
 
 		switch (gameVersion) {
-			case "R86Beta1":
-				hashes.ActivitySetArousalTimer = "B94F0FC6";
-				hashes.AppearanceClick = "0D1455A9";
-				hashes.AppearanceRun = "6DDA14A1";
-				hashes.CharacterGetCurrent = "45608177";
-				hashes.ChatRoomRun = "685FF69C";
-				hashes.ChatRoomStart = "9B822A9A";
-				hashes.CraftingClick = "652CFC95";
-				hashes.CraftingConvertSelectedToItem = "95C85D84";
-				hashes.CraftingRun = "ADEAFA91";
-				hashes.CraftingUpdatePreview = "5F3030D4";
-				hashes.DialogClick = "EC7CDA6E";
-				hashes.DialogDrawItemMenu = "082820A7";
-				hashes.DrawCharacter = "0BBAEBAF";
-				hashes.InformationSheetRun = "5CF880E9";
-				hashes.InventoryItemMiscLoversTimerPadlockDraw = "17B011B6";
-				hashes.InventoryItemMiscMistressTimerPadlockExit = "0C006666";
-				hashes.InventoryItemMiscOwnerTimerPadlockClick = "86A9C007";
-				hashes.InventoryItemMiscOwnerTimerPadlockDraw = "E63EF60F";
-				hashes.InventoryItemMiscOwnerTimerPadlockExit = "C04C32ED";
-				hashes.ServerAccountBeep = "F16771D4";
-				break;
 			default:
 				break;
 		}
@@ -4881,6 +4859,7 @@ async function ForBetterClub() {
 			"Fluids",
 			"Emoticon",
 			"Blush",
+			"Pussy",
 		];
 
 		// When first initializing, set the current face as manual override
@@ -6777,13 +6756,6 @@ async function ForBetterClub() {
 	async function alternateArousal() {
 		await waitFor(() => !!ServerSocket && ServerIsConnected);
 
-		if (GameVersion.startsWith("R86")) {
-			debug(
-				"R86 beta 1 arousal is broken, disabling attempts to hook into arousal"
-			);
-			return;
-		}
-
 		Player.BCEArousalProgress = Math.min(
 			BCE_MAX_AROUSAL,
 			Player.ArousalSettings.Progress
@@ -6818,7 +6790,7 @@ async function ForBetterClub() {
 		patchFunction(
 			"ActivitySetArousalTimer",
 			{
-				"if ((Progress > 0) && (C.ArousalSettings.Progress + Progress > Max)) Progress = (Max - C.ArousalSettings.Progress >= 0) ? Max - C.ArousalSettings.Progress : 0;": `
+				"if (Progress > 0 && (C.ArousalSettings.Progress + Progress) > Max)\n\t\tProgress = (Max - C.ArousalSettings.Progress >= 0) ? Max - C.ArousalSettings.Progress : 0;": `
 				if (!C.BCEArousal) {
 					if ((Progress > 0) && (C.ArousalSettings.Progress + Progress > Max)) Progress = (Max - C.ArousalSettings.Progress >= 0) ? Max - C.ArousalSettings.Progress : 0;
 				} else {
