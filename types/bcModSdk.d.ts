@@ -1,31 +1,43 @@
+/** @public */
+declare const bcModSdk: ModSDKGlobalAPI<unknown>;
+export default bcModSdk;
+
 /**
  * The global API of the SDK
  *
  * Accessible using the exported value or as `window.bcModSdk`
  * @public
  */
-export declare interface ModSDKGlobalAPI {
-  /** The version of the SDK itself. Attempting to load two different SDK versions will fail. */
-  version: string;
+export declare interface ModSDKGlobalAPI<Unknown = unknown> {
+  /** The version of the SDK itself. Attempting to load two different SDK versions will warn, but work as long as `apiVersion` is same. */
+  readonly version: string;
+  /** The API version of the SDK itself. Attempting to load two different SDK versions will fail. */
+  readonly apiVersion: number;
   /**
    * Register a mod, receiving access to the mod API
-   * @param name - Name of the mod
-   * @param version - Version or other metadata for the mod, visible by other mods
-   * @param allowReplace - If `true` subsequent calls to `registerMod` will unload old one, replacing it.
-   * If `false` any attempt to register a new mod with same name will fail. Defaults to `false`
+   * @param info - Info about the mod, necessary to register the mod
+   * @param options - [OPTIONAL] Options the mod can specify for ModSDK
    * @returns The API usable by mod. @see ModSDKModAPI
+   * @see ModSDKModInfo
+   */
+  registerMod(
+    info: ModSDKModInfo,
+    options?: ModSDKModOptions
+  ): ModSDKModAPI<Unknown>;
+  /**
+   * @deprecated This way to register mod is deprecated in favour of passing object info, which is more future-proof
    */
   registerMod(
     name: string,
     version: string,
     allowReplace?: boolean
-  ): ModSDKModAPI;
+  ): ModSDKModAPI<Unknown>;
   /** Get info about all registered mods */
   getModsInfo(): ModSDKModInfo[];
   /** Get info about all modified functions */
   getPatchingInfo(): Map<string, PatchedFunctionInfo>;
   /** Internal API, please **DO NOT USE** */
-  errorReporterHooks: {
+  readonly errorReporterHooks: {
     hookEnter: ((fn: string, mod: string) => () => void) | null;
     hookChainExit:
       | ((fn: string, patchMods: ReadonlySet<string>) => () => void)
@@ -34,8 +46,8 @@ export declare interface ModSDKGlobalAPI {
 }
 
 /** @public */
-export declare interface ModSDKModAPI {
-  /** Unload this mod, removing any hooks or patches by it. To continue using SDK another call to `registerMod` is required */
+export declare interface ModSDKModAPI<Unknown = unknown> {
+  /** Unload this mod, removing unknown hooks or patches by it. To continue using SDK another call to `registerMod` is required */
   unload(): void;
   /**
    * Hook a BC function
@@ -47,10 +59,10 @@ export declare interface ModSDKModAPI {
   hookFunction(
     functionName: string,
     priority: number,
-    hook: PatchHook
+    hook: PatchHook<Unknown>
   ): () => void;
   /**
-   * Call original function, bypassing any hooks and ignoring any patches applied by ALL mods.
+   * Call original function, bypassing unknown hooks and ignoring unknown patches applied by ALL mods.
    * @param functionName - Name of function to call. Can contain dots to change methods in objects (e.g. `Player.CanChange`)
    * @param args - Arguments to use for the call
    * @param context - `this` context to use. Defaults to `window`. If calling method of object, then set this to the object itself (e.g. `functionName` = `Player.CanChange` then `context` = `Player`)
@@ -98,8 +110,30 @@ export declare interface ModSDKModAPI {
  * @public
  */
 export declare interface ModSDKModInfo {
+  /** Short name or abbreviation of the mod */
   name: string;
+  /** Full name of the mod */
+  fullName: string;
+  /** Version or other metadata for the mod, visible by other mods */
   version: string;
+  /** Link to public repository with source code for this mod */
+  repository?: string;
+}
+
+/**
+ * Additional options mods can optionally give when registering
+ * @public
+ */
+export declare interface ModSDKModOptions {
+  /**
+   * [OPTIONAL]
+   *
+   * If `true` subsequent calls to `registerMod` will unload old one, replacing it.
+   *
+   * If `false` unknown attempt to register a new mod with same name will fail.
+   * @default false
+   */
+  allowReplace?: boolean;
 }
 
 /**
@@ -108,8 +142,18 @@ export declare interface ModSDKModInfo {
  */
 export declare interface PatchedFunctionInfo {
   name: string;
+  /** The original function */
+  original?: (...args: unknown[]) => unknown;
   /** CRC32 has of the original function */
   originalHash: string;
+  /** SDK-generated entrypoint that the global function was replaced with */
+  sdkEntrypoint?: (...args: unknown[]) => unknown;
+  /**
+   * Entrypoint that SDK collected at the time of calling of the `getPatchingInfo` method.
+   *
+   * If the function wasn't overwritten, it should equal `sdkEntrypoint`
+   */
+  currentEntrypoint?: (...args: unknown[]) => unknown;
   /** List of names of mods that hooked this function */
   hookedByMods: string[];
   /** List of names of mods that patched this function */
@@ -126,9 +170,9 @@ export declare interface PatchedFunctionInfo {
  * The return value is then used as return value instead of original one.
  * @public
  */
-export declare type PatchHook = (
-  args: unknown[],
-  next: (modifiedArgs: unknown[]) => unknown
+export declare type PatchHook<Unknown = unknown> = (
+  args: Unknown[],
+  next: (args: unknown[]) => Unknown
 ) => unknown;
 
 export {};

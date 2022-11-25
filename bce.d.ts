@@ -10,7 +10,7 @@ declare global {
   /** @deprecated */
   var bceSendAction: (text: string) => void;
   var fbcSendAction: (text: string) => void;
-  var fbcDebug: () => Promise<void>;
+  var fbcDebug: (copy?: boolean) => Promise<string>;
   /** @deprecated */
   var bceSettingValue: (key: string) => boolean | number | string;
   var fbcSettingValue: (key: string) => boolean | number | string;

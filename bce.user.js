@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Bondage Club Enhancements
 // @namespace https://www.bondageprojects.com/
-// @version 4.8
+// @version 4.9
 // @description FBC - For Better Club - enhancements for the bondage club - old name kept in tampermonkey for compatibility
 // @author Sidious
 // @match https://bondageprojects.elementfx.com/*
@@ -39,19 +39,21 @@
  *  along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-const FBC_VERSION = "4.8";
+const FBC_VERSION = "4.9";
 const settingsVersion = 44;
 
 const fbcChangelog = `${FBC_VERSION}
+- update to bcModSDK 1.1
+- eval scope fix
+- more powerful fbcdebug
+
+4.8
 - added R86 compatibility
 - removed R85 compatibility
 
 4.7
 - removed R84 compatibility
 - added preliminary R86Beta1 compatibility
-
-4.6
-- fix "nonce" in messages becoming a number when pending messages are used
 `;
 
 /*
@@ -63,7 +65,7 @@ const fbcChangelog = `${FBC_VERSION}
 // prettier-ignore
 // @ts-ignore
 // eslint-disable-next-line
-window.bcModSdk=function(){"use strict";const o="1.0.2";function e(o){alert("Mod ERROR:\n"+o);const e=new Error(o);throw console.error(e),e}const t=new TextEncoder;function n(o){return!!o&&"object"==typeof o&&!Array.isArray(o)}function r(o){const e=new Set;return o.filter((o=>!e.has(o)&&e.add(o)))}const a=new Map,i=new Set;function d(o){i.has(o)||(i.add(o),console.warn(o))}function c(o,e){if(0===e.size)return o;let t=o.toString().replaceAll("\r\n","\n");for(const[n,r]of e.entries())t.includes(n)||d(`ModSDK: Patching ${o.name}: Patch ${n} not applied`),t=t.replaceAll(n,r);return(0,eval)(`(${t})`)}function s(o){const e=[],t=new Map,n=new Set;for(const r of u.values()){const a=r.patching.get(o.name);if(a){e.push(...a.hooks);for(const[e,i]of a.patches.entries())t.has(e)&&t.get(e)!==i&&d(`ModSDK: Mod '${r.name}' is patching function ${o.name} with same pattern that is already applied by different mod, but with different pattern:\nPattern:\n${e}\nPatch1:\n${t.get(e)||""}\nPatch2:\n${i}`),t.set(e,i),n.add(r.name)}}return e.sort(((o,e)=>e.priority-o.priority)),{hooks:e,patches:t,patchesSources:n,final:c(o.original,t)}}function l(o,e=!1){let r=a.get(o);if(r)e&&(r.precomputed=s(r));else{let e=window;const i=o.split(".");for(let t=0;t<i.length-1;t++)if(e=e[i[t]],!n(e))throw new Error(`ModSDK: Function ${o} to be patched not found; ${i.slice(0,t+1).join(".")} is not object`);const d=e[i[i.length-1]];if("function"!=typeof d)throw new Error(`ModSDK: Function ${o} to be patched not found`);const c=function(o){let e=-1;for(const n of t.encode(o)){let o=255&(e^n);for(let e=0;e<8;e++)o=1&o?-306674912^o>>>1:o>>>1;e=e>>>8^o}return((-1^e)>>>0).toString(16).padStart(8,"0").toUpperCase()}(d.toString().replaceAll("\r\n","\n")),l={name:o,original:d,originalHash:c};r=Object.assign(Object.assign({},l),{precomputed:s(l)}),a.set(o,r),e[i[i.length-1]]=function(o){return function(...e){const t=o.precomputed,n=t.hooks,r=t.final;let a=0;const i=d=>{var c,s,l,f;if(a<n.length){const e=n[a];a++;const t=null===(s=(c=w.errorReporterHooks).hookEnter)||void 0===s?void 0:s.call(c,o.name,e.mod),r=e.hook(d,i);return null==t||t(),r}{const n=null===(f=(l=w.errorReporterHooks).hookChainExit)||void 0===f?void 0:f.call(l,o.name,t.patchesSources),a=r.apply(this,e);return null==n||n(),a}};return i(e)}}(r)}return r}function f(){const o=new Set;for(const e of u.values())for(const t of e.patching.keys())o.add(t);for(const e of a.keys())o.add(e);for(const e of o)l(e,!0)}function p(){const o=new Map;for(const[e,t]of a)o.set(e,{name:e,originalHash:t.originalHash,hookedByMods:r(t.precomputed.hooks.map((o=>o.mod))),patchedByMods:Array.from(t.precomputed.patchesSources)});return o}const u=new Map;function h(o){u.get(o.name)!==o&&e(`Failed to unload mod '${o.name}': Not registered`),u.delete(o.name),o.loaded=!1}function g(o,t,r){"string"==typeof o&&o||e("Failed to register mod: Expected non-empty name string, got "+typeof o),"string"!=typeof t&&e(`Failed to register mod '${o}': Expected version string, got ${typeof t}`),r=!0===r;const a=u.get(o);a&&(a.allowReplace&&r||e(`Refusing to load mod '${o}': it is already loaded and doesn't allow being replaced.\nWas the mod loaded multiple times?`),h(a));const i=t=>{"string"==typeof t&&t||e(`Mod '${o}' failed to patch a function: Expected function name string, got ${typeof t}`);let n=c.patching.get(t);return n||(n={hooks:[],patches:new Map},c.patching.set(t,n)),n},d={unload:()=>h(c),hookFunction:(t,n,r)=>{c.loaded||e(`Mod '${c.name}' attempted to call SDK function after being unloaded`);const a=i(t);"number"!=typeof n&&e(`Mod '${o}' failed to hook function '${t}': Expected priority number, got ${typeof n}`),"function"!=typeof r&&e(`Mod '${o}' failed to hook function '${t}': Expected hook function, got ${typeof r}`);const d={mod:c.name,priority:n,hook:r};return a.hooks.push(d),f(),()=>{const o=a.hooks.indexOf(d);o>=0&&(a.hooks.splice(o,1),f())}},patchFunction:(t,r)=>{c.loaded||e(`Mod '${c.name}' attempted to call SDK function after being unloaded`);const a=i(t);n(r)||e(`Mod '${o}' failed to patch function '${t}': Expected patches object, got ${typeof r}`);for(const[n,i]of Object.entries(r))"string"==typeof i?a.patches.set(n,i):null===i?a.patches.delete(n):e(`Mod '${o}' failed to patch function '${t}': Invalid format of patch '${n}'`);f()},removePatches:o=>{c.loaded||e(`Mod '${c.name}' attempted to call SDK function after being unloaded`);i(o).patches.clear(),f()},callOriginal:(t,n,r)=>(c.loaded||e(`Mod '${c.name}' attempted to call SDK function after being unloaded`),"string"==typeof t&&t||e(`Mod '${o}' failed to call a function: Expected function name string, got ${typeof t}`),Array.isArray(n)||e(`Mod '${o}' failed to call a function: Expected args array, got ${typeof n}`),function(o,e,t=window){return l(o).original.apply(t,e)}(t,n,r)),getOriginalHash:t=>("string"==typeof t&&t||e(`Mod '${o}' failed to get hash: Expected function name string, got ${typeof t}`),l(t).originalHash)},c={name:o,version:t,allowReplace:r,api:d,loaded:!0,patching:new Map};return u.set(o,c),Object.freeze(d)}function m(){const o=[];for(const e of u.values())o.push({name:e.name,version:e.version});return o}let w;const y=void 0===window.bcModSdk?window.bcModSdk=function(){const e={version:o,apiVersion:1,registerMod:g,getModsInfo:m,getPatchingInfo:p,errorReporterHooks:Object.seal({hookEnter:null,hookChainExit:null})};return w=e,Object.freeze(e)}():(n(window.bcModSdk)||e("Failed to init Mod SDK: Name already in use"),1!==window.bcModSdk.apiVersion&&e(`Failed to init Mod SDK: Different version already loaded ('1.0.2' vs '${window.bcModSdk.version}')`),window.bcModSdk.version!==o&&alert(`Mod SDK warning: Loading different but compatible versions ('1.0.2' vs '${window.bcModSdk.version}')\nOne of mods you are using is using an old version of SDK. It will work for now but please inform author to update`),window.bcModSdk);return"undefined"!=typeof exports&&(Object.defineProperty(exports,"__esModule",{value:!0}),exports.default=y),y}();
+var bcModSdk=function(){"use strict";const e="1.1.0";function o(e){alert("Mod ERROR:\n"+e);const o=new Error(e);throw console.error(o),o}const t=new TextEncoder;function n(e){return!!e&&"object"==typeof e&&!Array.isArray(e)}function r(e){const o=new Set;return e.filter((e=>!o.has(e)&&o.add(e)))}const i=new Map,a=new Set;function d(e){a.has(e)||(a.add(e),console.warn(e))}function s(e){const o=[],t=new Map,n=new Set;for(const r of p.values()){const i=r.patching.get(e.name);if(i){o.push(...i.hooks);for(const[o,a]of i.patches.entries())t.has(o)&&t.get(o)!==a&&d(`ModSDK: Mod '${r.name}' is patching function ${e.name} with same pattern that is already applied by different mod, but with different pattern:\nPattern:\n${o}\nPatch1:\n${t.get(o)||""}\nPatch2:\n${a}`),t.set(o,a),n.add(r.name)}}o.sort(((e,o)=>o.priority-e.priority));const r=function(e,o){if(0===o.size)return e;let t=e.toString().replaceAll("\r\n","\n");for(const[n,r]of o.entries())t.includes(n)||d(`ModSDK: Patching ${e.name}: Patch ${n} not applied`),t=t.replaceAll(n,r);return(0,eval)(`(${t})`)}(e.original,t);let i=function(o){var t,i;const a=null===(i=(t=m.errorReporterHooks).hookChainExit)||void 0===i?void 0:i.call(t,e.name,n),d=r.apply(this,o);return null==a||a(),d};for(let t=o.length-1;t>=0;t--){const n=o[t],r=i;i=function(o){var t,i;const a=null===(i=(t=m.errorReporterHooks).hookEnter)||void 0===i?void 0:i.call(t,e.name,n.mod),d=n.hook.apply(this,[o,e=>{if(1!==arguments.length||!Array.isArray(o))throw new Error(`Mod ${n.mod} failed to call next hook: Expected args to be array, got ${typeof e}`);return r.call(this,e)}]);return null==a||a(),d}}return{hooks:o,patches:t,patchesSources:n,enter:i,final:r}}function c(e,o=!1){let r=i.get(e);if(r)o&&(r.precomputed=s(r));else{let o=window;const a=e.split(".");for(let t=0;t<a.length-1;t++)if(o=o[a[t]],!n(o))throw new Error(`ModSDK: Function ${e} to be patched not found; ${a.slice(0,t+1).join(".")} is not object`);const d=o[a[a.length-1]];if("function"!=typeof d)throw new Error(`ModSDK: Function ${e} to be patched not found`);const c=function(e){let o=-1;for(const n of t.encode(e)){let e=255&(o^n);for(let o=0;o<8;o++)e=1&e?-306674912^e>>>1:e>>>1;o=o>>>8^e}return((-1^o)>>>0).toString(16).padStart(8,"0").toUpperCase()}(d.toString().replaceAll("\r\n","\n")),l={name:e,original:d,originalHash:c};r=Object.assign(Object.assign({},l),{precomputed:s(l),router:()=>{},context:o,contextProperty:a[a.length-1]}),r.router=function(e){return function(...o){return e.precomputed.enter.apply(this,[o])}}(r),i.set(e,r),o[r.contextProperty]=r.router}return r}function l(){const e=new Set;for(const o of p.values())for(const t of o.patching.keys())e.add(t);for(const o of i.keys())e.add(o);for(const o of e)c(o,!0)}function f(){const e=new Map;for(const[o,t]of i)e.set(o,{name:o,original:t.original,originalHash:t.originalHash,sdkEntrypoint:t.router,currentEntrypoint:t.context[t.contextProperty],hookedByMods:r(t.precomputed.hooks.map((e=>e.mod))),patchedByMods:Array.from(t.precomputed.patchesSources)});return e}const p=new Map;function u(e){p.get(e.name)!==e&&o(`Failed to unload mod '${e.name}': Not registered`),p.delete(e.name),e.loaded=!1,l()}function g(e,t,r){"string"==typeof e&&"string"==typeof t&&(alert(`Mod SDK warning: Mod '${e}' is registering in a deprecated way.\nIt will work for now, but please inform author to update.`),e={name:e,fullName:e,version:t},t={allowReplace:!0===r}),e&&"object"==typeof e||o("Failed to register mod: Expected info object, got "+typeof e),"string"==typeof e.name&&e.name||o("Failed to register mod: Expected name to be non-empty string, got "+typeof e.name);let i=`'${e.name}'`;"string"==typeof e.fullName&&e.fullName||o(`Failed to register mod ${i}: Expected fullName to be non-empty string, got ${typeof e.fullName}`),i=`'${e.fullName} (${e.name})'`,"string"!=typeof e.version&&o(`Failed to register mod ${i}: Expected version to be string, got ${typeof e.version}`),e.repository||(e.repository=void 0),void 0!==e.repository&&"string"!=typeof e.repository&&o(`Failed to register mod ${i}: Expected repository to be undefined or string, got ${typeof e.version}`),null==t&&(t={}),t&&"object"==typeof t||o(`Failed to register mod ${i}: Expected options to be undefined or object, got ${typeof t}`);const a=!0===t.allowReplace,d=p.get(e.name);d&&(d.allowReplace&&a||o(`Refusing to load mod ${i}: it is already loaded and doesn't allow being replaced.\nWas the mod loaded multiple times?`),u(d));const s=e=>{"string"==typeof e&&e||o(`Mod ${i} failed to patch a function: Expected function name string, got ${typeof e}`);let t=g.patching.get(e);return t||(t={hooks:[],patches:new Map},g.patching.set(e,t)),t},f={unload:()=>u(g),hookFunction:(e,t,n)=>{g.loaded||o(`Mod ${i} attempted to call SDK function after being unloaded`);const r=s(e);"number"!=typeof t&&o(`Mod ${i} failed to hook function '${e}': Expected priority number, got ${typeof t}`),"function"!=typeof n&&o(`Mod ${i} failed to hook function '${e}': Expected hook function, got ${typeof n}`);const a={mod:g.name,priority:t,hook:n};return r.hooks.push(a),l(),()=>{const e=r.hooks.indexOf(a);e>=0&&(r.hooks.splice(e,1),l())}},patchFunction:(e,t)=>{g.loaded||o(`Mod ${i} attempted to call SDK function after being unloaded`);const r=s(e);n(t)||o(`Mod ${i} failed to patch function '${e}': Expected patches object, got ${typeof t}`);for(const[n,a]of Object.entries(t))"string"==typeof a?r.patches.set(n,a):null===a?r.patches.delete(n):o(`Mod ${i} failed to patch function '${e}': Invalid format of patch '${n}'`);l()},removePatches:e=>{g.loaded||o(`Mod ${i} attempted to call SDK function after being unloaded`);s(e).patches.clear(),l()},callOriginal:(e,t,n)=>(g.loaded||o(`Mod ${i} attempted to call SDK function after being unloaded`),"string"==typeof e&&e||o(`Mod ${i} failed to call a function: Expected function name string, got ${typeof e}`),Array.isArray(t)||o(`Mod ${i} failed to call a function: Expected args array, got ${typeof t}`),function(e,o,t=window){return c(e).original.apply(t,o)}(e,t,n)),getOriginalHash:e=>("string"==typeof e&&e||o(`Mod ${i} failed to get hash: Expected function name string, got ${typeof e}`),c(e).originalHash)},g={name:e.name,fullName:e.fullName,version:e.version,repository:e.repository,allowReplace:a,api:f,loaded:!0,patching:new Map};return p.set(e.name,g),Object.freeze(f)}function h(){const e=[];for(const o of p.values())e.push({name:o.name,fullName:o.fullName,version:o.version,repository:o.repository});return e}let m;const y=function(){if(void 0===window.bcModSdk)return window.bcModSdk=function(){const o={version:e,apiVersion:1,registerMod:g,getModsInfo:h,getPatchingInfo:f,errorReporterHooks:Object.seal({hookEnter:null,hookChainExit:null})};return m=o,Object.freeze(o)}();if(n(window.bcModSdk)||o("Failed to init Mod SDK: Name already in use"),1!==window.bcModSdk.apiVersion&&o(`Failed to init Mod SDK: Different version already loaded ('1.1.0' vs '${window.bcModSdk.version}')`),window.bcModSdk.version!==e&&(alert(`Mod SDK warning: Loading different but compatible versions ('1.1.0' vs '${window.bcModSdk.version}')\nOne of mods you are using is using an old version of SDK. It will work for now but please inform author to update`),window.bcModSdk.version.startsWith("1.0.")&&void 0===window.bcModSdk._shim10register)){const e=window.bcModSdk,o=Object.freeze(Object.assign(Object.assign({},e),{registerMod:(o,t,n)=>o&&"object"==typeof o&&"string"==typeof o.name&&"string"==typeof o.version?e.registerMod(o.name,o.version,"object"==typeof t&&!!t&&!0===t.allowReplace):e.registerMod(o,t,n),_shim10register:!0}));window.bcModSdk=o}return window.bcModSdk}();return"undefined"!=typeof exports&&(Object.defineProperty(exports,"__esModule",{value:!0}),exports.default=y),y}();
 
 async function ForBetterClub() {
 	"use strict";
@@ -83,7 +85,17 @@ async function ForBetterClub() {
 		return;
 	}
 
-	const SDK = w.bcModSdk.registerMod("FBC", FBC_VERSION, false);
+	const SDK = w.bcModSdk.registerMod(
+		{
+			name: "FBC",
+			version: "1.0.0",
+			fullName: "For Better Club (formerly BCE)",
+			repository: "https://gitlab.com/Sidiousious/bce.git",
+		},
+		{
+			allowReplace: false,
+		}
+	);
 	/** @type {import('./types/bcxExternalInterface').BCX_ModAPI | null} */
 	let BCX = null;
 
@@ -1401,7 +1413,8 @@ async function ForBetterClub() {
 		return date.getTime();
 	};
 
-	const fbcDebug = async () => {
+	const incompleteFunctions = [];
+	const fbcDebug = async (copy) => {
 		/** @type {Map<string, string>} */
 		const info = new Map();
 		info.set("Browser", navigator.userAgent);
@@ -1435,6 +1448,7 @@ async function ForBetterClub() {
 				.map((m) => `${m.name} @ ${m.version}`)
 				.join("\n- ")}`
 		);
+		info.set("Incomplete Functions", incompleteFunctions.join(", "));
 		info.set("Modified Functions (non-SDK)", deviatingHashes.join(", "));
 		info.set(
 			"Skipped Functionality for Compatibility",
@@ -1450,62 +1464,82 @@ async function ForBetterClub() {
 		const print = Array.from(info)
 			.map(([k, v]) => `${k}: ${v}`)
 			.join("\n");
-		fbcChatNotify(
-			`${print}\n\n**The report has been copied to your clipboard.**`
-		);
-		// Not using FBC's debug() to avoid the report ending up on future reports
-		console.debug(
-			`${print}\n\n**The report has been copied to your clipboard.**`
-		);
-		await navigator.clipboard.writeText(print);
+		if (copy) {
+			fbcChatNotify(
+				`${print}\n\n**The report has been copied to your clipboard.**`
+			);
+			// Not using FBC's debug() to avoid the report ending up on future reports
+			console.debug(
+				`${print}\n\n**The report has been copied to your clipboard.**`
+			);
+			await navigator.clipboard.writeText(print);
+		}
 		if (skippedFunctionality.length > 0) {
 			fbcChatNotify(
 				"If you are running another addon that modifies the game, but is not listed above, please tell its developer to use https://github.com/Jomshir98/bondage-club-mod-sdk to hook into the game instead. This is a very cheap and easy way for addon developers to almost guarantee compatibility with other addons."
 			);
 		}
+		return print;
 	};
 	w.fbcDebug = fbcDebug;
 
-	await functionIntegrityCheck();
-	bceStyles();
-	commonPatches();
-	extendedWardrobe();
-	automaticReconnect();
-	hiddenMessageHandler();
-	await bceLoadSettings();
-	postSettings();
-	appendSocketListenersToInit();
+	/** @type {(func: () => (Promise<unknown> | unknown), label: string) => Promise<void>} */
+	const registerFunction = async (func, label) => {
+		incompleteFunctions.push(label);
+		try {
+			const ret = func();
+			if (ret instanceof Promise) {
+				await ret;
+			}
+			incompleteFunctions.splice(incompleteFunctions.indexOf(label), 1);
+		} catch (
+			/** @type {unknown} */
+			e
+		) {
+			logError(`Error in ${label}: ${e?.toString()}`);
+		}
+	};
+
+	await registerFunction(functionIntegrityCheck, "functionIntegrityCheck");
+	registerFunction(bceStyles, "bceStyles");
+	registerFunction(commonPatches, "commonPatches");
+	registerFunction(extendedWardrobe, "extendedWardrobe");
+	registerFunction(automaticReconnect, "automaticReconnect");
+	registerFunction(hiddenMessageHandler, "hiddenMessageHandler");
+	await registerFunction(bceLoadSettings, "bceLoadSettings");
+	registerFunction(postSettings, "postSettings");
+	registerFunction(appendSocketListenersToInit, "appendSocketListenersToInit");
 	debug(fbcSettings);
-	discreetMode();
-	beepImprovements();
-	settingsPage();
-	alternateArousal();
-	chatAugments();
-	automaticExpressions();
-	layeringMenu();
-	cacheClearer();
-	lockpickHelp();
-	commands();
-	chatRoomOverlay();
-	privateWardrobe();
-	antiGarbling();
-	autoGhostBroadcast();
-	blindWithoutGlasses();
-	friendPresenceNotifications();
-	accurateTimerInputs();
-	forcedClubSlave();
-	fpsCounter();
-	instantMessenger();
-	autoStruggle();
-	nicknames();
-	leashAlways();
-	clampGag();
-	toySync();
-	pastProfiles();
-	pendingMessages();
-	hideHiddenItemsIcon();
-	crafting();
-	itemAntiCheat();
+	registerFunction(discreetMode, "discreetMode");
+	registerFunction(beepImprovements, "beepImprovements");
+	registerFunction(settingsPage, "settingsPage");
+	registerFunction(alternateArousal, "alternateArousal");
+	registerFunction(chatAugments, "chatAugments");
+	registerFunction(automaticExpressions, "automaticExpressions");
+	registerFunction(layeringMenu, "layeringMenu");
+	registerFunction(cacheClearer, "cacheClearer");
+	registerFunction(lockpickHelp, "lockpickHelp");
+	registerFunction(commands, "commands");
+	registerFunction(chatRoomOverlay, "chatRoomOverlay");
+	registerFunction(privateWardrobe, "privateWardrobe");
+	registerFunction(antiGarbling, "antiGarbling");
+	registerFunction(autoGhostBroadcast, "autoGhostBroadcast");
+	registerFunction(blindWithoutGlasses, "blindWithoutGlasses");
+	registerFunction(friendPresenceNotifications, "friendPresenceNotifications");
+	registerFunction(accurateTimerInputs, "accurateTimerInputs");
+	registerFunction(forcedClubSlave, "forcedClubSlave");
+	registerFunction(fpsCounter, "fpsCounter");
+	registerFunction(instantMessenger, "instantMessenger");
+	registerFunction(autoStruggle, "autoStruggle");
+	registerFunction(nicknames, "nicknames");
+	registerFunction(leashAlways, "leashAlways");
+	registerFunction(clampGag, "clampGag");
+	registerFunction(toySync, "toySync");
+	registerFunction(pastProfiles, "pastProfiles");
+	registerFunction(pendingMessages, "pendingMessages");
+	registerFunction(hideHiddenItemsIcon, "hideHiddenItemsIcon");
+	registerFunction(crafting, "crafting");
+	registerFunction(itemAntiCheat, "itemAntiCheat");
 
 	// Post ready when in a chat room
 	await fbcNotify(`For Better Club v${w.FBC_VERSION} Loaded`);
@@ -1977,7 +2011,7 @@ async function ForBetterClub() {
 					/sourceMappingURL=.*?.map/u,
 					`sourceMappingURL=${source}.map`
 				);
-				eval(resp);
+				eval?.(resp);
 			});
 		logInfo("Loaded", addon);
 		hookBCX();
@@ -6400,8 +6434,10 @@ async function ForBetterClub() {
 	async function antiGarbling() {
 		await waitFor(() => !!SpeechGarbleByGagLevel);
 
-		// Antigarble patch for message printing
-		// Whisper reply button
+		/*
+		 * Antigarble patch for message printing
+		 * Whisper reply button
+		 */
 		patchFunction(
 			"ChatRoomMessageDisplay",
 			{
@@ -7633,12 +7669,7 @@ async function ForBetterClub() {
 				ServerSend("ChatRoomLeave", "");
 				CommonSetScreen("Online", "ChatSearch");
 			} else {
-				if (GameVersion.startsWith("R86")) {
-					ChatRoomStart("", "", null, null, "Introduction", BackgroundsTagList);
-				} else {
-					// @ts-ignore - R85 call signature
-					ChatRoomStart("", "", "MainHall", "Introduction", BackgroundsTagList);
-				}
+				ChatRoomStart("", "", null, null, "Introduction", BackgroundsTagList);
 			}
 		};
 
