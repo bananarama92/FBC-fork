@@ -107,7 +107,7 @@ async function ForBetterClub() {
 	const BCX_DEVEL_SOURCE =
 			"https://jomshir98.github.io/bondage-club-extended/devel/bcx.js",
 		BCX_SOURCE =
-			"https://raw.githubusercontent.com/Jomshir98/bondage-club-extended/29245b7890fd38cf7d9f74ca5a857740079fd503/bcx.js",
+			"https://raw.githubusercontent.com/Jomshir98/bondage-club-extended/01c1a9f248c62b69d7d72f5bc7baf8e9b267efbe/bcx.js",
 		EBCH_SOURCE = "https://e2466.gitlab.io/ebch/master/EBCH.js";
 
 	const BCE_COLOR_ADJUSTMENTS_CLASS_NAME = "bce-colors",
