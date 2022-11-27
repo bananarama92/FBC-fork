@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Bondage Club Enhancements
 // @namespace https://www.bondageprojects.com/
-// @version 4.9
+// @version 4.10
 // @description FBC - For Better Club - enhancements for the bondage club - old name kept in tampermonkey for compatibility
 // @author Sidious
 // @match https://bondageprojects.elementfx.com/*
@@ -39,10 +39,13 @@
  *  along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-const FBC_VERSION = "4.9";
+const FBC_VERSION = "4.10";
 const settingsVersion = 44;
 
 const fbcChangelog = `${FBC_VERSION}
+- fix craft import
+
+4.9
 - update to bcModSDK 1.1
 - eval scope fix
 - more powerful fbcdebug
@@ -9407,17 +9410,17 @@ async function ForBetterClub() {
 				const craft = JSON.parse(LZString.decompressFromBase64(str));
 				if (!isNonNullObject(craft)) {
 					logError(craft);
-					throw new Error("invalid craft type");
+					throw new Error("invalid craft type", typeof craft, craft);
 				}
 				for (const [key, value] of Object.entries(craft)) {
 					if (
 						!isString(value) &&
 						!Number.isInteger(value) &&
 						value !== false &&
-						value !== true
+						value !== true &&
+						value !== null
 					) {
-						logError(key, "was", value);
-						throw new Error("invalid craft properties");
+						logWarn("potentially invalid craft bundle:", key, "was", value);
 					}
 				}
 				CraftingSelectedItem = CraftingConvertItemToSelected(craft);
