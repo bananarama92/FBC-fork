@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Bondage Club Enhancements
 // @namespace https://www.bondageprojects.com/
-// @version 4.11
+// @version 4.12
 // @description FBC - For Better Club - enhancements for the bondage club - old name kept in tampermonkey for compatibility
 // @author Sidious
 // @match https://bondageprojects.elementfx.com/*
@@ -39,10 +39,15 @@
  *  along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-const FBC_VERSION = "4.11";
+const FBC_VERSION = "4.12";
 const settingsVersion = 44;
 
 const fbcChangelog = `${FBC_VERSION}
+- disabled difficulty adjustment for locked items you do not have keys for
+- fixed an error in /w with not found numeric target
+- more optimistic patching now that debug tracking is more robust and errors caught at functional level
+
+4.11
 - fix /fbcdebug chat command
 - bcx hotfix
 - correct version number for SDK
@@ -54,10 +59,6 @@ const fbcChangelog = `${FBC_VERSION}
 - update to bcModSDK 1.1
 - eval scope fix
 - more powerful fbcdebug
-
-4.8
-- added R86 compatibility
-- removed R85 compatibility
 `;
 
 /*
@@ -1268,11 +1269,10 @@ async function ForBetterClub() {
 			deviatingHashes.includes(functionName) &&
 			SUPPORTED_GAME_VERSIONS.includes(GameVersion)
 		) {
-			logError(
-				`Skipping patching of ${functionName} due to detected deviation. Impact: ${affectedFunctionality}\n\nSee /fbcdebug in a chatroom for more information.`
+			logWarn(
+				`Attempted patching of ${functionName} despite detected deviation. Impact may be: ${affectedFunctionality}\n\nSee /fbcdebug in a chatroom for more information or copy(await fbcDebug()) in console.`
 			);
 			skippedFunctionality.push(affectedFunctionality);
-			return;
 		}
 		SDK.patchFunction(functionName, patches);
 	};
@@ -2280,7 +2280,7 @@ async function ForBetterClub() {
 								c.Name.split(" ")[0].toLowerCase() === target?.toLowerCase()
 						);
 					}
-					if (!target || targetMembers.length === 0) {
+					if (!target || !targetMembers || targetMembers.length === 0) {
 						fbcChatNotify(`Whisper target not found: ${target}`);
 					} else if (targetMembers.length > 1) {
 						fbcChatNotify(
@@ -5607,11 +5607,15 @@ async function ForBetterClub() {
 		};
 		const canAccessDifficultyMenu = () => {
 			const c = CharacterGetCurrent();
+			const item = c?.FocusGroup?.Name && InventoryGet(c, c.FocusGroup.Name);
+			const locked = item?.Property?.LockedBy;
+			const canUnlock = !locked || DialogCanUnlock(c, item);
 			return (
 				fbcSettings.layeringMenu &&
 				Player.CanInteract() &&
 				c?.FocusGroup?.Name &&
-				!InventoryGroupIsBlocked(c, c.FocusGroup.Name)
+				!InventoryGroupIsBlocked(c, c.FocusGroup.Name) &&
+				canUnlock
 			);
 		};
 
@@ -9411,7 +9415,7 @@ async function ForBetterClub() {
 				const craft = JSON.parse(LZString.decompressFromBase64(str));
 				if (!isNonNullObject(craft)) {
 					logError(craft);
-					throw new Error("invalid craft type", typeof craft, craft);
+					throw new Error(`invalid craft type ${typeof craft} ${str}`);
 				}
 				for (const [key, value] of Object.entries(craft)) {
 					if (
