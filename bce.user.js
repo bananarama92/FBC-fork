@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Bondage Club Enhancements
 // @namespace https://www.bondageprojects.com/
-// @version 4.10
+// @version 4.11
 // @description FBC - For Better Club - enhancements for the bondage club - old name kept in tampermonkey for compatibility
 // @author Sidious
 // @match https://bondageprojects.elementfx.com/*
@@ -39,10 +39,15 @@
  *  along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-const FBC_VERSION = "4.10";
+const FBC_VERSION = "4.11";
 const settingsVersion = 44;
 
 const fbcChangelog = `${FBC_VERSION}
+- fix /fbcdebug chat command
+- bcx hotfix
+- correct version number for SDK
+
+4.10
 - fix craft import
 
 4.9
@@ -53,10 +58,6 @@ const fbcChangelog = `${FBC_VERSION}
 4.8
 - added R86 compatibility
 - removed R85 compatibility
-
-4.7
-- removed R84 compatibility
-- added preliminary R86Beta1 compatibility
 `;
 
 /*
@@ -91,7 +92,7 @@ async function ForBetterClub() {
 	const SDK = w.bcModSdk.registerMod(
 		{
 			name: "FBC",
-			version: "1.0.0",
+			version: FBC_VERSION,
 			fullName: "For Better Club (formerly BCE)",
 			repository: "https://gitlab.com/Sidiousious/bce.git",
 		},
@@ -110,7 +111,7 @@ async function ForBetterClub() {
 	const BCX_DEVEL_SOURCE =
 			"https://jomshir98.github.io/bondage-club-extended/devel/bcx.js",
 		BCX_SOURCE =
-			"https://raw.githubusercontent.com/Jomshir98/bondage-club-extended/01c1a9f248c62b69d7d72f5bc7baf8e9b267efbe/bcx.js",
+			"https://raw.githubusercontent.com/Jomshir98/bondage-club-extended/eb6965df75e1e26abd160b6286b868c45040d8c4/bcx.js",
 		EBCH_SOURCE = "https://e2466.gitlab.io/ebch/master/EBCH.js";
 
 	const BCE_COLOR_ADJUSTMENTS_CLASS_NAME = "bce-colors",
@@ -2032,7 +2033,7 @@ async function ForBetterClub() {
 				Description: displayText(
 					"Get debug information to share with developers."
 				),
-				Action: fbcDebug,
+				Action: () => fbcDebug(true),
 			},
 			{
 				Tag: "fbcchangelog",
