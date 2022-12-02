@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Bondage Club Enhancements
 // @namespace https://www.bondageprojects.com/
-// @version 4.12
+// @version 4.13
 // @description FBC - For Better Club - enhancements for the bondage club - old name kept in tampermonkey for compatibility
 // @author Sidious
 // @match https://bondageprojects.elementfx.com/*
@@ -39,10 +39,15 @@
  *  along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-const FBC_VERSION = "4.12";
+const FBC_VERSION = "4.13";
 const settingsVersion = 44;
 
 const fbcChangelog = `${FBC_VERSION}
+- added a fix for leashing between different language rooms
+- fixed another error in /w
+- bcx update
+
+4.12
 - disabled difficulty adjustment for locked items you do not have keys for
 - fixed an error in /w with not found numeric target
 - more optimistic patching now that debug tracking is more robust and errors caught at functional level
@@ -51,14 +56,6 @@ const fbcChangelog = `${FBC_VERSION}
 - fix /fbcdebug chat command
 - bcx hotfix
 - correct version number for SDK
-
-4.10
-- fix craft import
-
-4.9
-- update to bcModSDK 1.1
-- eval scope fix
-- more powerful fbcdebug
 `;
 
 /*
@@ -112,7 +109,7 @@ async function ForBetterClub() {
 	const BCX_DEVEL_SOURCE =
 			"https://jomshir98.github.io/bondage-club-extended/devel/bcx.js",
 		BCX_SOURCE =
-			"https://raw.githubusercontent.com/Jomshir98/bondage-club-extended/eb6965df75e1e26abd160b6286b868c45040d8c4/bcx.js",
+			"https://raw.githubusercontent.com/Jomshir98/bondage-club-extended/bd6c355aac5faf49d84ce844cc092dbd4ec56bad/bcx.js",
 		EBCH_SOURCE = "https://e2466.gitlab.io/ebch/master/EBCH.js";
 
 	const BCE_COLOR_ADJUSTMENTS_CLASS_NAME = "bce-colors",
@@ -1544,6 +1541,7 @@ async function ForBetterClub() {
 	registerFunction(hideHiddenItemsIcon, "hideHiddenItemsIcon");
 	registerFunction(crafting, "crafting");
 	registerFunction(itemAntiCheat, "itemAntiCheat");
+	registerFunction(leashFix, "leashFix");
 
 	// Post ready when in a chat room
 	await fbcNotify(`For Better Club v${w.FBC_VERSION} Loaded`);
@@ -2280,6 +2278,7 @@ async function ForBetterClub() {
 								c.Name.split(" ")[0].toLowerCase() === target?.toLowerCase()
 						);
 					}
+					targetMembers = targetMembers.filter((c) => c);
 					if (!target || !targetMembers || targetMembers.length === 0) {
 						fbcChatNotify(`Whisper target not found: ${target}`);
 					} else if (targetMembers.length > 1) {
@@ -7728,6 +7727,17 @@ async function ForBetterClub() {
 		w.ChatRoombceCanSendToClubSlavery = w.bceCanSendToClubSlavery;
 
 		await patch;
+	}
+
+	function leashFix() {
+		patchFunction(
+			"ChatSearchQuery",
+			{
+				"// Prevent spam searching the same thing.":
+					'if (ChatRoomJoinLeash) { SearchData.Language = ""; }\n\t// Prevent spam searching the same thing.',
+			},
+			"Leashing between language filters"
+		);
 	}
 
 	// BcUtil-compatible instant messaging with friends
