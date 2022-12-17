@@ -1614,7 +1614,7 @@ async function ForBetterClub() {
 	}
 
 	/**
-	 * @type {(func: () => boolean, cancelFunc: () => boolean) => Promise<boolean>}
+	 * @type {(func: () => boolean, cancelFunc?: () => boolean) => Promise<boolean>}
 	 */
 	async function waitFor(func, cancelFunc = () => false) {
 		while (!func()) {
@@ -6119,7 +6119,7 @@ async function ForBetterClub() {
 		);
 	}
 
-	/** @type {(target: number, requestReply?: boolean) => void} */
+	/** @type {(target?: number, requestReply?: boolean) => void} */
 	function sendHello(target = null, requestReply = false) {
 		/** @type {ChatMessage} */
 		const message = {
