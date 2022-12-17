@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Bondage Club Enhancements
 // @namespace https://www.bondageprojects.com/
-// @version 4.13
+// @version 4.14
 // @description FBC - For Better Club - enhancements for the bondage club - old name kept in tampermonkey for compatibility
 // @author Sidious
 // @match https://bondageprojects.elementfx.com/*
@@ -39,10 +39,15 @@
  *  along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-const FBC_VERSION = "4.13";
+const FBC_VERSION = "4.14";
 const settingsVersion = 44;
 
 const fbcChangelog = `${FBC_VERSION}
+- R87 compatibility
+- switched to gender neutral pronouns in FBC-originated messages
+- support his/their in addition to her for animation triggers
+
+4.13
 - added a fix for leashing between different language rooms
 - fixed another error in /w
 - bcx update
@@ -51,11 +56,6 @@ const fbcChangelog = `${FBC_VERSION}
 - disabled difficulty adjustment for locked items you do not have keys for
 - fixed an error in /w with not found numeric target
 - more optimistic patching now that debug tracking is more robust and errors caught at functional level
-
-4.11
-- fix /fbcdebug chat command
-- bcx hotfix
-- correct version number for SDK
 `;
 
 /*
@@ -72,7 +72,7 @@ var bcModSdk=function(){"use strict";const e="1.1.0";function o(e){alert("Mod ER
 async function ForBetterClub() {
 	"use strict";
 
-	const SUPPORTED_GAME_VERSIONS = ["R86"];
+	const SUPPORTED_GAME_VERSIONS = ["R87"];
 	const CAPABILITIES = ["clubslave"];
 
 	const w = window;
@@ -1059,10 +1059,10 @@ async function ForBetterClub() {
 			ActivitySetArousal: "3AE28123",
 			ActivitySetArousalTimer: "AC563FD4",
 			ActivityTimerProgress: "6CD388A7",
-			AppearanceClick: "0D1455A9",
+			AppearanceClick: "09FAC1CB",
 			AppearanceExit: "AA300341",
 			AppearanceLoad: "A14CB302",
-			AppearanceRun: "6DDA14A1",
+			AppearanceRun: "C65F23EF",
 			CharacterAppearanceWardrobeLoad: "A5B63A03",
 			CharacterBuildDialog: "3CC4F4AA",
 			CharacterCompressWardrobe: "8D3B1AB1",
@@ -1084,12 +1084,12 @@ async function ForBetterClub() {
 			ChatRoomCreateElement: "AD7CBE68",
 			ChatRoomCurrentTime: "A462DD3A",
 			ChatRoomDrawBackground: "597B062C",
-			ChatRoomDrawCharacterOverlay: "4AE4AD9E",
+			ChatRoomDrawCharacterOverlay: "1B280F1F",
 			ChatRoomHTMLEntities: "0A7ADB1D",
 			ChatRoomKeyDown: "B4BFDB0C",
 			ChatRoomListManipulation: "75D28A8B",
 			ChatRoomMessage: "BBD61334",
-			ChatRoomMessageDisplay: "A11BF94B",
+			ChatRoomMessageDisplay: "D1367E89",
 			ChatRoomRegisterMessageHandler: "C432923A",
 			ChatRoomResize: "9D52CF52",
 			ChatRoomRun: "685FF69C",
@@ -1106,7 +1106,7 @@ async function ForBetterClub() {
 			CraftingUpdatePreview: "5F3030D4",
 			DialogClick: "EC7CDA6E",
 			DialogDraw: "7AD8C0F6",
-			DialogDrawItemMenu: "082820A7",
+			DialogDrawItemMenu: "A85CB52B",
 			DialogLeave: "E929C751",
 			DrawAssetPreview: "5BD59B42",
 			DrawBackNextButton: "0DE5491B",
@@ -1127,20 +1127,20 @@ async function ForBetterClub() {
 			ElementValue: "4F26C62F",
 			FriendListShowBeep: "6C0449BB",
 			GLDrawResetCanvas: "EDF1631A",
-			InformationSheetRun: "5CF880E9",
+			InformationSheetRun: "D4947525",
 			InventoryGet: "E666F671",
-			InventoryItemMiscLoversTimerPadlockClick: "CC5C05E9",
-			InventoryItemMiscLoversTimerPadlockDraw: "2D5A1761",
-			InventoryItemMiscLoversTimerPadlockExit: "87644C62",
-			InventoryItemMiscLoversTimerPadlockLoad: "5394C9F2",
-			InventoryItemMiscMistressTimerPadlockClick: "7DCDC57B",
-			InventoryItemMiscMistressTimerPadlockDraw: "DC5D4BB4",
-			InventoryItemMiscMistressTimerPadlockExit: "0C006666",
-			InventoryItemMiscMistressTimerPadlockLoad: "8B23B841",
-			InventoryItemMiscOwnerTimerPadlockClick: "2D1A50EC",
-			InventoryItemMiscOwnerTimerPadlockDraw: "6E3EAC17",
-			InventoryItemMiscOwnerTimerPadlockExit: "624990EF",
-			InventoryItemMiscOwnerTimerPadlockLoad: "18A3E78D",
+			InventoryItemMiscLoversTimerPadlockClick: "60FBC451",
+			InventoryItemMiscLoversTimerPadlockDraw: "C98C2F44",
+			InventoryItemMiscLoversTimerPadlockExit: "17D63035",
+			InventoryItemMiscLoversTimerPadlockLoad: "0EC356B6",
+			InventoryItemMiscMistressTimerPadlockClick: "387EC3A9",
+			InventoryItemMiscMistressTimerPadlockDraw: "ACE7F21E",
+			InventoryItemMiscMistressTimerPadlockExit: "39BD2B10",
+			InventoryItemMiscMistressTimerPadlockLoad: "5DC9BE56",
+			InventoryItemMiscOwnerTimerPadlockClick: "166CAFDB",
+			InventoryItemMiscOwnerTimerPadlockDraw: "029485ED",
+			InventoryItemMiscOwnerTimerPadlockExit: "431B3DEC",
+			InventoryItemMiscOwnerTimerPadlockLoad: "67CAA836",
 			InventoryItemMiscTimerPasswordPadlockClick: "CB736461",
 			InventoryItemMiscTimerPasswordPadlockDraw: "953C9EF8",
 			InventoryItemMiscTimerPasswordPadlockExit: "7323E56D",
@@ -1164,8 +1164,8 @@ async function ForBetterClub() {
 			RelogRun: "10AF5A60",
 			RelogExit: "2DFB2DAD",
 			ServerAccountBeep: "F16771D4",
-			ServerAppearanceBundle: "01223601",
-			ServerAppearanceLoadFromBundle: "7658C7FA",
+			ServerAppearanceBundle: "4D069622",
+			ServerAppearanceLoadFromBundle: "D22DB163",
 			ServerClickBeep: "3E6277BE",
 			ServerConnect: "845E50A6",
 			ServerDisconnect: "06C1A6B0",
@@ -1923,9 +1923,9 @@ async function ForBetterClub() {
 						timeMessage =
 							" to $days days, $hours hours, $minutes minutes, and $seconds seconds";
 					}
-					bceSendAction(
+					fbcSendAction(
 						displayText(
-							`$PlayerName changed the timer on the $ItemName on $TargetName $GroupName ${timeMessage}`,
+							`$PlayerName changed the timer on the $ItemName on $TargetName's $GroupName ${timeMessage}`,
 							{
 								$PlayerName: CharacterNickname(Player),
 								$ItemName: DialogFocusItem?.Asset?.Description?.toLowerCase(),
@@ -4296,7 +4296,7 @@ async function ForBetterClub() {
 					Type: "Emote",
 					Matchers: [
 						{
-							Tester: /^stretches her whole body/u,
+							Tester: /^stretches (her|his|their) whole body/u,
 						},
 					],
 				},
@@ -4323,7 +4323,8 @@ async function ForBetterClub() {
 					Type: "Emote",
 					Matchers: [
 						{
-							Tester: /^spreads(( her legs)? on)? her knees/u,
+							Tester:
+								/^spreads(( (her|his|their) legs)? on)? (her|his|their) knees/u,
 						},
 					],
 				},
@@ -4332,7 +4333,7 @@ async function ForBetterClub() {
 					Type: "Emote",
 					Matchers: [
 						{
-							Tester: /^spreads her legs apart/u,
+							Tester: /^spreads (her|his|their) legs apart/u,
 						},
 					],
 				},
@@ -4341,7 +4342,7 @@ async function ForBetterClub() {
 					Type: "Emote",
 					Matchers: [
 						{
-							Tester: /^(does a handstand|stands on her hands)/u,
+							Tester: /^(does a handstand|stands on (her|his|their) hands)/u,
 						},
 					],
 				},
@@ -4350,7 +4351,8 @@ async function ForBetterClub() {
 					Type: "Emote",
 					Matchers: [
 						{
-							Tester: /^lies( down)? on (the floor|her (tummy|stomach))/u,
+							Tester:
+								/^lies( down)? on (the floor|(her|his|their) (tummy|stomach))/u,
 						},
 					],
 				},
@@ -4459,7 +4461,7 @@ async function ForBetterClub() {
 					Type: "Emote",
 					Matchers: [
 						{
-							Tester: /^closes her mouth/u,
+							Tester: /^closes (her|his|their) mouth/u,
 						},
 					],
 				},
@@ -4468,7 +4470,7 @@ async function ForBetterClub() {
 					Type: "Emote",
 					Matchers: [
 						{
-							Tester: /^opens her mouth/u,
+							Tester: /^opens (her|his|their) mouth/u,
 						},
 					],
 				},
@@ -4522,7 +4524,7 @@ async function ForBetterClub() {
 					Type: "Emote",
 					Matchers: [
 						{
-							Tester: /^(bares her teeth|snarls)/u,
+							Tester: /^(bares (her|his|their) teeth|snarls)/u,
 						},
 					],
 				},
@@ -4549,7 +4551,7 @@ async function ForBetterClub() {
 					Type: "Emote",
 					Matchers: [
 						{
-							Tester: /^opens her eyes/u,
+							Tester: /^opens (her|his|their) eyes/u,
 						},
 					],
 				},
@@ -4558,7 +4560,8 @@ async function ForBetterClub() {
 					Type: "Emote",
 					Matchers: [
 						{
-							Tester: /^((squints|narrows) her eyes|narrowly opens her eyes)/u,
+							Tester:
+								/^((squints|narrows) (her|his|their) eyes|narrowly opens (her|his|their) eyes)/u,
 						},
 					],
 				},
@@ -4567,7 +4570,7 @@ async function ForBetterClub() {
 					Type: "Emote",
 					Matchers: [
 						{
-							Tester: /^closes her eyes/u,
+							Tester: /^closes (her|his|their) eyes/u,
 						},
 					],
 				},
@@ -4576,7 +4579,7 @@ async function ForBetterClub() {
 					Type: "Emote",
 					Matchers: [
 						{
-							Tester: /^lowers her eyebrows/u,
+							Tester: /^lowers (her|his|their) eyebrows/u,
 						},
 					],
 				},
@@ -4585,7 +4588,7 @@ async function ForBetterClub() {
 					Type: "Emote",
 					Matchers: [
 						{
-							Tester: /^raises her eyebrows/u,
+							Tester: /^raises (her|his|their) eyebrows/u,
 						},
 					],
 				},
@@ -5949,7 +5952,7 @@ async function ForBetterClub() {
 				ChatRoomCharacterUpdate(C);
 				bceSendAction(
 					displayText(
-						"$TargetName's $ItemName colors spread from her $ItemGroup",
+						"$TargetName's $ItemName colors spread from their $ItemGroup",
 						{
 							$TargetName: CharacterNickname(C),
 							$ItemName: focusItem.Asset.Description.toLowerCase(),
@@ -7566,7 +7569,7 @@ async function ForBetterClub() {
 				[
 					"160",
 					"100",
-					displayText("([FBC] Force her to become a Club Slave.)"),
+					displayText("([FBC] Force them to become a Club Slave.)"),
 					displayText("(She will become a Club Slave for the next hour.)"),
 					"bceSendToClubSlavery()",
 					"bceCanSendToClubSlavery()",
@@ -7574,7 +7577,7 @@ async function ForBetterClub() {
 				[
 					"160",
 					"",
-					displayText("([FBC] Force her to become a Club Slave.)"),
+					displayText("([FBC] Force them to become a Club Slave.)"),
 					displayText(
 						"(Requires both to use compatible versions of FBC and the target to not already be a club slave.)"
 					),
