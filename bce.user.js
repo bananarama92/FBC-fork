@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Bondage Club Enhancements
 // @namespace https://www.bondageprojects.com/
-// @version 4.14
+// @version 4.15
 // @description FBC - For Better Club - enhancements for the bondage club - old name kept in tampermonkey for compatibility
 // @author Sidious
 // @match https://bondageprojects.elementfx.com/*
@@ -39,10 +39,13 @@
  *  along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-const FBC_VERSION = "4.14";
+const FBC_VERSION = "4.15";
 const settingsVersion = 44;
 
 const fbcChangelog = `${FBC_VERSION}
+- fixed an error in setting lock timers
+
+4.14
 - R87 compatibility
 - switched to gender neutral pronouns in FBC-originated messages
 - support his/their in addition to her for animation triggers
@@ -51,11 +54,6 @@ const fbcChangelog = `${FBC_VERSION}
 - added a fix for leashing between different language rooms
 - fixed another error in /w
 - bcx update
-
-4.12
-- disabled difficulty adjustment for locked items you do not have keys for
-- fixed an error in /w with not found numeric target
-- more optimistic patching now that debug tracking is more robust and errors caught at functional level
 `;
 
 /*
@@ -1330,7 +1328,7 @@ async function ForBetterClub() {
 		};
 	};
 
-	w.bceSendAction = (text) => {
+	w.fbcSendAction = (text) => {
 		ServerSend("ChatRoomChat", {
 			Content: "Beep",
 			Type: "Action",
@@ -1348,6 +1346,7 @@ async function ForBetterClub() {
 			],
 		});
 	};
+	w.bceSendAction = fbcSendAction;
 
 	w.bceSettingValue = (key) => fbcSettingValue(key);
 	w.fbcSettingValue = (key) =>
@@ -5950,7 +5949,7 @@ async function ForBetterClub() {
 			}
 			if (CurrentScreen === "ChatRoom") {
 				ChatRoomCharacterUpdate(C);
-				bceSendAction(
+				fbcSendAction(
 					displayText(
 						"$TargetName's $ItemName colors spread from their $ItemGroup",
 						{
@@ -6007,7 +6006,7 @@ async function ForBetterClub() {
 							action = "tightens";
 						}
 						focusItem.Difficulty = newDifficulty;
-						bceSendAction(
+						fbcSendAction(
 							displayText(`$PlayerName ${action} $TargetName's $ItemName`, {
 								$PlayerName: CharacterNickname(Player),
 								$TargetName: CharacterNickname(C),
@@ -7374,7 +7373,7 @@ async function ForBetterClub() {
 			const noticeSent = noticesSent.get(sourceCharacter.MemberNumber) || 0;
 			if (Date.now() - noticeSent > 1000 * 60 * 10) {
 				noticesSent.set(sourceCharacter.MemberNumber, Date.now());
-				bceSendAction(
+				fbcSendAction(
 					displayText(
 						`A magical shield on ${CharacterNickname(
 							Player
@@ -7687,7 +7686,7 @@ async function ForBetterClub() {
 			const managementScreen = "Management";
 
 			if (BCX?.getRuleState("block_club_slave_work").isEnforced) {
-				bceSendAction(
+				fbcSendAction(
 					displayText(
 						`BCX rules forbid $PlayerName from becoming a Club Slave.`,
 						{ $PlayerName: CharacterNickname(Player) }
@@ -7696,7 +7695,7 @@ async function ForBetterClub() {
 				return;
 			}
 
-			bceSendAction(
+			fbcSendAction(
 				displayText(
 					`$PlayerName gets grabbed by two maids and escorted to management to serve as a Club Slave.`,
 					{ $PlayerName: CharacterNickname(Player) }
