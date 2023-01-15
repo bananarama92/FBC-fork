@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Bondage Club Enhancements
 // @namespace https://www.bondageprojects.com/
-// @version 4.15
+// @version 4.16
 // @description FBC - For Better Club - enhancements for the bondage club - old name kept in tampermonkey for compatibility
 // @author Sidious
 // @match https://bondageprojects.elementfx.com/*
@@ -23,7 +23,7 @@
 
 /**
  *     BCE/FBC
- *  Copyright (C) 2022  Sid
+ *  Copyright (C) 2023  Sid
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -39,21 +39,24 @@
  *  along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-const FBC_VERSION = "4.15";
+const FBC_VERSION = "4.16";
 const settingsVersion = 44;
 
 const fbcChangelog = `${FBC_VERSION}
+4.16
+- R88 compatibility
+- fixed bad lock numbers from self blacklisting self via anticheat
+- fixed notes textarea not disappearing when exiting notes by pressing escape
+- changed Ctrl+enter OOC to handle whispers and refuse to send commands without double //
+- changed Ctrl+enter OOC to handle closing brackets in the message
+
+4.15
 - fixed an error in setting lock timers
 
 4.14
 - R87 compatibility
 - switched to gender neutral pronouns in FBC-originated messages
 - support his/their in addition to her for animation triggers
-
-4.13
-- added a fix for leashing between different language rooms
-- fixed another error in /w
-- bcx update
 `;
 
 /*
@@ -70,7 +73,7 @@ var bcModSdk=function(){"use strict";const e="1.1.0";function o(e){alert("Mod ER
 async function ForBetterClub() {
 	"use strict";
 
-	const SUPPORTED_GAME_VERSIONS = ["R87"];
+	const SUPPORTED_GAME_VERSIONS = ["R88"];
 	const CAPABILITIES = ["clubslave"];
 
 	const w = window;
@@ -89,7 +92,7 @@ async function ForBetterClub() {
 		{
 			name: "FBC",
 			version: FBC_VERSION,
-			fullName: "For Better Club (formerly BCE)",
+			fullName: "For Better Club",
 			repository: "https://gitlab.com/Sidiousious/bce.git",
 		},
 		{
@@ -119,6 +122,7 @@ async function ForBetterClub() {
 			/** @type {"FriendList"} */
 			FriendList: "FriendList",
 		}),
+		CLOSINGBRACKETINDICATOR = "\\uf130\\u005d",
 		DARK_INPUT_CLASS = "bce-dark-input",
 		DEFAULT_WARDROBE_SIZE = 24,
 		EXPANDED_WARDROBE_SIZE = 96,
@@ -1109,11 +1113,11 @@ async function ForBetterClub() {
 			DrawAssetPreview: "5BD59B42",
 			DrawBackNextButton: "0DE5491B",
 			DrawButton: "63FDE2B2",
-			DrawCharacter: "0BBAEBAF",
+			DrawCharacter: "26364B35",
 			DrawCheckbox: "00FD87EB",
 			DrawImageEx: "3D3D74F5",
 			DrawImageResize: "8CF55F04",
-			DrawProcess: "4CE8C9F7",
+			DrawProcess: "C04ACAE2",
 			DrawText: "C1BF0F50",
 			DrawTextFit: "F9A1B11E",
 			ElementCreateInput: "2B2603E4",
@@ -1143,7 +1147,6 @@ async function ForBetterClub() {
 			InventoryItemMiscTimerPasswordPadlockDraw: "953C9EF8",
 			InventoryItemMiscTimerPasswordPadlockExit: "7323E56D",
 			InventoryItemMiscTimerPasswordPadlockLoad: "D7F9CCA4",
-			InventoryWear: "B56E0D81",
 			ItemColorClick: "79DF36F7",
 			ItemColorDraw: "65543502",
 			ItemColorLoad: "B777DA79",
@@ -1180,7 +1183,7 @@ async function ForBetterClub() {
 			StruggleStrength: "7980C89B",
 			TextGet: "4DDE5794",
 			TextLoad: "ADF7C890",
-			TimerInventoryRemove: "83E7C8E9",
+			TimerInventoryRemove: "ED80F802",
 			TimerProcess: "EAF648B7",
 			TitleExit: "F13F533C",
 			WardrobeClick: "E96F7F63",
@@ -1296,6 +1299,7 @@ async function ForBetterClub() {
 			}
 		}
 	};
+	w.fbcChatNotify = fbcChatNotify;
 
 	/**
 	 * @type {(title: string, text: string) => void}
@@ -1492,11 +1496,11 @@ async function ForBetterClub() {
 				await ret;
 			}
 			incompleteFunctions.splice(incompleteFunctions.indexOf(label), 1);
-		} catch (
-			/** @type {unknown} */
-			e
-		) {
-			logError(`Error in ${label}: ${e?.toString()}`);
+		} catch (err) {
+			/** @type {Error} */
+			// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+			const e = err;
+			logError(`Error in ${label}: ${e?.toString()}\n${e?.stack}`);
 		}
 	};
 
@@ -3332,11 +3336,38 @@ async function ForBetterClub() {
 		patchFunction(
 			"ChatRoomKeyDown",
 			{
-				"ChatRoomSendChat()":
-					'if (bceSettingValue("ctrlEnterOoc") && event.ctrlKey && ElementValue("InputChat")?.trim()) ElementValue("InputChat", "(" + ElementValue("InputChat"));ChatRoomSendChat()',
+				"ChatRoomSendChat()": `if (bceSettingValue("ctrlEnterOoc") && event.ctrlKey && ElementValue("InputChat")?.trim()) {
+						let text = ElementValue("InputChat");
+						let prefix = "";
+						if (!text) {
+							fbcChatNotify("Nothing to send!");
+							return;
+						}
+						// Whisper command
+						if (text.startsWith("/w ")) {
+							const textParts = text.split(' ');
+							text = textParts.slice(2).join(' ');
+							prefix = textParts.slice(0, 2).join(' ') + ' ';
+						} else if (text.startsWith("/") && !text.startsWith("//")) {
+							fbcChatNotify("Tried to OOC send a command. Use double // to confirm sending to chat.");
+							return;
+						}
+						
+						ElementValue("InputChat", prefix + "(" + text.replace(/\\)/g, "${CLOSINGBRACKETINDICATOR}"));
+					}
+					ChatRoomSendChat()`,
 			},
 			"No OOC on CTRL+Enter."
 		);
+		patchFunction(
+			"ChatRoomMessageDisplay",
+			{
+				"var div": `msg = msg.replace(/${CLOSINGBRACKETINDICATOR}/g, ")");
+				var div`,
+			},
+			"OOC closing brackets may look wonky."
+		);
+
 		patchFunction(
 			"CommandParse",
 			{
@@ -6254,6 +6285,15 @@ async function ForBetterClub() {
 			);
 		}
 
+		patchFunction(
+			"DrawProcess",
+			{
+				'CurrentScreen !== "Crafting"':
+					'CurrentScreen !== "Crafting" && CurrentScreen !== "Wardrobe"',
+			},
+			"Full wardrobe may display blur and blindness effects of the target character"
+		);
+
 		SDK.hookFunction(
 			"CharacterAppearanceWardrobeLoad",
 			HOOK_PRIORITIES.OverrideBehaviour,
@@ -6472,7 +6512,7 @@ async function ForBetterClub() {
 			Description: "Anti-garbling by FBC",
 			Callback: (data, sender, msg) => {
 				const clientGagged = msg.endsWith(GAGBYPASSINDICATOR);
-				msg = msg.replace(/[\uE000-\uF8FF]/gu, "");
+				msg = msg.replace(/[\uf123-\uf124]/gu, "");
 				let handled = clientGagged;
 				if (fbcSettings.gagspeak && !clientGagged) {
 					switch (data.Type) {
@@ -7462,6 +7502,10 @@ async function ForBetterClub() {
 					) ||
 					(data.SourceMemberNumber === Player.MemberNumber ? Player : null);
 
+				if (sourceCharacter.IsPlayer()) {
+					return next(args);
+				}
+
 				// Gets the item bundles to be used for diff comparison, also making necessary changes for the purpose
 				/** @type {(bundle: ItemBundle[]) => Map<string, ItemBundle>} */
 				function processItemBundleToMap(bundle) {
@@ -8238,7 +8282,7 @@ async function ForBetterClub() {
 								Player.GetBlindLevel() >= 3))
 					) {
 						if (!container.classList.contains("bce-hidden")) {
-							container.classList.add("bce-hidden");
+							hideIM();
 						}
 						DrawButton(
 							...buttonPosition(),
@@ -8268,6 +8312,10 @@ async function ForBetterClub() {
 			/** @type {(args: (MouseEvent | TouchEvent)[], next: (args: (MouseEvent | TouchEvent)[]) => void) => void} */
 			(args, next) => {
 				if (fbcSettings.instantMessenger && MouseIn(...buttonPosition())) {
+					if (!container.classList.contains("bce-hidden")) {
+						hideIM();
+						return;
+					}
 					sortIM();
 					container.classList.toggle("bce-hidden");
 					ServerSend("AccountQuery", { Query: "OnlineFriends" });
@@ -8298,10 +8346,16 @@ async function ForBetterClub() {
 				return;
 			}
 			if (e.key === "Escape" && !container.classList.contains("bce-hidden")) {
-				container.classList.add("bce-hidden");
+				hideIM();
 				e.stopPropagation();
 				e.preventDefault();
 			}
+		}
+
+		function hideIM() {
+			container.classList.add("bce-hidden");
+			messageInput.blur();
+			friendSearch.blur();
 		}
 
 		document.addEventListener("keydown", keyHandler, true);
@@ -9193,6 +9247,18 @@ async function ForBetterClub() {
 			noteInput.classList.add("bce-hidden");
 			inNotes = false;
 		}
+
+		/** @type {(e: KeyboardEvent) => void} */
+		function keyHandler(e) {
+			if (e.key === "Escape" && inNotes) {
+				hideNoteInput();
+				e.stopPropagation();
+				e.preventDefault();
+			}
+		}
+
+		document.addEventListener("keydown", keyHandler, true);
+		document.addEventListener("keypress", keyHandler, true);
 
 		SDK.hookFunction(
 			"OnlineProfileRun",

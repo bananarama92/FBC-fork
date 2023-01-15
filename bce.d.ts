@@ -10,6 +10,7 @@ declare global {
   /** @deprecated */
   var bceSendAction: (text: string) => void;
   var fbcSendAction: (text: string) => void;
+  var fbcChatNotify: (node: HTMLElement | HTMLElement[] | string) => void;
   var fbcDebug: (copy?: boolean) => Promise<string>;
   /** @deprecated */
   var bceSettingValue: (key: string) => boolean | number | string;
@@ -95,15 +96,6 @@ declare global {
     zoom: number,
     heightResizeAllowed?: boolean,
     canvas?: CanvasRenderingContext2D
-  ) => void;
-  var InventoryWear: (
-    C: Character,
-    AssetName: string,
-    AssetGroup: string,
-    ItemColor?: string | string[],
-    Difficulty?: number,
-    MemberNumber?: number,
-    Craft?: Craft
   ) => void;
   var CharacterReleaseTotal: (C: Character) => void;
   var ServerAccountUpdate: AccountUpdater;
