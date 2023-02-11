@@ -7134,6 +7134,7 @@ async function ForBetterClub() {
 					"SunGlassesClear",
 					"CatGlasses",
 					"VGlasses",
+					"GradientSunglasses",
 					"FuturisticVisor",
 					"InteractiveVisor",
 					"InteractiveVRHeadset",
