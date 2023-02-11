@@ -109,12 +109,20 @@ declare global {
   var GLVersion: string;
   var LoginErrorMessage: string;
   var StruggleProgress: number;
-  var StruggleProgressCurrentMinigame: "Strength" | "Flexibility" | "Dexterity";
+  var StruggleProgressCurrentMinigame: Minigame;
+  var StruggleMinigames: Record<Minigame, StruggleMinigame>;
+  var StruggleLockPickDraw: (C: Character) => void;
   var StruggleProgressDexTarget: number;
   var StruggleProgressDexCurrent: number;
   var StruggleProgressFlexCircles: unknown[];
+  var StruggleStrengthProcess: (Reverse: boolean) => void;
+  var StruggleFlexibilityProcess: (Reverse: boolean) => void;
+  var StruggleDexterityProcess: () => void;
+  /** @deprecated */
   var StruggleStrength: (Reverse: boolean) => void;
+  /** @deprecated */
   var StruggleFlexibility: (Reverse: boolean, Hover?: boolean) => void;
+  /** @deprecated */
   var StruggleDexterity: (Reverse: boolean) => void;
   var StruggleProgressAuto: number;
   var StruggleProgressChallenge: number;
@@ -868,5 +876,13 @@ declare global {
     ) =>
       | boolean
       | { msg?: string; skip?: (handler: ChatRoomMessageHandler) => boolean };
+  }
+
+  type Minigame = "Strength" | "Flexibility" | "Dexterity" | "LockPick";
+
+  interface StruggleMinigame {
+    Setup: (C: Character, PrevItem: Item, NextItem: Item) => void;
+    Draw: (C: Character) => void;
+    HandleEvent?: (EventType: "KeyDown" | "Click") => void;
   }
 }
