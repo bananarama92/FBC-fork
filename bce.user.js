@@ -7285,12 +7285,13 @@ async function ForBetterClub() {
 			return true;
 		}
 
-		/** @type {(sourceCharacter: Character, oldItem: ItemBundle | null, newItem: ItemBundle | null, ignoreLocks: boolean) => { changed: number; prohibited: boolean }} */
+		/** @type {(sourceCharacter: Character, oldItem: ItemBundle | null, newItem: ItemBundle | null, ignoreLocks: boolean, ignoreColors: boolean) => { changed: number; prohibited: boolean }} */
 		function validateSingleItemChange(
 			sourceCharacter,
 			oldItem,
 			newItem,
-			ignoreLocks
+			ignoreLocks,
+			ignoreColors
 		) {
 			const changes = {
 				changed: 0,
@@ -7305,14 +7306,19 @@ async function ForBetterClub() {
 				sourceCharacter.MemberNumber
 			})`;
 
-			/** @type {(item: ItemBundle) => void} */
-			function deleteUnneededLockData(item) {
+			/** @type {(item: ItemBundle) => ItemBundle} */
+			function deleteUnneededMetaData(item) {
 				if (ignoreLocks && item?.Property) {
 					delete item.Property.LockMemberNumber;
 					delete item.Property.LockedBy;
 					delete item.Property.RemoveTimer;
 					delete item.Property.Effect;
 				}
+				if (ignoreColors) {
+					delete item.Color;
+				}
+				// eslint-disable-next-line @typescript-eslint/no-unsafe-return
+				return JSON.parse(JSON.stringify(item));
 			}
 
 			function validateMistressLocks() {
@@ -7382,8 +7388,8 @@ async function ForBetterClub() {
 			}
 			validateMistressLocks();
 
-			deleteUnneededLockData(newItem);
-			deleteUnneededLockData(oldItem);
+			newItem = deleteUnneededMetaData(newItem);
+			oldItem = deleteUnneededMetaData(oldItem);
 
 			if (JSON.stringify(newItem) !== JSON.stringify(oldItem)) {
 				debug(
@@ -7458,6 +7464,9 @@ async function ForBetterClub() {
 				const ignoreLocks = Player.Appearance.some(
 					(a) => a.Asset.Name === "FuturisticCollar"
 				);
+				const ignoreColors =
+					Player.Appearance.some((a) => a.Asset.Name === "FuturisticHarness") ||
+					ignoreLocks;
 				const oldItem = Player.Appearance.find(
 					(i) => i.Asset.Group.Name === data.Item.Group
 				);
@@ -7468,7 +7477,8 @@ async function ForBetterClub() {
 					sourceCharacter,
 					oldItemBundle,
 					data.Item,
-					ignoreLocks
+					ignoreLocks,
+					ignoreColors
 				);
 				if (result.prohibited) {
 					revertChanges(sourceCharacter);
@@ -7543,6 +7553,14 @@ async function ForBetterClub() {
 					Array.from(newItems.values()).some(
 						(i) => i.Name === "FuturisticCollar"
 					);
+				const ignoreColors =
+					(Array.from(oldItems.values()).some(
+						(i) => i.Name === "FuturisticHarness"
+					) &&
+						Array.from(newItems.values()).some(
+							(i) => i.Name === "FuturisticHarness"
+						)) ||
+					ignoreLocks;
 
 				debug(
 					"Anti-Cheat validating bulk change from",
@@ -7566,7 +7584,8 @@ async function ForBetterClub() {
 							sourceCharacter,
 							oldItem,
 							newItem,
-							ignoreLocks
+							ignoreLocks,
+							ignoreColors
 						);
 						changes.prohibited = changes.prohibited || result.prohibited;
 						changes.changed += result.changed;
