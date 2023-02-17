@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Bondage Club Enhancements
 // @namespace https://www.bondageprojects.com/
-// @version 4.17
+// @version 4.18
 // @description FBC - For Better Club - enhancements for the bondage club - old name kept in tampermonkey for compatibility
 // @author Sidious
 // @match https://bondageprojects.elementfx.com/*
@@ -39,10 +39,15 @@
  *  along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-const FBC_VERSION = "4.17";
+const FBC_VERSION = "4.18";
 const settingsVersion = 44;
 
 const fbcChangelog = `${FBC_VERSION}
+- R89 compatibility
+- BCX 0.9.4
+- fxed error in lockpick helper on R89
+
+4.17
 - preliminary R89 compatibility
 - added gradient sunglasses for "blind without glasses"
 - fixed futuristic coloring triggering anti-cheat
@@ -54,14 +59,6 @@ const fbcChangelog = `${FBC_VERSION}
 - fixed notes textarea not disappearing when exiting notes by pressing escape
 - changed Ctrl+enter OOC to handle whispers and refuse to send commands without double //
 - changed Ctrl+enter OOC to handle closing brackets in the message
-
-4.15
-- fixed an error in setting lock timers
-
-4.14
-- R87 compatibility
-- switched to gender neutral pronouns in FBC-originated messages
-- support his/their in addition to her for animation triggers
 `;
 
 /*
@@ -78,7 +75,7 @@ var bcModSdk=function(){"use strict";const e="1.1.0";function o(e){alert("Mod ER
 async function ForBetterClub() {
 	"use strict";
 
-	const SUPPORTED_GAME_VERSIONS = ["R88", "R89Beta1"];
+	const SUPPORTED_GAME_VERSIONS = ["R89"];
 	const CAPABILITIES = ["clubslave"];
 
 	const w = window;
@@ -115,7 +112,7 @@ async function ForBetterClub() {
 	const BCX_DEVEL_SOURCE =
 			"https://jomshir98.github.io/bondage-club-extended/devel/bcx.js",
 		BCX_SOURCE =
-			"https://raw.githubusercontent.com/Jomshir98/bondage-club-extended/62cf96b039421fecd5edbf809bb45217e7ff59d2/bcx.js",
+			"https://raw.githubusercontent.com/Jomshir98/bondage-club-extended/55d0caa7eff9e8e0c8f16cbda74981b1927a5bbc/bcx.js",
 		EBCH_SOURCE = "https://e2466.gitlab.io/ebch/master/EBCH.js";
 
 	const BCE_COLOR_ADJUSTMENTS_CLASS_NAME = "bce-colors",
@@ -2794,11 +2791,7 @@ async function ForBetterClub() {
 	}
 
 	async function lockpickHelp() {
-		await waitFor(() =>
-			GameVersion.startsWith("R88")
-				? !!StruggleDrawLockpickProgress
-				: !!StruggleMinigames
-		);
+		await waitFor(() => !!StruggleMinigames);
 
 		/** @type {(s: number) => () => number} */
 		const newRand = (s) =>
@@ -2813,12 +2806,10 @@ async function ForBetterClub() {
 			y = 300;
 
 		SDK.hookFunction(
-			GameVersion.startsWith("R88")
-				? "StruggleDrawLockpickProgress"
-				: "StruggleLockPickDraw",
+			"StruggleLockPickDraw",
 			HOOK_PRIORITIES.AddBehaviour,
 			(args, next) => {
-				if (fbcSettings.lockpick) {
+				if (fbcSettings.lockpick && w.StruggleLockPickOrder) {
 					const seed = parseInt(StruggleLockPickOrder.join(""));
 					const rand = newRand(seed);
 					const threshold = SkillGetWithRatio("LockPicking") / 20;
@@ -2843,9 +2834,7 @@ async function ForBetterClub() {
 				return next(args);
 			}
 		);
-		if (!GameVersion.startsWith("R88")) {
-			StruggleMinigames.LockPick.Draw = StruggleLockPickDraw;
-		}
+		StruggleMinigames.LockPick.Draw = StruggleLockPickDraw;
 	}
 
 	function automaticReconnect() {
@@ -3581,88 +3570,29 @@ async function ForBetterClub() {
 	async function automaticExpressions() {
 		await waitFor(() => CurrentScreen === "ChatRoom");
 
-		if (GameVersion.startsWith("R88")) {
-			patchFunction(
-				"StruggleStrength",
-				{
-					'if (StruggleProgressStruggleCount == 15) CharacterSetFacialExpression(Player, "Blush", "Low");':
-						'if (StruggleProgressStruggleCount >= 125) CharacterSetFacialExpression(Player, "Blush", "High", 10);',
-					'if (StruggleProgressStruggleCount == 50) CharacterSetFacialExpression(Player, "Blush", "Medium");':
-						'else if (StruggleProgressStruggleCount >= 50) CharacterSetFacialExpression(Player, "Blush", "Medium", 10);',
-					'if (StruggleProgressStruggleCount == 125) CharacterSetFacialExpression(Player, "Blush", "High");':
-						'else if (StruggleProgressStruggleCount >= 15) CharacterSetFacialExpression(Player, "Blush", "Low", 10);',
-					'CharacterSetFacialExpression(Player, "Fluids", "DroolMessy");':
-						'CharacterSetFacialExpression(Player, "Fluids", "DroolMessy", 10);',
-					'CharacterSetFacialExpression(Player, "Eyebrows", (StruggleProgress >= 50) ? "Angry" : null);':
-						'CharacterSetFacialExpression(Player, "Eyebrows", (StruggleProgress >= 50) ? "Angry" : null, 10);',
-					"StruggleProgressStruggleCount ==":
-						"StruggleProgressStruggleCount >=",
-				},
-				"Resetting blush, fluids and eyebrows after brute force struggling"
-			);
-
-			patchFunction(
-				"StruggleFlexibility",
-				{
-					'if (StruggleProgressStruggleCount == 15) CharacterSetFacialExpression(Player, "Blush", "Low");':
-						'if (StruggleProgressStruggleCount >= 125) CharacterSetFacialExpression(Player, "Blush", "High", 10);',
-					'if (StruggleProgressStruggleCount == 50) CharacterSetFacialExpression(Player, "Blush", "Medium");':
-						'else if (StruggleProgressStruggleCount >= 50) CharacterSetFacialExpression(Player, "Blush", "Medium", 10);',
-					'if (StruggleProgressStruggleCount == 125) CharacterSetFacialExpression(Player, "Blush", "High");':
-						'else if (StruggleProgressStruggleCount >= 15) CharacterSetFacialExpression(Player, "Blush", "Low", 10);',
-					'CharacterSetFacialExpression(Player, "Eyes2", "Closed");':
-						'CharacterSetFacialExpression(Player, "Eyes2", "Closed", 10);',
-					'CharacterSetFacialExpression(Player, "Eyebrows", (StruggleProgress >= 50) ? "Angry" : null);':
-						'CharacterSetFacialExpression(Player, "Eyebrows", (StruggleProgress >= 50) ? "Angry" : null, 10);',
-					"StruggleProgressStruggleCount ==":
-						"StruggleProgressStruggleCount >=",
-				},
-				"Resetting blush, eyes2 and eyebrows after flexibility struggling"
-			);
-
-			patchFunction(
-				"StruggleDexterity",
-				{
-					'if (StruggleProgressStruggleCount == 15) CharacterSetFacialExpression(Player, "Blush", "Low");':
-						'if (StruggleProgressStruggleCount >= 125) CharacterSetFacialExpression(Player, "Blush", "High", 10);',
-					'if (StruggleProgressStruggleCount == 50) CharacterSetFacialExpression(Player, "Blush", "Medium");':
-						'else if (StruggleProgressStruggleCount >= 50) CharacterSetFacialExpression(Player, "Blush", "Medium", 10);',
-					'if (StruggleProgressStruggleCount == 125) CharacterSetFacialExpression(Player, "Blush", "High");':
-						'else if (StruggleProgressStruggleCount >= 15) CharacterSetFacialExpression(Player, "Blush", "Low", 10);',
-					'CharacterSetFacialExpression(Player, "Eyes", "Dazed");':
-						'CharacterSetFacialExpression(Player, "Eyes", "Dazed", 10);',
-					'CharacterSetFacialExpression(Player, "Eyebrows", (StruggleProgress >= 50) ? "Angry" : null);':
-						'CharacterSetFacialExpression(Player, "Eyebrows", (StruggleProgress >= 50) ? "Angry" : null, 10);',
-					"StruggleProgressStruggleCount ==":
-						"StruggleProgressStruggleCount >=",
-				},
-				"Resetting blush, eyes and eyebrows after dexterity struggling"
-			);
-		} else {
-			patchFunction(
-				"StruggleMinigameHandleExpression",
-				{
-					'if (Count == 15) CharacterSetFacialExpression(Player, "Blush", "Low");':
-						'if (Count >= 125) CharacterSetFacialExpression(Player, "Blush", "High", 10);',
-					'if (Count == 50) CharacterSetFacialExpression(Player, "Blush", "Medium");':
-						'else if (Count >= 50) CharacterSetFacialExpression(Player, "Blush", "Medium", 10);',
-					'if (Count == 125) CharacterSetFacialExpression(Player, "Blush", "High");':
-						'else if (Count >= 15) CharacterSetFacialExpression(Player, "Blush", "Low", 10);',
-					'CharacterSetFacialExpression(Player, "Fluids", "DroolMessy");':
-						'CharacterSetFacialExpression(Player, "Fluids", "DroolMessy", 10);',
-					'CharacterSetFacialExpression(Player, "Eyes2", "Closed");':
-						'CharacterSetFacialExpression(Player, "Eyes2", "Closed", 10);',
-					'CharacterSetFacialExpression(Player, "Eyes", "Dazed");':
-						'CharacterSetFacialExpression(Player, "Eyes", "Dazed", 10);',
-					'CharacterSetFacialExpression(Player, "Eyebrows", "Angry");':
-						'CharacterSetFacialExpression(Player, "Eyebrows", "Angry", 10);',
-					'CharacterSetFacialExpression(Player, "Eyebrows", null);':
-						'CharacterSetFacialExpression(Player, "Eyebrows", null, 10);',
-					"Count ==": "Count >=",
-				},
-				"Resetting blush, eyes, and eyebrows after struggling"
-			);
-		}
+		patchFunction(
+			"StruggleMinigameHandleExpression",
+			{
+				'if (Count == 15) CharacterSetFacialExpression(Player, "Blush", "Low");':
+					'if (Count >= 125) CharacterSetFacialExpression(Player, "Blush", "High", 10);',
+				'if (Count == 50) CharacterSetFacialExpression(Player, "Blush", "Medium");':
+					'else if (Count >= 50) CharacterSetFacialExpression(Player, "Blush", "Medium", 10);',
+				'if (Count == 125) CharacterSetFacialExpression(Player, "Blush", "High");':
+					'else if (Count >= 15) CharacterSetFacialExpression(Player, "Blush", "Low", 10);',
+				'CharacterSetFacialExpression(Player, "Fluids", "DroolMessy");':
+					'CharacterSetFacialExpression(Player, "Fluids", "DroolMessy", 10);',
+				'CharacterSetFacialExpression(Player, "Eyes2", "Closed");':
+					'CharacterSetFacialExpression(Player, "Eyes2", "Closed", 10);',
+				'CharacterSetFacialExpression(Player, "Eyes", "Dazed");':
+					'CharacterSetFacialExpression(Player, "Eyes", "Dazed", 10);',
+				'CharacterSetFacialExpression(Player, "Eyebrows", "Angry");':
+					'CharacterSetFacialExpression(Player, "Eyebrows", "Angry", 10);',
+				'CharacterSetFacialExpression(Player, "Eyebrows", null);':
+					'CharacterSetFacialExpression(Player, "Eyebrows", null, 10);',
+				"Count ==": "Count >=",
+			},
+			"Resetting blush, eyes, and eyebrows after struggling"
+		);
 
 		if (!w.bce_ArousalExpressionStages) {
 			// eslint-disable-next-line camelcase
@@ -6528,6 +6458,15 @@ async function ForBetterClub() {
 			}
 		);
 
+		SDK.hookFunction(
+			"ServerPlayerIsInChatRoom",
+			HOOK_PRIORITIES.AddBehaviour,
+			/** @type {(args: [], next: (args: []) => boolean) => boolean} */
+			(args, next) =>
+				(inCustomWardrobe && CharacterAppearanceReturnRoom === "ChatRoom") ||
+				next(args)
+		);
+
 		/** @type {(e: KeyboardEvent) => void} */
 		function keyHandler(e) {
 			if (!fbcSettings.privateWardrobe) {
@@ -8749,21 +8688,19 @@ async function ForBetterClub() {
 			DialogAllowFluids = true;
 		};
 
-		if (!GameVersion.startsWith("R88")) {
-			SDK.hookFunction(
-				"StruggleFlexibilityCheck",
-				HOOK_PRIORITIES.OverrideBehaviour,
-				(args, next) => {
-					if (fbcSettings.autoStruggle) {
-						if (StruggleProgressFlexCircles.length > 0) {
-							StruggleProgressFlexCircles.splice(0, 1);
-							return true;
-						}
+		SDK.hookFunction(
+			"StruggleFlexibilityCheck",
+			HOOK_PRIORITIES.OverrideBehaviour,
+			(args, next) => {
+				if (fbcSettings.autoStruggle) {
+					if (StruggleProgressFlexCircles.length > 0) {
+						StruggleProgressFlexCircles.splice(0, 1);
+						return true;
 					}
-					return next(args);
 				}
-			);
-		}
+				return next(args);
+			}
+		);
 
 		createTimer(() => {
 			if (!fbcSettings.autoStruggle) {
@@ -8776,20 +8713,11 @@ async function ForBetterClub() {
 
 			if (StruggleProgressCurrentMinigame === "Strength") {
 				allowAllDialogExpressions();
-				if (GameVersion.startsWith("R88")) {
-					StruggleStrength(false);
-				} else {
-					StruggleStrengthProcess(false);
-				}
+				StruggleStrengthProcess(false);
 			} else if (StruggleProgressCurrentMinigame === "Flexibility") {
 				if (StruggleProgressFlexCircles?.length > 0) {
 					allowAllDialogExpressions();
-					if (GameVersion.startsWith("R88")) {
-						StruggleFlexibility(false, true);
-						StruggleProgressFlexCircles.splice(0, 1);
-					} else {
-						StruggleFlexibilityProcess(false);
-					}
+					StruggleFlexibilityProcess(false);
 				}
 			}
 		}, 60);
@@ -8817,11 +8745,7 @@ async function ForBetterClub() {
 				);
 				if (distMult > 0.5) {
 					allowAllDialogExpressions();
-					if (GameVersion.startsWith("R88")) {
-						StruggleDexterity(false);
-					} else {
-						StruggleDexterityProcess();
-					}
+					StruggleDexterityProcess();
 				}
 			}
 		}, 0);

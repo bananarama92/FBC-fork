@@ -108,6 +108,7 @@ declare global {
   var GameVersion: string;
   var GLVersion: string;
   var LoginErrorMessage: string;
+  var CharacterAppearanceReturnRoom: string;
   var StruggleProgress: number;
   var StruggleProgressCurrentMinigame: Minigame;
   var StruggleMinigames: Record<Minigame, StruggleMinigame>;
@@ -258,7 +259,7 @@ declare global {
   var TextLoad: (id?: string) => void;
   var TextGet: (id: string) => string;
   var StruggleDrawLockpickProgress: (C: Character) => void;
-  var StruggleLockPickOrder: number[];
+  var StruggleLockPickOrder: null | number[];
   var SkillGetWithRatio: (skillType: string) => number;
   var LoginRun: () => void;
   var LoginClick: () => void;
