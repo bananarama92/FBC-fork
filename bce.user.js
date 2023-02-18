@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Bondage Club Enhancements
 // @namespace https://www.bondageprojects.com/
-// @version 4.19
+// @version 4.20
 // @description FBC - For Better Club - enhancements for the bondage club - old name kept in tampermonkey for compatibility
 // @author Sidious
 // @match https://bondageprojects.elementfx.com/*
@@ -39,22 +39,19 @@
  *  along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-const FBC_VERSION = "4.19";
+const FBC_VERSION = "4.20";
 const settingsVersion = 44;
 
 const fbcChangelog = `${FBC_VERSION}
+- BCX hotfix
+
+4.19
 - R89 hotfix compatibility...
 
 4.18
 - R89 compatibility
 - BCX 0.9.4
 - fxed error in lockpick helper on R89
-
-4.17
-- preliminary R89 compatibility
-- added gradient sunglasses for "blind without glasses"
-- fixed futuristic coloring triggering anti-cheat
-- potential fix for incorrect restoration of some items in anti-cheat
 `;
 
 /*
@@ -108,7 +105,7 @@ async function ForBetterClub() {
 	const BCX_DEVEL_SOURCE =
 			"https://jomshir98.github.io/bondage-club-extended/devel/bcx.js",
 		BCX_SOURCE =
-			"https://raw.githubusercontent.com/Jomshir98/bondage-club-extended/55d0caa7eff9e8e0c8f16cbda74981b1927a5bbc/bcx.js",
+			"https://raw.githubusercontent.com/Jomshir98/bondage-club-extended/47c8b49c7e92a230b559294cafb0f522b63bc80c/bcx.js",
 		EBCH_SOURCE = "https://e2466.gitlab.io/ebch/master/EBCH.js";
 
 	const BCE_COLOR_ADJUSTMENTS_CLASS_NAME = "bce-colors",
