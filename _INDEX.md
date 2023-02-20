@@ -43,10 +43,10 @@ At a glance, **everything is entirely optional, enable in settings** (profile ->
 - Improved automatic facial expressions that play nice with manual control
 - Automatic relogin after disconnect
 - FPS limiter: save your computer's resources
-- Addon loader for other addons ([BCX](https://github.com/Jomshir98/bondage-club-extended), [EBCH](https://e2466.gitlab.io/ebch/))
+- Addon loader for other addons ([BCX](https://github.com/Jomshir98/bondage-club-extended), [EBCH](https://e2466.gitlab.io/ebch/)), [MBS](https://github.com/bananarama92/MBS)
 - Clickable links and embedded images from trusted websites in chat (e.g. imgur, Discord)
 - Lockpicking helper
-- Convenient chat commands, such as `/w <name> <message>` to whisper another player and `/craft` to do crafting in chatrooms
+- Convenient chat commands, such as `/w <name> <message>` to whisper another player
 - Full wardrobe in chatrooms (preview before saving/loading).
 - Anti-garble for gagspeak and deafening
 - Anti-anti-garble for your own speech: prevent others from understanding you with anti-garbling solutions while gagged
@@ -63,8 +63,6 @@ At a glance, **everything is entirely optional, enable in settings** (profile ->
 - Importing and exporting outfits
 - Change your nickname
 - Save and review profiles of, and add notes to, players you have seen before (incompatible with incognito/private browsing due to saving in browser storage)
-- More convenient crafting interface with ability to edit previously crafted items
-- Sharing crafted items among players in the room
 - Basic anti-cheat
 
 ### Chat Links and Embeds
