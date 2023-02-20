@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Bondage Club Enhancements
 // @namespace https://www.bondageprojects.com/
-// @version 4.20
+// @version 4.21
 // @description FBC - For Better Club - enhancements for the bondage club - old name kept in tampermonkey for compatibility
 // @author Sidious
 // @match https://bondageprojects.elementfx.com/*
@@ -39,19 +39,18 @@
  *  along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-const FBC_VERSION = "4.20";
+const FBC_VERSION = "4.21";
 const settingsVersion = 44;
 
 const fbcChangelog = `${FBC_VERSION}
+- added MBS loader
+- stable BCX update
+
+4.20
 - BCX hotfix
 
 4.19
 - R89 hotfix compatibility...
-
-4.18
-- R89 compatibility
-- BCX 0.9.4
-- fxed error in lockpick helper on R89
 `;
 
 /*
@@ -105,8 +104,9 @@ async function ForBetterClub() {
 	const BCX_DEVEL_SOURCE =
 			"https://jomshir98.github.io/bondage-club-extended/devel/bcx.js",
 		BCX_SOURCE =
-			"https://raw.githubusercontent.com/Jomshir98/bondage-club-extended/47c8b49c7e92a230b559294cafb0f522b63bc80c/bcx.js",
-		EBCH_SOURCE = "https://e2466.gitlab.io/ebch/master/EBCH.js";
+			"https://raw.githubusercontent.com/Jomshir98/bondage-club-extended/015da8ca3c79508838d943da3d118486c5bc7f52/bcx.js",
+		EBCH_SOURCE = "https://e2466.gitlab.io/ebch/master/EBCH.js",
+		MBS_SOURCE = "https://bananarama92.github.io/MBS/main/mbs.js";
 
 	const BCE_COLOR_ADJUSTMENTS_CLASS_NAME = "bce-colors",
 		BCE_LICENSE = "https://gitlab.com/Sidiousious/bce/-/blob/main/LICENSE",
@@ -143,6 +143,7 @@ async function ForBetterClub() {
 	const addonTypes = {
 		BCX: "none",
 		EBCH: "none",
+		MBS: "none",
 	};
 
 	if (typeof ChatRoomCharacter === "undefined") {
@@ -512,6 +513,22 @@ async function ForBetterClub() {
 			category: "addons",
 			description:
 				"Load the latest stable version of EBCH. To see all details, see the link in sidiousious.gitlab.io/bce. This option always loads the latest version, which may change between refreshes.",
+		},
+		mbs: {
+			label: "Load MBS by Rama (auto-updates)",
+			value: false,
+			sideEffects: (newValue) => {
+				if (newValue) {
+					loadExternalAddon("MBS", MBS_SOURCE).then((success) => {
+						if (success) {
+							addonTypes.MBS = "stable";
+						}
+					});
+				}
+			},
+			category: "addons",
+			description:
+				"Load the latest stable version of MBS. To see all details, see the link in sidiousious.gitlab.io/bce. This option always loads the latest version, which may change between refreshes.",
 		},
 		toySync: {
 			label: "Enable buttplug.io (requires refresh)",
@@ -1988,7 +2005,7 @@ async function ForBetterClub() {
 	}
 
 	// Load BCX
-	/** @type {(addon: "BCX" | "EBCH", source: string) => Promise<boolean>} */
+	/** @type {(addon: "BCX" | "EBCH" | "MBS", source: string) => Promise<boolean>} */
 	async function loadExternalAddon(addon, source) {
 		await waitFor(settingsLoaded);
 
