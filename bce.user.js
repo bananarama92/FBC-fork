@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Bondage Club Enhancements
 // @namespace https://www.bondageprojects.com/
-// @version 4.21
+// @version 4.22
 // @description FBC - For Better Club - enhancements for the bondage club - old name kept in tampermonkey for compatibility
 // @author Sidious
 // @match https://bondageprojects.elementfx.com/*
@@ -39,18 +39,18 @@
  *  along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-const FBC_VERSION = "4.21";
+const FBC_VERSION = "4.22";
 const settingsVersion = 44;
 
 const fbcChangelog = `${FBC_VERSION}
+- R90 beta compatibility beta
+
+4.21
 - added MBS loader
 - stable BCX update
 
 4.20
 - BCX hotfix
-
-4.19
-- R89 hotfix compatibility...
 `;
 
 /*
@@ -67,7 +67,7 @@ var bcModSdk=function(){"use strict";const e="1.1.0";function o(e){alert("Mod ER
 async function ForBetterClub() {
 	"use strict";
 
-	const SUPPORTED_GAME_VERSIONS = ["R89"];
+	const SUPPORTED_GAME_VERSIONS = ["R89", "R90Beta1"];
 	const CAPABILITIES = ["clubslave"];
 
 	const w = window;
@@ -1084,7 +1084,6 @@ async function ForBetterClub() {
 			CharacterDelete: "398D1116",
 			CharacterGetCurrent: "45608177",
 			CharacterLoadCanvas: "678F3155",
-			CharacterLoadSimple: "7F6FA9F2",
 			CharacterNickname: "EB452E5E",
 			CharacterRefresh: "5BF9DA5A",
 			CharacterReleaseTotal: "396640D1",
@@ -1117,7 +1116,6 @@ async function ForBetterClub() {
 			CraftingClick: "BF7CE7B2",
 			CraftingConvertSelectedToItem: "46CE5BE0",
 			CraftingRun: "ADEAFA91",
-			CraftingUpdatePreview: "5F3030D4",
 			DialogClick: "2B8A5A65",
 			DialogDraw: "7AD8C0F6",
 			DialogDrawItemMenu: "9741F121",
@@ -1210,6 +1208,40 @@ async function ForBetterClub() {
 		};
 
 		switch (gameVersion) {
+			case "R90Beta1":
+			case "R90Beta2":
+			case "R90Beta3":
+			case "R90Beta4":
+				hashes.ActivitySetArousalTimer = "1342AFE2";
+				hashes.AppearanceClick = "6d043815";
+				hashes.AppearanceRun = "24E07FA0";
+				hashes.CharacterBuildDialog = "EE68309E";
+				hashes.CharacterLoadCanvas = "CBDA8803";
+				hashes.CharacterSetActivePose = "D3186110";
+				hashes.CharacterSetFacialExpression = "AB7E8F62";
+				hashes.ChatRoomMessageDisplay = "F20D1969";
+				hashes.ChatRoomRun = "7D2E2D71";
+				hashes.CommandExecute = "5C948CC3";
+				hashes.CraftingClick = "0B915622";
+				hashes.DialogClick = "F4FCD7DD";
+				hashes.DialogDraw = "BBFB23E5";
+				hashes.DialogDrawItemMenu = "689891E5";
+				hashes.DrawBackNextButton = "B0DB9555";
+				hashes.DrawCharacter = "0A5772FA";
+				hashes.GLDrawResetCanvas = "81214642";
+				hashes.InformationSheetRun = "E248ADC7";
+				hashes.InventoryItemMiscLoversTimerPadlockLoad = "4993D2EB";
+				hashes.InventoryItemMiscMistressTimerPadlockLoad = "BE46432F";
+				hashes.InventoryItemMiscOwnerTimerPadlockLoad = "8A55C0D1";
+				hashes.InventoryItemMiscTimerPasswordPadlockLoad = "82223608";
+				hashes.ServerAppearanceLoadFromBundle = "FB794E30";
+				hashes.SpeechGarbleByGagLevel = "5F6E16C8";
+				hashes.StruggleDexterityProcess = "7E19ADA9";
+				hashes.StruggleFlexibilityProcess = "278D7285";
+				hashes.StruggleLockPickDraw = "2F1F603B";
+				hashes.StruggleStrengthProcess = "D20CF698";
+				hashes.TimerInventoryRemove = "FFDD61B9";
+				break;
 			default:
 				break;
 		}
@@ -1659,9 +1691,13 @@ async function ForBetterClub() {
 		// CommandExecute patch to fix /whitelistadd and /whitelistremove
 		patchFunction(
 			"CommandExecute",
-			{
-				"key.indexOf(CommandsKey + C.Tag) == 0)": `key.substring(1) === C.Tag)`,
-			},
+			GameVersion.startsWith("R89")
+				? {
+						"key.indexOf(CommandsKey + C.Tag) == 0)": `key.substring(1) === C.Tag)`,
+				  }
+				: {
+						"key.indexOf(CommandsKey + cmd.Tag) == 0)": `key.substring(1) === cmd.Tag)`,
+				  },
 			"Whitelist commands will not work."
 		);
 
@@ -5050,13 +5086,12 @@ async function ForBetterClub() {
 						});
 					}
 				});
-				CharacterSetActivePose(
-					Player,
-					PoseFemale3DCG.filter((p) =>
-						poses.includes(p.Name.toLowerCase())
-					).map((p) => p.Name),
-					false
-				);
+				const poseNames = PoseFemale3DCG.filter((p) =>
+					poses.includes(p.Name.toLowerCase())
+				).map((p) => p.Name);
+				for (const poseName of poseNames) {
+					CharacterSetActivePose(Player, poseName, false);
+				}
 			},
 		});
 
@@ -5157,7 +5192,10 @@ async function ForBetterClub() {
 					return;
 				}
 				if (data.MemberNumber === Player.MemberNumber) {
-					CharacterSetActivePose(Player, data.Pose, true);
+					Player.ActivePose = Array.isArray(data.Pose)
+						? data.Pose
+						: [data.Pose];
+					CharacterRefresh(Player, false);
 				}
 			}
 		);
@@ -5175,7 +5213,10 @@ async function ForBetterClub() {
 					return;
 				}
 				if (data.Character?.MemberNumber === Player.MemberNumber) {
-					CharacterSetActivePose(Player, data.Character.ActivePose, true);
+					Player.ActivePose = Array.isArray(data.Character.ActivePose)
+						? data.Character.ActivePose
+						: [data.Character.ActivePose];
+					CharacterRefresh(Player, false);
 				}
 			}
 		);
@@ -5589,7 +5630,7 @@ async function ForBetterClub() {
 				newPose = null;
 			}
 			if (JSON.stringify(Player.ActivePose) !== JSON.stringify(newPose)) {
-				SDK.callOriginal("CharacterSetActivePose", [Player, newPose, true]);
+				Player.ActivePose = newPose;
 				needsPoseUpdate = true;
 				needsRefresh = true;
 			}
