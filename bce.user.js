@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Bondage Club Enhancements
 // @namespace https://www.bondageprojects.com/
-// @version 4.24
+// @version 4.25
 // @description FBC - For Better Club - enhancements for the bondage club - old name kept in tampermonkey for compatibility
 // @author Sidious
 // @match https://bondageprojects.elementfx.com/*
@@ -39,19 +39,20 @@
  *  along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-const FBC_VERSION = "4.24";
+const FBC_VERSION = "4.25";
 const settingsVersion = 44;
 
 const fbcChangelog = `${FBC_VERSION}
+- updated bcx stable
+- fixed erroneously standing up after certain activities
+
+4.24
 - fixed an error in anti-cheat
 - fixed being helped stand up
 
 4.23
 - R90 compatibility
 - fixed being helped to kneel or stand up
-
-4.22
-- R90 beta compatibility beta
 `;
 
 /*
@@ -105,7 +106,7 @@ async function ForBetterClub() {
 	const BCX_DEVEL_SOURCE =
 			"https://jomshir98.github.io/bondage-club-extended/devel/bcx.js",
 		BCX_SOURCE =
-			"https://raw.githubusercontent.com/Jomshir98/bondage-club-extended/015da8ca3c79508838d943da3d118486c5bc7f52/bcx.js",
+			"https://raw.githubusercontent.com/Jomshir98/bondage-club-extended/b547db6453768f2c038ee51b5c1039780203cfc1/bcx.js",
 		EBCH_SOURCE = "https://e2466.gitlab.io/ebch/master/EBCH.js",
 		MBS_SOURCE = "https://bananarama92.github.io/MBS/main/mbs.js";
 
@@ -5010,6 +5011,7 @@ async function ForBetterClub() {
 		 * @param {string[]} poses
 		 */
 		function setPoses(poses) {
+			poses = poses.filter((p) => p).map((p) => p.toLowerCase());
 			bceExpressionsQueue.forEach((e) => {
 				if (e.Type === MANUAL_OVERRIDE_EVENT_TYPE) {
 					e.Poses = [];
