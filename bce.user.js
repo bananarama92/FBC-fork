@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Bondage Club Enhancements
 // @namespace https://www.bondageprojects.com/
-// @version 4.25
+// @version 4.26
 // @description FBC - For Better Club - enhancements for the bondage club - old name kept in tampermonkey for compatibility
 // @author Sidious
 // @match https://bondageprojects.elementfx.com/*
@@ -39,20 +39,21 @@
  *  along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-const FBC_VERSION = "4.25";
+const FBC_VERSION = "4.26";
 const settingsVersion = 44;
 
 const fbcChangelog = `${FBC_VERSION}
+- added logging and warnings regarding browser storage quota usage to profile saving
+- fixed /r not resetting face components
+- r91
+
+4.25
 - updated bcx stable
 - fixed erroneously standing up after certain activities
 
 4.24
 - fixed an error in anti-cheat
 - fixed being helped stand up
-
-4.23
-- R90 compatibility
-- fixed being helped to kneel or stand up
 `;
 
 /*
@@ -69,7 +70,7 @@ var bcModSdk=function(){"use strict";const e="1.1.0";function o(e){alert("Mod ER
 async function ForBetterClub() {
 	"use strict";
 
-	const SUPPORTED_GAME_VERSIONS = ["R89", "R90Beta1"];
+	const SUPPORTED_GAME_VERSIONS = ["R91"];
 	const CAPABILITIES = ["clubslave"];
 
 	const w = window;
@@ -1206,6 +1207,15 @@ async function ForBetterClub() {
 		};
 
 		switch (gameVersion) {
+			case "R91Beta2":
+			case "R91Beta3":
+			case "R91":
+				hashes.CharacterSetActivePose = "5BCD2A9E";
+				hashes.CharacterSetFacialExpression = "C794A455";
+				hashes.CraftingClick = "A78F0A48";
+				hashes.LoginClick = "EE94BEC7";
+				hashes.LoginRun = "C3926C4F";
+				break;
 			default:
 				break;
 		}
@@ -4863,9 +4873,9 @@ async function ForBetterClub() {
 
 		/** @type {(faceComponent: string) => [string | null, boolean]} */
 		function expression(t) {
-			const properties = Player.Appearance.filter(
-				(a) => a.Asset.Group.Name === t
-			)[0].Property;
+			const properties =
+				Player.Appearance.filter((a) => a.Asset.Group.Name === t)[0]
+					?.Property ?? null;
 			return [properties?.Expression || null, !properties?.RemoveTimer];
 		}
 
@@ -4955,7 +4965,12 @@ async function ForBetterClub() {
 					bceExpressionsQueue.push(
 						...bceExpressionsQueue
 							.splice(0, bceExpressionsQueue.length)
-							.filter((e) => e.Type === MANUAL_OVERRIDE_EVENT_TYPE && e.Poses)
+							.map((e) => {
+								if (e.Type === MANUAL_OVERRIDE_EVENT_TYPE || e.Duration <= 0) {
+									delete e.Expression;
+								}
+								return e;
+							})
 					);
 					fbcChatNotify(displayText("Reset all expressions"));
 				} else {
@@ -9118,8 +9133,27 @@ async function ForBetterClub() {
 		const profiles = db.table("profiles");
 		const notes = db.table("notes");
 
+		/** @type {() => Promise<{ quota: number; usage: number }>} */
+		async function readQuota() {
+			try {
+				const { quota, usage } = await navigator.storage.estimate();
+				return { quota, usage };
+			} catch (e) {
+				logError("reading storage quota information", e);
+				return { quota: -1, usage: -1 };
+			}
+		}
+
 		/** @type {(characterBundle: Character) => Promise<void>} */
 		async function saveProfile(characterBundle) {
+			const { quota, usage } = await readQuota();
+			if (usage / quota > 0.9) {
+				logInfo(
+					`storage quota above 90% utilization (${usage}/${quota})` // , cleaning oldest profile before saving new one`
+				);
+				// TODO: read all, sort by seen, remove oldest
+			}
+
 			const name = characterBundle.Name;
 			const nick = characterBundle.Nickname;
 			try {
@@ -9131,7 +9165,7 @@ async function ForBetterClub() {
 					characterBundle: JSON.stringify(characterBundle),
 				});
 			} catch (e) {
-				logError("saving profile", e);
+				logError(`unable to save profile (${usage}/${quota}):`, e);
 			}
 		}
 
@@ -9214,6 +9248,7 @@ async function ForBetterClub() {
 				"<filter> - List seen profiles, optionally searching by member number or name"
 			),
 			Action: async (args) => {
+				// TODO: limit to ~200 last seen
 				/** @type {SavedProfile[]} */
 				let list = await profiles.toArray();
 				list = list.filter(
