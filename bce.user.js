@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Bondage Club Enhancements
 // @namespace https://www.bondageprojects.com/
-// @version 4.26
+// @version 4.27
 // @description FBC - For Better Club - enhancements for the bondage club - old name kept in tampermonkey for compatibility
 // @author Sidious
 // @match https://bondageprojects.elementfx.com/*
@@ -39,10 +39,15 @@
  *  along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-const FBC_VERSION = "4.26";
+const FBC_VERSION = "4.27";
 const settingsVersion = 44;
 
 const fbcChangelog = `${FBC_VERSION}
+- added automatic clean-up for least recently seen saved profiles when approaching browser storage quota
+- fixed cyclic object error in profile saving
+- changed /profiles command to print up to 100 most recently seen profiles. Provide a more specific search for name or member number after the command to find older profiles
+
+4.26
 - added logging and warnings regarding browser storage quota usage to profile saving
 - fixed /r not resetting face components
 - r91
@@ -50,10 +55,6 @@ const fbcChangelog = `${FBC_VERSION}
 4.25
 - updated bcx stable
 - fixed erroneously standing up after certain activities
-
-4.24
-- fixed an error in anti-cheat
-- fixed being helped stand up
 `;
 
 /*
@@ -9137,6 +9138,9 @@ async function ForBetterClub() {
 		async function readQuota() {
 			try {
 				const { quota, usage } = await navigator.storage.estimate();
+				debug(
+					`current quota usage ${usage?.toLocaleString()} out of maximum ${quota?.toLocaleString()}`
+				);
 				return { quota, usage };
 			} catch (e) {
 				logError("reading storage quota information", e);
@@ -9144,18 +9148,34 @@ async function ForBetterClub() {
 			}
 		}
 
-		/** @type {(characterBundle: Character) => Promise<void>} */
-		async function saveProfile(characterBundle) {
+		/** @type {(num: number) => Promise<void>} */
+		async function trimProfiles(num) {
+			/** @type {SavedProfile[]} */
+			let list = await profiles.toArray();
+			// Oldest first
+			list.sort((a, b) => a.seen - b.seen);
+			list = list.slice(0, num);
+			debug("deleting", list);
+			await profiles.bulkDelete(list.map((p) => p.memberNumber));
+		}
+
+		async function quotaSafetyCheck() {
 			const { quota, usage } = await readQuota();
 			if (usage / quota > 0.9) {
 				logInfo(
-					`storage quota above 90% utilization (${usage}/${quota})` // , cleaning oldest profile before saving new one`
+					`storage quota above 90% utilization (${usage}/${quota}), cleaning some of the least recently seen profiles before saving new one`
 				);
-				// TODO: read all, sort by seen, remove oldest
+				await trimProfiles(10);
 			}
+		}
+
+		/** @type {(characterBundle: Character) => Promise<void>} */
+		async function saveProfile(characterBundle) {
+			await quotaSafetyCheck();
 
 			const name = characterBundle.Name;
 			const nick = characterBundle.Nickname;
+			debug(`saving profile of ${nick} (${name})`);
 			try {
 				await profiles.put({
 					memberNumber: characterBundle.MemberNumber,
@@ -9165,35 +9185,40 @@ async function ForBetterClub() {
 					characterBundle: JSON.stringify(characterBundle),
 				});
 			} catch (e) {
+				const { quota, usage } = await readQuota();
 				logError(`unable to save profile (${usage}/${quota}):`, e);
 			}
 		}
 
-		registerSocketListener(
+		SDK.hookFunction(
 			"ChatRoomSync",
-			(
-				/** @type {ChatRoomSyncEvent} */
-				data
-			) => {
-				if (!data?.Character?.length) {
-					return;
+			HOOK_PRIORITIES.Top,
+			/**
+			 * @param {ChatRoomSyncEvent[]} args
+			 */
+			(args, next) => {
+				const [data] = args;
+				if (data?.Character?.length) {
+					for (const char of data.Character) {
+						saveProfile(deepCopy(char));
+					}
 				}
-				for (const char of data.Character) {
-					saveProfile(char);
-				}
+				next(args);
 			}
 		);
 
-		registerSocketListener(
+		SDK.hookFunction(
 			"ChatRoomSyncSingle",
-			(
-				/** @type {ChatRoomSyncSingleEvent} */
-				data
-			) => {
-				if (!data?.Character?.MemberNumber) {
-					return;
+			HOOK_PRIORITIES.Top,
+			/**
+			 * @param {ChatRoomSyncSingleEvent[]} args
+			 */
+			(args, next) => {
+				const [data] = args;
+				if (data?.Character?.MemberNumber) {
+					saveProfile(deepCopy(data.Character));
 				}
-				saveProfile(data.Character);
+				next(args);
 			}
 		);
 
@@ -9248,7 +9273,6 @@ async function ForBetterClub() {
 				"<filter> - List seen profiles, optionally searching by member number or name"
 			),
 			Action: async (args) => {
-				// TODO: limit to ~200 last seen
 				/** @type {SavedProfile[]} */
 				let list = await profiles.toArray();
 				list = list.filter(
@@ -9258,6 +9282,9 @@ async function ForBetterClub() {
 						p.memberNumber.toString().includes(args) ||
 						p.lastNick?.toLowerCase().includes(args)
 				);
+				list.sort((a, b) => b.seen - a.seen);
+				const matches = list.length;
+				list = list.slice(0, 100);
 				list.sort(
 					(a, b) => -(b.lastNick ?? b.name).localeCompare(a.lastNick ?? a.name)
 				);
@@ -9288,9 +9315,10 @@ async function ForBetterClub() {
 				header.style.marginTop = "0";
 				const footer = document.createElement("div");
 				footer.textContent = displayText(
-					"$num total profiles matching search",
+					"showing $num most recent of $total total profiles matching search",
 					{
 						$num: list.length.toLocaleString(),
+						$total: matches.toLocaleString(),
 					}
 				);
 				fbcChatNotify([header, ...lines, footer]);
@@ -9389,11 +9417,14 @@ async function ForBetterClub() {
 			(args, next) => {
 				if (inNotes) {
 					if (MouseIn(1720, 60, 90, 90)) {
-						// Save note
-						notes.put({
-							memberNumber: InformationSheetSelection.MemberNumber,
-							note: noteInput.value,
-						});
+						(async function () {
+							await quotaSafetyCheck();
+							// Save note
+							await notes.put({
+								memberNumber: InformationSheetSelection.MemberNumber,
+								note: noteInput.value,
+							});
+						})();
 						hideNoteInput();
 					} else if (MouseIn(1820, 60, 90, 90)) {
 						hideNoteInput();
