@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Bondage Club Enhancements
 // @namespace https://www.bondageprojects.com/
-// @version 4.27
+// @version 4.28
 // @description FBC - For Better Club - enhancements for the bondage club - old name kept in tampermonkey for compatibility
 // @author Sidious
 // @match https://bondageprojects.elementfx.com/*
@@ -39,10 +39,13 @@
  *  along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-const FBC_VERSION = "4.27";
+const FBC_VERSION = "4.28";
 const settingsVersion = 44;
 
 const fbcChangelog = `${FBC_VERSION}
+- added small patch to scroll chat to end after relogs
+
+4.27
 - added automatic clean-up for least recently seen saved profiles when approaching browser storage quota
 - fixed cyclic object error in profile saving
 - changed /profiles command to print up to 100 most recently seen profiles. Provide a more specific search for name or member number after the command to find older profiles
@@ -51,10 +54,6 @@ const fbcChangelog = `${FBC_VERSION}
 - added logging and warnings regarding browser storage quota usage to profile saving
 - fixed /r not resetting face components
 - r91
-
-4.25
-- updated bcx stable
-- fixed erroneously standing up after certain activities
 `;
 
 /*
@@ -1683,6 +1682,30 @@ async function ForBetterClub() {
 				"/^[a-zA-Z\\s]*$/": "/^[\\p{L}0-9\\p{Z}'-]+$/u",
 			},
 			"Nickname validation not overridden in use"
+		);
+
+		/*
+		 * Chat scroll after relog
+		 * delay is the number of frames to delay the scroll
+		 */
+		let delay = 0;
+		SDK.hookFunction(
+			"ChatRoomCreateElement",
+			HOOK_PRIORITIES.AddBehaviour,
+			(args, next) => {
+				const isRelog = !!RelogChatLog;
+				const ret = next(args);
+				if (isRelog) {
+					delay = 3;
+				}
+				if (delay > 0) {
+					delay--;
+					if (delay === 0) {
+						ElementScrollToEnd("TextAreaChatLog");
+					}
+				}
+				return ret;
+			}
 		);
 
 		// Prevent friendlist results from attempting to load into the HTML outside of the appropriate view

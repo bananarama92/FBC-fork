@@ -103,6 +103,7 @@ declare global {
   var LZString: LZStringType;
   var ElementIsScrolledToEnd: (element: string) => boolean;
   var ElementScrollToEnd: (element: string) => void;
+  var RelogChatLog: HTMLDivElement | null;
   var ServerBeep: ServerBeep;
   var ServerSend: (event: string, data: unknown) => void;
   var GameVersion: string;
