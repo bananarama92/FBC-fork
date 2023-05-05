@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Bondage Club Enhancements
 // @namespace https://www.bondageprojects.com/
-// @version 4.28
+// @version 4.29
 // @description FBC - For Better Club - enhancements for the bondage club - old name kept in tampermonkey for compatibility
 // @author Sidious
 // @match https://bondageprojects.elementfx.com/*
@@ -39,21 +39,19 @@
  *  along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-const FBC_VERSION = "4.28";
-const settingsVersion = 44;
+const FBC_VERSION = "4.29";
+const settingsVersion = 45;
 
 const fbcChangelog = `${FBC_VERSION}
+- added new option (enabled by default) to unlock all expiring locks on the same second
+
+4.28
 - added small patch to scroll chat to end after relogs
 
 4.27
 - added automatic clean-up for least recently seen saved profiles when approaching browser storage quota
 - fixed cyclic object error in profile saving
 - changed /profiles command to print up to 100 most recently seen profiles. Provide a more specific search for name or member number after the command to find older profiles
-
-4.26
-- added logging and warnings regarding browser storage quota usage to profile saving
-- fixed /r not resetting face components
-- r91
 `;
 
 /*
@@ -727,6 +725,17 @@ async function ForBetterClub() {
 			description:
 				"Disables drawing on the screen. This is useful for preventing accidental drawing.",
 		},
+		timerLockMassExpiry: {
+			label:
+				"Allow multiple locks to expire on the same second (requires refresh)",
+			value: true,
+			sideEffects: (newValue) => {
+				debug("timerLockMassExpiry", newValue);
+			},
+			category: "misc",
+			description:
+				"Items that are marked with an expiration time are normally limited to have only one removed per second. Removes this limitation and makes all items fall off at the intended time.",
+		},
 		fpsCounter: {
 			label: "Show FPS counter",
 			value: false,
@@ -863,7 +872,7 @@ async function ForBetterClub() {
 	const bceLoadSettings = async () => {
 		await waitFor(() => !!Player?.AccountName);
 		const key = bceSettingKey();
-		debug("loading settings", key);
+		debug("loading settings");
 		if (!settingsLoaded()) {
 			/** @type {Settings} */
 			// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
@@ -1565,6 +1574,7 @@ async function ForBetterClub() {
 	registerFunction(crafting, "crafting");
 	registerFunction(itemAntiCheat, "itemAntiCheat");
 	registerFunction(leashFix, "leashFix");
+	registerFunction(timerInventoryRemovePatch, "timerInventoryRemovePatch");
 
 	// Post ready when in a chat room
 	await fbcNotify(`For Better Club v${w.FBC_VERSION} Loaded`);
@@ -1575,7 +1585,12 @@ async function ForBetterClub() {
 	}
 
 	async function functionIntegrityCheck() {
-		await waitFor(() => GameVersion !== "R0");
+		await waitFor(
+			() =>
+				GameVersion !== "R0" &&
+				typeof ServerIsConnected === "boolean" &&
+				ServerIsConnected
+		);
 		for (const [func, hash] of Object.entries(expectedHashes(GameVersion))) {
 			if (!w[func]) {
 				logWarn(`Expected function ${func} not found.`);
@@ -1806,6 +1821,33 @@ async function ForBetterClub() {
 				}`,
 			},
 			"Beeps are not enhanced by FBC."
+		);
+	}
+
+	function timerInventoryRemovePatch() {
+		patchFunction(
+			"TimerInventoryRemove",
+			{
+				"if (Character[C].IsPlayer() || Character[C].IsNpc())":
+					"if (Character[C].IsPlayer() || Character[C].IsNpc()) { let fbcLocks = [];",
+				ServerSend: `fbcLocks.push(Dictionary); if (!bceSettingValue("timerLockMassExpiry")) ServerSend`,
+				"InventoryRemove(Character[C], group.Name);": `{
+					InventoryRemove(Character[C], group.Name);
+					if (bceSettingValue("timerLockMassExpiry")) {
+						A--;
+					}
+				}`,
+				"// Sync with the server and exit": `if (bceSettingValue("timerLockMassExpiry")) continue; // Sync with the server and exit`,
+				"}\n\t\t\t}": `}\n\t\t\t}
+				if (bceSettingValue("timerLockMassExpiry") && Character[C].IsPlayer() && fbcLocks.length > 0) {
+					if (fbcLocks.length > 1) {
+						fbcSendAction(\`\${fbcLocks.length} timer locks on \${CharacterNickname(Player)} fall off.\`)
+					} else {
+						ServerSend("ChatRoomChat", {Content: "TimerRelease", Type: "Action", Dictionary: fbcLocks[0]});
+					}
+				}}`,
+			},
+			"Multiple locks cannot expire on the same second."
 		);
 	}
 
@@ -8561,6 +8603,7 @@ async function ForBetterClub() {
 				"c.tenor.com",
 				"i.redd.it",
 				"puu.sh",
+				"fs.kinkop.eu",
 			].includes(url.host) &&
 			/\/[^/]+\.(png|jpe?g|gif)$/u.test(url.pathname)
 		) {
