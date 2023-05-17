@@ -544,6 +544,7 @@ declare global {
   };
   interface Character {
     ArousalSettings: ArousalSettings;
+    Inventory: unknown;
     OnlineSettings: OnlineSettings;
     OnlineSharedSettings: OnlineSharedSettings;
     MemberNumber: number;

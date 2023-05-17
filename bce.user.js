@@ -47,6 +47,7 @@ const fbcChangelog = `${FBC_VERSION}
   - Goggles considered glasses for blind without glasses
 - added new option to print friend presence notifications in chat
 - added advanced layering menu
+- massively reduced the amount of data saved in the profile cache
 
 4.29
 - added new option (enabled by default) to unlock all expiring locks on the same second
@@ -9411,6 +9412,24 @@ async function ForBetterClub() {
 
 			const name = characterBundle.Name;
 			const nick = characterBundle.Nickname;
+
+			// Delete unnecessary data
+			const unnecessaryFields = [
+				"ActivePose",
+				"Inventory",
+				"BlockItems",
+				"LimitedItems",
+				"FavoriteItems",
+				"ArousalSettings",
+				"OnlineSharedSettings",
+				"WhiteList",
+				"BlackList",
+				"Crafting",
+			];
+			for (const field of unnecessaryFields) {
+				delete characterBundle[field];
+			}
+
 			debug(`saving profile of ${nick} (${name})`);
 			try {
 				await profiles.put({
