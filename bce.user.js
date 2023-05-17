@@ -40,11 +40,12 @@
  */
 
 const FBC_VERSION = "4.30";
-const settingsVersion = 45;
+const settingsVersion = 46;
 
 const fbcChangelog = `${FBC_VERSION}
 - R92 compatibility
   - Goggles considered glasses for blind without glasses
+- added new option to print friend presence notifications in chat
 
 4.29
 - added new option (enabled by default) to unlock all expiring locks on the same second
@@ -300,7 +301,7 @@ async function ForBetterClub() {
 		},
 		instantMessenger: {
 			label: "Instant messenger",
-			value: false,
+			value: true,
 			sideEffects: (newValue) => {
 				debug("instantMessenger", newValue);
 			},
@@ -310,7 +311,7 @@ async function ForBetterClub() {
 		},
 		augmentChat: {
 			label: "Chat Links and Embeds",
-			value: false,
+			value: true,
 			sideEffects: (newValue) => {
 				debug("augmentChat", newValue);
 			},
@@ -363,13 +364,24 @@ async function ForBetterClub() {
 				"Enables friend presence tracking and shows a notification when a friend logs in.",
 		},
 		friendOfflineNotifications: {
-			label: "Show friends going offline too (requires friend presence)",
+			label: "Show friends going offline too",
 			value: false,
 			sideEffects: (newValue) => {
 				debug("friendOfflineNotifications", newValue);
 			},
 			category: "chat",
-			description: "Shows a notification when a friend logs out.",
+			description:
+				"Shows a notification when a friend logs out. (Requires friend presence)",
+		},
+		friendNotificationsInChat: {
+			label: "Show friend presence notifications in chat, when possible",
+			value: false,
+			sideEffects: (newValue) => {
+				debug("friendNotificationsInChat", newValue);
+			},
+			category: "chat",
+			description:
+				"Shows friend presence notifications in chat, when possible. (Requires friend presence)",
 		},
 		pastProfiles: {
 			label: "Save & browse seen profiles (requires refresh)",
@@ -6193,7 +6205,7 @@ async function ForBetterClub() {
 					DrawTextFit(
 						/^\d+\.\d+(\.\d+)?$/u.test(C.FBC) ? C.FBC : "",
 						CharX + 290 * Zoom,
-						CharY + 35 * Zoom,
+						CharY + 30 * Zoom,
 						40 * Zoom,
 						DEVS.includes(C.MemberNumber) ? "#b33cfa" : "White",
 						"Black"
@@ -7295,9 +7307,16 @@ async function ForBetterClub() {
 							return `${MemberName} (${MemberNumber})`;
 						})
 						.join(", ");
-					fbcNotify(displayText(`Now online: $list`, { $list: list }), 5000, {
-						ClickAction: BEEP_CLICK_ACTIONS.FriendList,
-					});
+					if (
+						fbcSettings.friendNotificationsInChat &&
+						CurrentScreen === "ChatRoom"
+					) {
+						fbcChatNotify(displayText(`Now online: $list`, { $list: list }));
+					} else {
+						fbcNotify(displayText(`Now online: $list`, { $list: list }), 5000, {
+							ClickAction: BEEP_CLICK_ACTIONS.FriendList,
+						});
+					}
 				}
 				if (fbcSettings.friendOfflineNotifications && offlineFriends.length) {
 					const list = offlineFriends
@@ -7308,9 +7327,20 @@ async function ForBetterClub() {
 							return `${MemberName} (${MemberNumber})`;
 						})
 						.join(", ");
-					fbcNotify(displayText(`Now offline: $list`, { $list: list }), 5000, {
-						ClickAction: BEEP_CLICK_ACTIONS.FriendList,
-					});
+					if (
+						fbcSettings.friendNotificationsInChat &&
+						CurrentScreen === "ChatRoom"
+					) {
+						fbcChatNotify(displayText(`Now offline: $list`, { $list: list }));
+					} else {
+						fbcNotify(
+							displayText(`Now offline: $list`, { $list: list }),
+							5000,
+							{
+								ClickAction: BEEP_CLICK_ACTIONS.FriendList,
+							}
+						);
+					}
 				}
 				lastFriends = data.Result;
 			}
