@@ -554,6 +554,7 @@ declare global {
     AccountName: string;
     Creation: number;
     Appearance: Item[];
+    AssetFamily: "Female3DCG";
     AppearanceLayers: ItemLayer[];
     Wardrobe: ItemBundle[][];
     FocusGroup: AssetGroup;
@@ -634,7 +635,7 @@ declare global {
     ShowTimer?: boolean;
     Intensity?: number;
     Expression?: string;
-    OverridePriority?: number;
+    OverridePriority?: number | Record<string, number>;
     LockMemberNumber?: number;
     LockedBy?: string;
     Effect?: string[];
@@ -659,8 +660,14 @@ declare global {
     MaxTimer?: number;
     AllowEffect?: string[];
     AllowLock?: boolean;
+    Layer: AssetLayer[];
+    Priority?: number;
   };
-  type ItemLayer = Item & { Priority?: number };
+  type AssetLayer = {
+    Name: string | null;
+    Priority?: number | null;
+  };
+  type ItemLayer = Item & { Name: string | null; Priority?: number };
   type Item = {
     Asset: Asset;
     Difficulty?: number;

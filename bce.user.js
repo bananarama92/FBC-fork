@@ -46,6 +46,7 @@ const fbcChangelog = `${FBC_VERSION}
 - R92 compatibility
   - Goggles considered glasses for blind without glasses
 - added new option to print friend presence notifications in chat
+- added advanced layering menu
 
 4.29
 - added new option (enabled by default) to unlock all expiring locks on the same second
@@ -5748,19 +5749,171 @@ async function ForBetterClub() {
 			.map((a) => a.Name)
 			.filter((a) => !ignoredColorCopiableAssets.includes(a));
 
-		let lastItem = null;
 		const layerPriority = "bce_LayerPriority";
+
+		/** @type {(C: Character, item: Item) => boolean} */
+		function assetVisible(C, item) {
+			return item && !!C.AppearanceLayers.find((a) => a.Asset === item.Asset);
+		}
+
+		/** @type {(C: Character, item: Item) => boolean} */
+		function assetWorn(C, item) {
+			return item && !!C.Appearance.find((a) => a === item);
+		}
+
+		/** @type {Record<string, number>} */
+		let layerPriorities = {};
+		let advancedPriorities = false;
 
 		/** @type {(item: Item) => void} */
 		function updateItemPriorityFromLayerPriorityInput(item) {
 			if (item) {
-				const priority = parseInt(ElementValue(layerPriority));
-				if (!item.Property) {
-					item.Property = { OverridePriority: priority };
+				if (advancedPriorities) {
+					const priorities = Object.entries(layerPriorities);
+					if (!item.Property) {
+						item.Property = { OverridePriority: {} };
+					} else {
+						item.Property.OverridePriority = {};
+					}
+					for (const [layer, priority] of priorities) {
+						item.Property.OverridePriority[layer] = priority;
+					}
 				} else {
-					item.Property.OverridePriority = priority;
+					const priority = parseInt(ElementValue(layerPriority));
+					if (!item.Property) {
+						item.Property = { OverridePriority: priority };
+					} else {
+						item.Property.OverridePriority = priority;
+					}
 				}
+				CharacterRefresh(preview, false, false);
 			}
+		}
+
+		/** @type {"Priority" | "Difficulty"} */
+		let priorityField = "Priority",
+			prioritySubscreen = false;
+		let layerPage = 0;
+		const FIELDS = Object.freeze({
+			/** @type {"Priority"} */
+			Priority: "Priority",
+			/** @type {"Difficulty"} */
+			Difficulty: "Difficulty",
+		});
+
+		const preview = CharacterLoadSimple(
+			`LayeringPreview-${Player.MemberNumber}`
+		);
+
+		/**
+		 * @param {string} layerName
+		 */
+		function layerElement(layerName) {
+			return `${layerPriority}___${layerName}`;
+		}
+
+		patchFunction(
+			"DrawCharacter",
+			{
+				"var OverrideDark = ":
+					"var OverrideDark = C.AccountName.startsWith('LayeringPreview') || ",
+			},
+			"Layering preview affected by blindness"
+		);
+
+		/** @type {(C: Character, FocusItem: Item, field: "Priority" | "Difficulty") => void} */
+		function prioritySubscreenEnter(C, FocusItem, field) {
+			DialogFocusItem = FocusItem;
+			prioritySubscreen = true;
+			priorityField = field;
+			let initialValue = 0;
+			switch (field) {
+				case FIELDS.Priority:
+					initialValue = C.AppearanceLayers.find(
+						(a) => a.Asset === FocusItem.Asset
+					).Priority;
+					layerPriorities = {};
+					for (const layer of FocusItem.Asset.Layer) {
+						if (!layer.Name) {
+							continue;
+						}
+						const drawnLayer = C.AppearanceLayers.find(
+							(a) => a.Asset === FocusItem.Asset && a.Name === layer.Name
+						);
+						let priority = layer.Priority ?? FocusItem.Asset.Priority ?? -1;
+						if (
+							typeof FocusItem?.Property?.OverridePriority === "object" &&
+							layer.Name in FocusItem.Property.OverridePriority
+						) {
+							priority = FocusItem?.Property?.OverridePriority[layer.Name];
+						}
+						if (drawnLayer) {
+							priority = drawnLayer.Priority ?? priority;
+						}
+						layerPriorities[layer.Name] = priority;
+						const el = ElementCreateInput(
+							layerElement(layer.Name),
+							"number",
+							"",
+							"20"
+						);
+						ElementValue(layerElement(layer.Name), priority.toString());
+						el.setAttribute("data-layer", layer.Name);
+						el.className = layerPriority;
+						// eslint-disable-next-line no-loop-func -- layerPriorities scope is outside the function, ElementValue is a global function
+						el.addEventListener("change", () => {
+							layerPriorities[layer.Name] = parseInt(
+								ElementValue(layerElement(layer.Name))
+							);
+							updateItemPriorityFromLayerPriorityInput(
+								InventoryGet(preview, FocusItem.Asset.Group.Name)
+							);
+						});
+					}
+					hideAllLayerElements();
+					if (typeof FocusItem?.Property?.OverridePriority === "object") {
+						advancedPriorities = true;
+					}
+					break;
+				case FIELDS.Difficulty:
+					initialValue = C.Appearance.find((a) => a === FocusItem).Difficulty;
+					break;
+				default:
+					break;
+			}
+			ElementCreateInput(layerPriority, "number", "", "20");
+			ElementValue(layerPriority, initialValue.toString());
+			layerPage = 0;
+			preview.Appearance = C.Appearance.slice();
+			CharacterRefresh(preview, false, false);
+			document.getElementById(layerPriority).addEventListener("change", () => {
+				updateItemPriorityFromLayerPriorityInput(
+					InventoryGet(preview, FocusItem.Asset.Group.Name)
+				);
+			});
+		}
+		function prioritySubscreenExit() {
+			prioritySubscreen = false;
+			ElementRemove(layerPriority);
+			document.querySelectorAll(`.${layerPriority}`).forEach((e) => {
+				ElementRemove(e.id);
+			});
+			DialogFocusItem = null;
+		}
+
+		for (const func of ["DialogLeave", "DialogLeaveItemMenu"]) {
+			SDK.hookFunction(
+				func,
+				HOOK_PRIORITIES.OverrideBehaviour,
+				// eslint-disable-next-line no-loop-func
+				(args, next) => {
+					if (prioritySubscreen) {
+						prioritySubscreenExit();
+						return;
+					}
+					next(args);
+				}
+			);
 		}
 
 		SDK.hookFunction(
@@ -5787,43 +5940,27 @@ async function ForBetterClub() {
 
 		SDK.hookFunction(
 			"AppearanceRun",
-			HOOK_PRIORITIES.AddBehaviour,
+			HOOK_PRIORITIES.OverrideBehaviour,
 			(args, next) => {
+				if (prioritySubscreen) {
+					prioritySubscreenDraw();
+					return null;
+				}
 				const ret = next(args);
 				if (fbcSettings.layeringMenu) {
 					const C = CharacterAppearanceSelection;
-					if (CharacterAppearanceMode === "Cloth") {
-						DrawText(displayText("Priority"), 70, 35, "White", "Black");
-						ElementPosition(layerPriority, 60, 105, 100);
+					const item = C.Appearance.find((a) => a.Asset.Group === C.FocusGroup);
+					if (CharacterAppearanceMode === "Cloth" && assetVisible(C, item)) {
 						DrawButton(
 							110,
 							70,
-							90,
-							90,
+							52,
+							52,
 							"",
 							"White",
-							"Icons/Accept.png",
-							displayText("Set Priority")
+							ICONS.LAYERS,
+							displayText("Modify layering priority")
 						);
-						const item = C.Appearance.find(
-							(a) => a.Asset.Group === C.FocusGroup
-						);
-						if (!lastItem || lastItem !== item) {
-							if (!item) {
-								ElementValue(layerPriority, "");
-							} else {
-								ElementValue(
-									layerPriority,
-									(
-										C.AppearanceLayers.find((a) => a.Asset === item.Asset)
-											?.Priority || 0
-									).toString()
-								);
-							}
-						}
-						lastItem = item;
-					} else {
-						ElementPosition(layerPriority, -1000, -1000, 0);
 					}
 				}
 				return ret;
@@ -5832,83 +5969,27 @@ async function ForBetterClub() {
 
 		SDK.hookFunction(
 			"AppearanceClick",
-			HOOK_PRIORITIES.AddBehaviour,
+			HOOK_PRIORITIES.OverrideBehaviour,
 			(args, next) => {
 				if (fbcSettings.layeringMenu) {
 					const C = CharacterAppearanceSelection;
-					if (MouseIn(110, 70, 90, 90) && CharacterAppearanceMode === "Cloth") {
-						const item = C.Appearance.find(
-							(a) => a.Asset.Group?.Name === C.FocusGroup?.Name
-						);
-						updateItemPriorityFromLayerPriorityInput(item);
-						CharacterRefresh(C, false);
+					const item = C.Appearance.find(
+						(a) => a.Asset.Group?.Name === C.FocusGroup?.Name
+					);
+					if (prioritySubscreen) {
+						prioritySubscreenClick(C, item);
+						return null;
+					} else if (
+						MouseIn(110, 70, 52, 52) &&
+						CharacterAppearanceMode === "Cloth" &&
+						assetVisible(C, item)
+					) {
+						prioritySubscreenEnter(C, item, FIELDS.Priority);
 					}
 				}
 				return next(args);
 			}
 		);
-
-		/** @type {(C: Character, item: Item) => boolean} */
-		function assetVisible(C, item) {
-			return item && !!C.AppearanceLayers.find((a) => a.Asset === item.Asset);
-		}
-
-		/** @type {(C: Character, item: Item) => boolean} */
-		function assetWorn(C, item) {
-			return item && !!C.Appearance.find((a) => a === item);
-		}
-
-		/** @type {"Priority" | "Difficulty"} */
-		let priorityField = "Priority",
-			prioritySubscreen = false;
-		const FIELDS = Object.freeze({
-			/** @type {"Priority"} */
-			Priority: "Priority",
-			/** @type {"Difficulty"} */
-			Difficulty: "Difficulty",
-		});
-
-		/** @type {(C: Character, FocusItem: Item, field: "Priority" | "Difficulty") => void} */
-		function prioritySubscreenEnter(C, FocusItem, field) {
-			DialogFocusItem = FocusItem;
-			prioritySubscreen = true;
-			priorityField = field;
-			let initialValue = 0;
-			switch (field) {
-				case FIELDS.Priority:
-					initialValue = C.AppearanceLayers.find(
-						(a) => a.Asset === FocusItem.Asset
-					).Priority;
-					break;
-				case FIELDS.Difficulty:
-					initialValue = C.Appearance.find((a) => a === FocusItem).Difficulty;
-					break;
-				default:
-					break;
-			}
-			ElementCreateInput(layerPriority, "number", "", "20");
-			ElementValue(layerPriority, initialValue.toString());
-		}
-		function prioritySubscreenExit() {
-			prioritySubscreen = false;
-			ElementRemove(layerPriority);
-			DialogFocusItem = null;
-		}
-
-		for (const func of ["DialogLeave", "DialogLeaveItemMenu"]) {
-			SDK.hookFunction(
-				func,
-				HOOK_PRIORITIES.OverrideBehaviour,
-				// eslint-disable-next-line no-loop-func
-				(args, next) => {
-					if (prioritySubscreen) {
-						prioritySubscreenExit();
-						return;
-					}
-					next(args);
-				}
-			);
-		}
 
 		SDK.hookFunction(
 			"DialogDrawItemMenu",
@@ -5965,6 +6046,98 @@ async function ForBetterClub() {
 			}
 		);
 
+		/**
+		 * @returns {[number, number, number, number]}
+		 */
+		function priorityAcceptButtonPosition() {
+			return advancedPriorities ? [1715, 75, 90, 90] : [900, 280, 90, 90];
+		}
+
+		function hideAllLayerElements() {
+			const layerNames = Object.keys(layerPriorities);
+			for (let i = 0; i < layerNames.length; i++) {
+				ElementPosition(layerElement(layerNames[i]), -1000, -1000, 0, 0);
+			}
+		}
+
+		const layersPerColumn = 10;
+		const layersPerPage = layersPerColumn * 2;
+		function prioritySubscreenDraw() {
+			DrawCharacter(preview, 1300, 100, 0.9, false);
+
+			const layerNames = Object.keys(layerPriorities);
+			if (priorityField === FIELDS.Priority && layerNames.length > 0) {
+				DrawCheckbox(100, 50, 64, 64, "", advancedPriorities, false, "White");
+				drawTextFitLeft(
+					displayText("Adjust individual layers"),
+					174,
+					82,
+					400,
+					"White",
+					"Black"
+				);
+			}
+			if (advancedPriorities) {
+				DrawButton(1815, 180, 90, 90, "", "White", "Icons/Next.png");
+				drawTextFitLeft(
+					`${layerPage + 1} / ${Math.ceil(layerNames.length / layersPerPage)}`,
+					1715,
+					235,
+					90,
+					"White",
+					"Black"
+				);
+				ElementPosition(layerPriority, -1000, -1000, 0, 0);
+				for (let i = 0; i < layersPerPage && i < layerNames.length; i++) {
+					const layerName = layerNames[i + layerPage * layersPerPage];
+					const x = 200 + Math.floor(i / layersPerColumn) * 500,
+						y = 160 + (i % layersPerColumn) * 70;
+					ElementPosition(layerElement(layerName), x, y, 100);
+					drawTextFitLeft(layerName, x + 50, y, 400, "White", "Black");
+				}
+			} else {
+				// Localization guide: valid options for priorityField can be seen in the "const FIELDS" object above
+				DrawText(
+					displayText(`Set item ${priorityField}`),
+					950,
+					150,
+					"White",
+					"Black"
+				);
+				ElementPosition(layerPriority, 950, 230, 100);
+				hideAllLayerElements();
+			}
+			DrawButton(1815, 75, 90, 90, "", "White", "Icons/Exit.png");
+			DrawButton(
+				...priorityAcceptButtonPosition(),
+				"",
+				"White",
+				"Icons/Accept.png",
+				// Localization guide: valid options for priorityField can be seen in the "const FIELDS" object above
+				displayText(`Set ${priorityField}`)
+			);
+		}
+
+		/**
+		 * @param {Character} C
+		 * @param {Item} focusItem
+		 */
+		function prioritySubscreenClick(C, focusItem) {
+			if (MouseIn(100, 50, 64, 64)) {
+				advancedPriorities = !advancedPriorities;
+			} else if (MouseIn(1815, 75, 90, 90)) {
+				prioritySubscreenExit();
+			} else if (MouseIn(...priorityAcceptButtonPosition())) {
+				savePrioritySubscreenChanges(C, focusItem);
+			} else if (advancedPriorities && MouseIn(1815, 180, 90, 90)) {
+				layerPage++;
+				if (layerPage * layersPerPage >= Object.keys(layerPriorities).length) {
+					layerPage = 0;
+				}
+				hideAllLayerElements();
+			}
+		}
+
 		SDK.hookFunction(
 			"DialogDraw",
 			HOOK_PRIORITIES.OverrideBehaviour,
@@ -5974,27 +6147,7 @@ async function ForBetterClub() {
 				if (prioritySubscreen) {
 					if (canAccessLayeringMenus()) {
 						if (focusItem) {
-							// Localization guide: valid options for priorityField can be seen in the "const FIELDS" object above
-							DrawText(
-								displayText(`Set item ${priorityField}`),
-								950,
-								150,
-								"White",
-								"Black"
-							);
-							DrawButton(1815, 75, 90, 90, "", "White", "Icons/Exit.png");
-							ElementPosition(layerPriority, 950, 210, 100);
-							DrawButton(
-								900,
-								280,
-								90,
-								90,
-								"",
-								"White",
-								"Icons/Accept.png",
-								// Localization guide: valid options for priorityField can be seen in the "const FIELDS" object above
-								displayText(`Set ${priorityField}`)
-							);
+							prioritySubscreenDraw();
 							return null;
 						}
 						prioritySubscreenExit();
@@ -6017,11 +6170,7 @@ async function ForBetterClub() {
 					focusItem = InventoryGet(C, C.FocusGroup?.Name);
 				if (focusItem) {
 					if (prioritySubscreen) {
-						if (MouseIn(1815, 75, 90, 90)) {
-							prioritySubscreenExit();
-						} else if (MouseIn(900, 280, 90, 90)) {
-							savePrioritySubscreenChanges(C, focusItem);
-						}
+						prioritySubscreenClick(C, focusItem);
 						return null;
 					}
 					if (
