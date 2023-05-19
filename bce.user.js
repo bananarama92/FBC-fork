@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Bondage Club Enhancements
 // @namespace https://www.bondageprojects.com/
-// @version 4.30
+// @version 4.31
 // @description FBC - For Better Club - enhancements for the bondage club - old name kept in tampermonkey for compatibility
 // @author Sidious
 // @match https://bondageprojects.elementfx.com/*
@@ -39,10 +39,14 @@
  *  along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-const FBC_VERSION = "4.30";
+const FBC_VERSION = "4.31";
 const settingsVersion = 46;
 
 const fbcChangelog = `${FBC_VERSION}
+- fixed a bug where trying to layer a single-layer item after modifying multiple layers would cause the menu to break
+- updated stable bcx
+
+4.30
 - R92 compatibility
   - Goggles considered glasses for blind without glasses
 - added new option to print friend presence notifications in chat
@@ -51,9 +55,6 @@ const fbcChangelog = `${FBC_VERSION}
 
 4.29
 - added new option (enabled by default) to unlock all expiring locks on the same second
-
-4.28
-- added small patch to scroll chat to end after relogs
 `;
 
 /*
@@ -107,7 +108,7 @@ async function ForBetterClub() {
 	const BCX_DEVEL_SOURCE =
 			"https://jomshir98.github.io/bondage-club-extended/devel/bcx.js",
 		BCX_SOURCE =
-			"https://raw.githubusercontent.com/Jomshir98/bondage-club-extended/b547db6453768f2c038ee51b5c1039780203cfc1/bcx.js",
+			"https://raw.githubusercontent.com/Jomshir98/bondage-club-extended/8d55f3153ada0fc4c698436d89645b8a0384503b/bcx.js",
 		EBCH_SOURCE = "https://e2466.gitlab.io/ebch/master/EBCH.js",
 		MBS_SOURCE = "https://bananarama92.github.io/MBS/main/mbs.js";
 
@@ -5827,6 +5828,7 @@ async function ForBetterClub() {
 			DialogFocusItem = FocusItem;
 			prioritySubscreen = true;
 			priorityField = field;
+			advancedPriorities = false;
 			let initialValue = 0;
 			switch (field) {
 				case FIELDS.Priority:
