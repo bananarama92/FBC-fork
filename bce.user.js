@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Bondage Club Enhancements
 // @namespace https://www.bondageprojects.com/
-// @version 4.31
+// @version 4.32
 // @description FBC - For Better Club - enhancements for the bondage club - old name kept in tampermonkey for compatibility
 // @author Sidious
 // @match https://bondageprojects.elementfx.com/*
@@ -39,10 +39,13 @@
  *  along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-const FBC_VERSION = "4.31";
+const FBC_VERSION = "4.32";
 const settingsVersion = 46;
 
 const fbcChangelog = `${FBC_VERSION}
+- updated stable bcx
+
+4.31
 - fixed a bug where trying to layer a single-layer item after modifying multiple layers would cause the menu to break
 - updated stable bcx
 
@@ -52,9 +55,6 @@ const fbcChangelog = `${FBC_VERSION}
 - added new option to print friend presence notifications in chat
 - added advanced layering menu
 - massively reduced the amount of data saved in the profile cache
-
-4.29
-- added new option (enabled by default) to unlock all expiring locks on the same second
 `;
 
 /*
@@ -108,7 +108,7 @@ async function ForBetterClub() {
 	const BCX_DEVEL_SOURCE =
 			"https://jomshir98.github.io/bondage-club-extended/devel/bcx.js",
 		BCX_SOURCE =
-			"https://raw.githubusercontent.com/Jomshir98/bondage-club-extended/8d55f3153ada0fc4c698436d89645b8a0384503b/bcx.js",
+			"https://raw.githubusercontent.com/Jomshir98/bondage-club-extended/48427b6772e84b620b338b01613f4c64c947f927/bcx.js",
 		EBCH_SOURCE = "https://e2466.gitlab.io/ebch/master/EBCH.js",
 		MBS_SOURCE = "https://bananarama92.github.io/MBS/main/mbs.js";
 
@@ -5863,7 +5863,7 @@ async function ForBetterClub() {
 						ElementValue(layerElement(layer.Name), priority.toString());
 						el.setAttribute("data-layer", layer.Name);
 						el.className = layerPriority;
-						// eslint-disable-next-line no-loop-func -- layerPriorities scope is outside the function, ElementValue is a global function
+						// eslint-disable-next-line no-loop-func -- layerPriorities scope is outside the function, ElementValue and InventoryGet are global functions
 						el.addEventListener("change", () => {
 							layerPriorities[layer.Name] = parseInt(
 								ElementValue(layerElement(layer.Name))
