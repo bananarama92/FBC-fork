@@ -440,7 +440,6 @@ declare global {
   ) => ItemBundle[][];
   var CharacterCompressWardrobe: (wardrobe: ItemBundle[][]) => string;
   var CharacterAppearanceWardrobeOffset: number;
-  var MainRun: (time: DOMHighResTimeStamp) => void;
   var GameRun: (time: DOMHighResTimeStamp) => void;
   var NotificationRaise: (
     eventType: "Beep",
