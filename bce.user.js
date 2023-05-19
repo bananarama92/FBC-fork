@@ -3430,7 +3430,7 @@ async function ForBetterClub() {
 		patchFunction(
 			"ChatRoomKeyDown",
 			{
-				"ChatRoomSendChat()": /* JS */ `if (fbcSettingValue("ctrlEnterOoc") && event.ctrlKey && ElementValue("InputChat")?.trim()) {
+				"ChatRoomSendChat()": `if (fbcSettingValue("ctrlEnterOoc") && event.ctrlKey && ElementValue("InputChat")?.trim()) {
 						let text = ElementValue("InputChat");
 						let prefix = "";
 						if (!text) {
@@ -7111,7 +7111,7 @@ async function ForBetterClub() {
 		patchFunction(
 			"ActivitySetArousalTimer",
 			{
-				"if (Progress > 0 && (C.ArousalSettings.Progress + Progress) > Max)\n\t\tProgress = (Max - C.ArousalSettings.Progress >= 0) ? Max - C.ArousalSettings.Progress : 0;": /* JS */ `
+				"if (Progress > 0 && (C.ArousalSettings.Progress + Progress) > Max)\n\t\tProgress = (Max - C.ArousalSettings.Progress >= 0) ? Max - C.ArousalSettings.Progress : 0;": `
 				if (!C.BCEArousal) {
 					if ((Progress > 0) && (C.ArousalSettings.Progress + Progress > Max)) Progress = (Max - C.ArousalSettings.Progress >= 0) ? Max - C.ArousalSettings.Progress : 0;
 				} else {
@@ -7129,7 +7129,7 @@ async function ForBetterClub() {
 				}
 			`,
 
-				"if (Progress < -25) Progress = -25;": /* JS */ `
+				"if (Progress < -25) Progress = -25;": `
 				if (!C.BCEArousal) {
 					if (Progress < -25) Progress = -25;
 				} else {
@@ -7137,7 +7137,7 @@ async function ForBetterClub() {
 				}
 				`,
 
-				"if (Progress > 25) Progress = 25;": /* JS */ `
+				"if (Progress > 25) Progress = 25;": `
 				if (!C.BCEArousal) {
 					if (Progress > 25) Progress = 25;
 				} else {
@@ -7234,7 +7234,7 @@ async function ForBetterClub() {
 		patchFunction(
 			"TimerProcess",
 			{
-				"// If the character is egged, we find the highest intensity factor and affect the progress, low and medium vibrations have a cap\n\t\t\t\t\t\t\tlet Factor = -1;": /* JS */ `
+				"// If the character is egged, we find the highest intensity factor and affect the progress, low and medium vibrations have a cap\n\t\t\t\t\t\t\tlet Factor = -1;": `
 				let Factor = -1;
 				if (Character[C].BCEArousal) {
 					let maxIntensity = 0;
@@ -7303,9 +7303,9 @@ async function ForBetterClub() {
 						}
 					}
 				} else {
-				`, // `; // Fixes syntax highlighting
+				`,
 
-				"if ((Factor == -1)) {ActivityVibratorLevel(Character[C], 0);}\n\n\t\t\t\t\t\t}": /* JS */ `if (Factor == -1) {
+				"if ((Factor == -1)) {ActivityVibratorLevel(Character[C], 0);}\n\n\t\t\t\t\t\t}": `if (Factor == -1) {
 						ActivityVibratorLevel(Character[C], 0);
 					}
 				}
@@ -7314,7 +7314,7 @@ async function ForBetterClub() {
 			}
 			`,
 
-				"// No decay if there's a vibrating item running": /* JS */ `// No decay if there's a vibrating item running
+				"// No decay if there's a vibrating item running": `// No decay if there's a vibrating item running
 			Character[C].BCEEnjoyment = 1;`,
 			},
 			"Alternative arousal algorithm will be incorrect."
@@ -9329,7 +9329,7 @@ async function ForBetterClub() {
 			}
 		};
 
-		notifierScript.textContent = /* JS */ `
+		notifierScript.textContent = `
 		function sleep(ms) {
 			return new Promise((resolve) => setTimeout(resolve, ms));
 		}
