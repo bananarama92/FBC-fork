@@ -19,10 +19,6 @@
 /// <reference path="./node_modules/@total-typescript/ts-reset/dist/recommended.d.ts"/>
 // eslint-disable-next-line
 /// <reference path="./bce.d.ts" />
-/* eslint-disable @typescript-eslint/no-floating-promises */
-/* eslint-disable no-undef */
-/* eslint-disable no-implicit-globals */
-/* eslint-disable no-alert */
 
 /**
  *     BCE/FBC
@@ -1845,16 +1841,16 @@ async function ForBetterClub() {
 			{
 				"if (Character[C].IsPlayer() || Character[C].IsNpc())":
 					"if (Character[C].IsPlayer() || Character[C].IsNpc()) { let fbcLocks = [];",
-				ServerSend: `fbcLocks.push(Dictionary); if (!bceSettingValue("timerLockMassExpiry")) ServerSend`,
+				ServerSend: `fbcLocks.push(Dictionary); if (!fbcSettingValue("timerLockMassExpiry")) ServerSend`,
 				"InventoryRemove(Character[C], group.Name);": `{
 					InventoryRemove(Character[C], group.Name);
-					if (bceSettingValue("timerLockMassExpiry")) {
+					if (fbcSettingValue("timerLockMassExpiry")) {
 						A--;
 					}
 				}`,
-				"// Sync with the server and exit": `if (bceSettingValue("timerLockMassExpiry")) continue; // Sync with the server and exit`,
+				"// Sync with the server and exit": `if (fbcSettingValue("timerLockMassExpiry")) continue; // Sync with the server and exit`,
 				"}\n\t\t\t}": `}\n\t\t\t}
-				if (bceSettingValue("timerLockMassExpiry") && Character[C].IsPlayer() && fbcLocks.length > 0) {
+				if (fbcSettingValue("timerLockMassExpiry") && Character[C].IsPlayer() && fbcLocks.length > 0) {
 					if (fbcLocks.length > 1) {
 						fbcSendAction(\`\${fbcLocks.length} timer locks on \${CharacterNickname(Player)} fall off.\`)
 					} else {
@@ -1873,7 +1869,7 @@ async function ForBetterClub() {
 		patchFunction(
 			"InventoryItemMiscLoversTimerPadlockDraw",
 			{
-				"// Draw buttons to add/remove time if available": `if (bceSettingValue("accurateTimerLocks") && Player.CanInteract() && (C.IsLoverOfPlayer() || C.IsOwnedByPlayer())) {${timerInputElement}} else`,
+				"// Draw buttons to add/remove time if available": `if (fbcSettingValue("accurateTimerLocks") && Player.CanInteract() && (C.IsLoverOfPlayer() || C.IsOwnedByPlayer())) {${timerInputElement}} else`,
 			},
 			"Accurate timer inputs are not available for lover locks."
 		);
@@ -1881,7 +1877,7 @@ async function ForBetterClub() {
 			"InventoryItemMiscLoversTimerPadlockClick",
 			{
 				"InventoryItemMiscLoversTimerPadlockAdd(LoverTimerChooseList[LoverTimerChooseIndex] * 3600);":
-					'if (!bceSettingValue("accurateTimerLocks")) InventoryItemMiscLoversTimerPadlockAdd(LoverTimerChooseList[LoverTimerChooseIndex] * 3600);',
+					'if (!fbcSettingValue("accurateTimerLocks")) InventoryItemMiscLoversTimerPadlockAdd(LoverTimerChooseList[LoverTimerChooseIndex] * 3600);',
 			},
 			"Accurate timer inputs are not available for lover locks."
 		);
@@ -1890,7 +1886,7 @@ async function ForBetterClub() {
 		patchFunction(
 			"InventoryItemMiscMistressTimerPadlockDraw",
 			{
-				"// Draw buttons to add/remove time if available": `if (bceSettingValue("accurateTimerLocks") && Player.CanInteract() && (LogQuery("ClubMistress", "Management") || (Player.MemberNumber == DialogFocusSourceItem.Property.LockMemberNumber))) {${timerInputElement}} else`,
+				"// Draw buttons to add/remove time if available": `if (fbcSettingValue("accurateTimerLocks") && Player.CanInteract() && (LogQuery("ClubMistress", "Management") || (Player.MemberNumber == DialogFocusSourceItem.Property.LockMemberNumber))) {${timerInputElement}} else`,
 			},
 			"Accurate timer inputs are not available for mistress locks."
 		);
@@ -1898,7 +1894,7 @@ async function ForBetterClub() {
 			"InventoryItemMiscMistressTimerPadlockClick",
 			{
 				"InventoryItemMiscMistressTimerPadlockAdd(MistressTimerChooseList[MistressTimerChooseIndex] * 60, false);":
-					'if (!bceSettingValue("accurateTimerLocks")) InventoryItemMiscMistressTimerPadlockAdd(MistressTimerChooseList[MistressTimerChooseIndex] * 60, false);',
+					'if (!fbcSettingValue("accurateTimerLocks")) InventoryItemMiscMistressTimerPadlockAdd(MistressTimerChooseList[MistressTimerChooseIndex] * 60, false);',
 			},
 			"Accurate timer inputs are not available for mistress locks."
 		);
@@ -1907,7 +1903,7 @@ async function ForBetterClub() {
 		patchFunction(
 			"InventoryItemMiscOwnerTimerPadlockDraw",
 			{
-				"// Draw buttons to add/remove time if available": `if (bceSettingValue("accurateTimerLocks") && Player.CanInteract() && C.IsOwnedByPlayer()) {${timerInputElement}} else`,
+				"// Draw buttons to add/remove time if available": `if (fbcSettingValue("accurateTimerLocks") && Player.CanInteract() && C.IsOwnedByPlayer()) {${timerInputElement}} else`,
 			},
 			"Accurate timer inputs are not available for owner locks."
 		);
@@ -1915,7 +1911,7 @@ async function ForBetterClub() {
 			"InventoryItemMiscOwnerTimerPadlockClick",
 			{
 				"InventoryItemMiscOwnerTimerPadlockAdd(OwnerTimerChooseList[OwnerTimerChooseIndex] * 3600);":
-					'if (!bceSettingValue("accurateTimerLocks")) InventoryItemMiscOwnerTimerPadlockAdd(OwnerTimerChooseList[OwnerTimerChooseIndex] * 3600);',
+					'if (!fbcSettingValue("accurateTimerLocks")) InventoryItemMiscOwnerTimerPadlockAdd(OwnerTimerChooseList[OwnerTimerChooseIndex] * 3600);',
 			},
 			"Accurate timer inputs are not available for owner locks."
 		);
@@ -1924,7 +1920,7 @@ async function ForBetterClub() {
 		patchFunction(
 			"InventoryItemMiscTimerPasswordPadlockDraw",
 			{
-				"// Draw buttons to add/remove time if available": `if (bceSettingValue("accurateTimerLocks") && Player.CanInteract() && Player.MemberNumber == Property.LockMemberNumber) {${timerInputElement}} else`,
+				"// Draw buttons to add/remove time if available": `if (fbcSettingValue("accurateTimerLocks") && Player.CanInteract() && Player.MemberNumber == Property.LockMemberNumber) {${timerInputElement}} else`,
 			},
 			"Accurate timer inputs are not available for password locks."
 		);
@@ -1932,7 +1928,7 @@ async function ForBetterClub() {
 			"InventoryItemMiscTimerPasswordPadlockClick",
 			{
 				"InventoryItemMiscTimerPasswordPadlockAdd(PasswordTimerChooseList[PasswordTimerChooseIndex] * 60, false);":
-					'if (!bceSettingValue("accurateTimerLocks")) InventoryItemMiscTimerPasswordPadlockAdd(PasswordTimerChooseList[PasswordTimerChooseIndex] * 60, false);',
+					'if (!fbcSettingValue("accurateTimerLocks")) InventoryItemMiscTimerPasswordPadlockAdd(PasswordTimerChooseList[PasswordTimerChooseIndex] * 60, false);',
 			},
 			"Accurate timer inputs are not available for password locks."
 		);
@@ -3148,7 +3144,7 @@ async function ForBetterClub() {
 	}
 
 	function bceStyles() {
-		const css = `
+		const css = /* CSS */ `
 		.bce-beep-link {
 			text-decoration: none;
 		}
@@ -3434,7 +3430,7 @@ async function ForBetterClub() {
 		patchFunction(
 			"ChatRoomKeyDown",
 			{
-				"ChatRoomSendChat()": `if (bceSettingValue("ctrlEnterOoc") && event.ctrlKey && ElementValue("InputChat")?.trim()) {
+				"ChatRoomSendChat()": /* JS */ `if (fbcSettingValue("ctrlEnterOoc") && event.ctrlKey && ElementValue("InputChat")?.trim()) {
 						let text = ElementValue("InputChat");
 						let prefix = "";
 						if (!text) {
@@ -7115,7 +7111,7 @@ async function ForBetterClub() {
 		patchFunction(
 			"ActivitySetArousalTimer",
 			{
-				"if (Progress > 0 && (C.ArousalSettings.Progress + Progress) > Max)\n\t\tProgress = (Max - C.ArousalSettings.Progress >= 0) ? Max - C.ArousalSettings.Progress : 0;": `
+				"if (Progress > 0 && (C.ArousalSettings.Progress + Progress) > Max)\n\t\tProgress = (Max - C.ArousalSettings.Progress >= 0) ? Max - C.ArousalSettings.Progress : 0;": /* JS */ `
 				if (!C.BCEArousal) {
 					if ((Progress > 0) && (C.ArousalSettings.Progress + Progress > Max)) Progress = (Max - C.ArousalSettings.Progress >= 0) ? Max - C.ArousalSettings.Progress : 0;
 				} else {
@@ -7132,18 +7128,22 @@ async function ForBetterClub() {
 					}
 				}
 			`,
-				"if (Progress < -25) Progress = -25;": `
+
+				"if (Progress < -25) Progress = -25;": /* JS */ `
 				if (!C.BCEArousal) {
 					if (Progress < -25) Progress = -25;
 				} else {
 					if (Progress < -20) Progress = -20;
-				}`,
-				"if (Progress > 25) Progress = 25;": `
+				}
+				`,
+
+				"if (Progress > 25) Progress = 25;": /* JS */ `
 				if (!C.BCEArousal) {
 					if (Progress > 25) Progress = 25;
 				} else {
 					if (Progress > 20) Progress = 20;
-				}`,
+				}
+				`,
 			},
 			"Alternate arousal algorithm will be incorrect."
 		);
@@ -7234,7 +7234,7 @@ async function ForBetterClub() {
 		patchFunction(
 			"TimerProcess",
 			{
-				"// If the character is egged, we find the highest intensity factor and affect the progress, low and medium vibrations have a cap\n\t\t\t\t\t\t\tlet Factor = -1;": `
+				"// If the character is egged, we find the highest intensity factor and affect the progress, low and medium vibrations have a cap\n\t\t\t\t\t\t\tlet Factor = -1;": /* JS */ `
 				let Factor = -1;
 				if (Character[C].BCEArousal) {
 					let maxIntensity = 0;
@@ -7303,15 +7303,18 @@ async function ForBetterClub() {
 						}
 					}
 				} else {
-				`,
-				"if ((Factor == -1)) {ActivityVibratorLevel(Character[C], 0);}\n\n\t\t\t\t\t\t}": `if (Factor == -1) {
+				`, // `; // Fixes syntax highlighting
+
+				"if ((Factor == -1)) {ActivityVibratorLevel(Character[C], 0);}\n\n\t\t\t\t\t\t}": /* JS */ `if (Factor == -1) {
 						ActivityVibratorLevel(Character[C], 0);
 					}
 				}
 			} else {
 				ActivityVibratorLevel(Character[C], 0);
-			}`,
-				"// No decay if there's a vibrating item running": `// No decay if there's a vibrating item running
+			}
+			`,
+
+				"// No decay if there's a vibrating item running": /* JS */ `// No decay if there's a vibrating item running
 			Character[C].BCEEnjoyment = 1;`,
 			},
 			"Alternative arousal algorithm will be incorrect."
@@ -9326,7 +9329,7 @@ async function ForBetterClub() {
 			}
 		};
 
-		notifierScript.textContent = `
+		notifierScript.textContent = /* JS */ `
 		function sleep(ms) {
 			return new Promise((resolve) => setTimeout(resolve, ms));
 		}
