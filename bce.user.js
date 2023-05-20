@@ -42,6 +42,7 @@ const FBC_VERSION = "4.33";
 const settingsVersion = 46;
 
 const fbcChangelog = `${FBC_VERSION}
+- added erection control to default arousal expressions. See https://gitlab.com/Sidiousious/bce/-/blob/main/bce-custom-expressions-example.user.js for customization instructions.
 - fixed a type error in extended wardrobe loading
 
 4.32
@@ -50,13 +51,6 @@ const fbcChangelog = `${FBC_VERSION}
 4.31
 - fixed a bug where trying to layer a single-layer item after modifying multiple layers would cause the menu to break
 - updated stable bcx
-
-4.30
-- R92 compatibility
-  - Goggles considered glasses for blind without glasses
-- added new option to print friend presence notifications in chat
-- added advanced layering menu
-- massively reduced the amount of data saved in the profile cache
 `;
 
 /*
@@ -3696,6 +3690,11 @@ async function ForBetterClub() {
 					{ Expression: "Surprised", Limit: 90 },
 					{ Expression: "Horny", Limit: 70 },
 					{ Expression: "Dazed", Limit: 20 },
+					{ Expression: null, Limit: 0 },
+				],
+				// Pussy group includes Penis, which is the only type of "pussy" with expressions and controls erections.
+				Pussy: [
+					{ Expression: "Hard", Limit: 50 },
 					{ Expression: null, Limit: 0 },
 				],
 			};

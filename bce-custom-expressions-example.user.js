@@ -1,8 +1,8 @@
 // ==UserScript==
-// @name Bondage Club Enhancements Expressions
+// @name For Better Club Expressions
 // @namespace https://www.bondageprojects.com/
 // @version 0.1
-// @description Customize the expressions used by BCE
+// @description Customize the expressions used by FBC
 // @author Sidious
 // @match https://bondageprojects.elementfx.com/*
 // @match https://www.bondageprojects.elementfx.com/*
@@ -48,10 +48,10 @@
 
 	await waitFor(() => !!w.Player?.Name && !!w.bce_initializeDefaultExpression);
 
-	// NOTICE: You may delete blocks that you do not wish to customize in order to use the default ones.
+	// NOTICE: You may delete the ArousalExpressionStages or EventExpressions sections if you don't want to use them, and leave only one. The other will use defaults. EventExpressions must contain keys for all events that ActivityTriggers trigger.
 
 	/**
-	 * These are all the different stages your face goes through as your arousal increases. The map should always contain Blush, Eyebrows, Fluids, Eyes, Eyes2 and Mouth.
+	 * These are all the different stages your face goes through as your arousal increases. The map should always contain Blush, Eyebrows, Fluids, Eyes, Eyes2, Mouth and Pussy.
 	 * The order of the expressions within each facial component is important to keep in a descending order.
 	 *
 	 * Each expression comes with Expression (refer to the expressions cheatsheet at https://gitlab.com/Sidiousious/bce/-/blob/main/README.md for valid values), and Limit, which has to be between 0 and 100 inclusively.
@@ -103,6 +103,11 @@
 			{ Expression: "HalfOpen", Limit: 40 },
 			{ Expression: null, Limit: 0 },
 		],
+		// Pussy group includes Penis, which is the only type of "pussy" with expressions and controls erections.
+		Pussy: [
+			{ Expression: "Hard", Limit: 50 },
+			{ Expression: null, Limit: 0 },
+		],
 	};
 
 	/**
@@ -114,7 +119,7 @@
 	 * - Type: name for the event, should match the key in the object
 	 * - Duration: how long the expression lasts, in milliseconds, or -1 for indefinite
 	 * - Priority: how important the expression is, higher is more important. Expressions with the same or lower priority are cut short when another expression is triggered.
-	 * - Expression: a map of face component (Blush, Eyes, Eyes2, Mouth, Fluids, Eyebrows) to the expression timeline.
+	 * - Expression: a map of face component (Blush, Eyes, Eyes2, Mouth, Fluids, Eyebrows, Pussy) to the expression timeline.
 	 * - Poses: the pose timeline.
 	 *
 	 * The expression timeline is a list of expressions, which are objects with the following properties:
