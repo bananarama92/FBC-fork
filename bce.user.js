@@ -2,7 +2,7 @@
 // ==UserScript==
 // @name Bondage Club Enhancements
 // @namespace https://www.bondageprojects.com/
-// @version 4.33
+// @version 4.34
 // @description FBC - For Better Club - enhancements for the bondage club - old name kept in tampermonkey for compatibility
 // @author Sidious
 // @match https://bondageprojects.elementfx.com/*
@@ -38,18 +38,17 @@
  *  along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-const FBC_VERSION = "4.33";
-const settingsVersion = 46;
+const FBC_VERSION = "4.34";
+const settingsVersion = 47;
 
 const fbcChangelog = `${FBC_VERSION}
+- added option to share installed mods with other FBC users (enabled by default, disable in FBC settings -> other addons)
+
+4.33
 - added erection control to default arousal expressions. See https://gitlab.com/Sidiousious/bce/-/blob/main/bce-custom-expressions-example.user.js for customization instructions.
 - fixed a type error in extended wardrobe loading
 
 4.32
-- updated stable bcx
-
-4.31
-- fixed a bug where trying to layer a single-layer item after modifying multiple layers would cause the menu to break
 - updated stable bcx
 `;
 
@@ -465,6 +464,16 @@ async function ForBetterClub() {
 			category: "cheats",
 			description:
 				"This setting is temporary until BCX supports a focus mode rule.",
+		},
+		shareAddons: {
+			label: "Share Addons",
+			value: true,
+			sideEffects: (newValue) => {
+				debug("shareAddons", newValue);
+			},
+			category: "addons",
+			description:
+				"Share a list of your installed addons with other FBC users in the room, visible via /versions chat command.",
 		},
 		bcx: {
 			label: "Load BCX by Jomshir98 (no auto-update)",
@@ -2430,6 +2439,20 @@ async function ForBetterClub() {
 											? `\nFBC v${
 													a.FBC
 											  } Alt Arousal: ${a.BCEArousal?.toString()}`
+											: ""
+									}${
+										a.FBCOtherAddons &&
+										a.FBCOtherAddons.some(
+											(m) => !["BCX", "FBC"].includes(m.name)
+										)
+											? `\nOther Addons:\n- ${a.FBCOtherAddons.filter(
+													(m) => !["BCX", "FBC"].includes(m.name)
+											  )
+													.map(
+														(m) =>
+															`${m.name} v${m.version} ${m.repository ?? ""}`
+													)
+													.join("\n- ")}`
 											: ""
 									}`
 							)
@@ -6404,6 +6427,9 @@ async function ForBetterClub() {
 				Player.BCEArousalProgress || Player.ArousalSettings.Progress || 0;
 			message.Dictionary[0].message.enjoyment = Player.BCEEnjoyment || 1;
 		}
+		if (fbcSettings.shareAddons) {
+			message.Dictionary[0].message.otherAddons = bcModSdk.getModsInfo();
+		}
 		ServerSend("ChatRoomChat", message);
 	}
 	if (ServerIsConnected) {
@@ -6450,6 +6476,7 @@ async function ForBetterClub() {
 							if (message.replyRequested) {
 								sendHello(sender.MemberNumber);
 							}
+							sender.FBCOtherAddons = message.otherAddons;
 							break;
 						case MESSAGE_TYPES.ArousalSync:
 							sender.BCEArousal = message.alternateArousal || false;

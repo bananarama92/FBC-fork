@@ -547,6 +547,7 @@ declare global {
     HasHiddenItems: boolean;
     GetBlindLevel: () => number;
     FBC: string;
+    FBCOtherAddons?: readonly import("./types/bcModSdk").ModSDKModInfo[];
     BCEArousal: boolean;
     BCECapabilities: readonly string[];
     BCEArousalProgress: number;
@@ -813,6 +814,7 @@ declare global {
     progress?: number;
     enjoyment?: number;
     activity?: BCEActivity;
+    otherAddons?: readonly import("./types/bcModSdk").ModSDKModInfo[];
   };
   type ChatMessageDictionary = {
     Tag?: string;
