@@ -2111,8 +2111,10 @@ async function ForBetterClub() {
 			return false;
 		}
 
-		logInfo("Loading", addon, "from", source);
-		await fetch(source)
+		const sourceRequestUrl = `${source}?v=${Date.now()}`;
+
+		logInfo("Loading", addon, "from", source, sourceRequestUrl);
+		await fetch(sourceRequestUrl)
 			.then((resp) => resp.text())
 			.then((resp) => {
 				resp = resp.replace(
