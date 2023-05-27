@@ -2,7 +2,7 @@
 // ==UserScript==
 // @name Bondage Club Enhancements
 // @namespace https://www.bondageprojects.com/
-// @version 4.34
+// @version 4.35
 // @description FBC - For Better Club - enhancements for the bondage club - old name kept in tampermonkey for compatibility
 // @author Sidious
 // @match https://bondageprojects.elementfx.com/*
@@ -38,18 +38,18 @@
  *  along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-const FBC_VERSION = "4.34";
+const FBC_VERSION = "4.35";
 const settingsVersion = 47;
 
 const fbcChangelog = `${FBC_VERSION}
+- updated stable bcx
+
+4.34
 - added option to share installed mods with other FBC users (enabled by default, disable in FBC settings -> other addons)
 
 4.33
 - added erection control to default arousal expressions. See https://gitlab.com/Sidiousious/bce/-/blob/main/bce-custom-expressions-example.user.js for customization instructions.
 - fixed a type error in extended wardrobe loading
-
-4.32
-- updated stable bcx
 `;
 
 /*
@@ -102,8 +102,7 @@ async function ForBetterClub() {
 
 	const BCX_DEVEL_SOURCE =
 			"https://jomshir98.github.io/bondage-club-extended/devel/bcx.js",
-		BCX_SOURCE =
-			"https://raw.githubusercontent.com/Jomshir98/bondage-club-extended/48427b6772e84b620b338b01613f4c64c947f927/bcx.js",
+		BCX_SOURCE = "https://jomshir98.github.io/bondage-club-extended/bcx.js",
 		EBCH_SOURCE = "https://e2466.gitlab.io/ebch/master/EBCH.js",
 		MBS_SOURCE = "https://bananarama92.github.io/MBS/main/mbs.js";
 
@@ -476,7 +475,7 @@ async function ForBetterClub() {
 				"Share a list of your installed addons with other FBC users in the room, visible via /versions chat command.",
 		},
 		bcx: {
-			label: "Load BCX by Jomshir98 (no auto-update)",
+			label: "Load BCX by Jomshir98",
 			value: false,
 			sideEffects: (newValue) => {
 				if (newValue) {
@@ -492,10 +491,10 @@ async function ForBetterClub() {
 			},
 			category: "addons",
 			description:
-				"Load Bondage Club Extended. To see all details, see the link in sidiousious.gitlab.io/bce. This option keeps the loaded BCX code from changing until FBC update.",
+				"Load Bondage Club Extended. To see all details, see the link in sidiousious.gitlab.io/bce. This option always loads the latest version, which may change between refreshes.",
 		},
 		bcxDevel: {
-			label: "Load BCX beta (auto-updates)",
+			label: "Load BCX beta",
 			value: false,
 			sideEffects: (newValue) => {
 				if (newValue) {
@@ -514,7 +513,7 @@ async function ForBetterClub() {
 				"Load the latest beta version of BCX. To see all details, see the link in sidiousious.gitlab.io/bce. This option always loads the latest version, which may change between refreshes.",
 		},
 		ebch: {
-			label: "Load EBCH by Elicia (auto-updates)",
+			label: "Load EBCH by Elicia",
 			value: false,
 			sideEffects: (newValue) => {
 				if (newValue) {
@@ -531,7 +530,7 @@ async function ForBetterClub() {
 				"Load the latest stable version of EBCH. To see all details, see the link in sidiousious.gitlab.io/bce. This option always loads the latest version, which may change between refreshes.",
 		},
 		mbs: {
-			label: "Load MBS by Rama (auto-updates)",
+			label: "Load MBS by Rama",
 			value: false,
 			sideEffects: (newValue) => {
 				if (newValue) {
@@ -6086,7 +6085,9 @@ async function ForBetterClub() {
 		const layersPerColumn = 10;
 		const layersPerPage = layersPerColumn * 2;
 		function prioritySubscreenDraw() {
-			DrawCharacter(preview, 1300, 100, 0.9, false);
+			if (priorityField === FIELDS.Priority) {
+				DrawCharacter(preview, 1300, 100, 0.9, false);
+			}
 
 			const layerNames = Object.keys(layerPriorities);
 			if (priorityField === FIELDS.Priority && layerNames.length > 0) {
