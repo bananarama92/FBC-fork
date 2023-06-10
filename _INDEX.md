@@ -24,7 +24,7 @@ Then login and go to the preferences screen and click onto "FBC Settings" to ena
 
 ### Manual bookmark
 
-1. Save `javascript:(()=>{fetch('https://sidiousious.gitlab.io/bce/bce.user.js').then(r=>r.text()).then(r=>eval(r));})();` as a bookmark on your devices, or [bookmark this link][bookmarklet]
+1. Save `javascript:(()=>{fetch('https://sidiousious.gitlab.io/bce/bce.user.js?_='+Date.now()).then(r=>r.text()).then(r=>eval(r));})();` as a bookmark on your devices, or [bookmark this link][bookmarklet]
 1. Use by opening the bookmark in the bondage club tab on your browser. If used on the login page you should see the "SAVE (FBC)" button appear.
 
 - Desktop: use from your bookmarks menu
