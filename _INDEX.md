@@ -43,7 +43,7 @@ At a glance, **everything is entirely optional, enable in settings** (profile ->
 - Improved automatic facial expressions that play nice with manual control
 - Automatic relogin after disconnect
 - FPS limiter: save your computer's resources
-- Addon loader for other addons ([BCX](https://github.com/Jomshir98/bondage-club-extended), [EBCH](https://e2466.gitlab.io/ebch/)), [MBS](https://github.com/bananarama92/MBS)
+- Addon loader for other addons ([BCX](https://github.com/Jomshir98/bondage-club-extended), [EBCH](https://e2466.gitlab.io/ebch/)), [MBS](https://github.com/bananarama92/MBS), [LSCG](https://github.com/littlesera/LSCG/wiki)
 - Clickable links and embedded images from trusted websites in chat (e.g. imgur, Discord)
 - Lockpicking helper
 - Convenient chat commands, such as `/w <name> <message>` to whisper another player
@@ -62,7 +62,7 @@ At a glance, **everything is entirely optional, enable in settings** (profile ->
 - Modify outfit layering
 - Importing and exporting outfits
 - Change your nickname
-- Save and review profiles of, and add notes to, players you have seen before (incompatible with incognito/private browsing due to saving in browser storage)
+- Save and review profiles of, and add notes to, players you have seen before (incompatible with incognito/private browsing due to saving in browser storage) - /profiles to search them
 - Basic anti-cheat
 
 ### Chat Links and Embeds
@@ -152,14 +152,12 @@ FBC allows expanding your wardrobe to 96 slots. Note that this will make the war
 ![](static/bceLayering1.png)
 ![](static/bceLayering2.png)
 
-FBC allows manual editing of an asset's priority — the value the game uses to decide what item shows over others — as well as the difficulty to struggle out of a restraint. When you select an item, you should see either:
+FBC allows manual editing of an asset's priority — the value the game uses to decide what item shows over others. When you select an item, you should see either:
 
 - a number field and a validate button at the top-right for clothing,
 - two white boxes at bottom-left for restraints: one will open the option to modify layer priority while the other allows loosening/tightening restraints.
 
 This allow manually overriding the assets' relative positioning, giving better flexibility when doing outfits, or slapping restraints. Note that there's no way to reset the priority to its default value, so you have to take note of it or take it off and put it on again.
-
-**Note**: the difficulty modification is technically cheating and should be used for roleplay purposes only. This does also allow struggling out of items you are not supposed to remove, such as a slave collar. Both of these features can be used to break the game, so use them responsibly. The main intent here is along the lines of choosing whether a shirt goes on top of your pants or vice-versa, or modifying the tightness of a rope tie without having to remove it, modify your bondage skill, and re-apply.
 
 ### Anti-cheat
 

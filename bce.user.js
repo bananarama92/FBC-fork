@@ -2,7 +2,7 @@
 // ==UserScript==
 // @name Bondage Club Enhancements
 // @namespace https://www.bondageprojects.com/
-// @version 4.35
+// @version 4.36
 // @description FBC - For Better Club - enhancements for the bondage club - old name kept in tampermonkey for compatibility
 // @author Sidious
 // @match https://bondageprojects.elementfx.com/*
@@ -38,18 +38,20 @@
  *  along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-const FBC_VERSION = "4.35";
-const settingsVersion = 47;
+const FBC_VERSION = "4.36";
+const settingsVersion = 48;
 
 const fbcChangelog = `${FBC_VERSION}
+- added LSCG loading under other addons
+- R93 Beta 1 support
+- removed difficulty adjustment as it is now in the game
+- added developer API window.fbcPushEvent to allow other mods to send expression/posing events to FBC animation engine
+
+4.35
 - updated stable bcx
 
 4.34
 - added option to share installed mods with other FBC users (enabled by default, disable in FBC settings -> other addons)
-
-4.33
-- added erection control to default arousal expressions. See https://gitlab.com/Sidiousious/bce/-/blob/main/bce-custom-expressions-example.user.js for customization instructions.
-- fixed a type error in extended wardrobe loading
 `;
 
 /*
@@ -66,7 +68,7 @@ var bcModSdk=function(){"use strict";const e="1.1.0";function o(e){alert("Mod ER
 async function ForBetterClub() {
 	"use strict";
 
-	const SUPPORTED_GAME_VERSIONS = ["R92"];
+	const SUPPORTED_GAME_VERSIONS = ["R92", "R93Beta1"];
 	const CAPABILITIES = /** @type {const} */ (["clubslave"]);
 
 	const w = window;
@@ -104,6 +106,7 @@ async function ForBetterClub() {
 			"https://jomshir98.github.io/bondage-club-extended/devel/bcx.js",
 		BCX_SOURCE = "https://jomshir98.github.io/bondage-club-extended/bcx.js",
 		EBCH_SOURCE = "https://e2466.gitlab.io/ebch/master/EBCH.js",
+		LSCG_SOURCE = "https://littlesera.github.io/LSCG/bundle.js",
 		MBS_SOURCE = "https://bananarama92.github.io/MBS/main/mbs.js";
 
 	const BCE_COLOR_ADJUSTMENTS_CLASS_NAME = "bce-colors",
@@ -135,11 +138,12 @@ async function ForBetterClub() {
 		None: "",
 	});
 
-	/** @type {Record<"BCX" | "EBCH" | "MBS", "none" | "external" | "stable" | "devel">} */
+	/** @type {Record<"BCX" | "EBCH" | "MBS" | "LSCG", "none" | "external" | "stable" | "devel">} */
 	const addonTypes = {
 		BCX: "none",
 		EBCH: "none",
 		MBS: "none",
+		LSCG: "none",
 	};
 
 	if (typeof ChatRoomCharacter === "undefined") {
@@ -430,20 +434,6 @@ async function ForBetterClub() {
 			description:
 				"Allows you to open menus while bound, even if they're disabled in the settings.",
 		},
-		modifyDifficulty: {
-			label: "Add option to modify difficulty of restraints to layering menu",
-			value: false,
-			sideEffects: (newValue) => {
-				debug("modifyDifficulty", newValue);
-				if (newValue && !fbcSettings.layeringMenu) {
-					fbcSettings.layeringMenu = true;
-					defaultSettings.layeringMenu.sideEffects(true);
-				}
-			},
-			category: "cheats",
-			description:
-				"Adds an option to the layering menu to modify the difficulty of restraints.",
-		},
 		autoStruggle: {
 			label: "Make automatic progress while struggling",
 			value: false,
@@ -544,6 +534,22 @@ async function ForBetterClub() {
 			category: "addons",
 			description:
 				"Load the latest stable version of MBS. To see all details, see the link in sidiousious.gitlab.io/bce. This option always loads the latest version, which may change between refreshes.",
+		},
+		lscg: {
+			label: "Load LSCG by LittleSera",
+			value: false,
+			sideEffects: (newValue) => {
+				if (newValue) {
+					loadExternalAddon("LSCG", LSCG_SOURCE).then((success) => {
+						if (success) {
+							addonTypes.LSCG = "stable";
+						}
+					});
+				}
+			},
+			category: "addons",
+			description:
+				"Load the latest stable version of LSCG. To see all details, see the link in sidiousious.gitlab.io/bce. This option always loads the latest version, which may change between refreshes.",
 		},
 		toySync: {
 			label: "Enable buttplug.io (requires refresh)",
@@ -1098,147 +1104,277 @@ async function ForBetterClub() {
 	 * @type {(gameVersion: string) => Readonly<{ [key: string]: string }>}
 	 */
 	const expectedHashes = (gameVersion) => {
-		const hashes = /** @type {const} */ ({
-			ActivityChatRoomArousalSync: "21318CAF",
-			ActivitySetArousal: "3AE28123",
-			ActivitySetArousalTimer: "1342AFE2",
-			ActivityTimerProgress: "6CD388A7",
-			AppearanceClick: "64C82387",
-			AppearanceExit: "AA300341",
-			AppearanceLoad: "A14CB302",
-			AppearanceRun: "8C0005E2",
-			CharacterAppearanceWardrobeLoad: "A5B63A03",
-			CharacterBuildDialog: "918170E7",
-			CharacterCompressWardrobe: "8D3B1AB1",
-			CharacterDecompressWardrobe: "A9FD29CC",
-			CharacterDelete: "398D1116",
-			CharacterGetCurrent: "45608177",
-			CharacterLoadCanvas: "BA6AD4FF",
-			CharacterNickname: "EB452E5E",
-			CharacterRefresh: "5BF9DA5A",
-			CharacterReleaseTotal: "396640D1",
-			CharacterSetActivePose: "5BCD2A9E",
-			CharacterSetCurrent: "FD267B9B",
-			CharacterSetFacialExpression: "C794A455",
-			ChatRoomCharacterItemUpdate: "041F9B91",
-			ChatRoomCharacterUpdate: "9D0EEA39",
-			ChatRoomClearAllElements: "C49AA2C1",
-			ChatRoomClick: "79E651EB",
-			ChatRoomCreateElement: "AD7CBE68",
-			ChatRoomCurrentTime: "A462DD3A",
-			ChatRoomDrawBackground: "597B062C",
-			ChatRoomDrawCharacterOverlay: "06FB4CC3",
-			ChatRoomHTMLEntities: "0A7ADB1D",
-			ChatRoomKeyDown: "B4BFDB0C",
-			ChatRoomListManipulation: "75D28A8B",
-			ChatRoomMessage: "BBD61334",
-			ChatRoomMessageDisplay: "F20D1969",
-			ChatRoomRegisterMessageHandler: "C432923A",
-			ChatRoomResize: "9D52CF52",
-			ChatRoomRun: "7D2E2D71",
-			ChatRoomSendChat: "7F540ED0",
-			ChatRoomStart: "9B822A9A",
-			CommandExecute: "5C948CC3",
-			CommandParse: "6E46F29E",
-			CommonClick: "1F6DF7CB",
-			CommonColorIsValid: "390A2CE4",
-			CommonSetScreen: "E2AC00F4",
-			CraftingClick: "9CB5E895",
-			CraftingConvertSelectedToItem: "46CE5BE0",
-			CraftingRun: "89AE0867",
-			DialogClick: "F4FCD7DD",
-			DialogDraw: "2491ABC6",
-			DialogDrawItemMenu: "689891E5",
-			DialogLeave: "04AF5C20",
-			DrawAssetPreview: "5BD59B42",
-			DrawBackNextButton: "9AF4BA37",
-			DrawButton: "A7023A82",
-			DrawCharacter: "CA0D50AF",
-			DrawCheckbox: "00FD87EB",
-			DrawImageEx: "3D3D74F5",
-			DrawImageResize: "8CF55F04",
-			DrawProcess: "E60F65B5",
-			DrawText: "C1BF0F50",
-			DrawTextFit: "F9A1B11E",
-			ElementCreateInput: "562F83D4",
-			ElementCreateTextArea: "8721B388",
-			ElementIsScrolledToEnd: "1CC4FE11",
-			ElementPosition: "CC4E3C82",
-			ElementRemove: "60809E60",
-			ElementScrollToEnd: "1AC45575",
-			ElementValue: "4F26C62F",
-			FriendListShowBeep: "6C0449BB",
-			GameRun: "3525631A",
-			GLDrawResetCanvas: "81214642",
-			InformationSheetRun: "E248ADC7",
-			InventoryGet: "E666F671",
-			InventoryItemMiscLoversTimerPadlockClick: "60FBC451",
-			InventoryItemMiscLoversTimerPadlockDraw: "C98C2F44",
-			InventoryItemMiscLoversTimerPadlockExit: "17D63035",
-			InventoryItemMiscLoversTimerPadlockLoad: "4993D2EB",
-			InventoryItemMiscMistressTimerPadlockClick: "387EC3A9",
-			InventoryItemMiscMistressTimerPadlockDraw: "ACE7F21E",
-			InventoryItemMiscMistressTimerPadlockExit: "39BD2B10",
-			InventoryItemMiscMistressTimerPadlockLoad: "BE46432F",
-			InventoryItemMiscOwnerTimerPadlockClick: "166CAFDB",
-			InventoryItemMiscOwnerTimerPadlockDraw: "029485ED",
-			InventoryItemMiscOwnerTimerPadlockExit: "431B3DEC",
-			InventoryItemMiscOwnerTimerPadlockLoad: "8A55C0D1",
-			InventoryItemMiscTimerPasswordPadlockClick: "CB736461",
-			InventoryItemMiscTimerPasswordPadlockDraw: "953C9EF8",
-			InventoryItemMiscTimerPasswordPadlockExit: "7323E56D",
-			InventoryItemMiscTimerPasswordPadlockLoad: "82223608",
-			LoginClick: "EE94BEC7",
-			LoginRun: "C3926C4F",
-			LoginSetSubmitted: "C88F4A8E",
-			MouseIn: "CA8B839E",
-			NotificationDrawFavicon: "AB88656B",
-			NotificationRaise: "E8F29646",
-			NotificationTitleUpdate: "0E92F3ED",
-			OnlineGameAllowChange: "3779F42C",
-			OnlineProfileClick: "CC034993",
-			OnlineProfileRun: "B0AF608D",
-			RelogRun: "10AF5A60",
-			RelogExit: "2DFB2DAD",
-			ServerAccountBeep: "F16771D4",
-			ServerAppearanceBundle: "4D069622",
-			ServerAppearanceLoadFromBundle: "FB794E30",
-			ServerClickBeep: "3E6277BE",
-			ServerConnect: "845E50A6",
-			ServerDisconnect: "06C1A6B0",
-			ServerInit: "FEC6457F",
-			ServerOpenFriendList: "FA8D3CDE",
-			ServerSend: "90A61F57",
-			SkillGetWithRatio: "16620445",
-			SpeechGarble: "9D669F73",
-			SpeechGarbleByGagLevel: "5F6E16C8",
-			SpeechGetTotalGagLevel: "C55B705A",
-			StruggleDexterityProcess: "7E19ADA9",
-			StruggleFlexibilityCheck: "727CE05B",
-			StruggleFlexibilityProcess: "278D7285",
-			StruggleLockPickDraw: "2F1F603B",
-			StruggleMinigameHandleExpression: "41FA76AC",
-			StruggleStrengthProcess: "D20CF698",
-			TextGet: "4DDE5794",
-			TextLoad: "ADF7C890",
-			TimerInventoryRemove: "226C417C",
-			TimerProcess: "52458C63",
-			TitleExit: "F13F533C",
-			WardrobeClick: "E96F7F63",
-			WardrobeExit: "EE83FF29",
-			WardrobeFastLoad: "38627DC2",
-			WardrobeFastSave: "B62385C1",
-			WardrobeFixLength: "CA3334C6",
-			WardrobeLoad: "C343A4C7",
-			WardrobeRun: "9616EB3A",
-		});
-
 		switch (gameVersion) {
+			case "R93Beta1":
+			case "R93Beta2":
+			case "R93Beta3":
+			case "R93":
+				return /** @type {const} */ ({
+					ActivityChatRoomArousalSync: "21318CAF",
+					ActivitySetArousal: "3AE28123",
+					ActivitySetArousalTimer: "1342AFE2",
+					ActivityTimerProgress: "6CD388A7",
+					AppearanceClick: "17FD3A23",
+					AppearanceExit: "AA300341",
+					AppearanceLoad: "4360C485",
+					AppearanceRun: "0BBDEE59",
+					CharacterAppearanceWardrobeLoad: "A5B63A03",
+					CharacterBuildDialog: "918170E7",
+					CharacterCompressWardrobe: "8D3B1AB1",
+					CharacterDecompressWardrobe: "A9FD29CC",
+					CharacterDelete: "398D1116",
+					CharacterGetCurrent: "45608177",
+					CharacterLoadCanvas: "BA6AD4FF",
+					CharacterNickname: "A794EFF5",
+					CharacterRefresh: "5BF9DA5A",
+					CharacterReleaseTotal: "396640D1",
+					CharacterSetActivePose: "5BCD2A9E",
+					CharacterSetCurrent: "FD267B9B",
+					CharacterSetFacialExpression: "C794A455",
+					ChatRoomCharacterItemUpdate: "041F9B91",
+					ChatRoomCharacterUpdate: "9D0EEA39",
+					ChatRoomClearAllElements: "C49AA2C1",
+					ChatRoomClick: "79E651EB",
+					ChatRoomCreateElement: "AD7CBE68",
+					ChatRoomCurrentTime: "A462DD3A",
+					ChatRoomDrawBackground: "597B062C",
+					ChatRoomDrawCharacterOverlay: "06FB4CC3",
+					ChatRoomHTMLEntities: "0A7ADB1D",
+					ChatRoomKeyDown: "B4BFDB0C",
+					ChatRoomListManipulation: "75D28A8B",
+					ChatRoomMessage: "BBD61334",
+					ChatRoomMessageDisplay: "F20D1969",
+					ChatRoomRegisterMessageHandler: "C432923A",
+					ChatRoomResize: "9D52CF52",
+					ChatRoomRun: "7D2E2D71",
+					ChatRoomSendChat: "7F540ED0",
+					ChatRoomStart: "9B822A9A",
+					CommandExecute: "5C948CC3",
+					CommandParse: "6E46F29E",
+					CommonClick: "1F6DF7CB",
+					CommonColorIsValid: "390A2CE4",
+					CommonSetScreen: "E2AC00F4",
+					CraftingClick: "9CB5E895",
+					CraftingConvertSelectedToItem: "46CE5BE0",
+					CraftingRun: "55F21AB3",
+					DialogClick: "8B003F46",
+					DialogDraw: "BFB557E2",
+					DialogDrawItemMenu: "F68E259E",
+					DialogLeave: "D269CC33",
+					DrawBackNextButton: "9AF4BA37",
+					DrawButton: "A7023A82",
+					DrawCharacter: "B54922F5",
+					DrawCheckbox: "00FD87EB",
+					DrawImageEx: "3D3D74F5",
+					DrawImageResize: "8CF55F04",
+					DrawItemPreview: "A27E9228",
+					DrawProcess: "E60F65B5",
+					DrawText: "C1BF0F50",
+					DrawTextFit: "F9A1B11E",
+					ElementCreateInput: "562F83D4",
+					ElementCreateTextArea: "8721B388",
+					ElementIsScrolledToEnd: "1CC4FE11",
+					ElementPosition: "CC4E3C82",
+					ElementRemove: "60809E60",
+					ElementScrollToEnd: "1AC45575",
+					ElementValue: "4F26C62F",
+					FriendListShowBeep: "6C0449BB",
+					GameRun: "3525631A",
+					GLDrawResetCanvas: "81214642",
+					InformationSheetRun: "E248ADC7",
+					InventoryGet: "E666F671",
+					InventoryItemMiscMistressTimerPadlockClick: "861419FC",
+					InventoryItemMiscMistressTimerPadlockDraw: "4E1628BE",
+					InventoryItemMiscMistressTimerPadlockExit: "66BC6923",
+					InventoryItemMiscMistressTimerPadlockLoad: "BE46432F",
+					InventoryItemMiscOwnerTimerPadlockClick: "C929699B",
+					InventoryItemMiscOwnerTimerPadlockDraw: "EF26F8D5",
+					InventoryItemMiscOwnerTimerPadlockExit: "1BE66B4A",
+					InventoryItemMiscOwnerTimerPadlockLoad: "8A55C0D1",
+					InventoryItemMiscTimerPasswordPadlockClick: "BAE0BAC9",
+					InventoryItemMiscTimerPasswordPadlockDraw: "0BB8E88D",
+					InventoryItemMiscTimerPasswordPadlockExit: "7323E56D",
+					InventoryItemMiscTimerPasswordPadlockLoad: "82223608",
+					LoginClick: "EE94BEC7",
+					LoginRun: "C3926C4F",
+					LoginSetSubmitted: "C88F4A8E",
+					MouseIn: "CA8B839E",
+					NotificationDrawFavicon: "AB88656B",
+					NotificationRaise: "E8F29646",
+					NotificationTitleUpdate: "0E92F3ED",
+					OnlineGameAllowChange: "3779F42C",
+					OnlineProfileClick: "CC034993",
+					OnlineProfileRun: "B0AF608D",
+					RelogRun: "10AF5A60",
+					RelogExit: "2DFB2DAD",
+					ServerAccountBeep: "F16771D4",
+					ServerAppearanceBundle: "4D069622",
+					ServerAppearanceLoadFromBundle: "FB794E30",
+					ServerClickBeep: "3E6277BE",
+					ServerConnect: "845E50A6",
+					ServerDisconnect: "06C1A6B0",
+					ServerInit: "FEC6457F",
+					ServerOpenFriendList: "FA8D3CDE",
+					ServerSend: "90A61F57",
+					SkillGetWithRatio: "16620445",
+					SpeechGarble: "9D669F73",
+					SpeechGarbleByGagLevel: "5F6E16C8",
+					SpeechGetTotalGagLevel: "C55B705A",
+					StruggleDexterityProcess: "7E19ADA9",
+					StruggleFlexibilityCheck: "727CE05B",
+					StruggleFlexibilityProcess: "278D7285",
+					StruggleLockPickDraw: "2F1F603B",
+					StruggleMinigameHandleExpression: "41FA76AC",
+					StruggleStrengthProcess: "D20CF698",
+					TextGet: "4DDE5794",
+					TextLoad: "ADF7C890",
+					TimerInventoryRemove: "226C417C",
+					TimerProcess: "52458C63",
+					TitleExit: "F13F533C",
+					WardrobeClick: "E96F7F63",
+					WardrobeExit: "EE83FF29",
+					WardrobeFastLoad: "38627DC2",
+					WardrobeFastSave: "B62385C1",
+					WardrobeFixLength: "CA3334C6",
+					WardrobeLoad: "C343A4C7",
+					WardrobeRun: "9616EB3A",
+				});
 			default:
-				break;
+				return /** @type {const} */ ({
+					ActivityChatRoomArousalSync: "21318CAF",
+					ActivitySetArousal: "3AE28123",
+					ActivitySetArousalTimer: "1342AFE2",
+					ActivityTimerProgress: "6CD388A7",
+					AppearanceClick: "64C82387",
+					AppearanceExit: "AA300341",
+					AppearanceLoad: "A14CB302",
+					AppearanceRun: "8C0005E2",
+					CharacterAppearanceWardrobeLoad: "A5B63A03",
+					CharacterBuildDialog: "918170E7",
+					CharacterCompressWardrobe: "8D3B1AB1",
+					CharacterDecompressWardrobe: "A9FD29CC",
+					CharacterDelete: "398D1116",
+					CharacterGetCurrent: "45608177",
+					CharacterLoadCanvas: "BA6AD4FF",
+					CharacterNickname: "EB452E5E",
+					CharacterRefresh: "5BF9DA5A",
+					CharacterReleaseTotal: "396640D1",
+					CharacterSetActivePose: "5BCD2A9E",
+					CharacterSetCurrent: "FD267B9B",
+					CharacterSetFacialExpression: "C794A455",
+					ChatRoomCharacterItemUpdate: "041F9B91",
+					ChatRoomCharacterUpdate: "9D0EEA39",
+					ChatRoomClearAllElements: "C49AA2C1",
+					ChatRoomClick: "79E651EB",
+					ChatRoomCreateElement: "AD7CBE68",
+					ChatRoomCurrentTime: "A462DD3A",
+					ChatRoomDrawBackground: "597B062C",
+					ChatRoomDrawCharacterOverlay: "06FB4CC3",
+					ChatRoomHTMLEntities: "0A7ADB1D",
+					ChatRoomKeyDown: "B4BFDB0C",
+					ChatRoomListManipulation: "75D28A8B",
+					ChatRoomMessage: "BBD61334",
+					ChatRoomMessageDisplay: "F20D1969",
+					ChatRoomRegisterMessageHandler: "C432923A",
+					ChatRoomResize: "9D52CF52",
+					ChatRoomRun: "7D2E2D71",
+					ChatRoomSendChat: "7F540ED0",
+					ChatRoomStart: "9B822A9A",
+					CommandExecute: "5C948CC3",
+					CommandParse: "6E46F29E",
+					CommonClick: "1F6DF7CB",
+					CommonColorIsValid: "390A2CE4",
+					CommonSetScreen: "E2AC00F4",
+					CraftingClick: "9CB5E895",
+					CraftingConvertSelectedToItem: "46CE5BE0",
+					CraftingRun: "89AE0867",
+					DialogClick: "F4FCD7DD",
+					DialogDraw: "2491ABC6",
+					DialogDrawItemMenu: "689891E5",
+					DialogLeave: "04AF5C20",
+					DrawAssetPreview: "5BD59B42",
+					DrawBackNextButton: "9AF4BA37",
+					DrawButton: "A7023A82",
+					DrawCharacter: "CA0D50AF",
+					DrawCheckbox: "00FD87EB",
+					DrawImageEx: "3D3D74F5",
+					DrawImageResize: "8CF55F04",
+					DrawProcess: "E60F65B5",
+					DrawText: "C1BF0F50",
+					DrawTextFit: "F9A1B11E",
+					ElementCreateInput: "562F83D4",
+					ElementCreateTextArea: "8721B388",
+					ElementIsScrolledToEnd: "1CC4FE11",
+					ElementPosition: "CC4E3C82",
+					ElementRemove: "60809E60",
+					ElementScrollToEnd: "1AC45575",
+					ElementValue: "4F26C62F",
+					FriendListShowBeep: "6C0449BB",
+					GameRun: "3525631A",
+					GLDrawResetCanvas: "81214642",
+					InformationSheetRun: "E248ADC7",
+					InventoryGet: "E666F671",
+					InventoryItemMiscLoversTimerPadlockClick: "60FBC451",
+					InventoryItemMiscLoversTimerPadlockDraw: "C98C2F44",
+					InventoryItemMiscLoversTimerPadlockExit: "17D63035",
+					InventoryItemMiscLoversTimerPadlockLoad: "4993D2EB",
+					InventoryItemMiscMistressTimerPadlockClick: "387EC3A9",
+					InventoryItemMiscMistressTimerPadlockDraw: "ACE7F21E",
+					InventoryItemMiscMistressTimerPadlockExit: "39BD2B10",
+					InventoryItemMiscMistressTimerPadlockLoad: "BE46432F",
+					InventoryItemMiscOwnerTimerPadlockClick: "166CAFDB",
+					InventoryItemMiscOwnerTimerPadlockDraw: "029485ED",
+					InventoryItemMiscOwnerTimerPadlockExit: "431B3DEC",
+					InventoryItemMiscOwnerTimerPadlockLoad: "8A55C0D1",
+					InventoryItemMiscTimerPasswordPadlockClick: "CB736461",
+					InventoryItemMiscTimerPasswordPadlockDraw: "953C9EF8",
+					InventoryItemMiscTimerPasswordPadlockExit: "7323E56D",
+					InventoryItemMiscTimerPasswordPadlockLoad: "82223608",
+					LoginClick: "EE94BEC7",
+					LoginRun: "C3926C4F",
+					LoginSetSubmitted: "C88F4A8E",
+					MouseIn: "CA8B839E",
+					NotificationDrawFavicon: "AB88656B",
+					NotificationRaise: "E8F29646",
+					NotificationTitleUpdate: "0E92F3ED",
+					OnlineGameAllowChange: "3779F42C",
+					OnlineProfileClick: "CC034993",
+					OnlineProfileRun: "B0AF608D",
+					RelogRun: "10AF5A60",
+					RelogExit: "2DFB2DAD",
+					ServerAccountBeep: "F16771D4",
+					ServerAppearanceBundle: "4D069622",
+					ServerAppearanceLoadFromBundle: "FB794E30",
+					ServerClickBeep: "3E6277BE",
+					ServerConnect: "845E50A6",
+					ServerDisconnect: "06C1A6B0",
+					ServerInit: "FEC6457F",
+					ServerOpenFriendList: "FA8D3CDE",
+					ServerSend: "90A61F57",
+					SkillGetWithRatio: "16620445",
+					SpeechGarble: "9D669F73",
+					SpeechGarbleByGagLevel: "5F6E16C8",
+					SpeechGetTotalGagLevel: "C55B705A",
+					StruggleDexterityProcess: "7E19ADA9",
+					StruggleFlexibilityCheck: "727CE05B",
+					StruggleFlexibilityProcess: "278D7285",
+					StruggleLockPickDraw: "2F1F603B",
+					StruggleMinigameHandleExpression: "41FA76AC",
+					StruggleStrengthProcess: "D20CF698",
+					TextGet: "4DDE5794",
+					TextLoad: "ADF7C890",
+					TimerInventoryRemove: "226C417C",
+					TimerProcess: "52458C63",
+					TitleExit: "F13F533C",
+					WardrobeClick: "E96F7F63",
+					WardrobeExit: "EE83FF29",
+					WardrobeFastLoad: "38627DC2",
+					WardrobeFastSave: "B62385C1",
+					WardrobeFixLength: "CA3334C6",
+					WardrobeLoad: "C343A4C7",
+					WardrobeRun: "9616EB3A",
+				});
 		}
-
-		return Object.freeze(hashes);
 	};
 
 	/** @type {(level: "error" | "warn" | "info" | "debug", ...args: unknown[]) => void} */
@@ -1704,13 +1840,15 @@ async function ForBetterClub() {
 		);
 
 		// Nickname valid characters patch
-		patchFunction(
-			"CharacterNickname",
-			{
-				"/^[a-zA-Z\\s]*$/": "/^[\\p{L}0-9\\p{Z}'-]+$/u",
-			},
-			"Nickname validation not overridden in use"
-		);
+		if (GameVersion.startsWith("R92")) {
+			patchFunction(
+				"CharacterNickname",
+				{
+					"/^[a-zA-Z\\s]*$/": "/^[\\p{L}0-9\\p{Z}'-]+$/u",
+				},
+				"Nickname validation not overridden in use"
+			);
+		}
 
 		/*
 		 * Chat scroll after relog
@@ -1867,74 +2005,6 @@ async function ForBetterClub() {
 	function accurateTimerInputs() {
 		const timerInputElement = `ElementPosition("${TIMER_INPUT_ID}", 1400, 930, 250, 70);document.getElementById('${TIMER_INPUT_ID}').disabled = false;`;
 
-		// Lover locks
-		patchFunction(
-			"InventoryItemMiscLoversTimerPadlockDraw",
-			{
-				"// Draw buttons to add/remove time if available": `if (fbcSettingValue("accurateTimerLocks") && Player.CanInteract() && (C.IsLoverOfPlayer() || C.IsOwnedByPlayer())) {${timerInputElement}} else`,
-			},
-			"Accurate timer inputs are not available for lover locks."
-		);
-		patchFunction(
-			"InventoryItemMiscLoversTimerPadlockClick",
-			{
-				"InventoryItemMiscLoversTimerPadlockAdd(LoverTimerChooseList[LoverTimerChooseIndex] * 3600);":
-					'if (!fbcSettingValue("accurateTimerLocks")) InventoryItemMiscLoversTimerPadlockAdd(LoverTimerChooseList[LoverTimerChooseIndex] * 3600);',
-			},
-			"Accurate timer inputs are not available for lover locks."
-		);
-
-		// Mistress locks
-		patchFunction(
-			"InventoryItemMiscMistressTimerPadlockDraw",
-			{
-				"// Draw buttons to add/remove time if available": `if (fbcSettingValue("accurateTimerLocks") && Player.CanInteract() && (LogQuery("ClubMistress", "Management") || (Player.MemberNumber == DialogFocusSourceItem.Property.LockMemberNumber))) {${timerInputElement}} else`,
-			},
-			"Accurate timer inputs are not available for mistress locks."
-		);
-		patchFunction(
-			"InventoryItemMiscMistressTimerPadlockClick",
-			{
-				"InventoryItemMiscMistressTimerPadlockAdd(MistressTimerChooseList[MistressTimerChooseIndex] * 60, false);":
-					'if (!fbcSettingValue("accurateTimerLocks")) InventoryItemMiscMistressTimerPadlockAdd(MistressTimerChooseList[MistressTimerChooseIndex] * 60, false);',
-			},
-			"Accurate timer inputs are not available for mistress locks."
-		);
-
-		// Owner locks
-		patchFunction(
-			"InventoryItemMiscOwnerTimerPadlockDraw",
-			{
-				"// Draw buttons to add/remove time if available": `if (fbcSettingValue("accurateTimerLocks") && Player.CanInteract() && C.IsOwnedByPlayer()) {${timerInputElement}} else`,
-			},
-			"Accurate timer inputs are not available for owner locks."
-		);
-		patchFunction(
-			"InventoryItemMiscOwnerTimerPadlockClick",
-			{
-				"InventoryItemMiscOwnerTimerPadlockAdd(OwnerTimerChooseList[OwnerTimerChooseIndex] * 3600);":
-					'if (!fbcSettingValue("accurateTimerLocks")) InventoryItemMiscOwnerTimerPadlockAdd(OwnerTimerChooseList[OwnerTimerChooseIndex] * 3600);',
-			},
-			"Accurate timer inputs are not available for owner locks."
-		);
-
-		// Password timer
-		patchFunction(
-			"InventoryItemMiscTimerPasswordPadlockDraw",
-			{
-				"// Draw buttons to add/remove time if available": `if (fbcSettingValue("accurateTimerLocks") && Player.CanInteract() && Player.MemberNumber == Property.LockMemberNumber) {${timerInputElement}} else`,
-			},
-			"Accurate timer inputs are not available for password locks."
-		);
-		patchFunction(
-			"InventoryItemMiscTimerPasswordPadlockClick",
-			{
-				"InventoryItemMiscTimerPasswordPadlockAdd(PasswordTimerChooseList[PasswordTimerChooseIndex] * 60, false);":
-					'if (!fbcSettingValue("accurateTimerLocks")) InventoryItemMiscTimerPasswordPadlockAdd(PasswordTimerChooseList[PasswordTimerChooseIndex] * 60, false);',
-			},
-			"Accurate timer inputs are not available for password locks."
-		);
-
 		const loadLockTimerInput = () => {
 			let defaultValue = "0d0h5m0s";
 			if (DialogFocusSourceItem?.Property?.RemoveTimer) {
@@ -2049,56 +2119,184 @@ async function ForBetterClub() {
 			};
 		};
 
-		const timerLoadMethods = /** @type {const} */ ([
-			"InventoryItemMiscLoversTimerPadlockLoad",
-			"InventoryItemMiscMistressTimerPadlockLoad",
-			"InventoryItemMiscOwnerTimerPadlockLoad",
-			"InventoryItemMiscTimerPasswordPadlockLoad",
-		]);
-		const timerExitMethods = /** @type {const} */ ([
-			"InventoryItemMiscLoversTimerPadlockExit",
-			"InventoryItemMiscMistressTimerPadlockExit",
-			"InventoryItemMiscOwnerTimerPadlockExit",
-			"InventoryItemMiscTimerPasswordPadlockExit",
-		]);
-
-		for (const fn of timerLoadMethods) {
-			SDK.hookFunction(
-				fn,
-				HOOK_PRIORITIES.AddBehaviour,
-				// eslint-disable-next-line no-loop-func
-				(args, next) => {
-					const ret = next(args);
-					if (fbcSettings.accurateTimerLocks) {
-						loadLockTimerInput();
-					}
-					return ret;
-				}
+		if (GameVersion.startsWith("R92")) {
+			// Lover locks
+			patchFunction(
+				"InventoryItemMiscLoversTimerPadlockDraw",
+				{
+					"// Draw buttons to add/remove time if available": `if (fbcSettingValue("accurateTimerLocks") && Player.CanInteract() && (C.IsLoverOfPlayer() || C.IsOwnedByPlayer())) {${timerInputElement}} else`,
+				},
+				"Accurate timer inputs are not available for lover locks."
 			);
+			patchFunction(
+				"InventoryItemMiscLoversTimerPadlockClick",
+				{
+					"InventoryItemMiscLoversTimerPadlockAdd(LoverTimerChooseList[LoverTimerChooseIndex] * 3600);":
+						'if (!fbcSettingValue("accurateTimerLocks")) InventoryItemMiscLoversTimerPadlockAdd(LoverTimerChooseList[LoverTimerChooseIndex] * 3600);',
+				},
+				"Accurate timer inputs are not available for lover locks."
+			);
+
+			// Owner locks
+			patchFunction(
+				"InventoryItemMiscOwnerTimerPadlockDraw",
+				{
+					"// Draw buttons to add/remove time if available": `if (fbcSettingValue("accurateTimerLocks") && Player.CanInteract() && C.IsOwnedByPlayer()) {${timerInputElement}} else`,
+				},
+				"Accurate timer inputs are not available for owner locks."
+			);
+			patchFunction(
+				"InventoryItemMiscOwnerTimerPadlockClick",
+				{
+					"InventoryItemMiscOwnerTimerPadlockAdd(OwnerTimerChooseList[OwnerTimerChooseIndex] * 3600);":
+						'if (!fbcSettingValue("accurateTimerLocks")) InventoryItemMiscOwnerTimerPadlockAdd(OwnerTimerChooseList[OwnerTimerChooseIndex] * 3600);',
+				},
+				"Accurate timer inputs are not available for owner locks."
+			);
+
+			const timerLoadMethods = /** @type {const} */ ([
+				"InventoryItemMiscLoversTimerPadlockLoad",
+				"InventoryItemMiscMistressTimerPadlockLoad",
+				"InventoryItemMiscOwnerTimerPadlockLoad",
+				"InventoryItemMiscTimerPasswordPadlockLoad",
+			]);
+			const timerExitMethods = /** @type {const} */ ([
+				"InventoryItemMiscLoversTimerPadlockExit",
+				"InventoryItemMiscMistressTimerPadlockExit",
+				"InventoryItemMiscOwnerTimerPadlockExit",
+				"InventoryItemMiscTimerPasswordPadlockExit",
+			]);
+
+			for (const fn of timerLoadMethods) {
+				SDK.hookFunction(
+					fn,
+					HOOK_PRIORITIES.AddBehaviour,
+					// eslint-disable-next-line no-loop-func
+					(args, next) => {
+						const ret = next(args);
+						if (fbcSettings.accurateTimerLocks) {
+							loadLockTimerInput();
+						}
+						return ret;
+					}
+				);
+			}
+
+			for (const fn of timerExitMethods) {
+				SDK.hookFunction(
+					fn,
+					HOOK_PRIORITIES.AddBehaviour,
+					// eslint-disable-next-line no-loop-func
+					(args, next) => {
+						const ret = next(args);
+						if (fbcSettings.accurateTimerLocks) {
+							ElementRemove(TIMER_INPUT_ID);
+						}
+						return ret;
+					}
+				);
+			}
+		} else {
+			// Owner/Lover locks
+			patchFunction(
+				"InventoryItemMiscOwnerTimerPadlockDraw",
+				{
+					"// Draw buttons to add/remove time if available": `if (fbcSettingValue("accurateTimerLocks") && Player.CanInteract() && validator(C)) {${timerInputElement}} else`,
+				},
+				"Accurate timer inputs are not available for owner/lover locks."
+			);
+			patchFunction(
+				"InventoryItemMiscOwnerTimerPadlockClick",
+				{
+					"InventoryItemMiscOwnerTimerPadlockAdd(OwnerTimerChooseList[OwnerTimerChooseIndex] * 3600);":
+						'if (!fbcSettingValue("accurateTimerLocks")) InventoryItemMiscOwnerTimerPadlockAdd(OwnerTimerChooseList[OwnerTimerChooseIndex] * 3600);',
+				},
+				"Accurate timer inputs are not available for owner/lover locks."
+			);
+
+			const timerLoadMethods = /** @type {const} */ ([
+				"InventoryItemMiscMistressTimerPadlockLoad",
+				"InventoryItemMiscOwnerTimerPadlockLoad",
+				"InventoryItemMiscTimerPasswordPadlockLoad",
+			]);
+			const timerExitMethods = /** @type {const} */ ([
+				"InventoryItemMiscMistressTimerPadlockExit",
+				"InventoryItemMiscOwnerTimerPadlockExit",
+				"InventoryItemMiscTimerPasswordPadlockExit",
+			]);
+
+			for (const fn of timerLoadMethods) {
+				SDK.hookFunction(
+					fn,
+					HOOK_PRIORITIES.AddBehaviour,
+					// eslint-disable-next-line no-loop-func
+					(args, next) => {
+						const ret = next(args);
+						if (fbcSettings.accurateTimerLocks) {
+							loadLockTimerInput();
+						}
+						return ret;
+					}
+				);
+			}
+
+			for (const fn of timerExitMethods) {
+				SDK.hookFunction(
+					fn,
+					HOOK_PRIORITIES.AddBehaviour,
+					// eslint-disable-next-line no-loop-func
+					(args, next) => {
+						const ret = next(args);
+						if (fbcSettings.accurateTimerLocks) {
+							ElementRemove(TIMER_INPUT_ID);
+						}
+						return ret;
+					}
+				);
+			}
 		}
 
-		for (const fn of timerExitMethods) {
-			SDK.hookFunction(
-				fn,
-				HOOK_PRIORITIES.AddBehaviour,
-				// eslint-disable-next-line no-loop-func
-				(args, next) => {
-					const ret = next(args);
-					if (fbcSettings.accurateTimerLocks) {
-						ElementRemove(TIMER_INPUT_ID);
-					}
-					return ret;
-				}
-			);
-		}
+		// Password timer
+		patchFunction(
+			"InventoryItemMiscTimerPasswordPadlockDraw",
+			{
+				"// Draw buttons to add/remove time if available": `if (fbcSettingValue("accurateTimerLocks") && Player.CanInteract() && Player.MemberNumber == Property.LockMemberNumber) {${timerInputElement}} else`,
+			},
+			"Accurate timer inputs are not available for password locks."
+		);
+		patchFunction(
+			"InventoryItemMiscTimerPasswordPadlockClick",
+			{
+				"InventoryItemMiscTimerPasswordPadlockAdd(PasswordTimerChooseList[PasswordTimerChooseIndex] * 60, false);":
+					'if (!fbcSettingValue("accurateTimerLocks")) InventoryItemMiscTimerPasswordPadlockAdd(PasswordTimerChooseList[PasswordTimerChooseIndex] * 60, false);',
+			},
+			"Accurate timer inputs are not available for password locks."
+		);
+
+		// Mistress locks
+		patchFunction(
+			"InventoryItemMiscMistressTimerPadlockDraw",
+			{
+				"// Draw buttons to add/remove time if available": `if (fbcSettingValue("accurateTimerLocks") && Player.CanInteract() && (LogQuery("ClubMistress", "Management") || (Player.MemberNumber == DialogFocusSourceItem.Property.LockMemberNumber))) {${timerInputElement}} else`,
+			},
+			"Accurate timer inputs are not available for mistress locks."
+		);
+		patchFunction(
+			"InventoryItemMiscMistressTimerPadlockClick",
+			{
+				"InventoryItemMiscMistressTimerPadlockAdd(MistressTimerChooseList[MistressTimerChooseIndex] * 60, false);":
+					'if (!fbcSettingValue("accurateTimerLocks")) InventoryItemMiscMistressTimerPadlockAdd(MistressTimerChooseList[MistressTimerChooseIndex] * 60, false);',
+			},
+			"Accurate timer inputs are not available for mistress locks."
+		);
 	}
 
 	// Load BCX
-	/** @type {(addon: "BCX" | "EBCH" | "MBS", source: string) => Promise<boolean>} */
+	/** @type {(addon: keyof typeof addonTypes, source: string) => Promise<boolean>} */
 	async function loadExternalAddon(addon, source) {
 		await waitFor(settingsLoaded);
 
-		function hookBCX() {
+		function hookAddonAPI() {
 			if (addon === "BCX") {
 				BCX = w.bcx?.getModApi("FBC");
 			}
@@ -2107,7 +2305,7 @@ async function ForBetterClub() {
 		if (bcModSdk.getModsInfo().some((mod) => mod.name === addon)) {
 			addonTypes[addon] = "external";
 			debug(`${addon} already loaded, skipping loadExternalAddon()`);
-			hookBCX();
+			hookAddonAPI();
 			return false;
 		}
 
@@ -2124,7 +2322,7 @@ async function ForBetterClub() {
 				eval?.(resp);
 			});
 		logInfo("Loaded", addon);
-		hookBCX();
+		hookAddonAPI();
 		return true;
 	}
 
@@ -3811,6 +4009,7 @@ async function ForBetterClub() {
 			}
 			bceExpressionsQueue.push(event);
 		}
+		w.fbcPushEvent = pushEvent;
 
 		if (!w.bce_EventExpressions) {
 			// eslint-disable-next-line camelcase
@@ -5737,19 +5936,6 @@ async function ForBetterClub() {
 						!InventoryGroupIsBlocked(c, c.FocusGroup.Name)))
 			);
 		};
-		const canAccessDifficultyMenu = () => {
-			const c = CharacterGetCurrent();
-			const item = c?.FocusGroup?.Name && InventoryGet(c, c.FocusGroup.Name);
-			const locked = item?.Property?.LockedBy;
-			const canUnlock = !locked || DialogCanUnlock(c, item);
-			return (
-				fbcSettings.layeringMenu &&
-				Player.CanInteract() &&
-				c?.FocusGroup?.Name &&
-				!InventoryGroupIsBlocked(c, c.FocusGroup.Name) &&
-				canUnlock
-			);
-		};
 
 		// Pseudo-items that we do not want to process for color copying
 		const ignoredColorCopiableAssets = [
@@ -5813,16 +5999,8 @@ async function ForBetterClub() {
 			}
 		}
 
-		/** @type {"Priority" | "Difficulty"} */
-		let priorityField = "Priority",
-			prioritySubscreen = false;
+		let prioritySubscreen = false;
 		let layerPage = 0;
-		const FIELDS = Object.freeze({
-			/** @type {"Priority"} */
-			Priority: "Priority",
-			/** @type {"Difficulty"} */
-			Difficulty: "Difficulty",
-		});
 
 		const preview = CharacterLoadSimple(
 			`LayeringPreview-${Player.MemberNumber}`
@@ -5844,66 +6022,55 @@ async function ForBetterClub() {
 			"Layering preview affected by blindness"
 		);
 
-		/** @type {(C: Character, FocusItem: Item, field: "Priority" | "Difficulty") => void} */
-		function prioritySubscreenEnter(C, FocusItem, field) {
+		/** @type {(C: Character, FocusItem: Item) => void} */
+		function prioritySubscreenEnter(C, FocusItem) {
 			DialogFocusItem = FocusItem;
 			prioritySubscreen = true;
-			priorityField = field;
 			advancedPriorities = false;
-			let initialValue = 0;
-			switch (field) {
-				case FIELDS.Priority:
-					initialValue = C.AppearanceLayers.find(
-						(a) => a.Asset === FocusItem.Asset
-					).Priority;
-					layerPriorities = {};
-					for (const layer of FocusItem.Asset.Layer) {
-						if (!layer.Name) {
-							continue;
-						}
-						const drawnLayer = C.AppearanceLayers.find(
-							(a) => a.Asset === FocusItem.Asset && a.Name === layer.Name
-						);
-						let priority = layer.Priority ?? FocusItem.Asset.Priority ?? -1;
-						if (
-							typeof FocusItem?.Property?.OverridePriority === "object" &&
-							layer.Name in FocusItem.Property.OverridePriority
-						) {
-							priority = FocusItem?.Property?.OverridePriority[layer.Name];
-						}
-						if (drawnLayer) {
-							priority = drawnLayer.Priority ?? priority;
-						}
-						layerPriorities[layer.Name] = priority;
-						const el = ElementCreateInput(
-							layerElement(layer.Name),
-							"number",
-							"",
-							"20"
-						);
-						ElementValue(layerElement(layer.Name), priority.toString());
-						el.setAttribute("data-layer", layer.Name);
-						el.className = layerPriority;
-						// eslint-disable-next-line no-loop-func -- layerPriorities scope is outside the function, ElementValue and InventoryGet are global functions
-						el.addEventListener("change", () => {
-							layerPriorities[layer.Name] = parseInt(
-								ElementValue(layerElement(layer.Name))
-							);
-							updateItemPriorityFromLayerPriorityInput(
-								InventoryGet(preview, FocusItem.Asset.Group.Name)
-							);
-						});
-					}
-					hideAllLayerElements();
-					if (typeof FocusItem?.Property?.OverridePriority === "object") {
-						advancedPriorities = true;
-					}
-					break;
-				case FIELDS.Difficulty:
-					initialValue = C.Appearance.find((a) => a === FocusItem).Difficulty;
-					break;
-				default:
-					break;
+			const initialValue = C.AppearanceLayers.find(
+				(a) => a.Asset === FocusItem.Asset
+			).Priority;
+			layerPriorities = {};
+			for (const layer of FocusItem.Asset.Layer) {
+				if (!layer.Name) {
+					continue;
+				}
+				const drawnLayer = C.AppearanceLayers.find(
+					(a) => a.Asset === FocusItem.Asset && a.Name === layer.Name
+				);
+				let priority = layer.Priority ?? FocusItem.Asset.Priority ?? -1;
+				if (
+					typeof FocusItem?.Property?.OverridePriority === "object" &&
+					layer.Name in FocusItem.Property.OverridePriority
+				) {
+					priority = FocusItem?.Property?.OverridePriority[layer.Name];
+				}
+				if (drawnLayer) {
+					priority = drawnLayer.Priority ?? priority;
+				}
+				layerPriorities[layer.Name] = priority;
+				const el = ElementCreateInput(
+					layerElement(layer.Name),
+					"number",
+					"",
+					"20"
+				);
+				ElementValue(layerElement(layer.Name), priority.toString());
+				el.setAttribute("data-layer", layer.Name);
+				el.className = layerPriority;
+				// eslint-disable-next-line no-loop-func -- layerPriorities scope is outside the function, ElementValue and InventoryGet are global functions
+				el.addEventListener("change", () => {
+					layerPriorities[layer.Name] = parseInt(
+						ElementValue(layerElement(layer.Name))
+					);
+					updateItemPriorityFromLayerPriorityInput(
+						InventoryGet(preview, FocusItem.Asset.Group.Name)
+					);
+				});
+			}
+			hideAllLayerElements();
+			if (typeof FocusItem?.Property?.OverridePriority === "object") {
+				advancedPriorities = true;
 			}
 			ElementCreateInput(layerPriority, "number", "", "20");
 			ElementValue(layerPriority, initialValue.toString());
@@ -6008,7 +6175,7 @@ async function ForBetterClub() {
 						CharacterAppearanceMode === "Cloth" &&
 						assetVisible(C, item)
 					) {
-						prioritySubscreenEnter(C, item, FIELDS.Priority);
+						prioritySubscreenEnter(C, item);
 					}
 				}
 				return next(args);
@@ -6023,18 +6190,6 @@ async function ForBetterClub() {
 				if (isCharacter(C) && canAccessLayeringMenus()) {
 					const focusItem = InventoryGet(C, C.FocusGroup?.Name);
 					if (assetWorn(C, focusItem)) {
-						if (fbcSettings.modifyDifficulty && canAccessDifficultyMenu()) {
-							DrawButton(
-								10,
-								890,
-								52,
-								52,
-								"",
-								"White",
-								ICONS.TIGHTEN,
-								displayText("Loosen or tighten")
-							);
-						}
 						if (
 							colorCopiableAssets.includes(focusItem.Asset.Name) &&
 							Player.CanInteract()
@@ -6087,12 +6242,10 @@ async function ForBetterClub() {
 		const layersPerColumn = 10;
 		const layersPerPage = layersPerColumn * 2;
 		function prioritySubscreenDraw() {
-			if (priorityField === FIELDS.Priority) {
-				DrawCharacter(preview, 1300, 100, 0.9, false);
-			}
+			DrawCharacter(preview, 1300, 100, 0.9, false);
 
 			const layerNames = Object.keys(layerPriorities);
-			if (priorityField === FIELDS.Priority && layerNames.length > 0) {
+			if (layerNames.length > 0) {
 				DrawCheckbox(100, 50, 64, 64, "", advancedPriorities, false, "White");
 				drawTextFitLeft(
 					displayText("Adjust individual layers"),
@@ -6123,13 +6276,7 @@ async function ForBetterClub() {
 				}
 			} else {
 				// Localization guide: valid options for priorityField can be seen in the "const FIELDS" object above
-				DrawText(
-					displayText(`Set item ${priorityField}`),
-					950,
-					150,
-					"White",
-					"Black"
-				);
+				DrawText(displayText(`Set item priority`), 950, 150, "White", "Black");
 				ElementPosition(layerPriority, 950, 230, 100);
 				hideAllLayerElements();
 			}
@@ -6140,7 +6287,7 @@ async function ForBetterClub() {
 				"White",
 				"Icons/Accept.png",
 				// Localization guide: valid options for priorityField can be seen in the "const FIELDS" object above
-				displayText(`Set ${priorityField}`)
+				displayText(`Set priority`)
 			);
 		}
 
@@ -6199,16 +6346,8 @@ async function ForBetterClub() {
 						prioritySubscreenClick(C, focusItem);
 						return null;
 					}
-					if (
-						assetWorn(C, focusItem) &&
-						MouseIn(10, 890, 52, 52) &&
-						fbcSettings.modifyDifficulty &&
-						canAccessDifficultyMenu()
-					) {
-						prioritySubscreenEnter(C, focusItem, FIELDS.Difficulty);
-						return null;
-					} else if (assetVisible(C, focusItem) && MouseIn(10, 948, 52, 52)) {
-						prioritySubscreenEnter(C, focusItem, FIELDS.Priority);
+					if (assetVisible(C, focusItem) && MouseIn(10, 948, 52, 52)) {
+						prioritySubscreenEnter(C, focusItem);
 						return null;
 					} else if (
 						assetWorn(C, focusItem) &&
@@ -6274,32 +6413,7 @@ async function ForBetterClub() {
 
 		/** @type {(C: Character, focusItem: Item) => void} */
 		function savePrioritySubscreenChanges(C, focusItem) {
-			switch (priorityField) {
-				case FIELDS.Priority:
-					updateItemPriorityFromLayerPriorityInput(focusItem);
-					break;
-				case FIELDS.Difficulty:
-					{
-						const newDifficulty = parseInt(ElementValue(layerPriority));
-						let action = null;
-						if (focusItem.Difficulty > newDifficulty) {
-							action = "loosens";
-						} else if (focusItem.Difficulty < newDifficulty) {
-							action = "tightens";
-						}
-						focusItem.Difficulty = newDifficulty;
-						fbcSendAction(
-							displayText(`$PlayerName ${action} $TargetName's $ItemName`, {
-								$PlayerName: CharacterNickname(Player),
-								$TargetName: CharacterNickname(C),
-								$ItemName: focusItem.Asset.Description.toLowerCase(),
-							})
-						);
-					}
-					break;
-				default:
-					break;
-			}
+			updateItemPriorityFromLayerPriorityInput(focusItem);
 			debug("updated item", focusItem);
 			CharacterRefresh(C, false, false);
 			ChatRoomCharacterItemUpdate(C, C.FocusGroup?.Name);
@@ -9943,31 +10057,62 @@ async function ForBetterClub() {
 			}
 		);
 
-		SDK.hookFunction(
-			"DrawAssetPreview",
-			HOOK_PRIORITIES.AddBehaviour,
-			/** @type {(args: [number, number, Asset, { C: Character; Description: string; Background: string; Foreground: string; Vibrating: boolean; Border: boolean; Hover: boolean; HoverBackground: string; Disabled: boolean; Craft: Craft; }], next: (args: [number, number, Asset, { C: Character; Description: string; Background: string; Foreground: string; Vibrating: boolean; Border: boolean; Hover: boolean; HoverBackground: string; Disabled: boolean; Craft: Craft; }]) => void) => void} */
-			(args, next) => {
-				const ret = next(args);
-				const [x, y, , options] = args;
-				if (options) {
-					const { Craft } = options;
-					if (MouseIn(x, y, 225, 275) && Craft) {
-						drawTooltip(x, y, 225, displayText(Craft.Property), "center");
-						drawTooltip(
-							1000,
-							y - 70,
-							975,
-							`${displayText("Description:")} ${
-								Craft.Description || "<no description>"
-							}`,
-							"left"
-						);
+		if (GameVersion.startsWith("R92")) {
+			SDK.hookFunction(
+				"DrawAssetPreview",
+				HOOK_PRIORITIES.AddBehaviour,
+				/** @type {(args: [number, number, Asset, { C: Character; Description: string; Background: string; Foreground: string; Vibrating: boolean; Border: boolean; Hover: boolean; HoverBackground: string; Disabled: boolean; Craft: Craft; }], next: (args: [number, number, Asset, { C: Character; Description: string; Background: string; Foreground: string; Vibrating: boolean; Border: boolean; Hover: boolean; HoverBackground: string; Disabled: boolean; Craft: Craft; }]) => void) => void} */
+				(args, next) => {
+					const ret = next(args);
+					const [x, y, , options] = args;
+					if (options) {
+						const { Craft } = options;
+						if (MouseIn(x, y, 225, 275) && Craft) {
+							drawTooltip(x, y, 225, displayText(Craft.Property), "center");
+							drawTooltip(
+								1000,
+								y - 70,
+								975,
+								`${displayText("Description:")} ${
+									Craft.Description || "<no description>"
+								}`,
+								"left"
+							);
+						}
 					}
+					return ret;
 				}
-				return ret;
-			}
-		);
+			);
+		} else {
+			SDK.hookFunction(
+				"DrawItemPreview",
+				HOOK_PRIORITIES.AddBehaviour,
+				/**
+				 * @param {[Item, Character, number, number, {}]} args
+				 * @param {(args: [Item, Character, number, number, {}]) => void} next
+				 */
+				(args, next) => {
+					const ret = next(args);
+					const [item, , x, y] = args;
+					if (item) {
+						const { Craft } = item;
+						if (MouseIn(x, y, 225, 275) && Craft) {
+							drawTooltip(x, y, 225, displayText(Craft.Property), "center");
+							drawTooltip(
+								1000,
+								y - 70,
+								975,
+								`${displayText("Description:")} ${
+									Craft.Description || "<no description>"
+								}`,
+								"left"
+							);
+						}
+					}
+					return ret;
+				}
+			);
+		}
 	}
 
 	function hideChatRoomElements() {

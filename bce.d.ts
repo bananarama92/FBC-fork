@@ -10,6 +10,7 @@ declare global {
   /** @deprecated */
   var bceSendAction: (text: string) => void;
   var fbcSendAction: (text: string) => void;
+  var fbcPushEvent: (evt: ExpressionEvent) => void;
   var fbcChatNotify: (node: HTMLElement | HTMLElement[] | string) => void;
   var fbcDebug: (copy?: boolean) => Promise<string>;
   /** @deprecated */
