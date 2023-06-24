@@ -5462,7 +5462,7 @@ async function ForBetterClub() {
 				/** @type {{ MemberNumber: number; Character?: Character; Pose: string | string[]; }} */
 				data
 			) => {
-				if (data === null || typeof data !== "object") {
+				if (data === null || !isNonNullObject(data)) {
 					return;
 				}
 				if (!bceAnimationEngineEnabled()) {
@@ -5481,7 +5481,7 @@ async function ForBetterClub() {
 				/** @type {ChatRoomSyncSingleEvent} */
 				data
 			) => {
-				if (data === null || typeof data !== "object") {
+				if (data === null || !isNonNullObject(data)) {
 					return;
 				}
 				if (!bceAnimationEngineEnabled()) {
@@ -6040,7 +6040,7 @@ async function ForBetterClub() {
 				);
 				let priority = layer.Priority ?? FocusItem.Asset.Priority ?? -1;
 				if (
-					typeof FocusItem?.Property?.OverridePriority === "object" &&
+					isNonNullObject(FocusItem?.Property?.OverridePriority) &&
 					layer.Name in FocusItem.Property.OverridePriority
 				) {
 					priority = FocusItem?.Property?.OverridePriority[layer.Name];
@@ -6069,7 +6069,7 @@ async function ForBetterClub() {
 				});
 			}
 			hideAllLayerElements();
-			if (typeof FocusItem?.Property?.OverridePriority === "object") {
+			if (isNonNullObject(FocusItem?.Property?.OverridePriority)) {
 				advancedPriorities = true;
 			}
 			ElementCreateInput(layerPriority, "number", "", "20");
@@ -8654,7 +8654,7 @@ async function ForBetterClub() {
 				const [beep] = args;
 				if (
 					beep &&
-					typeof beep === "object" &&
+					isNonNullObject(beep) &&
 					!beep.BeepType &&
 					fbcSettings.instantMessenger
 				) {
@@ -9478,7 +9478,7 @@ async function ForBetterClub() {
 		}
 
 		(async function () {
-			while (typeof Buttplug !== "object") {
+			while (typeof Buttplug !== "object" || Buttplug === null) {
 				await sleep(10);
 			}
 
@@ -10215,7 +10215,7 @@ async function ForBetterClub() {
 		return typeof s === "string";
 	}
 
-	/** @type {(o: unknown) => o is Object} */
+	/** @type {(o: unknown) => o is Record<string, any>} */
 	function isNonNullObject(o) {
 		return o && typeof o === "object" && !Array.isArray(o);
 	}
