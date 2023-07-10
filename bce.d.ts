@@ -62,6 +62,7 @@ declare global {
   var CharacterLoadSimple: (accName: string) => Character;
   var CharacterDelete: (accName: string) => void;
   var CharacterNaked: (C: Character) => void;
+  var ChatRoomChatInputRect: [number, number, number, number];
   var ItemColorLoad: (
     c: Character,
     item: Item,
