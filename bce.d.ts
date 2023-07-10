@@ -63,6 +63,20 @@ declare global {
   var CharacterDelete: (accName: string) => void;
   var CharacterNaked: (C: Character) => void;
   var ChatRoomChatInputRect: [number, number, number, number];
+  var DialogMenuMode:
+    | "dialog"
+    | "items"
+    | "colorDefault"
+    | "colorExpression"
+    | "colorItem"
+    | "permissions"
+    | "activities"
+    | "locking"
+    | "locked"
+    | "extended"
+    | "tighten"
+    | "crafted"
+    | "struggle";
   var ItemColorLoad: (
     c: Character,
     item: Item,
@@ -428,6 +442,7 @@ declare global {
   var CharacterSetCurrent: (C: Character) => void;
   var CommonCSVCache: { [key: string]: string[][] };
   var CharacterBuildDialog: (C: Character, csv: string[][]) => void;
+  var ChatRoomAppendChat: (div: HTMLElement) => void;
   var ChatRoomMessage: (data: ChatMessage) => void;
   var ChatRoomSyncPose: (data: {
     MemberNumber: number;
@@ -485,6 +500,10 @@ declare global {
 
   type DefaultSetting = DefaultSettingBoolean | DefaultSettingString;
 
+  type FBCNote = {
+    note: string;
+    updatedAt?: number;
+  };
   type Duration = {
     days: number;
     hours: number;
@@ -642,6 +661,7 @@ declare global {
     LockMemberNumber?: number;
     LockedBy?: string;
     Effect?: string[];
+    BlinkState?: unknown;
   };
   type AssetGroup = {
     Name: string;
