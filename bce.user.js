@@ -1,8 +1,7 @@
-/* eslint-disable no-inline-comments */
 // ==UserScript==
 // @name Bondage Club Enhancements
 // @namespace https://www.bondageprojects.com/
-// @version 4.37
+// @version 4.38
 // @description FBC - For Better Club - enhancements for the bondage club - old name kept in tampermonkey for compatibility
 // @author Sidious
 // @match https://bondageprojects.elementfx.com/*
@@ -14,6 +13,7 @@
 // @grant none
 // @run-at document-end
 // ==/UserScript==
+/* eslint-disable no-inline-comments */
 // @ts-check
 // eslint-disable-next-line
 /// <reference path="./node_modules/@total-typescript/ts-reset/dist/recommended.d.ts"/>
@@ -38,10 +38,13 @@
  *  along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-const FBC_VERSION = "4.37";
+const FBC_VERSION = "4.38";
 const settingsVersion = 48;
 
 const fbcChangelog = `${FBC_VERSION}
+- hotfix for R94Beta1 GameVersion
+
+4.37
 - added updatedAt to notes
 - fixed an error when entering layering on an item with null property
 - fixed scrolling issue in the chat input field when typing out long messages
@@ -54,9 +57,6 @@ const fbcChangelog = `${FBC_VERSION}
 - R93 Beta 1 support
 - removed difficulty adjustment as it is now in the game
 - added developer API window.fbcPushEvent to allow other mods to send expression/posing events to FBC animation engine
-
-4.35
-- updated stable bcx
 `;
 
 /*
@@ -1742,6 +1742,12 @@ async function ForBetterClub() {
 				typeof ServerIsConnected === "boolean" &&
 				ServerIsConnected
 		);
+		if (
+			GameVersion === "R93" &&
+			SDK.getOriginalHash("CharacterSetFacialExpression") === "0DB6C85D"
+		) {
+			GameVersion = "R94Beta1";
+		}
 		for (const [func, hash] of Object.entries(expectedHashes(GameVersion))) {
 			if (!w[func]) {
 				logWarn(`Expected function ${func} not found.`);
