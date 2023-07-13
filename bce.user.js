@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Bondage Club Enhancements
 // @namespace https://www.bondageprojects.com/
-// @version 4.38
+// @version 4.39
 // @description FBC - For Better Club - enhancements for the bondage club - old name kept in tampermonkey for compatibility
 // @author Sidious
 // @match https://bondageprojects.elementfx.com/*
@@ -38,10 +38,13 @@
  *  along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-const FBC_VERSION = "4.38";
+const FBC_VERSION = "4.39";
 const settingsVersion = 48;
 
 const fbcChangelog = `${FBC_VERSION}
+- skip loading other addons, if they are being managed by BCAM
+
+4.38
 - hotfix for R94Beta1 GameVersion
 
 4.37
@@ -51,12 +54,6 @@ const fbcChangelog = `${FBC_VERSION}
 - fixed the layering button not being visible on blocked, but visible items
 - fixed anti-cheat unintentionally triggering sometimes when wearing an item with BlinkState (e.g. shock collars)
 - R94 Beta 1 support
-
-4.36
-- added LSCG loading under other addons
-- R93 Beta 1 support
-- removed difficulty adjustment as it is now in the game
-- added developer API window.fbcPushEvent to allow other mods to send expression/posing events to FBC animation engine
 `;
 
 /*
@@ -475,12 +472,16 @@ async function ForBetterClub() {
 			sideEffects: (newValue) => {
 				if (newValue) {
 					fbcSettings.bcxDevel = false;
-					w.BCX_SOURCE = BCX_SOURCE;
-					loadExternalAddon("BCX", BCX_SOURCE).then((success) => {
-						if (success) {
-							addonTypes.BCX = "stable";
-						}
-					});
+					if (handledByBCAM("BCX")) {
+						logInfo("BCX already loaded via BCAM, skipping");
+					} else {
+						w.BCX_SOURCE = BCX_SOURCE;
+						loadExternalAddon("BCX", BCX_SOURCE).then((success) => {
+							if (success) {
+								addonTypes.BCX = "stable";
+							}
+						});
+					}
 				}
 				debug("bcx", newValue);
 			},
@@ -494,12 +495,16 @@ async function ForBetterClub() {
 			sideEffects: (newValue) => {
 				if (newValue) {
 					fbcSettings.bcx = false;
-					w.BCX_SOURCE = BCX_DEVEL_SOURCE;
-					loadExternalAddon("BCX", BCX_DEVEL_SOURCE).then((success) => {
-						if (success) {
-							addonTypes.BCX = "devel";
-						}
-					});
+					if (handledByBCAM("BCX")) {
+						logInfo("BCX already loaded via BCAM, skipping");
+					} else {
+						w.BCX_SOURCE = BCX_DEVEL_SOURCE;
+						loadExternalAddon("BCX", BCX_DEVEL_SOURCE).then((success) => {
+							if (success) {
+								addonTypes.BCX = "devel";
+							}
+						});
+					}
 				}
 				debug("bcxDevel", newValue);
 			},
@@ -512,11 +517,15 @@ async function ForBetterClub() {
 			value: false,
 			sideEffects: (newValue) => {
 				if (newValue) {
-					loadExternalAddon("EBCH", EBCH_SOURCE).then((success) => {
-						if (success) {
-							addonTypes.EBCH = "stable";
-						}
-					});
+					if (handledByBCAM("EBCH")) {
+						logInfo("EBCH already loaded via BCAM, skipping");
+					} else {
+						loadExternalAddon("EBCH", EBCH_SOURCE).then((success) => {
+							if (success) {
+								addonTypes.EBCH = "stable";
+							}
+						});
+					}
 				}
 				debug("ebch", newValue);
 			},
@@ -529,11 +538,15 @@ async function ForBetterClub() {
 			value: false,
 			sideEffects: (newValue) => {
 				if (newValue) {
-					loadExternalAddon("MBS", MBS_SOURCE).then((success) => {
-						if (success) {
-							addonTypes.MBS = "stable";
-						}
-					});
+					if (handledByBCAM("MBS")) {
+						logInfo("MBS already loaded via BCAM, skipping");
+					} else {
+						loadExternalAddon("MBS", MBS_SOURCE).then((success) => {
+							if (success) {
+								addonTypes.MBS = "stable";
+							}
+						});
+					}
 				}
 			},
 			category: "addons",
@@ -545,11 +558,15 @@ async function ForBetterClub() {
 			value: false,
 			sideEffects: (newValue) => {
 				if (newValue) {
-					loadExternalAddon("LSCG", LSCG_SOURCE).then((success) => {
-						if (success) {
-							addonTypes.LSCG = "stable";
-						}
-					});
+					if (handledByBCAM("LSCG")) {
+						logInfo("LSCG already loaded via BCAM, skipping");
+					} else {
+						loadExternalAddon("LSCG", LSCG_SOURCE).then((success) => {
+							if (success) {
+								addonTypes.LSCG = "stable";
+							}
+						});
+					}
 				}
 			},
 			category: "addons",
@@ -10160,6 +10177,11 @@ async function ForBetterClub() {
 			}
 			return next(args);
 		});
+	}
+
+	/** @type {(addon: string) => boolean} */
+	function handledByBCAM(addon) {
+		return w.BCAM?.addons && addon in w.BCAM.addons;
 	}
 
 	/** @type {(ms: number) => Promise<void>} */

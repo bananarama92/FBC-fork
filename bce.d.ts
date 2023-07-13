@@ -36,6 +36,7 @@ declare global {
   var bce_ArousalExpressionStages: ArousalExpressionStages;
   var bce_ActivityTriggers: ActivityTrigger[];
   var bcModSdk: ModSDKGlobalAPI | undefined;
+  var BCAM: BCAMPublicAPI | undefined;
   var ActivityDictionary: string[][];
   var ActivityCheckPrerequisite: (
     pre: string,
@@ -919,4 +920,14 @@ declare global {
     Draw: (C: Character) => void;
     HandleEvent?: (EventType: "KeyDown" | "Click") => void;
   }
+
+  type BCAMPublicAPI = {
+    present: true;
+    addons: Record<string, BCAMAddonState>;
+  };
+
+  type BCAMAddonState = {
+    distribution: string;
+    status: "loading" | "loaded" | "error";
+  };
 }
