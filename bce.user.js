@@ -43,10 +43,10 @@ const settingsVersion = 49;
 
 const fbcChangelog = `${FBC_VERSION}
 - installation via FUSAM now recommended: https://sidiousious.gitlab.io/bc-addon-loader/
-- fix for BCAM/FUSAM API change
+- fix for FUSAM API change
 
 4.39
-- skip loading other addons, if they are being managed by BCAM
+- skip loading other addons, if they are being managed by FUSAM
 
 4.38
 - hotfix for R94Beta1 GameVersion
