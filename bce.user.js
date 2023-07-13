@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Bondage Club Enhancements
 // @namespace https://www.bondageprojects.com/
-// @version 4.39
+// @version 4.40
 // @description FBC - For Better Club - enhancements for the bondage club - old name kept in tampermonkey for compatibility
 // @author Sidious
 // @match https://bondageprojects.elementfx.com/*
@@ -38,10 +38,11 @@
  *  along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-const FBC_VERSION = "4.39";
-const settingsVersion = 48;
+const FBC_VERSION = "4.40";
+const settingsVersion = 49;
 
 const fbcChangelog = `${FBC_VERSION}
+- installation via FUSAM now recommended: https://sidiousious.gitlab.io/bc-addon-loader/
 - fix for BCAM/FUSAM API change
 
 4.39
