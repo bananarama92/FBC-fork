@@ -6,34 +6,7 @@ This addon to [Bondage Club](https://www.bondageprojects.com/club_game/) offers 
 
 ## How to install and use
 
-With Tampermonkey you can control when and if you want to update FBC and FBC will be automatically loaded whenever you open the club. Tampermonkey will by default check for updates daily. The manual bookmark will always load the latest version, but has to be clicked each time you (re)open the club. You can use different methods on different devices, but be mindful of using wildly different versions of FBC: some settings may reset.
-
-### Autoload with Tampermonkey
-
-1. Install [Tampermonkey](https://www.tampermonkey.net/) (available for most commonly used browsers).
-1. Choose your version: do you want the script to update every time you refresh?  
-  a. Yes: use `https://sidiousious.gitlab.io/bce/bce-loader.user.js` ([click me and hit Install on the page that comes up](https://sidiousious.gitlab.io/bce/bce-loader.user.js))  
-  b. No: use `https://sidiousious.gitlab.io/bce/bce.user.js` ([click me and hit Install on the page that comes up](https://sidiousious.gitlab.io/bce/bce.user.js))  
-
-If clicking the links above does not give you the option to install:
-1. Open Tampermonkey's dashboard from its button top-right, and go to the Utilities on the right.
-1. Paste the URL into the "Install from URL" field, and click "Install". Tampermonkey should ask for a confirmation, and then the script will show up in its main view.
-
-Once the script has been installed reload your BC tab (F5, Ctrl-R), as changes to the script are only picked up on a page refresh. You should see a "SAVE (FBC)" button on the login screen. You do not need to use this, unless you want to use the automatic relogin feature.
-Then login and go to the preferences screen and click onto "FBC Settings" to enable (or disable) components you wish to use.
-
-### Manual bookmark
-
-1. Save `javascript:(()=>{fetch('https://sidiousious.gitlab.io/bce/bce.user.js?_='+Date.now()).then(r=>r.text()).then(r=>eval(r));})();` as a bookmark on your devices, or [bookmark this link][bookmarklet]
-1. Use by opening the bookmark in the bondage club tab on your browser. If used on the login page you should see the "SAVE (FBC)" button appear.
-
-- Desktop: use from your bookmarks menu
-- Android (Chrome) or iOS (Safari): search for your bookmark in the navigation bar, _not in the bookmarks menu_!
-- Others: this should work in any browser that supports the club and [bookmarklets](https://en.wikipedia.org/wiki/Bookmarklet).
-
-### Mobile
-
-[See detailed guide here](mobile.html)
+Install via [FUSAM](https://sidiousious.gitlab.io/bc-addon-loader/)
 
 ## Features
 
