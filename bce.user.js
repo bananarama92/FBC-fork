@@ -42,18 +42,13 @@ const FBC_VERSION = "4.39";
 const settingsVersion = 48;
 
 const fbcChangelog = `${FBC_VERSION}
+- fix for BCAM/FUSAM API change
+
+4.39
 - skip loading other addons, if they are being managed by BCAM
 
 4.38
 - hotfix for R94Beta1 GameVersion
-
-4.37
-- added updatedAt to notes
-- fixed an error when entering layering on an item with null property
-- fixed scrolling issue in the chat input field when typing out long messages
-- fixed the layering button not being visible on blocked, but visible items
-- fixed anti-cheat unintentionally triggering sometimes when wearing an item with BlinkState (e.g. shock collars)
-- R94 Beta 1 support
 `;
 
 /*
@@ -472,8 +467,8 @@ async function ForBetterClub() {
 			sideEffects: (newValue) => {
 				if (newValue) {
 					fbcSettings.bcxDevel = false;
-					if (handledByBCAM("BCX")) {
-						logInfo("BCX already loaded via BCAM, skipping");
+					if (handledByFUSAM("BCX")) {
+						logInfo("BCX already loaded via FUSAM, skipping");
 					} else {
 						w.BCX_SOURCE = BCX_SOURCE;
 						loadExternalAddon("BCX", BCX_SOURCE).then((success) => {
@@ -495,8 +490,8 @@ async function ForBetterClub() {
 			sideEffects: (newValue) => {
 				if (newValue) {
 					fbcSettings.bcx = false;
-					if (handledByBCAM("BCX")) {
-						logInfo("BCX already loaded via BCAM, skipping");
+					if (handledByFUSAM("BCX")) {
+						logInfo("BCX already loaded via FUSAM, skipping");
 					} else {
 						w.BCX_SOURCE = BCX_DEVEL_SOURCE;
 						loadExternalAddon("BCX", BCX_DEVEL_SOURCE).then((success) => {
@@ -517,8 +512,8 @@ async function ForBetterClub() {
 			value: false,
 			sideEffects: (newValue) => {
 				if (newValue) {
-					if (handledByBCAM("EBCH")) {
-						logInfo("EBCH already loaded via BCAM, skipping");
+					if (handledByFUSAM("EBCH")) {
+						logInfo("EBCH already loaded via FUSAM, skipping");
 					} else {
 						loadExternalAddon("EBCH", EBCH_SOURCE).then((success) => {
 							if (success) {
@@ -538,8 +533,8 @@ async function ForBetterClub() {
 			value: false,
 			sideEffects: (newValue) => {
 				if (newValue) {
-					if (handledByBCAM("MBS")) {
-						logInfo("MBS already loaded via BCAM, skipping");
+					if (handledByFUSAM("MBS")) {
+						logInfo("MBS already loaded via FUSAM, skipping");
 					} else {
 						loadExternalAddon("MBS", MBS_SOURCE).then((success) => {
 							if (success) {
@@ -558,8 +553,8 @@ async function ForBetterClub() {
 			value: false,
 			sideEffects: (newValue) => {
 				if (newValue) {
-					if (handledByBCAM("LSCG")) {
-						logInfo("LSCG already loaded via BCAM, skipping");
+					if (handledByFUSAM("LSCG")) {
+						logInfo("LSCG already loaded via FUSAM, skipping");
 					} else {
 						loadExternalAddon("LSCG", LSCG_SOURCE).then((success) => {
 							if (success) {
@@ -10152,8 +10147,8 @@ async function ForBetterClub() {
 	}
 
 	/** @type {(addon: string) => boolean} */
-	function handledByBCAM(addon) {
-		return w.BCAM?.addons && addon in w.BCAM.addons;
+	function handledByFUSAM(addon) {
+		return w.FUSAM?.addons && addon in w.FUSAM.addons;
 	}
 
 	/** @type {(ms: number) => Promise<void>} */

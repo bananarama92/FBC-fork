@@ -36,7 +36,7 @@ declare global {
   var bce_ArousalExpressionStages: ArousalExpressionStages;
   var bce_ActivityTriggers: ActivityTrigger[];
   var bcModSdk: ModSDKGlobalAPI | undefined;
-  var BCAM: BCAMPublicAPI | undefined;
+  var FUSAM: FUSAMPublicAPI | undefined;
   var ActivityDictionary: string[][];
   var ActivityCheckPrerequisite: (
     pre: string,
@@ -921,12 +921,12 @@ declare global {
     HandleEvent?: (EventType: "KeyDown" | "Click") => void;
   }
 
-  type BCAMPublicAPI = {
+  type FUSAMPublicAPI = {
     present: true;
-    addons: Record<string, BCAMAddonState>;
+    addons: Record<string, FUSAMAddonState>;
   };
 
-  type BCAMAddonState = {
+  type FUSAMAddonState = {
     distribution: string;
     status: "loading" | "loaded" | "error";
   };
