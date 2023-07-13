@@ -70,7 +70,7 @@ var bcModSdk=function(){"use strict";const e="1.1.0";function o(e){alert("Mod ER
 async function ForBetterClub() {
 	"use strict";
 
-	const SUPPORTED_GAME_VERSIONS = ["R92", "R93Beta1"];
+	const SUPPORTED_GAME_VERSIONS = ["R93", "R94Beta1"];
 	const CAPABILITIES = /** @type {const} */ (["clubslave"]);
 
 	const w = window;
@@ -10032,62 +10032,34 @@ async function ForBetterClub() {
 			}
 		);
 
-		if (GameVersion.startsWith("R92")) {
-			SDK.hookFunction(
-				"DrawAssetPreview",
-				HOOK_PRIORITIES.AddBehaviour,
-				/** @type {(args: [number, number, Asset, { C: Character; Description: string; Background: string; Foreground: string; Vibrating: boolean; Border: boolean; Hover: boolean; HoverBackground: string; Disabled: boolean; Craft: Craft; }], next: (args: [number, number, Asset, { C: Character; Description: string; Background: string; Foreground: string; Vibrating: boolean; Border: boolean; Hover: boolean; HoverBackground: string; Disabled: boolean; Craft: Craft; }]) => void) => void} */
-				(args, next) => {
-					const ret = next(args);
-					const [x, y, , options] = args;
-					if (options) {
-						const { Craft } = options;
-						if (MouseIn(x, y, 225, 275) && Craft) {
-							drawTooltip(x, y, 225, displayText(Craft.Property), "center");
-							drawTooltip(
-								1000,
-								y - 70,
-								975,
-								`${displayText("Description:")} ${
-									Craft.Description || "<no description>"
-								}`,
-								"left"
-							);
-						}
+		SDK.hookFunction(
+			"DrawItemPreview",
+			HOOK_PRIORITIES.AddBehaviour,
+			/**
+			 * @param {[Item, Character, number, number, {}]} args
+			 * @param {(args: [Item, Character, number, number, {}]) => void} next
+			 */
+			(args, next) => {
+				const ret = next(args);
+				const [item, , x, y] = args;
+				if (item) {
+					const { Craft } = item;
+					if (MouseIn(x, y, 225, 275) && Craft) {
+						drawTooltip(x, y, 225, displayText(Craft.Property), "center");
+						drawTooltip(
+							1000,
+							y - 70,
+							975,
+							`${displayText("Description:")} ${
+								Craft.Description || "<no description>"
+							}`,
+							"left"
+						);
 					}
-					return ret;
 				}
-			);
-		} else {
-			SDK.hookFunction(
-				"DrawItemPreview",
-				HOOK_PRIORITIES.AddBehaviour,
-				/**
-				 * @param {[Item, Character, number, number, {}]} args
-				 * @param {(args: [Item, Character, number, number, {}]) => void} next
-				 */
-				(args, next) => {
-					const ret = next(args);
-					const [item, , x, y] = args;
-					if (item) {
-						const { Craft } = item;
-						if (MouseIn(x, y, 225, 275) && Craft) {
-							drawTooltip(x, y, 225, displayText(Craft.Property), "center");
-							drawTooltip(
-								1000,
-								y - 70,
-								975,
-								`${displayText("Description:")} ${
-									Craft.Description || "<no description>"
-								}`,
-								"left"
-							);
-						}
-					}
-					return ret;
-				}
-			);
-		}
+				return ret;
+			}
+		);
 	}
 
 	function hideChatRoomElements() {
