@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Bondage Club Enhancements
 // @namespace https://www.bondageprojects.com/
-// @version 4.40
+// @version 4.41
 // @description FBC - For Better Club - enhancements for the bondage club - old name kept in tampermonkey for compatibility
 // @author Sidious
 // @match https://bondageprojects.elementfx.com/*
@@ -38,18 +38,18 @@
  *  along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-const FBC_VERSION = "4.40";
+const FBC_VERSION = "4.41";
 const settingsVersion = 49;
 
 const fbcChangelog = `${FBC_VERSION}
+- fixed /versions sometimes not showing all of your own addons
+
+4.40
 - installation via FUSAM now recommended: https://sidiousious.gitlab.io/bc-addon-loader/
 - fix for FUSAM API change
 
 4.39
 - skip loading other addons, if they are being managed by FUSAM
-
-4.38
-- hotfix for R94Beta1 GameVersion
 `;
 
 /*
@@ -136,7 +136,7 @@ async function ForBetterClub() {
 		None: "",
 	});
 
-	/** @type {Record<"BCX" | "EBCH" | "MBS" | "LSCG", "none" | "external" | "stable" | "devel">} */
+	/** @type {Record<"BCX" | "EBCH" | "MBS" | "LSCG", "none" | "external" | "stable" | "devel" | "fusam">} */
 	const addonTypes = {
 		BCX: "none",
 		EBCH: "none",
@@ -6505,9 +6505,21 @@ async function ForBetterClub() {
 		}
 		ServerSend("ChatRoomChat", message);
 	}
-	if (ServerIsConnected) {
+	if (ServerIsConnected && ServerPlayerIsInChatRoom()) {
 		sendHello(null, true);
 	}
+	createTimer(() => {
+		const loadedAddons = bcModSdk.getModsInfo();
+		if (
+			fbcSettings.shareAddons &&
+			JSON.stringify(loadedAddons) !== JSON.stringify(Player.FBCOtherAddons) &&
+			ServerIsConnected &&
+			ServerPlayerIsInChatRoom()
+		) {
+			Player.FBCOtherAddons = loadedAddons;
+			sendHello(null, true);
+		}
+	}, 5000);
 
 	async function hiddenMessageHandler() {
 		await waitFor(() => ServerSocket && ServerIsConnected);
@@ -10081,7 +10093,11 @@ async function ForBetterClub() {
 					bcModSdk.getModsInfo().some((mod) => mod.name === key) &&
 					value === "none"
 				) {
-					payload[key] = "external";
+					if (handledByFUSAM(key)) {
+						payload[key] = "fusam";
+					} else {
+						payload[key] = "external";
+					}
 				} else {
 					payload[key] = value;
 				}
