@@ -844,6 +844,8 @@ declare global {
     message?: BCEMessage;
     MemberNumber?: number;
     Text?: string;
+    TargetCharacter?: number;
+    SourceCharacter?: number;
   };
   type ChatMessageBase = {
     Type: string;

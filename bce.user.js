@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Bondage Club Enhancements
 // @namespace https://www.bondageprojects.com/
-// @version 4.42
+// @version 4.43
 // @description FBC - For Better Club - enhancements for the bondage club - old name kept in tampermonkey for compatibility
 // @author Sidious
 // @match https://bondageprojects.elementfx.com/*
@@ -38,18 +38,17 @@
  *  along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-const FBC_VERSION = "4.42";
+const FBC_VERSION = "4.43";
 const settingsVersion = 49;
 
 const fbcChangelog = `${FBC_VERSION}
+- fixed animation triggers from targeted activities
+
+4.42
 - R94 support
 
 4.41
 - fixed /versions sometimes not showing all of your own addons
-
-4.40
-- installation via FUSAM now recommended: https://sidiousious.gitlab.io/bc-addon-loader/
-- fix for FUSAM API change
 `;
 
 /*
@@ -4909,9 +4908,8 @@ async function ForBetterClub() {
 									continue;
 								} else if (
 									matcher.Criteria.TargetIsPlayer &&
-									data.Dictionary?.find((t) =>
-										/^(Target|Destination)Character(Name)?$/u.test(t.Tag)
-									)?.MemberNumber !== Player.MemberNumber
+									data.Dictionary?.find((t) => !!t.TargetCharacter)
+										.TargetCharacter !== Player.MemberNumber
 								) {
 									continue;
 								} else if (
@@ -4930,10 +4928,8 @@ async function ForBetterClub() {
 							} else if (
 								data.Sender === Player.MemberNumber ||
 								data.Dictionary?.some(
-									// eslint-disable-next-line no-loop-func
-									(t) =>
-										/^(Target|Destination)Character(Name)?$/u.test(t.Tag) &&
-										t.MemberNumber === Player.MemberNumber
+									// eslint-disable-next-line no-loop-func -- Player is a constant global
+									(t) => t.TargetCharacter === Player.MemberNumber
 								)
 							) {
 								// Lacking criteria, check for presence of player as source or target
