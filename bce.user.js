@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Bondage Club Enhancements
 // @namespace https://www.bondageprojects.com/
-// @version 4.44
+// @version 4.45
 // @description FBC - For Better Club - enhancements for the bondage club - old name kept in tampermonkey for compatibility
 // @author Sidious
 // @match https://bondageprojects.elementfx.com/*
@@ -38,17 +38,17 @@
  *  along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-const FBC_VERSION = "4.44";
-const settingsVersion = 49;
+const FBC_VERSION = "4.45";
+const settingsVersion = 50;
 
 const fbcChangelog = `${FBC_VERSION}
+- removed hand-gag handling; this will be handled better by LSCG in the near future
+
+4.44
 - fixed shock triggers
 
 4.43
 - fixed animation triggers from targeted activities
-
-4.42
-- R94 support
 `;
 
 /*
@@ -648,15 +648,6 @@ async function ForBetterClub() {
 			category: "immersion",
 			description:
 				"Allows you to be leashed between rooms even when you are not wearing an item that counts as a leash to allow roleplaying being carried in arms.",
-		},
-		handgag: {
-			label: "Clamping hand over mouth affects speech",
-			value: true,
-			sideEffects: (newValue) => {
-				debug("handgag", newValue);
-			},
-			category: "immersion",
-			description: "Hand clamp action imposes a 45-second gag effect.",
 		},
 		hideHiddenItemsIcon: {
 			label: "Hide the hidden items icon",
@@ -1594,7 +1585,6 @@ async function ForBetterClub() {
 	registerFunction(autoStruggle, "autoStruggle");
 	registerFunction(nicknames, "nicknames");
 	registerFunction(leashAlways, "leashAlways");
-	registerFunction(clampGag, "clampGag");
 	registerFunction(toySync, "toySync");
 	registerFunction(pastProfiles, "pastProfiles");
 	registerFunction(pendingMessages, "pendingMessages");
@@ -9021,51 +9011,6 @@ async function ForBetterClub() {
 		} else {
 			disableLeashing();
 		}
-	}
-
-	function clampGag() {
-		registerSocketListener(
-			"ChatRoomMessage",
-			(
-				/** @type {ChatMessage} */
-				data
-			) => {
-				const targetMemberNumber =
-					data &&
-					Array.isArray(data.Dictionary) &&
-					data.Dictionary.find((d) => d.Tag === "TargetCharacter")
-						?.MemberNumber;
-				if (
-					data?.Content === "ChatOther-ItemMouth-HandGag" &&
-					targetMemberNumber
-				) {
-					let s = characterStates.get(targetMemberNumber);
-					if (!s) {
-						s = {
-							clamped: 0,
-						};
-					}
-					s.clamped = Date.now() + 45000;
-					characterStates.set(targetMemberNumber, s);
-				}
-			}
-		);
-
-		SDK.hookFunction(
-			"SpeechGetTotalGagLevel",
-			HOOK_PRIORITIES.ModifyBehaviourLow,
-			/** @type {(args: [Character, boolean], next: (args: [Character, boolean]) => number) => number} */
-			(args, next) => {
-				let level = next(args);
-				if (
-					fbcSettings.handgag &&
-					characterStates.get(args[0].MemberNumber)?.clamped > Date.now()
-				) {
-					level += 2;
-				}
-				return level;
-			}
-		);
 	}
 
 	function toySync() {
