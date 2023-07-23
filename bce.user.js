@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Bondage Club Enhancements
 // @namespace https://www.bondageprojects.com/
-// @version 4.45
+// @version 4.46
 // @description FBC - For Better Club - enhancements for the bondage club - old name kept in tampermonkey for compatibility
 // @author Sidious
 // @match https://bondageprojects.elementfx.com/*
@@ -38,17 +38,17 @@
  *  along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-const FBC_VERSION = "4.45";
+const FBC_VERSION = "4.46";
 const settingsVersion = 50;
 
 const fbcChangelog = `${FBC_VERSION}
+- updated allow listed domains for chat embeds to include new tenor subdomain
+
+4.45
 - removed hand-gag handling; this will be handled better by LSCG in the near future
 
 4.44
 - fixed shock triggers
-
-4.43
-- fixed animation triggers from targeted activities
 `;
 
 /*
@@ -8708,6 +8708,7 @@ async function ForBetterClub() {
 				"i.imgur.com",
 				"tenor.com",
 				"c.tenor.com",
+				"media.tenor.com",
 				"i.redd.it",
 				"puu.sh",
 				"fs.kinkop.eu",
@@ -9871,6 +9872,8 @@ async function ForBetterClub() {
 				// @ts-ignore
 				// eslint-disable-next-line camelcase
 				InTampermonkey: typeof GM_info !== "undefined",
+				FUSAM: !!w.FUSAM?.present,
+				FBCviaFUSAM: w.FUSAM?.addons?.fbc?.status === "loaded",
 			};
 			for (const [key, value] of Object.entries(addonTypes)) {
 				if (
