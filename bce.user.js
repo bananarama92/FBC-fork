@@ -9873,7 +9873,7 @@ async function ForBetterClub() {
 				// eslint-disable-next-line camelcase
 				InTampermonkey: typeof GM_info !== "undefined",
 				FUSAM: !!w.FUSAM?.present,
-				FBCviaFUSAM: w.FUSAM?.addons?.fbc?.status === "loaded",
+				FBCviaFUSAM: w.FUSAM?.addons?.FBC?.status === "loaded",
 			};
 			for (const [key, value] of Object.entries(addonTypes)) {
 				if (
