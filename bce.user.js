@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Bondage Club Enhancements
 // @namespace https://www.bondageprojects.com/
-// @version 4.49
+// @version 4.50
 // @description FBC - For Better Club - enhancements for the bondage club - old name kept in tampermonkey for compatibility
 // @author Sidious
 // @match https://bondageprojects.elementfx.com/*
@@ -38,10 +38,13 @@
  *  along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-const FBC_VERSION = "4.49";
+const FBC_VERSION = "4.50";
 const settingsVersion = 51;
 
 const fbcChangelog = `${FBC_VERSION}
+- fix lockpicking
+
+4.49
 - fix auto-struggle for R96
 
 4.48
@@ -2840,7 +2843,8 @@ async function ForBetterClub() {
 				if (fbcSettings.lockpick && w.StruggleLockPickOrder) {
 					const seed = parseInt(StruggleLockPickOrder.join(""));
 					const rand = newRand(seed);
-					const threshold = SkillGetWithRatio("LockPicking") / 20;
+					const threshold =
+						SkillGetWithRatio(CharacterGetCurrent(), "LockPicking") / 20;
 					const hints = StruggleLockPickOrder.map((a) => {
 						const r = rand();
 						return r < threshold ? a : false;

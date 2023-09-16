@@ -278,7 +278,7 @@ declare global {
   var TextGet: (id: string) => string;
   var StruggleDrawLockpickProgress: (C: Character) => void;
   var StruggleLockPickOrder: null | number[];
-  var SkillGetWithRatio: (skillType: string) => number;
+  var SkillGetWithRatio: (C: Character, skillType: string) => number;
   var LoginRun: () => void;
   var LoginClick: () => void;
   var CurrentScreenFunctions: ScreenFunctions;
