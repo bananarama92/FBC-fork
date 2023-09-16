@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Bondage Club Enhancements
 // @namespace https://www.bondageprojects.com/
-// @version 4.48
+// @version 4.49
 // @description FBC - For Better Club - enhancements for the bondage club - old name kept in tampermonkey for compatibility
 // @author Sidious
 // @match https://bondageprojects.elementfx.com/*
@@ -38,10 +38,13 @@
  *  along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-const FBC_VERSION = "4.48";
+const FBC_VERSION = "4.49";
 const settingsVersion = 51;
 
 const fbcChangelog = `${FBC_VERSION}
+- fix auto-struggle for R96
+
+4.48
 - R96 compatibility
 
 4.47
@@ -49,9 +52,6 @@ const fbcChangelog = `${FBC_VERSION}
 - removed mass timer lock expiry as the game itself now expires all locks at once
 - fixed BCX API hooks
 - disabled browser autocomplete for IM search input
-
-4.46
-- updated allow listed domains for chat embeds to include new tenor subdomain
 `;
 
 /*
@@ -8805,22 +8805,6 @@ async function ForBetterClub() {
 	}
 
 	function autoStruggle() {
-		const allowAllDialogExpressions = () => {
-			if (!bceAnimationEngineEnabled()) {
-				return;
-			}
-			if (
-				StruggleProgressAuto >= 0 ||
-				StruggleProgressChallenge <= 0 ||
-				!CharacterGetCurrent()?.IsPlayer()
-			) {
-				return;
-			}
-			DialogAllowBlush = true;
-			DialogAllowEyebrows = true;
-			DialogAllowFluids = true;
-		};
-
 		SDK.hookFunction(
 			"StruggleFlexibilityCheck",
 			HOOK_PRIORITIES.OverrideBehaviour,
@@ -8845,11 +8829,9 @@ async function ForBetterClub() {
 			}
 
 			if (StruggleProgressCurrentMinigame === "Strength") {
-				allowAllDialogExpressions();
 				StruggleStrengthProcess(false);
 			} else if (StruggleProgressCurrentMinigame === "Flexibility") {
 				if (StruggleProgressFlexCircles?.length > 0) {
-					allowAllDialogExpressions();
 					StruggleFlexibilityProcess(false);
 				}
 			}
@@ -8877,7 +8859,6 @@ async function ForBetterClub() {
 					)
 				);
 				if (distMult > 0.5) {
-					allowAllDialogExpressions();
 					StruggleDexterityProcess();
 				}
 			}
