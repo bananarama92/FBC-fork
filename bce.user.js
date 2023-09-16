@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Bondage Club Enhancements
 // @namespace https://www.bondageprojects.com/
-// @version 4.47
+// @version 4.48
 // @description FBC - For Better Club - enhancements for the bondage club - old name kept in tampermonkey for compatibility
 // @author Sidious
 // @match https://bondageprojects.elementfx.com/*
@@ -38,10 +38,13 @@
  *  along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-const FBC_VERSION = "4.47";
+const FBC_VERSION = "4.48";
 const settingsVersion = 51;
 
 const fbcChangelog = `${FBC_VERSION}
+- R96 compatibility
+
+4.47
 - R95 compatibility
 - removed mass timer lock expiry as the game itself now expires all locks at once
 - fixed BCX API hooks
@@ -49,9 +52,6 @@ const fbcChangelog = `${FBC_VERSION}
 
 4.46
 - updated allow listed domains for chat embeds to include new tenor subdomain
-
-4.45
-- removed hand-gag handling; this will be handled better by LSCG in the near future
 `;
 
 /*
@@ -1122,7 +1122,7 @@ async function ForBetterClub() {
 					AppearanceLoad: "4360C485",
 					AppearanceRun: "0BBDEE59",
 					CharacterAppearanceWardrobeLoad: "A5B63A03",
-					CharacterBuildDialog: "918170E7",
+					CharacterBuildDialog: "85F79C6E",
 					CharacterCompressWardrobe: "8D3B1AB1",
 					CharacterDecompressWardrobe: "A9FD29CC",
 					CharacterDelete: "398D1116",
@@ -1133,8 +1133,8 @@ async function ForBetterClub() {
 					CharacterReleaseTotal: "396640D1",
 					CharacterSetActivePose: "5BCD2A9E",
 					CharacterSetCurrent: "F46573D8",
-					CharacterSetFacialExpression: "2A6526BC",
-					ChatRoomCharacterItemUpdate: "041F9B91",
+					CharacterSetFacialExpression: "4F1606CC",
+					ChatRoomCharacterItemUpdate: "95A2E662",
 					ChatRoomCharacterUpdate: "9D0EEA39",
 					ChatRoomClearAllElements: "C49AA2C1",
 					ChatRoomClick: "79E651EB",
@@ -1157,9 +1157,9 @@ async function ForBetterClub() {
 					CommonClick: "1F6DF7CB",
 					CommonColorIsValid: "390A2CE4",
 					CommonSetScreen: "E2AC00F4",
-					CraftingClick: "FCAFCC5D",
+					CraftingClick: "BFE0FC95",
 					CraftingConvertSelectedToItem: "B3F4D559",
-					CraftingRun: "E6488E16",
+					CraftingRun: "C5BAEE74",
 					DialogClick: "D0FA2714",
 					DialogDraw: "DC5D416C",
 					DialogDrawItemMenu: "FCE556C2",
@@ -1219,7 +1219,7 @@ async function ForBetterClub() {
 					ServerInit: "FEC6457F",
 					ServerOpenFriendList: "FA8D3CDE",
 					ServerSend: "90A61F57",
-					SkillGetWithRatio: "16620445",
+					SkillGetWithRatio: "3EB4BC45",
 					SpeechGarble: "9D669F73",
 					SpeechGarbleByGagLevel: "5F6E16C8",
 					SpeechGetTotalGagLevel: "C55B705A",
@@ -1227,11 +1227,11 @@ async function ForBetterClub() {
 					StruggleFlexibilityCheck: "727CE05B",
 					StruggleFlexibilityProcess: "278D7285",
 					StruggleLockPickDraw: "2F1F603B",
-					StruggleMinigameHandleExpression: "0BFDB2A7",
+					StruggleMinigameHandleExpression: "B6E4A1A0",
 					StruggleStrengthProcess: "D20CF698",
 					TextGet: "4DDE5794",
 					TextLoad: "ADF7C890",
-					TimerInventoryRemove: "338FBCC6",
+					TimerInventoryRemove: "1FA771FB",
 					TimerProcess: "52458C63",
 					TitleExit: "F13F533C",
 					WardrobeClick: "E96F7F63",
@@ -3597,22 +3597,7 @@ async function ForBetterClub() {
 		patchFunction(
 			"StruggleMinigameHandleExpression",
 			{
-				'CharacterSetFacialExpression(Player, "Blush", "High");':
-					'CharacterSetFacialExpression(Player, "Blush", "High", 10);',
-				'CharacterSetFacialExpression(Player, "Blush", "Medium");':
-					'CharacterSetFacialExpression(Player, "Blush", "Medium", 10);',
-				'CharacterSetFacialExpression(Player, "Blush", "Low");':
-					'CharacterSetFacialExpression(Player, "Blush", "Low", 10);',
-				'CharacterSetFacialExpression(Player, "Fluids", "DroolMessy");':
-					'CharacterSetFacialExpression(Player, "Fluids", "DroolMessy", 10);',
-				'CharacterSetFacialExpression(Player, "Eyes2", "Closed");':
-					'CharacterSetFacialExpression(Player, "Eyes2", "Closed", 10);',
-				'CharacterSetFacialExpression(Player, "Eyes", "Dazed");':
-					'CharacterSetFacialExpression(Player, "Eyes", "Dazed", 10);',
-				'CharacterSetFacialExpression(Player, "Eyebrows", "Angry");':
-					'CharacterSetFacialExpression(Player, "Eyebrows", "Angry", 10);',
-				'CharacterSetFacialExpression(Player, "Eyebrows", null);':
-					'CharacterSetFacialExpression(Player, "Eyebrows", null, 10);',
+				'");': '", 10);',
 			},
 			"Resetting blush, eyes, and eyebrows after struggling"
 		);
@@ -5114,14 +5099,6 @@ async function ForBetterClub() {
 				setPoses(poses);
 			},
 		});
-
-		patchFunction(
-			"TimerInventoryRemove",
-			{
-				CharacterSetFacialExpression: `if (!bceAnimationEngineEnabled()) CharacterSetFacialExpression`,
-			},
-			"Facial features resetting after item or struggle events"
-		);
 
 		SDK.hookFunction(
 			"CharacterSetFacialExpression",
