@@ -2843,8 +2843,7 @@ async function ForBetterClub() {
 				if (fbcSettings.lockpick && w.StruggleLockPickOrder) {
 					const seed = parseInt(StruggleLockPickOrder.join(""));
 					const rand = newRand(seed);
-					const threshold =
-						SkillGetWithRatio(CharacterGetCurrent(), "LockPicking") / 20;
+					const threshold = SkillGetWithRatio(Player, "LockPicking") / 20;
 					const hints = StruggleLockPickOrder.map((a) => {
 						const r = rand();
 						return r < threshold ? a : false;
