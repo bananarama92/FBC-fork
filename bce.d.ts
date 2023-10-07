@@ -278,6 +278,10 @@ declare global {
   var TextGet: (id: string) => string;
   var StruggleDrawLockpickProgress: (C: Character) => void;
   var StruggleLockPickOrder: null | number[];
+  var StruggleExpressionStore:
+    | Partial<Record<string, string>>
+    | null
+    | undefined;
   var SkillGetWithRatio: (C: Character, skillType: string) => number;
   var LoginRun: () => void;
   var LoginClick: () => void;
@@ -554,6 +558,7 @@ declare global {
     Inventory: Item[];
     ChatSettings: ChatSettings;
     AudioSettings: { PlayBeeps?: boolean };
+    ExpressionQueue?: ExpressionQueueItem[];
   } & Character;
   type Relationship = {
     Name: string;
@@ -642,6 +647,11 @@ declare global {
     ChatRoomName?: string;
     IsMail?: boolean;
     ClickAction?: "FriendList";
+  };
+  type ExpressionQueueItem = {
+    Time?: number;
+    Group?: string;
+    Expression?: string;
   };
   type CraftingItem = {
     Name?: string;

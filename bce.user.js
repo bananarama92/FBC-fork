@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Bondage Club Enhancements
 // @namespace https://www.bondageprojects.com/
-// @version 4.50
+// @version 4.51
 // @description FBC - For Better Club - enhancements for the bondage club - old name kept in tampermonkey for compatibility
 // @author Sidious
 // @match https://bondageprojects.elementfx.com/*
@@ -38,10 +38,13 @@
  *  along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-const FBC_VERSION = "4.50";
+const FBC_VERSION = "4.51";
 const settingsVersion = 51;
 
 const fbcChangelog = `${FBC_VERSION}
+- fix face getting stuck after struggle minigame (equipping, removing items, etc)
+
+4.50
 - fix lockpicking
 
 4.49
@@ -49,12 +52,6 @@ const fbcChangelog = `${FBC_VERSION}
 
 4.48
 - R96 compatibility
-
-4.47
-- R95 compatibility
-- removed mass timer lock expiry as the game itself now expires all locks at once
-- fixed BCX API hooks
-- disabled browser autocomplete for IM search input
 `;
 
 /*
@@ -1231,6 +1228,7 @@ async function ForBetterClub() {
 					StruggleFlexibilityProcess: "278D7285",
 					StruggleLockPickDraw: "2F1F603B",
 					StruggleMinigameHandleExpression: "B6E4A1A0",
+					StruggleMinigameStop: "206F85E7",
 					StruggleStrengthProcess: "D20CF698",
 					TextGet: "4DDE5794",
 					TextLoad: "ADF7C890",
@@ -3600,9 +3598,21 @@ async function ForBetterClub() {
 		patchFunction(
 			"StruggleMinigameHandleExpression",
 			{
-				'");': '", 10);',
+				'");': '", 3);',
 			},
 			"Resetting blush, eyes, and eyebrows after struggling"
+		);
+
+		SDK.hookFunction(
+			"StruggleMinigameStop",
+			HOOK_PRIORITIES.ModifyBehaviourMedium,
+			(args, next) => {
+				if (bceAnimationEngineEnabled()) {
+					StruggleExpressionStore = null;
+					resetExpressionQueue([GAME_TIMED_EVENT_TYPE]);
+				}
+				return next(args);
+			}
 		);
 
 		if (!w.bce_ArousalExpressionStages) {
@@ -3654,6 +3664,7 @@ async function ForBetterClub() {
 
 		const AUTOMATED_AROUSAL_EVENT_TYPE = "AutomatedByArousal",
 			DEFAULT_EVENT_TYPE = "DEFAULT",
+			GAME_TIMED_EVENT_TYPE = "GameTimer",
 			MANUAL_OVERRIDE_EVENT_TYPE = "ManualOverride",
 			POST_ORGASM_EVENT_TYPE = "PostOrgasm";
 
@@ -4977,6 +4988,26 @@ async function ForBetterClub() {
 		};
 		let PreviousDirection = ArousalMeterDirection.Up;
 
+		/**
+		 * @param {string[]} types
+		 */
+		function resetExpressionQueue(types) {
+			delete Player.ExpressionQueue;
+			bceExpressionsQueue.push(
+				...bceExpressionsQueue
+					.splice(0, bceExpressionsQueue.length)
+					.map((e) => {
+						if (
+							types.includes(e.Type) ||
+							(e.Duration <= 0 && e.Type !== AUTOMATED_AROUSAL_EVENT_TYPE)
+						) {
+							delete e.Expression;
+						}
+						return e;
+					})
+			);
+		}
+
 		Commands.push({
 			Tag: "r",
 			Description: displayText(
@@ -4984,16 +5015,7 @@ async function ForBetterClub() {
 			),
 			Action: (args) => {
 				if (args.length === 0 || args === "all") {
-					bceExpressionsQueue.push(
-						...bceExpressionsQueue
-							.splice(0, bceExpressionsQueue.length)
-							.map((e) => {
-								if (e.Type === MANUAL_OVERRIDE_EVENT_TYPE || e.Duration <= 0) {
-									delete e.Expression;
-								}
-								return e;
-							})
-					);
+					resetExpressionQueue([MANUAL_OVERRIDE_EVENT_TYPE]);
 					fbcChatNotify(displayText("Reset all expressions"));
 				} else {
 					const component = `${args[0].toUpperCase()}${args
@@ -5103,9 +5125,30 @@ async function ForBetterClub() {
 			},
 		});
 
+		patchFunction(
+			"TimerInventoryRemove",
+			{
+				"CharacterSetFacialExpression(C, C.ExpressionQueue[0].Group, C.ExpressionQueue[0].Expression, undefined, undefined, true);": `if (bceAnimationEngineEnabled()) {
+					fbcPushEvent({
+						Type: "${GAME_TIMED_EVENT_TYPE}",
+						Duration: -1,
+						Expression: {
+							[C.ExpressionQueue[0].Group]: [{ Expression: C.ExpressionQueue[0].Expression, Duration: -1 }]
+						}
+					})
+				} else {
+					CharacterSetFacialExpression(C, C.ExpressionQueue[0].Group, C.ExpressionQueue[0].Expression, undefined, undefined, true);
+				}`,
+			},
+			"Game's timed expressions are not hooked to FBC's animation engine"
+		);
+
 		SDK.hookFunction(
 			"CharacterSetFacialExpression",
 			HOOK_PRIORITIES.OverrideBehaviour,
+			/**
+			 * @param {[Character, string, string | null, number, string | null]} args
+			 */
 			(args, next) => {
 				// eslint-disable-next-line prefer-const
 				let [C, AssetGroup, Expression, Timer, Color] = args;
@@ -5118,15 +5161,19 @@ async function ForBetterClub() {
 				) {
 					return next(args);
 				}
+
 				const duration =
 						typeof Timer === "number" && Timer > 0 ? Timer * 1000 : -1,
+					/** @type {Record<string, ExpressionStage[]>} */
 					e = {},
 					types = [AssetGroup];
+
 				if (AssetGroup === "Eyes") {
 					types.push("Eyes2");
 				} else if (AssetGroup === "Eyes1") {
 					types[0] = "Eyes";
 				}
+
 				if (
 					!Color ||
 					!isStringOrStringArray(Color) ||
@@ -5135,15 +5182,16 @@ async function ForBetterClub() {
 					// eslint-disable-next-line no-undefined
 					Color = undefined;
 				}
+
 				for (const t of types) {
 					e[t] = [{ Expression, Duration: duration, Color }];
 				}
+
 				const evt = {
 					Type: MANUAL_OVERRIDE_EVENT_TYPE,
 					Duration: duration,
 					Expression: e,
 				};
-				// @ts-ignore
 				pushEvent(evt);
 				return CustomArousalExpression();
 			}
@@ -5219,6 +5267,8 @@ async function ForBetterClub() {
 				}
 			}
 		);
+
+		resetExpressionQueue([MANUAL_OVERRIDE_EVENT_TYPE, GAME_TIMED_EVENT_TYPE]);
 
 		// This is called once per interval to check for expression changes
 		// eslint-disable-next-line complexity
