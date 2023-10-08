@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Bondage Club Enhancements
 // @namespace https://www.bondageprojects.com/
-// @version 4.51
+// @version 4.52
 // @description FBC - For Better Club - enhancements for the bondage club - old name kept in tampermonkey for compatibility
 // @author Sidious
 // @match https://bondageprojects.elementfx.com/*
@@ -38,10 +38,13 @@
  *  along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-const FBC_VERSION = "4.51";
+const FBC_VERSION = "4.52";
 const settingsVersion = 51;
 
 const fbcChangelog = `${FBC_VERSION}
+- fix manually overridden facial expressions resetting on struggle
+
+4.51
 - fix face getting stuck after struggle minigame (equipping, removing items, etc)
 
 4.50
@@ -49,9 +52,6 @@ const fbcChangelog = `${FBC_VERSION}
 
 4.49
 - fix auto-struggle for R96
-
-4.48
-- R96 compatibility
 `;
 
 /*
@@ -3609,7 +3609,10 @@ async function ForBetterClub() {
 			(args, next) => {
 				if (bceAnimationEngineEnabled()) {
 					StruggleExpressionStore = null;
-					resetExpressionQueue([GAME_TIMED_EVENT_TYPE]);
+					resetExpressionQueue(
+						[GAME_TIMED_EVENT_TYPE],
+						[MANUAL_OVERRIDE_EVENT_TYPE]
+					);
 				}
 				return next(args);
 			}
@@ -3677,6 +3680,9 @@ async function ForBetterClub() {
 			lastUniqueId = (lastUniqueId + 1) % (Number.MAX_SAFE_INTEGER - 1);
 			return lastUniqueId;
 		}
+
+		/** @type {Partial<Record<'Eyes' | 'Eyes2' | 'Eyebrows' | 'Mouth' | 'Fluids' | 'Emoticon' | 'Blush' | 'Pussy', string>>} */
+		const manualComponents = {};
 
 		/** @type {(evt: ExpressionEvent) => void} */
 		function pushEvent(evt) {
@@ -4989,9 +4995,10 @@ async function ForBetterClub() {
 		let PreviousDirection = ArousalMeterDirection.Up;
 
 		/**
-		 * @param {string[]} types
+		 * @param {string[]} types Types to reset
+		 * @param {string[]} skippedTypes Types to skip resetting in addition to automated arousal events
 		 */
-		function resetExpressionQueue(types) {
+		function resetExpressionQueue(types, skippedTypes = []) {
 			delete Player.ExpressionQueue;
 			bceExpressionsQueue.push(
 				...bceExpressionsQueue
@@ -4999,13 +5006,30 @@ async function ForBetterClub() {
 					.map((e) => {
 						if (
 							types.includes(e.Type) ||
-							(e.Duration <= 0 && e.Type !== AUTOMATED_AROUSAL_EVENT_TYPE)
+							(e.Duration <= 0 &&
+								e.Type !== AUTOMATED_AROUSAL_EVENT_TYPE &&
+								!skippedTypes.includes(e.Type))
 						) {
 							delete e.Expression;
 						}
 						return e;
 					})
 			);
+			// Restore manual overrides, if manual not in types
+			if (!types.includes(MANUAL_OVERRIDE_EVENT_TYPE)) {
+				pushEvent({
+					Type: MANUAL_OVERRIDE_EVENT_TYPE,
+					Duration: -1,
+					Expression: Object.entries(manualComponents).reduce(
+						(a, [k, v]) => ({ ...a, [k]: [{ Expression: v }] }),
+						{}
+					),
+				});
+			} else {
+				for (const k of Object.keys(manualComponents)) {
+					delete manualComponents[k];
+				}
+			}
 		}
 
 		Commands.push({
@@ -5185,6 +5209,9 @@ async function ForBetterClub() {
 
 				for (const t of types) {
 					e[t] = [{ Expression, Duration: duration, Color }];
+					if (duration < 0) {
+						manualComponents[t] = Expression;
+					}
 				}
 
 				const evt = {
