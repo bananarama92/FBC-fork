@@ -42,6 +42,7 @@ const FBC_VERSION = "4.53";
 const settingsVersion = 52;
 
 const fbcChangelog = `${FBC_VERSION}
+- switch to html dialogs instead of browser prompts (/importlooks, /exportlooks, importing and exporting crafts)
 - R97Beta1 compatibility
 - R97 only
 	- add confirmation dialog for custom room contents
@@ -2278,33 +2279,54 @@ async function ForBetterClub() {
 				Action: async (_, _command, args) => {
 					const [target] = args;
 					/** @type {Character} */
-					let targetMember = null;
+					let targetCharacter = null;
 					if (!target) {
-						targetMember = Player;
+						targetCharacter = Player;
 					} else {
-						targetMember = Character.find(
+						targetCharacter = Character.find(
 							(c) => c.MemberNumber === parseInt(target)
 						);
 					}
-					if (!targetMember) {
+					if (!targetCharacter) {
 						logInfo("Could not find member", target);
 						return;
 					}
-					const includeBinds = window.confirm(displayText("Include binds?"));
-					const includeLocks =
-						includeBinds && window.confirm(displayText("Include locks?"));
-					const includeBase = window.confirm(
-						displayText("Include height, body type, hair, etc?")
-					);
+					const [bindSubmit] = await showAsyncModal({
+						prompt: displayText("Include binds?"),
+						buttons: {
+							cancel: "No",
+							submit: "Yes",
+						},
+					});
+					const includeBinds = bindSubmit === "submit";
+					let includeLocks = false;
+					if (includeBinds) {
+						const [lockSubmit] = await showAsyncModal({
+							prompt: displayText("Include locks?"),
+							buttons: {
+								cancel: "No",
+								submit: "Yes",
+							},
+						});
+						includeLocks = lockSubmit === "submit";
+					}
+					const [baseSubmit] = await showAsyncModal({
+						prompt: displayText("Include height, body type, hair, etc?"),
+						buttons: {
+							cancel: "No",
+							submit: "Yes",
+						},
+					});
+					const includeBase = baseSubmit === "submit";
 
-					const base = targetMember.Appearance.filter(
+					const base = targetCharacter.Appearance.filter(
 						(a) => a.Asset.Group.IsDefault && !a.Asset.Group.Clothing
 					);
-					const clothes = targetMember.Appearance.filter(
+					const clothes = targetCharacter.Appearance.filter(
 						(a) =>
 							a.Asset.Group.Category === "Appearance" && a.Asset.Group.Clothing
 					);
-					const binds = targetMember.Appearance.filter(
+					const binds = targetCharacter.Appearance.filter(
 						(a) =>
 							a.Asset.Group.Category === "Item" &&
 							!["ItemNeck", "ItemNeckAccessories"].includes(
@@ -2341,13 +2363,25 @@ async function ForBetterClub() {
 						};
 					});
 
-					const targetName = targetMember.IsPlayer()
+					const targetName = targetCharacter.IsPlayer()
 						? "yourself"
-						: CharacterNickname(targetMember);
+						: CharacterNickname(targetCharacter);
 
-					await navigator.clipboard.writeText(
-						LZString.compressToBase64(JSON.stringify(looks))
-					);
+					const exportString = LZString.compressToBase64(JSON.stringify(looks));
+
+					showAsyncModal({
+						prompt: displayText(displayText("Copy the looks string below")),
+						input: {
+							initial: exportString,
+							readonly: true,
+							type: "textarea",
+						},
+						buttons: {
+							submit: "Done",
+						},
+					});
+
+					await navigator.clipboard.writeText(exportString);
 					fbcChatNotify(
 						displayText(`Exported looks for $TargetName copied to clipboard`, {
 							$TargetName: targetName,
@@ -10170,7 +10204,11 @@ async function ForBetterClub() {
 
 	let disabledUntil = 0;
 	/**
-	 * @param {{ prompt: string | Node, input?: { initial: string, readonly: boolean, type: "input" | "textarea" }, callback: (action: "submit" | "cancel" | "close", inputValue?: string) => void, buttons?: { submit?: string, cancel?: string } }} opts
+	 * @typedef {{ prompt: string | Node, input?: { initial: string, readonly: boolean, type: "input" | "textarea" }, callback: (action: ModalAction, inputValue?: string) => void, buttons?: { submit?: string, cancel?: string } }} ModalOptions
+	 * @typedef {"submit" | "cancel" | "close"} ModalAction
+	 */
+	/**
+	 * @param {ModalOptions} opts
 	 */
 	function showModal(opts) {
 		disabledUntil = Date.now() + 500;
@@ -10289,7 +10327,7 @@ async function ForBetterClub() {
 		document.body.append(blocker);
 
 		/**
-		 * @param {"submit" | "cancel" | "close"} action
+		 * @param {ModalAction} action
 		 */
 		function close(action = "close") {
 			if (Date.now() < disabledUntil) {
@@ -10302,6 +10340,21 @@ async function ForBetterClub() {
 			document.removeEventListener("keydown", keyClick);
 			opts.callback(action, inputValue);
 		}
+	}
+
+	/**
+	 * @param {Omit<ModalOptions, "callback">} opts
+	 * @returns {Promise<[ModalAction, string | null]>}
+	 */
+	function showAsyncModal(opts) {
+		return new Promise((resolve) => {
+			showModal({
+				...opts,
+				callback: (action, inputValue) => {
+					resolve([action, inputValue]);
+				},
+			});
+		});
 	}
 
 	function hideChatRoomElements() {
