@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Bondage Club Enhancements
 // @namespace https://www.bondageprojects.com/
-// @version 4.52
+// @version 4.53
 // @description FBC - For Better Club - enhancements for the bondage club - old name kept in tampermonkey for compatibility
 // @author Sidious
 // @match https://bondageprojects.elementfx.com/*
@@ -38,10 +38,16 @@
  *  along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-const FBC_VERSION = "4.52";
-const settingsVersion = 51;
+const FBC_VERSION = "4.53";
+const settingsVersion = 52;
 
 const fbcChangelog = `${FBC_VERSION}
+- R97Beta1 compatibility
+- R97 only
+	- add confirmation dialog for custom room contents
+	- allow extreme difficulty to load 3rd party content by default with confirmation prompt
+
+4.52
 - fix manually overridden facial expressions resetting on struggle
 
 4.51
@@ -49,9 +55,6 @@ const fbcChangelog = `${FBC_VERSION}
 
 4.50
 - fix lockpicking
-
-4.49
-- fix auto-struggle for R96
 `;
 
 /*
@@ -68,7 +71,7 @@ var bcModSdk=function(){"use strict";const e="1.1.0";function o(e){alert("Mod ER
 async function ForBetterClub() {
 	"use strict";
 
-	const SUPPORTED_GAME_VERSIONS = ["R95"];
+	const SUPPORTED_GAME_VERSIONS = ["R96", "R97Beta1"];
 	const CAPABILITIES = /** @type {const} */ (["clubslave"]);
 
 	const w = window;
@@ -581,6 +584,23 @@ async function ForBetterClub() {
 			description:
 				"Allows the game to control your real vibrators. For a list of supported vibrators see https://buttplug.io",
 		},
+		extremeRoomCustomization: {
+			label: "Show 3rd party room customization by default on Extreme",
+			value: false,
+			sideEffects: (newValue) => {
+				debug("extremeRoomCustomization", newValue);
+				fbcSettings.customContentDomainCheck = true;
+				if (
+					newValue &&
+					typeof Player.ImmersionSettings?.ShowRoomCustomization === "number"
+				) {
+					Player.ImmersionSettings.ShowRoomCustomization = 3;
+				}
+			},
+			category: "immersion",
+			description:
+				"Also enables 3rd party content protection under Misc. This option only impacts Extreme difficulty; on other difficulties use game immersion settings.",
+		},
 		antiAntiGarble: {
 			label: "Limited gag anti-cheat: cloth-gag equivalent garbling",
 			value: false,
@@ -761,6 +781,16 @@ async function ForBetterClub() {
 			category: "misc",
 			description:
 				"Disables drawing on the screen. This is useful for preventing accidental drawing.",
+		},
+		customContentDomainCheck: {
+			label: "Prompt before loading content from a 3rd party domain",
+			value: true,
+			sideEffects: (newValue) => {
+				debug("customContentDomainCheck", newValue);
+			},
+			category: "misc",
+			description:
+				"Show a confirmation prompt before allowing content from a 3rd party domain to be loaded.",
 		},
 		fpsCounter: {
 			label: "Show FPS counter",
@@ -1111,6 +1141,145 @@ async function ForBetterClub() {
 	 */
 	const expectedHashes = (gameVersion) => {
 		switch (gameVersion) {
+			case "R97Beta1":
+			case "R97Beta2":
+			case "R97Beta3":
+			case "R97Beta4":
+			case "R97":
+				return /** @type {const} */ ({
+					ActivityChatRoomArousalSync: "21318CAF",
+					ActivitySetArousal: "3AE28123",
+					ActivitySetArousalTimer: "1342AFE2",
+					ActivityTimerProgress: "6CD388A7",
+					AppearanceClick: "723EA7F1",
+					AppearanceExit: "AA300341",
+					AppearanceLoad: "4360C485",
+					AppearanceRun: "0BBDEE59",
+					CharacterAppearanceWardrobeLoad: "A5B63A03",
+					CharacterBuildDialog: "85F79C6E",
+					CharacterCompressWardrobe: "8D3B1AB1",
+					CharacterDecompressWardrobe: "A9FD29CC",
+					CharacterDelete: "398D1116",
+					CharacterGetCurrent: "45608177",
+					CharacterLoadCanvas: "BA6AD4FF",
+					CharacterNickname: "A794EFF5",
+					CharacterRefresh: "5BF9DA5A",
+					CharacterReleaseTotal: "396640D1",
+					CharacterSetActivePose: "5BCD2A9E",
+					CharacterSetCurrent: "F46573D8",
+					CharacterSetFacialExpression: "B06C1B8A",
+					ChatAdminRoomCustomizationProcess: "82475DF6",
+					ChatRoomCharacterItemUpdate: "263DB2F0",
+					ChatRoomCharacterUpdate: "9D0EEA39",
+					ChatRoomClearAllElements: "14DAAB05",
+					ChatRoomClick: "120B0F0B",
+					ChatRoomCreateElement: "9A3FD548",
+					ChatRoomCurrentTime: "A462DD3A",
+					ChatRoomDrawBackground: "AEE70C4E",
+					ChatRoomDrawCharacterOverlay: "06FB4CC3",
+					ChatRoomHTMLEntities: "0A7ADB1D",
+					ChatRoomKeyDown: "B4BFDB0C",
+					ChatRoomListManipulation: "75D28A8B",
+					ChatRoomMessage: "BBD61334",
+					ChatRoomMessageDisplay: "C7053411",
+					ChatRoomRegisterMessageHandler: "C432923A",
+					ChatRoomResize: "653445D7",
+					ChatRoomRun: "6F4C7B4D",
+					ChatRoomSendChat: "7F540ED0",
+					ChatRoomStart: "9B822A9A",
+					CommandExecute: "5C948CC3",
+					CommandParse: "C9061FE8",
+					CommonClick: "1F6DF7CB",
+					CommonColorIsValid: "390A2CE4",
+					CommonSetScreen: "E2AC00F4",
+					CraftingClick: "FF76A404",
+					CraftingConvertSelectedToItem: "EC0B58B8",
+					CraftingRun: "5BE6E125",
+					DialogClick: "D0FA2714",
+					DialogDraw: "8A814153",
+					DialogDrawItemMenu: "FCE556C2",
+					DialogLeave: "C37553DC",
+					DrawBackNextButton: "9AF4BA37",
+					DrawButton: "A7023A82",
+					DrawCharacter: "35E09A1E",
+					DrawCheckbox: "00FD87EB",
+					DrawImageEx: "3D3D74F5",
+					DrawImageResize: "8CF55F04",
+					DrawItemPreview: "A27E9228",
+					DrawProcess: "E60F65B5",
+					DrawText: "C1BF0F50",
+					DrawTextFit: "F9A1B11E",
+					ElementCreateInput: "60D2EA73",
+					ElementCreateTextArea: "81019A58",
+					ElementIsScrolledToEnd: "1CC4FE11",
+					ElementPosition: "CC4E3C82",
+					ElementRemove: "60809E60",
+					ElementScrollToEnd: "1AC45575",
+					ElementValue: "4F26C62F",
+					FriendListShowBeep: "6C0449BB",
+					GameRun: "3525631A",
+					GLDrawResetCanvas: "81214642",
+					InformationSheetRun: "E248ADC7",
+					InventoryGet: "E666F671",
+					InventoryItemMiscMistressTimerPadlockClick: "861419FC",
+					InventoryItemMiscMistressTimerPadlockDraw: "4E1628BE",
+					InventoryItemMiscMistressTimerPadlockExit: "66BC6923",
+					InventoryItemMiscMistressTimerPadlockLoad: "BE46432F",
+					InventoryItemMiscOwnerTimerPadlockClick: "C929699B",
+					InventoryItemMiscOwnerTimerPadlockDraw: "BCA80BF8",
+					InventoryItemMiscOwnerTimerPadlockExit: "1BE66B4A",
+					InventoryItemMiscOwnerTimerPadlockLoad: "8A55C0D1",
+					InventoryItemMiscTimerPasswordPadlockClick: "BAE0BAC9",
+					InventoryItemMiscTimerPasswordPadlockDraw: "0BB8E88D",
+					InventoryItemMiscTimerPasswordPadlockExit: "7323E56D",
+					InventoryItemMiscTimerPasswordPadlockLoad: "82223608",
+					LoginClick: "EE94BEC7",
+					LoginRun: "C3926C4F",
+					LoginSetSubmitted: "C88F4A8E",
+					MouseIn: "CA8B839E",
+					NotificationDrawFavicon: "AB88656B",
+					NotificationRaise: "E8F29646",
+					NotificationTitleUpdate: "0E92F3ED",
+					OnlineGameAllowChange: "3779F42C",
+					OnlineProfileClick: "CC034993",
+					OnlineProfileRun: "B0AF608D",
+					PreferenceInitPlayer: "63AC64BB",
+					RelogRun: "10AF5A60",
+					RelogExit: "2DFB2DAD",
+					ServerAccountBeep: "F16771D4",
+					ServerAppearanceBundle: "4D069622",
+					ServerAppearanceLoadFromBundle: "FB794E30",
+					ServerClickBeep: "3E6277BE",
+					ServerConnect: "845E50A6",
+					ServerDisconnect: "06C1A6B0",
+					ServerInit: "FEC6457F",
+					ServerOpenFriendList: "FA8D3CDE",
+					ServerSend: "779A1C78",
+					SkillGetWithRatio: "3EB4BC45",
+					SpeechGarble: "9D669F73",
+					SpeechGarbleByGagLevel: "5F6E16C8",
+					SpeechGetTotalGagLevel: "C55B705A",
+					StruggleDexterityProcess: "7E19ADA9",
+					StruggleFlexibilityCheck: "727CE05B",
+					StruggleFlexibilityProcess: "278D7285",
+					StruggleLockPickDraw: "2F1F603B",
+					StruggleMinigameHandleExpression: "B6E4A1A0",
+					StruggleMinigameStop: "206F85E7",
+					StruggleStrengthProcess: "D20CF698",
+					TextGet: "4DDE5794",
+					TextLoad: "ADF7C890",
+					TimerInventoryRemove: "1FA771FB",
+					TimerProcess: "52458C63",
+					TitleExit: "F13F533C",
+					WardrobeClick: "E96F7F63",
+					WardrobeExit: "EE83FF29",
+					WardrobeFastLoad: "38627DC2",
+					WardrobeFastSave: "B62385C1",
+					WardrobeFixLength: "CA3334C6",
+					WardrobeLoad: "C343A4C7",
+					WardrobeRun: "9616EB3A",
+				});
+
 			default:
 				return /** @type {const} */ ({
 					ActivityChatRoomArousalSync: "21318CAF",
@@ -1545,6 +1714,20 @@ async function ForBetterClub() {
 		}
 	};
 
+	// Delay game processes until registration is complete
+	let funcsRegistered = true;
+	SDK.hookFunction("LoginResponse", HOOK_PRIORITIES.Top, (args, next) => {
+		funcsRegistered = false;
+		return next(args);
+	});
+	SDK.hookFunction("GameRun", HOOK_PRIORITIES.Top, (args, next) => {
+		if (!funcsRegistered) {
+			requestAnimationFrame(GameRun);
+			return null;
+		}
+		return next(args);
+	});
+
 	await registerFunction(functionIntegrityCheck, "functionIntegrityCheck");
 	registerFunction(bceStyles, "bceStyles");
 	registerFunction(commonPatches, "commonPatches");
@@ -1586,6 +1769,8 @@ async function ForBetterClub() {
 	registerFunction(itemAntiCheat, "itemAntiCheat");
 	registerFunction(leashFix, "leashFix");
 	registerFunction(hookBCXAPI, "hookBCXAPI");
+	registerFunction(customContentDomainCheck, "customContentDomainCheck");
+	funcsRegistered = true;
 
 	// Post ready when in a chat room
 	await fbcNotify(`For Better Club v${w.FBC_VERSION} Loaded`);
@@ -8510,7 +8695,10 @@ async function ForBetterClub() {
 				CurrentScreen === "ChatRoom" &&
 				document.getElementById("TextAreaChatLog")?.offsetParent !== null
 			) {
-				return [5, 905, 60, 60];
+				if (GameVersion.startsWith("R96")) {
+					return [5, 905, 60, 60];
+				}
+				return [5, 865, 60, 60];
 			}
 			return [70, 905, 60, 60];
 		}
@@ -8831,6 +9019,100 @@ async function ForBetterClub() {
 		for (const child of newChildren) {
 			chatMessageElement.appendChild(child);
 		}
+	}
+
+	function customContentDomainCheck() {
+		if (GameVersion.startsWith("R96")) {
+			return;
+		}
+
+		/** @type {Map<string, "allowed" | "denied">} */
+		const sessionCustomOrigins = new Map();
+		const trustedOrigins = ["https://fs.kinkop.eu", "https://i.imgur.com"];
+
+		let open = false;
+		/**
+		 * @param {string} origin
+		 */
+		function showCustomContentDomainCheckWarning(origin) {
+			if (open) {
+				return;
+			}
+			open = true;
+			showModal({
+				prompt: displayText(
+					"Do you want to allow 3rd party content to be loaded from $origin? $trusted",
+					{
+						$origin: origin,
+						$trusted: trustedOrigins.includes(origin)
+							? displayText("(This origin is trusted by authors of FBC)")
+							: "",
+					}
+				),
+				callback: (act) => {
+					open = false;
+					if (act === "submit") {
+						sessionCustomOrigins.set(origin, "allowed");
+					} else if (act === "cancel") {
+						sessionCustomOrigins.set(origin, "denied");
+					}
+				},
+				buttons: {
+					cancel: displayText("Deny for session"),
+					submit: displayText("Allow for session"),
+				},
+			});
+		}
+
+		SDK.hookFunction(
+			"ChatAdminRoomCustomizationProcess",
+			HOOK_PRIORITIES.OverrideBehaviour,
+			/**
+			 * @param {[{ ImageURL: string, MusicURL: string }]} args
+			 */
+			(args, next) => {
+				if (!fbcSettings.customContentDomainCheck) {
+					return next(args);
+				}
+
+				try {
+					const [{ ImageURL, MusicURL }] = args;
+
+					const imageOrigin = ImageURL && new URL(ImageURL).origin;
+					const musicOrigin = MusicURL && new URL(MusicURL).origin;
+
+					if (imageOrigin && !sessionCustomOrigins.has(imageOrigin)) {
+						showCustomContentDomainCheckWarning(imageOrigin);
+					} else if (musicOrigin && !sessionCustomOrigins.has(musicOrigin)) {
+						showCustomContentDomainCheckWarning(musicOrigin);
+					}
+
+					if (
+						(!ImageURL ||
+							sessionCustomOrigins.get(imageOrigin) === "allowed") &&
+						(!MusicURL || sessionCustomOrigins.get(musicOrigin) === "allowed")
+					) {
+						return next(args);
+					}
+				} catch (_) {
+					// Don't care
+				}
+
+				return null;
+			}
+		);
+
+		SDK.hookFunction(
+			"PreferenceInitPlayer",
+			HOOK_PRIORITIES.Top,
+			(args, next) => {
+				const ret = next(args);
+				if (fbcSettings.extremeRoomCustomization) {
+					Player.ImmersionSettings.ShowRoomCustomization = 3;
+				}
+				return ret;
+			}
+		);
 	}
 
 	function discreetMode() {
@@ -9886,10 +10168,12 @@ async function ForBetterClub() {
 		);
 	}
 
+	let disabledUntil = 0;
 	/**
-	 * @param {{ prompt: string, input?: { initial: string, readonly: boolean, type: "input" | "textarea" }, callback: (action: "submit" | "close", inputValue?: string) => void, buttons?: { submit?: string, cancel?: string } }} opts
+	 * @param {{ prompt: string | Node, input?: { initial: string, readonly: boolean, type: "input" | "textarea" }, callback: (action: "submit" | "cancel" | "close", inputValue?: string) => void, buttons?: { submit?: string, cancel?: string } }} opts
 	 */
 	function showModal(opts) {
+		disabledUntil = Date.now() + 500;
 		const modal = document.createElement("dialog");
 		modal.style.zIndex = "1001";
 		modal.style.display = "flex";
@@ -9898,8 +10182,12 @@ async function ForBetterClub() {
 		modal.style.fontFamily = "Arial, Helvetica, sans-serif";
 		modal.open = true;
 
-		const prompt = document.createElement("p");
-		prompt.textContent = opts.prompt;
+		const prompt = document.createElement("div");
+		if (isString(opts.prompt)) {
+			prompt.textContent = opts.prompt;
+		} else {
+			prompt.append(opts.prompt);
+		}
 		modal.append(prompt);
 		document.body.append(modal);
 
@@ -9958,7 +10246,7 @@ async function ForBetterClub() {
 		const cancel = document.createElement("button");
 		cancel.textContent = opts.buttons?.cancel || displayText("Cancel");
 		cancel.addEventListener("click", () => {
-			close();
+			close("cancel");
 		});
 
 		for (const button of [submit, cancel]) {
@@ -9990,7 +10278,8 @@ async function ForBetterClub() {
 		blocker.style.width = "100vw";
 		blocker.style.height = "100vh";
 		blocker.style.zIndex = "1000";
-		blocker.style.backgroundColor = "rgba(0, 0, 0, 0.5)";
+		blocker.style.backgroundColor = "rgba(0, 0, 0, 0.9)";
+		blocker.title = displayText("Click to close the modal");
 		blocker.addEventListener("click", () => {
 			close();
 		});
@@ -10000,9 +10289,13 @@ async function ForBetterClub() {
 		document.body.append(blocker);
 
 		/**
-		 * @param {"submit" | "close"} action
+		 * @param {"submit" | "cancel" | "close"} action
 		 */
 		function close(action = "close") {
+			if (Date.now() < disabledUntil) {
+				return;
+			}
+			disabledUntil = Date.now() + 500;
 			modal.close();
 			modal.remove();
 			blocker.remove();

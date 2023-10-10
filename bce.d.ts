@@ -558,6 +558,7 @@ declare global {
     Inventory: Item[];
     ChatSettings: ChatSettings;
     AudioSettings: { PlayBeeps?: boolean };
+    ImmersionSettings: { ShowRoomCustomization: number };
     ExpressionQueue?: ExpressionQueueItem[];
   } & Character;
   type Relationship = {
