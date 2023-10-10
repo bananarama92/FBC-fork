@@ -1722,7 +1722,7 @@ async function ForBetterClub() {
 		return next(args);
 	});
 	SDK.hookFunction("GameRun", HOOK_PRIORITIES.Top, (args, next) => {
-		if (funcsRegistered !== "disable") {
+		if (funcsRegistered === "disable") {
 			requestAnimationFrame(GameRun);
 			return null;
 		}
