@@ -2185,61 +2185,74 @@ async function ForBetterClub() {
 						return;
 					}
 
-					const bundleString = window.prompt(
-						displayText("Paste your looks here")
-					);
-					if (!bundleString) {
-						fbcChatNotify(displayText("No looks string provided"));
-						return;
-					}
-					try {
-						const bundle = /** @type {ItemBundle[]} */ (
-							bundleString.startsWith("[")
-								? JSON.parse(bundleString)
-								: JSON.parse(LZString.decompressFromBase64(bundleString))
-						);
-
-						if (
-							!Array.isArray(bundle) ||
-							bundle.length === 0 ||
-							!bundle[0].Group
-						) {
-							throw new Error("Invalid bundle");
-						}
-
-						// Keep items you cannot unlock in your appearance
-						for (const item of Player.Appearance) {
-							if (item.Property?.LockedBy && !DialogCanUnlock(Player, item)) {
-								/** @type {ItemBundle} */
-								const itemBundle = {
-									Group: item.Asset.Group.Name,
-									Name: item.Asset.Name,
-									Color: item.Color,
-									Difficulty: item.Difficulty,
-									Property: item.Property,
-								};
-								const idx = bundle.findIndex(
-									(v) => v.Group === item.Asset.Group.Name
-								);
-								if (idx < 0) {
-									bundle.push(itemBundle);
-								} else {
-									bundle[idx] = itemBundle;
-								}
+					showModal({
+						prompt: displayText("Paste your looks here"),
+						input: {
+							initial: "",
+							readonly: false,
+							type: "textarea",
+						},
+						callback: (act, bundleString) => {
+							if (act !== "submit") {
+								return;
 							}
-						}
-						ServerAppearanceLoadFromBundle(
-							Player,
-							"Female3DCG",
-							bundle,
-							Player.MemberNumber
-						);
-						ChatRoomCharacterUpdate(Player);
-						fbcChatNotify(displayText("Applied looks"));
-					} catch (e) {
-						console.error(e);
-						fbcChatNotify(displayText("Could not parse looks"));
-					}
+							if (!bundleString) {
+								fbcChatNotify(displayText("No looks string provided"));
+								return;
+							}
+							try {
+								const bundle = /** @type {ItemBundle[]} */ (
+									bundleString.startsWith("[")
+										? JSON.parse(bundleString)
+										: JSON.parse(LZString.decompressFromBase64(bundleString))
+								);
+
+								if (
+									!Array.isArray(bundle) ||
+									bundle.length === 0 ||
+									!bundle[0].Group
+								) {
+									throw new Error("Invalid bundle");
+								}
+
+								// Keep items you cannot unlock in your appearance
+								for (const item of Player.Appearance) {
+									if (
+										item.Property?.LockedBy &&
+										!DialogCanUnlock(Player, item)
+									) {
+										/** @type {ItemBundle} */
+										const itemBundle = {
+											Group: item.Asset.Group.Name,
+											Name: item.Asset.Name,
+											Color: item.Color,
+											Difficulty: item.Difficulty,
+											Property: item.Property,
+										};
+										const idx = bundle.findIndex(
+											(v) => v.Group === item.Asset.Group.Name
+										);
+										if (idx < 0) {
+											bundle.push(itemBundle);
+										} else {
+											bundle[idx] = itemBundle;
+										}
+									}
+								}
+								ServerAppearanceLoadFromBundle(
+									Player,
+									"Female3DCG",
+									bundle,
+									Player.MemberNumber
+								);
+								ChatRoomCharacterUpdate(Player);
+								fbcChatNotify(displayText("Applied looks"));
+							} catch (e) {
+								console.error(e);
+								fbcChatNotify(displayText("Could not parse looks"));
+							}
+						},
+					});
 				},
 			},
 			{
@@ -9759,35 +9772,44 @@ async function ForBetterClub() {
 		const exportPosition = /** @type {const} */ ([1585, 15, 90, 90]);
 
 		function importCraft() {
-			const str = window.prompt(displayText("Paste the craft here")) || "";
-			if (str.length === 0) {
-				window.alert(displayText("No craft to import"));
-			}
-			try {
-				const craft = /** @type {Craft} */ (
-					JSON.parse(LZString.decompressFromBase64(str))
-				);
-				if (!isNonNullObject(craft)) {
-					logError(craft);
-					throw new Error(`invalid craft type ${typeof craft} ${str}`);
-				}
-				for (const [key, value] of Object.entries(craft)) {
-					if (
-						!isString(value) &&
-						!Number.isInteger(value) &&
-						value !== false &&
-						value !== true &&
-						value !== null &&
-						!isNonNullObject(value)
-					) {
-						logWarn("potentially invalid craft bundle:", key, "was", value);
+			showModal({
+				prompt: displayText("Paste the craft here"),
+				callback: (action, str) => {
+					if (action !== "submit" || !str) {
+						return;
 					}
-				}
-				CraftingSelectedItem = CraftingConvertItemToSelected(craft);
-				CraftingModeSet("Name");
-			} catch (e) {
-				logError("importing craft", e);
-			}
+					try {
+						const craft = /** @type {Craft} */ (
+							JSON.parse(LZString.decompressFromBase64(str))
+						);
+						if (!isNonNullObject(craft)) {
+							logError(craft);
+							throw new Error(`invalid craft type ${typeof craft} ${str}`);
+						}
+						for (const [key, value] of Object.entries(craft)) {
+							if (
+								!isString(value) &&
+								!Number.isInteger(value) &&
+								value !== false &&
+								value !== true &&
+								value !== null &&
+								!isNonNullObject(value)
+							) {
+								logWarn("potentially invalid craft bundle:", key, "was", value);
+							}
+						}
+						CraftingSelectedItem = CraftingConvertItemToSelected(craft);
+						CraftingModeSet("Name");
+					} catch (e) {
+						logError("importing craft", e);
+					}
+				},
+				input: {
+					initial: "",
+					readonly: false,
+					type: "textarea",
+				},
+			});
 		}
 
 		SDK.hookFunction(
@@ -9797,12 +9819,19 @@ async function ForBetterClub() {
 				switch (CraftingMode) {
 					case "Name":
 						if (MouseIn(...exportPosition)) {
-							window.prompt(
-								displayText("Copy the craft here"),
-								LZString.compressToBase64(
-									JSON.stringify(CraftingConvertSelectedToItem())
-								)
-							);
+							showModal({
+								prompt: displayText("Copy the craft here"),
+								input: {
+									initial: LZString.compressToBase64(
+										JSON.stringify(CraftingConvertSelectedToItem())
+									),
+									readonly: true,
+									type: "textarea",
+								},
+								callback: () => {
+									debug("exported craft");
+								},
+							});
 						} else if (MouseIn(...importPosition)) {
 							importCraft();
 						}
@@ -9855,6 +9884,131 @@ async function ForBetterClub() {
 				return ret;
 			}
 		);
+	}
+
+	/**
+	 * @param {{ prompt: string, input?: { initial: string, readonly: boolean, type: "input" | "textarea" }, callback: (action: "submit" | "close", inputValue?: string) => void, buttons?: { submit?: string, cancel?: string } }} opts
+	 */
+	function showModal(opts) {
+		const modal = document.createElement("dialog");
+		modal.style.zIndex = "1001";
+		modal.style.display = "flex";
+		modal.style.flexDirection = "column";
+		modal.style.width = "50em";
+		modal.style.fontFamily = "Arial, Helvetica, sans-serif";
+		modal.open = true;
+
+		const prompt = document.createElement("p");
+		prompt.textContent = opts.prompt;
+		modal.append(prompt);
+		document.body.append(modal);
+
+		let inputValue = "";
+
+		if (opts.input) {
+			const input = document.createElement(opts.input.type);
+			switch (opts.input.type) {
+				case "input":
+					{
+						const el = /** @type {HTMLInputElement} */ (input);
+						el.type = "text";
+					}
+					break;
+				case "textarea":
+					{
+						const el = /** @type {HTMLTextAreaElement} */ (input);
+						el.rows = 10;
+					}
+					break;
+				default:
+					// This should never happen
+					// eslint-disable-next-line @typescript-eslint/restrict-template-expressions
+					throw new Error(`invalid input type ${opts.input.type}`);
+			}
+			input.style.width = "100%";
+			input.readOnly = opts.input.readonly;
+			input.addEventListener("mouseover", () => {
+				input.select();
+			});
+			input.addEventListener("focus", () => {
+				input.select();
+			});
+			input.addEventListener("change", () => {
+				inputValue = input.value;
+			});
+
+			input.value = opts.input.initial;
+			modal.append(input);
+		}
+
+		const buttonContainer = document.createElement("div");
+		buttonContainer.style.display = "flex";
+		buttonContainer.style.flexDirection = "row";
+		buttonContainer.style.justifyContent = "space-between";
+		buttonContainer.style.marginTop = "1em";
+		buttonContainer.style.width = "100%";
+		modal.append(buttonContainer);
+
+		const submit = document.createElement("button");
+		submit.textContent = opts.buttons?.submit || displayText("Submit");
+		submit.addEventListener("click", () => {
+			close("submit");
+		});
+
+		const cancel = document.createElement("button");
+		cancel.textContent = opts.buttons?.cancel || displayText("Cancel");
+		cancel.addEventListener("click", () => {
+			close();
+		});
+
+		for (const button of [submit, cancel]) {
+			button.style.padding = "0.5em";
+			button.style.flexGrow = "1";
+		}
+
+		buttonContainer.append(cancel, submit);
+
+		modal.addEventListener("click", (e) => {
+			e.stopPropagation();
+		});
+		/**
+		 * @param {KeyboardEvent} e
+		 */
+		const keyClick = (e) => {
+			e.stopPropagation();
+			if (e.key === "Escape") {
+				close();
+			}
+		};
+		document.addEventListener("keydown", keyClick);
+
+		// Click-blocker
+		const blocker = document.createElement("div");
+		blocker.style.position = "fixed";
+		blocker.style.top = "0";
+		blocker.style.left = "0";
+		blocker.style.width = "100vw";
+		blocker.style.height = "100vh";
+		blocker.style.zIndex = "1000";
+		blocker.style.backgroundColor = "rgba(0, 0, 0, 0.5)";
+		blocker.addEventListener("click", () => {
+			close();
+		});
+		blocker.addEventListener("focus", () => {
+			close();
+		});
+		document.body.append(blocker);
+
+		/**
+		 * @param {"submit" | "close"} action
+		 */
+		function close(action = "close") {
+			modal.close();
+			modal.remove();
+			blocker.remove();
+			document.removeEventListener("keydown", keyClick);
+			opts.callback(action, inputValue);
+		}
 	}
 
 	function hideChatRoomElements() {
