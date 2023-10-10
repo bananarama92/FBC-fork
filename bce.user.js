@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Bondage Club Enhancements
 // @namespace https://www.bondageprojects.com/
-// @version 4.53
+// @version 4.54
 // @description FBC - For Better Club - enhancements for the bondage club - old name kept in tampermonkey for compatibility
 // @author Sidious
 // @match https://bondageprojects.elementfx.com/*
@@ -38,10 +38,13 @@
  *  along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-const FBC_VERSION = "4.53";
+const FBC_VERSION = "4.54";
 const settingsVersion = 52;
 
 const fbcChangelog = `${FBC_VERSION}
+- fix relogin
+
+4.53
 - switch to html dialogs instead of browser prompts (/importlooks, /exportlooks, importing and exporting crafts)
 - R97Beta1 compatibility
 - R97 only
@@ -50,12 +53,6 @@ const fbcChangelog = `${FBC_VERSION}
 
 4.52
 - fix manually overridden facial expressions resetting on struggle
-
-4.51
-- fix face getting stuck after struggle minigame (equipping, removing items, etc)
-
-4.50
-- fix lockpicking
 `;
 
 /*
@@ -1716,13 +1713,16 @@ async function ForBetterClub() {
 	};
 
 	// Delay game processes until registration is complete
-	let funcsRegistered = true;
+	/** @type {"init" | "enable" | "disable"} */
+	let funcsRegistered = "init";
 	SDK.hookFunction("LoginResponse", HOOK_PRIORITIES.Top, (args, next) => {
-		funcsRegistered = false;
+		if (funcsRegistered === "init") {
+			funcsRegistered = "disable";
+		}
 		return next(args);
 	});
 	SDK.hookFunction("GameRun", HOOK_PRIORITIES.Top, (args, next) => {
-		if (!funcsRegistered) {
+		if (funcsRegistered !== "disable") {
 			requestAnimationFrame(GameRun);
 			return null;
 		}
@@ -1771,7 +1771,7 @@ async function ForBetterClub() {
 	registerFunction(leashFix, "leashFix");
 	registerFunction(hookBCXAPI, "hookBCXAPI");
 	registerFunction(customContentDomainCheck, "customContentDomainCheck");
-	funcsRegistered = true;
+	funcsRegistered = "enable";
 
 	// Post ready when in a chat room
 	await fbcNotify(`For Better Club v${w.FBC_VERSION} Loaded`);
