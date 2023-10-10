@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Bondage Club Enhancements
 // @namespace https://www.bondageprojects.com/
-// @version 4.54
+// @version 4.55
 // @description FBC - For Better Club - enhancements for the bondage club - old name kept in tampermonkey for compatibility
 // @author Sidious
 // @match https://bondageprojects.elementfx.com/*
@@ -38,10 +38,13 @@
  *  along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-const FBC_VERSION = "4.54";
+const FBC_VERSION = "4.55";
 const settingsVersion = 52;
 
 const fbcChangelog = `${FBC_VERSION}
+- automatically add origins set by yourself to allowed 3rd party origins
+
+4.54
 - fix relogin
 
 4.53
@@ -50,9 +53,6 @@ const fbcChangelog = `${FBC_VERSION}
 - R97 only
 	- add confirmation dialog for custom room contents
 	- allow extreme difficulty to load 3rd party content by default with confirmation prompt
-
-4.52
-- fix manually overridden facial expressions resetting on struggle
 `;
 
 /*
@@ -1166,6 +1166,7 @@ async function ForBetterClub() {
 					CharacterSetActivePose: "5BCD2A9E",
 					CharacterSetCurrent: "F46573D8",
 					CharacterSetFacialExpression: "B06C1B8A",
+					ChatAdminRoomCustomizationClick: "222821D2",
 					ChatAdminRoomCustomizationProcess: "82475DF6",
 					ChatRoomCharacterItemUpdate: "263DB2F0",
 					ChatRoomCharacterUpdate: "9D0EEA39",
@@ -9133,6 +9134,25 @@ async function ForBetterClub() {
 				}
 
 				return null;
+			}
+		);
+
+		SDK.hookFunction(
+			"ChatAdminRoomCustomizationClick",
+			HOOK_PRIORITIES.Observe,
+			(args, next) => {
+				for (const s of [
+					ElementValue("InputImageURL").trim(),
+					ElementValue("InputMusicURL").trim(),
+				]) {
+					try {
+						const url = new URL(s);
+						sessionCustomOrigins.set(url.origin, "allowed");
+					} catch (_) {
+						// Don't care
+					}
+				}
+				return next(args);
 			}
 		);
 
