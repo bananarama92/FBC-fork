@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Bondage Club Enhancements
 // @namespace https://www.bondageprojects.com/
-// @version 4.55
+// @version 4.56
 // @description FBC - For Better Club - enhancements for the bondage club - old name kept in tampermonkey for compatibility
 // @author Sidious
 // @match https://bondageprojects.elementfx.com/*
@@ -38,10 +38,13 @@
  *  along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-const FBC_VERSION = "4.55";
+const FBC_VERSION = "4.56";
 const settingsVersion = 52;
 
 const fbcChangelog = `${FBC_VERSION}
+- fix layering buttons not appearing when custom backgrounds are used
+
+4.55
 - automatically add origins set by yourself to allowed 3rd party origins
 
 4.54
@@ -6221,6 +6224,7 @@ async function ForBetterClub() {
 			HOOK_PRIORITIES.AddBehaviour,
 			(args, next) => {
 				const C = CharacterGetCurrent();
+				const ret = next(args);
 				if (
 					DialogMenuMode === "items" &&
 					isCharacter(C) &&
@@ -6259,7 +6263,7 @@ async function ForBetterClub() {
 						);
 					}
 				}
-				return next(args);
+				return ret;
 			}
 		);
 
