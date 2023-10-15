@@ -2446,47 +2446,63 @@ async function ForBetterClub() {
 			{
 				Tag: "versions",
 				Description: displayText(
-					"show versions of the club, FBC, and BCX in use by players"
+					"show versions of the club, FBC, BCX and other mods in use by players"
 				),
-				Action: () => {
-					/** @type {(chars: Character[]) => string} */
-					const versionOutput = (chars) =>
-						chars
-							.map(
-								(a) =>
-									`${CharacterNickname(a)} (${a.MemberNumber}) club ${
-										a.OnlineSharedSettings?.GameVersion
-									}${
-										w.bcx?.getCharacterVersion(a.MemberNumber)
-											? ` BCX ${bcx.getCharacterVersion(a.MemberNumber)}`
+				Action: (args) => {
+					// Function to retrieve mod information for a specific character
+					const getCharacterModInfo = (character) => {
+						return `${CharacterNickname(character)} (${character.MemberNumber}) club ${character.OnlineSharedSettings?.GameVersion
+							}${w.bcx?.getCharacterVersion(character.MemberNumber)
+								? ` BCX ${bcx.getCharacterVersion(character.MemberNumber)}`
 											: ""
-									}${
-										a.FBC
-											? `\nFBC v${
-													a.FBC
-											  } Alt Arousal: ${a.BCEArousal?.toString()}`
+							}${character.FBC
+								? `\nFBC v${character.FBC} Alt Arousal: ${character.BCEArousal?.toString()}`
 											: ""
-									}${
-										a.FBCOtherAddons &&
-										a.FBCOtherAddons.some(
-											(m) => !["BCX", "FBC"].includes(m.name)
+							}${character.FBCOtherAddons &&
+								character.FBCOtherAddons.some(
+									(mod) => !["BCX", "FBC"].includes(mod.name)
 										)
-											? `\nOther Addons:\n- ${a.FBCOtherAddons.filter(
-													(m) => !["BCX", "FBC"].includes(m.name)
+								? `\nOther Addons:\n- ${character.FBCOtherAddons.filter(
+									(mod) => !["BCX", "FBC"].includes(mod.name)
 											  )
 													.map(
-														(m) =>
-															`${m.name} v${m.version} ${m.repository ?? ""}`
+										(mod) =>
+											`${mod.name} v${mod.version} ${mod.repository ?? ""}`
 													)
 													.join("\n- ")}`
 											: ""
-									}`
-							)
-							.filter((a) => a)
+							}`;
+					};
+
+					if (args) {
+						const selectedCharacter = ChatRoomCharacter.find(c => CharacterNickname(c).toLowerCase() === args);
+						// If character is not found, display error message and abort execution
+						if (!selectedCharacter) {
+							fbcChatNotify("No such character was found");
+							debug("No such character was found");
+							return;
+						};
+
+						const selectedCharacterName = CharacterNickname(selectedCharacter);
+						// Handle if there are multiple character with same name
+						const selectedCharacterS = ChatRoomCharacterDrawlist.filter(
+							(character) => CharacterNickname(character) === selectedCharacterName
+						);
+						const versionOutput = selectedCharacterS.map(getCharacterModInfo)
+							.filter((info) => info)
 							.join("\n\n");
 
-					fbcChatNotify(versionOutput(ChatRoomCharacterDrawlist));
-					debug(versionOutput(ChatRoomCharacter));
+						fbcChatNotify(versionOutput);
+						debug(versionOutput);
+					} else {
+						// If no character is selected, display mod information for all characters
+						const versionOutput = ChatRoomCharacterDrawlist.map((character) => getCharacterModInfo(character))
+							.filter((info) => info)
+							.join("\n\n");
+
+						fbcChatNotify(versionOutput);
+						debug(versionOutput);
+					}
 				},
 			},
 		];
