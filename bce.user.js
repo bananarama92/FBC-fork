@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Bondage Club Enhancements
 // @namespace https://www.bondageprojects.com/
-// @version 4.56
+// @version 4.57
 // @description FBC - For Better Club - enhancements for the bondage club - old name kept in tampermonkey for compatibility
 // @author Sidious
 // @match https://bondageprojects.elementfx.com/*
@@ -38,10 +38,13 @@
  *  along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-const FBC_VERSION = "4.56";
-const settingsVersion = 52;
+const FBC_VERSION = "4.57";
+const settingsVersion = 53;
 
 const fbcChangelog = `${FBC_VERSION}
+- remove extreme difficulty confirmation prompt (no longer necessary since R97Beta2)
+
+4.56
 - fix layering buttons not appearing when custom backgrounds are used
 
 4.55
@@ -72,7 +75,7 @@ var bcModSdk=function(){"use strict";const e="1.1.0";function o(e){alert("Mod ER
 async function ForBetterClub() {
 	"use strict";
 
-	const SUPPORTED_GAME_VERSIONS = ["R96", "R97Beta1"];
+	const SUPPORTED_GAME_VERSIONS = ["R96"];
 	const CAPABILITIES = /** @type {const} */ (["clubslave"]);
 
 	const w = window;
@@ -584,23 +587,6 @@ async function ForBetterClub() {
 			category: "buttplug",
 			description:
 				"Allows the game to control your real vibrators. For a list of supported vibrators see https://buttplug.io",
-		},
-		extremeRoomCustomization: {
-			label: "Show 3rd party room customization by default on Extreme",
-			value: false,
-			sideEffects: (newValue) => {
-				debug("extremeRoomCustomization", newValue);
-				fbcSettings.customContentDomainCheck = true;
-				if (
-					newValue &&
-					typeof Player.ImmersionSettings?.ShowRoomCustomization === "number"
-				) {
-					Player.ImmersionSettings.ShowRoomCustomization = 3;
-				}
-			},
-			category: "immersion",
-			description:
-				"Also enables 3rd party content protection under Misc. This option only impacts Extreme difficulty; on other difficulties use game immersion settings.",
 		},
 		antiAntiGarble: {
 			label: "Limited gag anti-cheat: cloth-gag equivalent garbling",
@@ -9157,18 +9143,6 @@ async function ForBetterClub() {
 					}
 				}
 				return next(args);
-			}
-		);
-
-		SDK.hookFunction(
-			"PreferenceInitPlayer",
-			HOOK_PRIORITIES.Top,
-			(args, next) => {
-				const ret = next(args);
-				if (fbcSettings.extremeRoomCustomization) {
-					Player.ImmersionSettings.ShowRoomCustomization = 3;
-				}
-				return ret;
 			}
 		);
 	}
