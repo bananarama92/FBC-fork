@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Bondage Club Enhancements
 // @namespace https://www.bondageprojects.com/
-// @version 4.58
+// @version 4.59
 // @description FBC - For Better Club - enhancements for the bondage club - old name kept in tampermonkey for compatibility
 // @author Sidious
 // @match https://bondageprojects.elementfx.com/*
@@ -38,10 +38,13 @@
  *  along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-const FBC_VERSION = "4.58";
+const FBC_VERSION = "4.59";
 const settingsVersion = 54;
 
 const fbcChangelog = `${FBC_VERSION}
+- improve the client side rate limiting
+
+4.58
 - add option to rate limit sending on client side
 
 4.57
@@ -49,9 +52,6 @@ const fbcChangelog = `${FBC_VERSION}
 
 4.56
 - fix layering buttons not appearing when custom backgrounds are used
-
-4.55
-- automatically add origins set by yourself to allowed 3rd party origins
 `;
 
 /*
@@ -6365,8 +6365,8 @@ async function ForBetterClub() {
 			return;
 		}
 
-		const sendRateLimit = 9;
-		const sendRateLimitInterval = 1500;
+		const sendRateLimit = 18;
+		const sendRateLimitInterval = 1200;
 		/**
 		 * @typedef {{ args: unknown[]; next: (args: unknown[]) => void }} SendRateLimitQueueItem
 		 * @type {SendRateLimitQueueItem[]}
@@ -6380,8 +6380,7 @@ async function ForBetterClub() {
 
 		let rateLimited = false;
 
-		SDK.hookFunction("ServerSend", HOOK_PRIORITIES.Top, (args, next) => {
-			debug("ServerSend", args);
+		SDK.hookFunction("ServerSocket.emit", HOOK_PRIORITIES.Top, (args, next) => {
 			sendRateLimitQueue.push({ args, next });
 			return null;
 		});
@@ -6398,7 +6397,6 @@ async function ForBetterClub() {
 				rateLimited = false;
 				const item = sendRateLimitQueue.shift();
 				if (item) {
-					debug("Sending queued message", item.args);
 					item.next(item.args);
 					sendRateLimitTimes.push(Date.now());
 				}
@@ -6408,7 +6406,7 @@ async function ForBetterClub() {
 				rateLimited = true;
 				fbcBeepNotify(
 					"Rate limited",
-					`Send rate limit breached, throttling, raw data: ${JSON.stringify(
+					`Send rate limit breached, throttling, raw data MAY CONTAIN PERSONAL INFORMATION: ${JSON.stringify(
 						sendRateLimitQueue.map((q) => q.args)
 					)}`
 				);
