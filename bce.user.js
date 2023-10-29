@@ -6378,6 +6378,8 @@ async function ForBetterClub() {
 			sendRateLimitTimes.push(Date.now());
 		}
 
+		let rateLimited = false;
+
 		SDK.hookFunction("ServerSend", HOOK_PRIORITIES.Top, (args, next) => {
 			debug("ServerSend", args);
 			sendRateLimitQueue.push({ args, next });
@@ -6393,6 +6395,7 @@ async function ForBetterClub() {
 				sendRateLimitTimes.length < sendRateLimit &&
 				sendRateLimitQueue.length > 0
 			) {
+				rateLimited = false;
 				const item = sendRateLimitQueue.shift();
 				if (item) {
 					debug("Sending queued message", item.args);
@@ -6401,7 +6404,8 @@ async function ForBetterClub() {
 				}
 			}
 
-			if (sendRateLimitQueue.length > sendRateLimit) {
+			if (sendRateLimitQueue.length > sendRateLimit && !rateLimited) {
+				rateLimited = true;
 				fbcBeepNotify(
 					"Rate limited",
 					`Send rate limit breached, throttling, raw data: ${JSON.stringify(
