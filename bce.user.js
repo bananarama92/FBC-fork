@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Bondage Club Enhancements
 // @namespace https://www.bondageprojects.com/
-// @version 4.57
+// @version 4.58
 // @description FBC - For Better Club - enhancements for the bondage club - old name kept in tampermonkey for compatibility
 // @author Sidious
 // @match https://bondageprojects.elementfx.com/*
@@ -38,10 +38,13 @@
  *  along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-const FBC_VERSION = "4.57";
-const settingsVersion = 53;
+const FBC_VERSION = "4.58";
+const settingsVersion = 54;
 
 const fbcChangelog = `${FBC_VERSION}
+- add option to rate limit sending on client side
+
+4.57
 - remove extreme difficulty confirmation prompt (no longer necessary since R97Beta2)
 
 4.56
@@ -49,16 +52,6 @@ const fbcChangelog = `${FBC_VERSION}
 
 4.55
 - automatically add origins set by yourself to allowed 3rd party origins
-
-4.54
-- fix relogin
-
-4.53
-- switch to html dialogs instead of browser prompts (/importlooks, /exportlooks, importing and exporting crafts)
-- R97Beta1 compatibility
-- R97 only
-	- add confirmation dialog for custom room contents
-	- allow extreme difficulty to load 3rd party content by default with confirmation prompt
 `;
 
 /*
@@ -75,7 +68,7 @@ var bcModSdk=function(){"use strict";const e="1.1.0";function o(e){alert("Mod ER
 async function ForBetterClub() {
 	"use strict";
 
-	const SUPPORTED_GAME_VERSIONS = ["R96"];
+	const SUPPORTED_GAME_VERSIONS = ["R97"];
 	const CAPABILITIES = /** @type {const} */ (["clubslave"]);
 
 	const w = window;
@@ -779,6 +772,16 @@ async function ForBetterClub() {
 			description:
 				"Show a confirmation prompt before allowing content from a 3rd party domain to be loaded.",
 		},
+		limitGlobalSendRate: {
+			label: "Limit global send rate (requires refresh)",
+			value: true,
+			sideEffects: (newValue) => {
+				debug("limitGlobalSendRate", newValue);
+			},
+			category: "misc",
+			description:
+				"Prevent getting rate limited by the server. This may cause delays in your messages being sent and changes being saved.",
+		},
 		fpsCounter: {
 			label: "Show FPS counter",
 			value: false,
@@ -1128,11 +1131,7 @@ async function ForBetterClub() {
 	 */
 	const expectedHashes = (gameVersion) => {
 		switch (gameVersion) {
-			case "R97Beta1":
-			case "R97Beta2":
-			case "R97Beta3":
-			case "R97Beta4":
-			case "R97":
+			default:
 				return /** @type {const} */ ({
 					ActivityChatRoomArousalSync: "21318CAF",
 					ActivitySetArousal: "3AE28123",
@@ -1154,9 +1153,9 @@ async function ForBetterClub() {
 					CharacterReleaseTotal: "396640D1",
 					CharacterSetActivePose: "5BCD2A9E",
 					CharacterSetCurrent: "F46573D8",
-					CharacterSetFacialExpression: "B06C1B8A",
-					ChatAdminRoomCustomizationClick: "222821D2",
-					ChatAdminRoomCustomizationProcess: "82475DF6",
+					CharacterSetFacialExpression: "F8272D7A",
+					ChatAdminRoomCustomizationClick: "5E4098C6",
+					ChatAdminRoomCustomizationProcess: "CBDF97DA",
 					ChatRoomCharacterItemUpdate: "263DB2F0",
 					ChatRoomCharacterUpdate: "9D0EEA39",
 					ChatRoomClearAllElements: "14DAAB05",
@@ -1231,7 +1230,6 @@ async function ForBetterClub() {
 					OnlineGameAllowChange: "3779F42C",
 					OnlineProfileClick: "CC034993",
 					OnlineProfileRun: "B0AF608D",
-					PreferenceInitPlayer: "63AC64BB",
 					RelogRun: "10AF5A60",
 					RelogExit: "2DFB2DAD",
 					ServerAccountBeep: "F16771D4",
@@ -1243,139 +1241,6 @@ async function ForBetterClub() {
 					ServerInit: "FEC6457F",
 					ServerOpenFriendList: "FA8D3CDE",
 					ServerSend: "779A1C78",
-					SkillGetWithRatio: "3EB4BC45",
-					SpeechGarble: "9D669F73",
-					SpeechGarbleByGagLevel: "5F6E16C8",
-					SpeechGetTotalGagLevel: "C55B705A",
-					StruggleDexterityProcess: "7E19ADA9",
-					StruggleFlexibilityCheck: "727CE05B",
-					StruggleFlexibilityProcess: "278D7285",
-					StruggleLockPickDraw: "2F1F603B",
-					StruggleMinigameHandleExpression: "B6E4A1A0",
-					StruggleMinigameStop: "206F85E7",
-					StruggleStrengthProcess: "D20CF698",
-					TextGet: "4DDE5794",
-					TextLoad: "ADF7C890",
-					TimerInventoryRemove: "1FA771FB",
-					TimerProcess: "52458C63",
-					TitleExit: "F13F533C",
-					WardrobeClick: "E96F7F63",
-					WardrobeExit: "EE83FF29",
-					WardrobeFastLoad: "38627DC2",
-					WardrobeFastSave: "B62385C1",
-					WardrobeFixLength: "CA3334C6",
-					WardrobeLoad: "C343A4C7",
-					WardrobeRun: "9616EB3A",
-				});
-
-			default:
-				return /** @type {const} */ ({
-					ActivityChatRoomArousalSync: "21318CAF",
-					ActivitySetArousal: "3AE28123",
-					ActivitySetArousalTimer: "1342AFE2",
-					ActivityTimerProgress: "6CD388A7",
-					AppearanceClick: "723EA7F1",
-					AppearanceExit: "AA300341",
-					AppearanceLoad: "4360C485",
-					AppearanceRun: "0BBDEE59",
-					CharacterAppearanceWardrobeLoad: "A5B63A03",
-					CharacterBuildDialog: "85F79C6E",
-					CharacterCompressWardrobe: "8D3B1AB1",
-					CharacterDecompressWardrobe: "A9FD29CC",
-					CharacterDelete: "398D1116",
-					CharacterGetCurrent: "45608177",
-					CharacterLoadCanvas: "BA6AD4FF",
-					CharacterNickname: "A794EFF5",
-					CharacterRefresh: "5BF9DA5A",
-					CharacterReleaseTotal: "396640D1",
-					CharacterSetActivePose: "5BCD2A9E",
-					CharacterSetCurrent: "F46573D8",
-					CharacterSetFacialExpression: "4F1606CC",
-					ChatRoomCharacterItemUpdate: "95A2E662",
-					ChatRoomCharacterUpdate: "9D0EEA39",
-					ChatRoomClearAllElements: "C49AA2C1",
-					ChatRoomClick: "79E651EB",
-					ChatRoomCreateElement: "9A3FD548",
-					ChatRoomCurrentTime: "A462DD3A",
-					ChatRoomDrawBackground: "597B062C",
-					ChatRoomDrawCharacterOverlay: "06FB4CC3",
-					ChatRoomHTMLEntities: "0A7ADB1D",
-					ChatRoomKeyDown: "B4BFDB0C",
-					ChatRoomListManipulation: "75D28A8B",
-					ChatRoomMessage: "BBD61334",
-					ChatRoomMessageDisplay: "C7053411",
-					ChatRoomRegisterMessageHandler: "C432923A",
-					ChatRoomResize: "653445D7",
-					ChatRoomRun: "77FAE23C",
-					ChatRoomSendChat: "7F540ED0",
-					ChatRoomStart: "9B822A9A",
-					CommandExecute: "5C948CC3",
-					CommandParse: "C9061FE8",
-					CommonClick: "1F6DF7CB",
-					CommonColorIsValid: "390A2CE4",
-					CommonSetScreen: "E2AC00F4",
-					CraftingClick: "BFE0FC95",
-					CraftingConvertSelectedToItem: "B3F4D559",
-					CraftingRun: "C5BAEE74",
-					DialogClick: "D0FA2714",
-					DialogDraw: "DC5D416C",
-					DialogDrawItemMenu: "FCE556C2",
-					DialogLeave: "C37553DC",
-					DrawBackNextButton: "9AF4BA37",
-					DrawButton: "A7023A82",
-					DrawCharacter: "35E09A1E",
-					DrawCheckbox: "00FD87EB",
-					DrawImageEx: "3D3D74F5",
-					DrawImageResize: "8CF55F04",
-					DrawItemPreview: "A27E9228",
-					DrawProcess: "E60F65B5",
-					DrawText: "C1BF0F50",
-					DrawTextFit: "F9A1B11E",
-					ElementCreateInput: "562F83D4",
-					ElementCreateTextArea: "8721B388",
-					ElementIsScrolledToEnd: "1CC4FE11",
-					ElementPosition: "CC4E3C82",
-					ElementRemove: "60809E60",
-					ElementScrollToEnd: "1AC45575",
-					ElementValue: "4F26C62F",
-					FriendListShowBeep: "6C0449BB",
-					GameRun: "3525631A",
-					GLDrawResetCanvas: "81214642",
-					InformationSheetRun: "E248ADC7",
-					InventoryGet: "E666F671",
-					InventoryItemMiscMistressTimerPadlockClick: "861419FC",
-					InventoryItemMiscMistressTimerPadlockDraw: "4E1628BE",
-					InventoryItemMiscMistressTimerPadlockExit: "66BC6923",
-					InventoryItemMiscMistressTimerPadlockLoad: "BE46432F",
-					InventoryItemMiscOwnerTimerPadlockClick: "C929699B",
-					InventoryItemMiscOwnerTimerPadlockDraw: "BCA80BF8",
-					InventoryItemMiscOwnerTimerPadlockExit: "1BE66B4A",
-					InventoryItemMiscOwnerTimerPadlockLoad: "8A55C0D1",
-					InventoryItemMiscTimerPasswordPadlockClick: "BAE0BAC9",
-					InventoryItemMiscTimerPasswordPadlockDraw: "0BB8E88D",
-					InventoryItemMiscTimerPasswordPadlockExit: "7323E56D",
-					InventoryItemMiscTimerPasswordPadlockLoad: "82223608",
-					LoginClick: "EE94BEC7",
-					LoginRun: "C3926C4F",
-					LoginSetSubmitted: "C88F4A8E",
-					MouseIn: "CA8B839E",
-					NotificationDrawFavicon: "AB88656B",
-					NotificationRaise: "E8F29646",
-					NotificationTitleUpdate: "0E92F3ED",
-					OnlineGameAllowChange: "3779F42C",
-					OnlineProfileClick: "CC034993",
-					OnlineProfileRun: "B0AF608D",
-					RelogRun: "10AF5A60",
-					RelogExit: "2DFB2DAD",
-					ServerAccountBeep: "F16771D4",
-					ServerAppearanceBundle: "4D069622",
-					ServerAppearanceLoadFromBundle: "FB794E30",
-					ServerClickBeep: "3E6277BE",
-					ServerConnect: "845E50A6",
-					ServerDisconnect: "06C1A6B0",
-					ServerInit: "FEC6457F",
-					ServerOpenFriendList: "FA8D3CDE",
-					ServerSend: "90A61F57",
 					SkillGetWithRatio: "3EB4BC45",
 					SpeechGarble: "9D669F73",
 					SpeechGarbleByGagLevel: "5F6E16C8",
@@ -1761,6 +1626,7 @@ async function ForBetterClub() {
 	registerFunction(leashFix, "leashFix");
 	registerFunction(hookBCXAPI, "hookBCXAPI");
 	registerFunction(customContentDomainCheck, "customContentDomainCheck");
+	registerFunction(limitSendRate, "limitSendRate");
 	funcsRegistered = "enable";
 
 	// Post ready when in a chat room
@@ -6492,6 +6358,58 @@ async function ForBetterClub() {
 		};
 
 		createTimer(clearCaches, cacheClearInterval);
+	}
+
+	function limitSendRate() {
+		if (!fbcSettings.limitGlobalSendRate) {
+			return;
+		}
+
+		const sendRateLimit = 9;
+		const sendRateLimitInterval = 1500;
+		/**
+		 * @typedef {{ args: unknown[]; next: (args: unknown[]) => void }} SendRateLimitQueueItem
+		 * @type {SendRateLimitQueueItem[]}
+		 */
+		const sendRateLimitQueue = [];
+		let sendRateLimitTimes = [];
+
+		for (let i = 0; i < sendRateLimit; i++) {
+			sendRateLimitTimes.push(Date.now());
+		}
+
+		SDK.hookFunction("ServerSend", HOOK_PRIORITIES.Top, (args, next) => {
+			debug("ServerSend", args);
+			sendRateLimitQueue.push({ args, next });
+			return null;
+		});
+
+		createTimer(() => {
+			sendRateLimitTimes = sendRateLimitTimes.filter(
+				(t) => Date.now() - t < sendRateLimitInterval
+			);
+
+			while (
+				sendRateLimitTimes.length < sendRateLimit &&
+				sendRateLimitQueue.length > 0
+			) {
+				const item = sendRateLimitQueue.shift();
+				if (item) {
+					debug("Sending queued message", item.args);
+					item.next(item.args);
+					sendRateLimitTimes.push(Date.now());
+				}
+			}
+
+			if (sendRateLimitQueue.length > sendRateLimit) {
+				fbcBeepNotify(
+					"Rate limited",
+					`Send rate limit breached, throttling, raw data: ${JSON.stringify(
+						sendRateLimitQueue.map((q) => q.args)
+					)}`
+				);
+			}
+		}, 1);
 	}
 
 	function chatRoomOverlay() {
