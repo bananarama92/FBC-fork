@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Bondage Club Enhancements
 // @namespace https://www.bondageprojects.com/
-// @version 4.59
+// @version 4.60
 // @description FBC - For Better Club - enhancements for the bondage club - old name kept in tampermonkey for compatibility
 // @author Sidious
 // @match https://bondageprojects.elementfx.com/*
@@ -38,10 +38,14 @@
  *  along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-const FBC_VERSION = "4.59";
+const FBC_VERSION = "4.60";
 const settingsVersion = 54;
 
 const fbcChangelog = `${FBC_VERSION}
+- add ability to define target for /versions command (dDeepLb)
+- preserve formatting in IM messages (dDeepLb)
+
+4.59
 - improve the client side rate limiting
 
 4.58
@@ -49,9 +53,6 @@ const fbcChangelog = `${FBC_VERSION}
 
 4.57
 - remove extreme difficulty confirmation prompt (no longer necessary since R97Beta2)
-
-4.56
-- fix layering buttons not appearing when custom backgrounds are used
 `;
 
 /*
