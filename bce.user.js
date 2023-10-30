@@ -3339,6 +3339,7 @@ async function ForBetterClub() {
 		.bce-message {
 			padding: 0.2em 0.4em;
 			position: relative;
+			white-space: pre-wrap;
 		}
 		.bce-message::before {
 			content: attr(data-time);
