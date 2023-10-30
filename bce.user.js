@@ -2396,22 +2396,7 @@ async function ForBetterClub() {
 					const [, , ...message] = command.split(" ");
 					const msg = message?.join(" ");
 					/** @type {Character[]} */
-					let targetMembers = [];
-					if (/^\d+$/u.test(target)) {
-						targetMembers = [
-							ChatRoomCharacter.find(
-								(c) => c.MemberNumber === parseInt(target)
-							),
-						];
-					} else {
-						targetMembers = ChatRoomCharacter.filter(
-							(c) =>
-								CharacterNickname(c).split(" ")[0]?.toLowerCase() ===
-									target?.toLowerCase() ||
-								c.Name.split(" ")[0].toLowerCase() === target?.toLowerCase()
-						);
-					}
-					targetMembers = targetMembers.filter((c) => c);
+					const targetMembers = findDrawnCharacters(target);
 					if (!target || !targetMembers || targetMembers.length === 0) {
 						fbcChatNotify(`Whisper target not found: ${target}`);
 					} else if (targetMembers.length > 1) {
@@ -2449,60 +2434,48 @@ async function ForBetterClub() {
 					"show versions of the club, FBC, BCX and other mods in use by players"
 				),
 				Action: (args) => {
-					// Function to retrieve mod information for a specific character
-					const getCharacterModInfo = (character) => {
-						return `${CharacterNickname(character)} (${character.MemberNumber}) club ${character.OnlineSharedSettings?.GameVersion
-							}${w.bcx?.getCharacterVersion(character.MemberNumber)
+					/** @type {(character: Character) => string} */
+					const getCharacterModInfo = (character) =>
+						`${CharacterNickname(character)} (${character.MemberNumber}) club ${
+							character.OnlineSharedSettings?.GameVersion
+						}${
+							w.bcx?.getCharacterVersion(character.MemberNumber)
 								? ` BCX ${bcx.getCharacterVersion(character.MemberNumber)}`
-											: ""
-							}${character.FBC
-								? `\nFBC v${character.FBC} Alt Arousal: ${character.BCEArousal?.toString()}`
-											: ""
-							}${character.FBCOtherAddons &&
-								character.FBCOtherAddons.some(
-									(mod) => !["BCX", "FBC"].includes(mod.name)
-										)
+								: ""
+						}${
+							character.FBC
+								? `\nFBC v${
+										character.FBC
+								  } Alt Arousal: ${character.BCEArousal?.toString()}`
+								: ""
+						}${
+							character.FBCOtherAddons &&
+							character.FBCOtherAddons.some(
+								(mod) => !["BCX", "FBC"].includes(mod.name)
+							)
 								? `\nOther Addons:\n- ${character.FBCOtherAddons.filter(
-									(mod) => !["BCX", "FBC"].includes(mod.name)
-											  )
-													.map(
-										(mod) =>
-											`${mod.name} v${mod.version} ${mod.repository ?? ""}`
-													)
-													.join("\n- ")}`
-											: ""
-							}`;
-					};
+										(mod) => !["BCX", "FBC"].includes(mod.name)
+								  )
+										.map(
+											(mod) =>
+												`${mod.name} v${mod.version} ${mod.repository ?? ""}`
+										)
+										.join("\n- ")}`
+								: ""
+						}`;
 
-					if (args) {
-						const selectedCharacter = ChatRoomCharacter.find(c => CharacterNickname(c).toLowerCase() === args);
-						// If character is not found, display error message and abort execution
-						if (!selectedCharacter) {
-							fbcChatNotify("No such character was found");
-							debug("No such character was found");
-							return;
-						};
+					const targets = findDrawnCharacters(args[0]);
 
-						const selectedCharacterName = CharacterNickname(selectedCharacter);
-						// Handle if there are multiple character with same name
-						const selectedCharacterS = ChatRoomCharacterDrawlist.filter(
-							(character) => CharacterNickname(character) === selectedCharacterName
-						);
-						const versionOutput = selectedCharacterS.map(getCharacterModInfo)
-							.filter((info) => info)
-							.join("\n\n");
+					const printList =
+						targets.length > 0 ? targets : ChatRoomCharacterDrawlist;
 
-						fbcChatNotify(versionOutput);
-						debug(versionOutput);
-					} else {
-						// If no character is selected, display mod information for all characters
-						const versionOutput = ChatRoomCharacterDrawlist.map((character) => getCharacterModInfo(character))
-							.filter((info) => info)
-							.join("\n\n");
+					const versionOutput = printList
+						.map(getCharacterModInfo)
+						.filter((info) => info)
+						.join("\n\n");
 
-						fbcChatNotify(versionOutput);
-						debug(versionOutput);
-					}
+					fbcChatNotify(versionOutput);
+					debug(versionOutput);
 				},
 			},
 		];
@@ -10341,6 +10314,26 @@ async function ForBetterClub() {
 		// 5 minutes
 		createTimer(sendHeartbeat, 1000 * 60 * 5);
 	})();
+
+	/**
+	 * @param {string} target
+	 */
+	function findDrawnCharacters(target) {
+		let targetMembers = [];
+		if (/^\d+$/u.test(target)) {
+			targetMembers = [
+				ChatRoomCharacter.find((c) => c.MemberNumber === parseInt(target)),
+			];
+		} else {
+			targetMembers = ChatRoomCharacter.filter(
+				(c) =>
+					CharacterNickname(c).split(" ")[0]?.toLowerCase() ===
+						target?.toLowerCase() ||
+					c.Name.split(" ")[0].toLowerCase() === target?.toLowerCase()
+			);
+		}
+		return targetMembers.filter((c) => c);
+	}
 
 	/** @type {(x: number, y: number, width: number, text: string, align: "left" | "center") => void} */
 	function drawTooltip(x, y, width, text, align) {
