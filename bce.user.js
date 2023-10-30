@@ -1205,7 +1205,7 @@ async function ForBetterClub() {
 					ElementScrollToEnd: "1AC45575",
 					ElementValue: "4F26C62F",
 					FriendListShowBeep: "6C0449BB",
-					GameRun: "3525631A",
+					GameRun: "ED65B730",
 					GLDrawResetCanvas: "81214642",
 					InformationSheetRun: "E248ADC7",
 					InventoryGet: "E666F671",
@@ -1241,7 +1241,7 @@ async function ForBetterClub() {
 					ServerDisconnect: "06C1A6B0",
 					ServerInit: "FEC6457F",
 					ServerOpenFriendList: "FA8D3CDE",
-					ServerSend: "779A1C78",
+					ServerSend: "D356D537",
 					SkillGetWithRatio: "3EB4BC45",
 					SpeechGarble: "9D669F73",
 					SpeechGarbleByGagLevel: "5F6E16C8",
@@ -2434,7 +2434,7 @@ async function ForBetterClub() {
 				Description: displayText(
 					"show versions of the club, FBC, BCX and other mods in use by players"
 				),
-				Action: (args) => {
+				Action: (_, _command, args) => {
 					/** @type {(character: Character) => string} */
 					const getCharacterModInfo = (character) =>
 						`${CharacterNickname(character)} (${character.MemberNumber}) club ${
@@ -2465,7 +2465,8 @@ async function ForBetterClub() {
 								: ""
 						}`;
 
-					const targets = findDrawnCharacters(args[0]);
+					const targets =
+						args.length > 0 ? findDrawnCharacters(args[0], true) : [];
 
 					const printList =
 						targets.length > 0 ? targets : ChatRoomCharacterDrawlist;
@@ -10319,15 +10320,19 @@ async function ForBetterClub() {
 
 	/**
 	 * @param {string} target
+	 * @param {boolean} [limitVisible]
 	 */
-	function findDrawnCharacters(target) {
+	function findDrawnCharacters(target, limitVisible = false) {
+		const baseList = limitVisible
+			? ChatRoomCharacterDrawlist
+			: ChatRoomCharacter;
 		let targetMembers = [];
 		if (/^\d+$/u.test(target)) {
 			targetMembers = [
-				ChatRoomCharacter.find((c) => c.MemberNumber === parseInt(target)),
+				baseList.find((c) => c.MemberNumber === parseInt(target)),
 			];
 		} else {
-			targetMembers = ChatRoomCharacter.filter(
+			targetMembers = baseList.filter(
 				(c) =>
 					CharacterNickname(c).split(" ")[0]?.toLowerCase() ===
 						target?.toLowerCase() ||
