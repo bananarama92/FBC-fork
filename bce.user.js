@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Bondage Club Enhancements
 // @namespace https://www.bondageprojects.com/
-// @version 4.60
+// @version 4.61
 // @description FBC - For Better Club - enhancements for the bondage club - old name kept in tampermonkey for compatibility
 // @author Sidious
 // @match https://bondageprojects.elementfx.com/*
@@ -38,10 +38,13 @@
  *  along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-const FBC_VERSION = "4.60";
+const FBC_VERSION = "4.61";
 const settingsVersion = 54;
 
 const fbcChangelog = `${FBC_VERSION}
+- fix a bug where the animation can get in a bad state when presented with an invalid expression
+
+4.60
 - add ability to define target for /versions command (dDeepLb)
 - preserve formatting in IM messages (dDeepLb)
 
@@ -50,9 +53,6 @@ const fbcChangelog = `${FBC_VERSION}
 
 4.58
 - add option to rate limit sending on client side
-
-4.57
-- remove extreme difficulty confirmation prompt (no longer necessary since R97Beta2)
 `;
 
 /*
@@ -1258,6 +1258,7 @@ async function ForBetterClub() {
 					TimerInventoryRemove: "1FA771FB",
 					TimerProcess: "52458C63",
 					TitleExit: "F13F533C",
+					ValidationSanitizeProperties: "51BE4BA9",
 					WardrobeClick: "E96F7F63",
 					WardrobeExit: "EE83FF29",
 					WardrobeFastLoad: "38627DC2",
@@ -5245,6 +5246,22 @@ async function ForBetterClub() {
 				}`,
 			},
 			"Game's timed expressions are not hooked to FBC's animation engine"
+		);
+
+		patchFunction(
+			"ValidationSanitizeProperties",
+			{
+				"delete property.Expression;": `delete property.Expression;
+				if (bceAnimationEngineEnabled()) {
+					if (item?.Asset?.Group?.Name) {
+						CharacterSetFacialExpression(C, item.Asset.Group.Name, null);
+						console.warn("(FBC) Animation engine acknowledged validation-based expression removal for face component", item)
+					} else {
+						console.warn("Unable to determine asset group name for item", item);
+					}
+				}`,
+			},
+			"Prevent animation engine from getting into an endless loop when another addon includes an invalid expression"
 		);
 
 		SDK.hookFunction(
