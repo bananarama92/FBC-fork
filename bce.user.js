@@ -6444,7 +6444,6 @@ async function ForBetterClub() {
 			// Don't send hello until settings are loaded
 			return;
 		}
-		console.trace("Sending hello");
 		/** @type {ChatMessage} */
 		const message = {
 			Type: HIDDEN,
