@@ -123,6 +123,7 @@ declare global {
   var RelogChatLog: HTMLDivElement | null;
   var ServerBeep: ServerBeep;
   var ServerSend: (event: string, data: unknown) => void;
+  var ServerSendQueueProcess: () => void;
   var GameVersion: string;
   var GLVersion: string;
   var LoginErrorMessage: string;
@@ -604,7 +605,7 @@ declare global {
   }
   interface BaseCharacter {
     AssetFamily: "Female3DCG";
-    ArousalSettings: ArousalSettings;
+    ArousalSettings?: ArousalSettings;
     Inventory: unknown;
     OnlineSettings: OnlineSettings;
     OnlineSharedSettings: OnlineSharedSettings;

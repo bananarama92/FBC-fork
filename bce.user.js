@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Bondage Club Enhancements
 // @namespace https://www.bondageprojects.com/
-// @version 4.61
+// @version 4.62
 // @description FBC - For Better Club - enhancements for the bondage club - old name kept in tampermonkey for compatibility
 // @author Sidious
 // @match https://bondageprojects.elementfx.com/*
@@ -38,10 +38,16 @@
  *  along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-const FBC_VERSION = "4.61";
-const settingsVersion = 54;
+const FBC_VERSION = "4.62";
+const settingsVersion = 55;
 
 const fbcChangelog = `${FBC_VERSION}
+- added a patch to prevent the game from processing serversends while the game does not have connection with the server
+- fixes towards a rare error related to ArousalSettings not being defined on remote characters
+- removed a duplicate hello message on initial load when automatically rejoining a chatroom
+- removed FBC's duplicate implementation of client-side rate limiting
+
+4.61
 - fix a bug where the animation can get in a bad state when presented with an invalid expression
 
 4.60
@@ -50,9 +56,6 @@ const fbcChangelog = `${FBC_VERSION}
 
 4.59
 - improve the client side rate limiting
-
-4.58
-- add option to rate limit sending on client side
 `;
 
 /*
@@ -179,6 +182,7 @@ async function ForBetterClub() {
 	 */
 	// @ts-ignore -- this is fully initialized in loadSettings
 	let fbcSettings = {};
+	let postSettingsHasRun = false;
 
 	const defaultSettings = /** @type {const} */ ({
 		animationEngine: {
@@ -773,16 +777,6 @@ async function ForBetterClub() {
 			description:
 				"Show a confirmation prompt before allowing content from a 3rd party domain to be loaded.",
 		},
-		limitGlobalSendRate: {
-			label: "Limit global send rate (requires refresh)",
-			value: true,
-			sideEffects: (newValue) => {
-				debug("limitGlobalSendRate", newValue);
-			},
-			category: "misc",
-			description:
-				"Prevent getting rate limited by the server. This may cause delays in your messages being sent and changes being saved.",
-		},
 		fpsCounter: {
 			label: "Show FPS counter",
 			value: false,
@@ -906,7 +900,7 @@ async function ForBetterClub() {
 	}
 
 	function settingsLoaded() {
-		return Object.keys(fbcSettings).length > 0;
+		return postSettingsHasRun;
 	}
 
 	const bceSettingKey = () => `bce.settings.${Player?.AccountName}`;
@@ -918,7 +912,7 @@ async function ForBetterClub() {
 		await waitFor(() => !!Player?.AccountName);
 		const key = bceSettingKey();
 		debug("loading settings");
-		if (!settingsLoaded()) {
+		if (Object.keys(fbcSettings).length === 0) {
 			let settings = /** @type {typeof fbcSettings} */ (
 				JSON.parse(localStorage.getItem(key))
 			);
@@ -1000,6 +994,7 @@ async function ForBetterClub() {
 		if (typeof Player.CanChange === "undefined") {
 			Player.CanChange = Player.CanChangeOwnClothes;
 		}
+		postSettingsHasRun = true;
 	}
 
 	// ICONS
@@ -1242,6 +1237,7 @@ async function ForBetterClub() {
 					ServerInit: "FEC6457F",
 					ServerOpenFriendList: "FA8D3CDE",
 					ServerSend: "D356D537",
+					ServerSendQueueProcess: "BD4277AC",
 					SkillGetWithRatio: "3EB4BC45",
 					SpeechGarble: "9D669F73",
 					SpeechGarbleByGagLevel: "5F6E16C8",
@@ -1628,7 +1624,6 @@ async function ForBetterClub() {
 	registerFunction(leashFix, "leashFix");
 	registerFunction(hookBCXAPI, "hookBCXAPI");
 	registerFunction(customContentDomainCheck, "customContentDomainCheck");
-	registerFunction(limitSendRate, "limitSendRate");
 	funcsRegistered = "enable";
 
 	// Post ready when in a chat room
@@ -1774,6 +1769,29 @@ async function ForBetterClub() {
 					return;
 				}
 				// eslint-disable-next-line consistent-return
+				return next(args);
+			}
+		);
+
+		// Send responses immediately
+		SDK.hookFunction(
+			"ServerSend",
+			HOOK_PRIORITIES.AddBehaviour,
+			(args, next) => {
+				const ret = next(args);
+				ServerSendQueueProcess();
+				return ret;
+			}
+		);
+
+		// Prevent processing of sent messages when disconnected
+		SDK.hookFunction(
+			"ServerSendQueueProcess",
+			HOOK_PRIORITIES.OverrideBehaviour,
+			(args, next) => {
+				if (!ServerIsConnected) {
+					return null;
+				}
 				return next(args);
 			}
 		);
@@ -6369,60 +6387,6 @@ async function ForBetterClub() {
 		createTimer(clearCaches, cacheClearInterval);
 	}
 
-	function limitSendRate() {
-		if (!fbcSettings.limitGlobalSendRate) {
-			return;
-		}
-
-		const sendRateLimit = 18;
-		const sendRateLimitInterval = 1200;
-		/**
-		 * @typedef {{ args: unknown[]; next: (args: unknown[]) => void }} SendRateLimitQueueItem
-		 * @type {SendRateLimitQueueItem[]}
-		 */
-		const sendRateLimitQueue = [];
-		let sendRateLimitTimes = [];
-
-		for (let i = 0; i < sendRateLimit; i++) {
-			sendRateLimitTimes.push(Date.now());
-		}
-
-		let rateLimited = false;
-
-		SDK.hookFunction("ServerSocket.emit", HOOK_PRIORITIES.Top, (args, next) => {
-			sendRateLimitQueue.push({ args, next });
-			return null;
-		});
-
-		createTimer(() => {
-			sendRateLimitTimes = sendRateLimitTimes.filter(
-				(t) => Date.now() - t < sendRateLimitInterval
-			);
-
-			while (
-				sendRateLimitTimes.length < sendRateLimit &&
-				sendRateLimitQueue.length > 0
-			) {
-				rateLimited = false;
-				const item = sendRateLimitQueue.shift();
-				if (item) {
-					item.next(item.args);
-					sendRateLimitTimes.push(Date.now());
-				}
-			}
-
-			if (sendRateLimitQueue.length > sendRateLimit && !rateLimited) {
-				rateLimited = true;
-				fbcBeepNotify(
-					"Rate limited",
-					`Send rate limit breached, throttling, raw data MAY CONTAIN PERSONAL INFORMATION: ${JSON.stringify(
-						sendRateLimitQueue.map((q) => q.args)
-					)}`
-				);
-			}
-		}, 1);
-	}
-
 	function chatRoomOverlay() {
 		SDK.hookFunction(
 			"ChatRoomDrawCharacterOverlay",
@@ -6476,6 +6440,11 @@ async function ForBetterClub() {
 
 	/** @type {(target?: number, requestReply?: boolean) => void} */
 	function sendHello(target = null, requestReply = false) {
+		if (!settingsLoaded()) {
+			// Don't send hello until settings are loaded
+			return;
+		}
+		console.trace("Sending hello");
 		/** @type {ChatMessage} */
 		const message = {
 			Type: HIDDEN,
@@ -6525,6 +6494,88 @@ async function ForBetterClub() {
 	async function hiddenMessageHandler() {
 		await waitFor(() => ServerSocket && ServerIsConnected);
 
+		/**
+		 * @param {ChatMessage | BCEChatMessage} data
+		 */
+		function parseBCEMessage(data) {
+			/** @type {BCEMessage} */
+			let message = {
+				type: null,
+				version: null,
+			};
+			if (Array.isArray(data.Dictionary)) {
+				message = data.Dictionary?.find((t) => t.message)?.message || message;
+			} else {
+				message = data.Dictionary?.message || message;
+			}
+			return message;
+		}
+
+		/**
+		 * @param {Character} sender
+		 * @param {BCEMessage} message
+		 * @param {boolean} [deferred]
+		 */
+		function processBCEMessage(sender, message, deferred = false) {
+			debug(
+				"Processing BCE message",
+				sender,
+				message,
+				deferred ? "(deferred)" : ""
+			);
+			if (!sender?.ArousalSettings && !deferred) {
+				/**
+				 * FBC's socket listener may in some cases run before the game's socket listener initializes the character
+				 * This is an attempt to fix the issue by ensuring the message gets processed at the end of the current
+				 * event loop.
+				 */
+				logWarn(
+					"No arousal settings found for",
+					sender,
+					"; deferring execution to microtask."
+				);
+				queueMicrotask(() => {
+					processBCEMessage(sender, message, true);
+				});
+				return;
+			}
+
+			if (!sender?.ArousalSettings) {
+				logWarn("No arousal settings found for", sender);
+			}
+
+			switch (message.type) {
+				case MESSAGE_TYPES.Hello:
+					sender.FBC = message.version;
+					sender.BCEArousal = message.alternateArousal || false;
+					sender.BCEArousalProgress =
+						message.progress || sender.ArousalSettings?.Progress || 0;
+					sender.BCEEnjoyment = message.enjoyment || 1;
+					sender.BCECapabilities = message.capabilities;
+					if (message.replyRequested) {
+						sendHello(sender.MemberNumber);
+					}
+					sender.FBCOtherAddons = message.otherAddons;
+					break;
+				case MESSAGE_TYPES.ArousalSync:
+					sender.BCEArousal = message.alternateArousal || false;
+					sender.BCEArousalProgress = message.progress || 0;
+					sender.BCEEnjoyment = message.enjoyment || 1;
+					break;
+				case MESSAGE_TYPES.Activity:
+					// Sender is owner and player is not already wearing a club slave collar
+					if (
+						sender.MemberNumber === Player.Ownership?.MemberNumber &&
+						!Player.Appearance.some((a) => a.Asset.Name === "ClubSlaveCollar")
+					) {
+						bceStartClubSlave();
+					}
+					break;
+				default:
+					break;
+			}
+		}
+
 		registerSocketListener(
 			"ChatRoomMessage",
 			// eslint-disable-next-line complexity
@@ -6540,49 +6591,8 @@ async function ForBetterClub() {
 					if (!sender) {
 						return;
 					}
-					/** @type {BCEMessage} */
-					let message = {
-						type: null,
-						version: null,
-					};
-					if (Array.isArray(data.Dictionary)) {
-						message =
-							data.Dictionary?.find((t) => t.message)?.message || message;
-					} else {
-						message = data.Dictionary?.message || message;
-					}
-					switch (message.type) {
-						case MESSAGE_TYPES.Hello:
-							sender.FBC = message.version;
-							sender.BCEArousal = message.alternateArousal || false;
-							sender.BCEArousalProgress =
-								message.progress || sender.ArousalSettings.Progress || 0;
-							sender.BCEEnjoyment = message.enjoyment || 1;
-							sender.BCECapabilities = message.capabilities;
-							if (message.replyRequested) {
-								sendHello(sender.MemberNumber);
-							}
-							sender.FBCOtherAddons = message.otherAddons;
-							break;
-						case MESSAGE_TYPES.ArousalSync:
-							sender.BCEArousal = message.alternateArousal || false;
-							sender.BCEArousalProgress = message.progress || 0;
-							sender.BCEEnjoyment = message.enjoyment || 1;
-							break;
-						case MESSAGE_TYPES.Activity:
-							// Sender is owner and player is not already wearing a club slave collar
-							if (
-								sender.MemberNumber === Player.Ownership?.MemberNumber &&
-								!Player.Appearance.some(
-									(a) => a.Asset.Name === "ClubSlaveCollar"
-								)
-							) {
-								bceStartClubSlave();
-							}
-							break;
-						default:
-							break;
-					}
+					const message = parseBCEMessage(data);
+					processBCEMessage(sender, message);
 				}
 			}
 		);
