@@ -1582,6 +1582,12 @@ async function ForBetterClub() {
 		return next(args);
 	});
 
+	(async function () {
+		await waitFor(() => !!w.FUSAM?.present);
+		debug("FUSAM present, registering debug methods");
+		w.FUSAM.registerDebugMethod("FBC", fbcDebug);
+	})();
+
 	await registerFunction(functionIntegrityCheck, "functionIntegrityCheck");
 	registerFunction(bceStyles, "bceStyles");
 	registerFunction(commonPatches, "commonPatches");
