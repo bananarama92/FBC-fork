@@ -8908,8 +8908,6 @@ async function ForBetterClub() {
 			].includes(url.host) ||
 			sessionCustomOrigins.get(url.origin) === "allowed";
 
-		debug("bceAllowedToEmbed", url, isTrustedOrigin);
-
 		if (/\/[^/]+\.(png|jpe?g|gif)$/u.test(url.pathname)) {
 			return isTrustedOrigin ? EMBED_TYPE.Image : EMBED_TYPE.Untrusted;
 		}
@@ -9009,7 +9007,7 @@ async function ForBetterClub() {
 													chatMessageElement,
 													scrollToEnd
 												);
-												debug("trusted origins", sessionCustomOrigins);
+												debug("updated trusted origins", sessionCustomOrigins);
 											}
 										},
 										buttons: {
