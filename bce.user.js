@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Bondage Club Enhancements
 // @namespace https://www.bondageprojects.com/
-// @version 4.62
+// @version 4.63
 // @description FBC - For Better Club - enhancements for the bondage club - old name kept in tampermonkey for compatibility
 // @author Sidious
 // @match https://bondageprojects.elementfx.com/*
@@ -38,10 +38,14 @@
  *  along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-const FBC_VERSION = "4.62";
+const FBC_VERSION = "4.63";
 const settingsVersion = 55;
 
 const fbcChangelog = `${FBC_VERSION}
+- R98 compatibility
+- linked chat embeds to the trusted origins for 3rd party content
+
+4.62
 - added a patch to prevent the game from processing serversends while the game does not have connection with the server
 - fixes towards a rare error related to ArousalSettings not being defined on remote characters
 - removed a duplicate hello message on initial load when automatically rejoining a chatroom
@@ -53,9 +57,6 @@ const fbcChangelog = `${FBC_VERSION}
 4.60
 - add ability to define target for /versions command (dDeepLb)
 - preserve formatting in IM messages (dDeepLb)
-
-4.59
-- improve the client side rate limiting
 `;
 
 /*
@@ -72,7 +73,7 @@ var bcModSdk=function(){"use strict";const e="1.1.0";function o(e){alert("Mod ER
 async function ForBetterClub() {
 	"use strict";
 
-	const SUPPORTED_GAME_VERSIONS = ["R97"];
+	const SUPPORTED_GAME_VERSIONS = ["R98"];
 	const CAPABILITIES = /** @type {const} */ (["clubslave"]);
 
 	const w = window;
@@ -140,6 +141,7 @@ async function ForBetterClub() {
 	const EMBED_TYPE = /** @type {const} */ ({
 		Image: "img",
 		None: "",
+		Untrusted: "none-img",
 	});
 
 	/** @type {Record<"BCX" | "EBCH" | "MBS" | "LSCG", "none" | "external" | "stable" | "devel" | "fusam">} */
@@ -157,6 +159,9 @@ async function ForBetterClub() {
 
 	/** @type {{ level: "error" | "warn" | "info" | "debug", message: string }[]} */
 	const pastLogs = new Array(100);
+
+	/** @type {Map<string, "allowed" | "denied">} */
+	const sessionCustomOrigins = new Map();
 
 	/** @type {Map<number, BCECharacterState>} */
 	const characterStates = new Map();
@@ -1150,8 +1155,8 @@ async function ForBetterClub() {
 					CharacterSetActivePose: "5BCD2A9E",
 					CharacterSetCurrent: "F46573D8",
 					CharacterSetFacialExpression: "F8272D7A",
-					ChatAdminRoomCustomizationClick: "5E4098C6",
-					ChatAdminRoomCustomizationProcess: "CBDF97DA",
+					ChatAdminRoomCustomizationClick: "E194A605",
+					ChatAdminRoomCustomizationProcess: "B33D6388",
 					ChatRoomCharacterItemUpdate: "263DB2F0",
 					ChatRoomCharacterUpdate: "9D0EEA39",
 					ChatRoomClearAllElements: "14DAAB05",
@@ -1176,7 +1181,7 @@ async function ForBetterClub() {
 					CommonColorIsValid: "390A2CE4",
 					CommonSetScreen: "E2AC00F4",
 					CraftingClick: "FF76A404",
-					CraftingConvertSelectedToItem: "EC0B58B8",
+					CraftingConvertSelectedToItem: "E827EA50",
 					CraftingRun: "5BE6E125",
 					DialogClick: "D0FA2714",
 					DialogDraw: "8A814153",
@@ -1188,8 +1193,8 @@ async function ForBetterClub() {
 					DrawCheckbox: "00FD87EB",
 					DrawImageEx: "3D3D74F5",
 					DrawImageResize: "8CF55F04",
-					DrawItemPreview: "A27E9228",
-					DrawProcess: "E60F65B5",
+					DrawItemPreview: "58E9BA94",
+					DrawProcess: "BC1E9396",
 					DrawText: "C1BF0F50",
 					DrawTextFit: "F9A1B11E",
 					ElementCreateInput: "60D2EA73",
@@ -1230,7 +1235,7 @@ async function ForBetterClub() {
 					RelogExit: "2DFB2DAD",
 					ServerAccountBeep: "F16771D4",
 					ServerAppearanceBundle: "4D069622",
-					ServerAppearanceLoadFromBundle: "FB794E30",
+					ServerAppearanceLoadFromBundle: "C9F5FFAC",
 					ServerClickBeep: "3E6277BE",
 					ServerConnect: "845E50A6",
 					ServerDisconnect: "06C1A6B0",
@@ -1254,7 +1259,7 @@ async function ForBetterClub() {
 					TimerInventoryRemove: "1FA771FB",
 					TimerProcess: "52458C63",
 					TitleExit: "F13F533C",
-					ValidationSanitizeProperties: "51BE4BA9",
+					ValidationSanitizeProperties: "C6A54638",
 					WardrobeClick: "E96F7F63",
 					WardrobeExit: "EE83FF29",
 					WardrobeFastLoad: "38627DC2",
@@ -8664,9 +8669,6 @@ async function ForBetterClub() {
 				CurrentScreen === "ChatRoom" &&
 				document.getElementById("TextAreaChatLog")?.offsetParent !== null
 			) {
-				if (GameVersion.startsWith("R96")) {
-					return [5, 905, 60, 60];
-				}
 				return [5, 865, 60, 60];
 			}
 			return [70, 905, 60, 60];
@@ -8890,9 +8892,9 @@ async function ForBetterClub() {
 		}
 	}
 
-	/** @type {(url: URL) => "img" | ""} */
+	/** @type {(url: URL) => "img" | "" | "none-img"} */
 	function bceAllowedToEmbed(url) {
-		if (
+		const isTrustedOrigin =
 			[
 				"cdn.discordapp.com",
 				"media.discordapp.com",
@@ -8903,10 +8905,13 @@ async function ForBetterClub() {
 				"i.redd.it",
 				"puu.sh",
 				"fs.kinkop.eu",
-			].includes(url.host) &&
-			/\/[^/]+\.(png|jpe?g|gif)$/u.test(url.pathname)
-		) {
-			return EMBED_TYPE.Image;
+			].includes(url.host) ||
+			sessionCustomOrigins.get(url.origin) === "allowed";
+
+		debug("bceAllowedToEmbed", url, isTrustedOrigin);
+
+		if (/\/[^/]+\.(png|jpe?g|gif)$/u.test(url.pathname)) {
+			return isTrustedOrigin ? EMBED_TYPE.Image : EMBED_TYPE.Untrusted;
 		}
 		return EMBED_TYPE.None;
 	}
@@ -8914,6 +8919,7 @@ async function ForBetterClub() {
 	/** @type {(chatMessageElement: Element, scrollToEnd: () => void) => void} */
 	function processChatAugmentsForLine(chatMessageElement, scrollToEnd) {
 		const newChildren = [];
+		let originalText = "";
 		for (const node of chatMessageElement.childNodes) {
 			if (node.nodeType !== Node.TEXT_NODE) {
 				newChildren.push(node);
@@ -8930,6 +8936,9 @@ async function ForBetterClub() {
 			}
 			const contents = node.textContent.trim(),
 				words = [contents];
+
+			originalText += node.textContent;
+
 			for (let i = 0; i < words.length; i++) {
 				// Handle other whitespace
 				const whitespaceIdx = words[i].search(/[\s\r\n]/u);
@@ -8950,7 +8959,9 @@ async function ForBetterClub() {
 					/** @type {HTMLElement | Text} */
 					let domNode = null;
 					const linkNode = document.createElement("a");
-					switch (bceAllowedToEmbed(url)) {
+					newChildren.push(linkNode);
+					const embedType = bceAllowedToEmbed(url);
+					switch (embedType) {
 						case EMBED_TYPE.Image:
 							{
 								const imgNode = document.createElement("img");
@@ -8964,13 +8975,60 @@ async function ForBetterClub() {
 							break;
 						default:
 							domNode = document.createTextNode(url.href);
+							if (embedType !== EMBED_TYPE.None) {
+								const promptTrust = document.createElement("a");
+								promptTrust.onclick = (e) => {
+									e.preventDefault();
+									e.stopPropagation();
+									// eslint-disable-next-line prefer-destructuring
+									const target = /** @type {HTMLAnchorElement} */ (e.target);
+									showModal({
+										prompt: displayText(
+											"Do you want to add $origin to trusted origins?",
+											{
+												$origin: url.origin,
+											}
+										),
+										callback: (act) => {
+											if (act === "submit") {
+												sessionCustomOrigins.set(url.origin, "allowed");
+												const parent = target.parentElement;
+												parent.removeChild(target);
+												const name = parent.querySelector(".ChatMessageName");
+												parent.innerHTML = "";
+												if (name) {
+													parent.appendChild(name);
+													parent.appendChild(document.createTextNode(" "));
+												}
+												parent.appendChild(
+													document.createTextNode(
+														parent.getAttribute("bce-original-text")
+													)
+												);
+												processChatAugmentsForLine(
+													chatMessageElement,
+													scrollToEnd
+												);
+												debug("trusted origins", sessionCustomOrigins);
+											}
+										},
+										buttons: {
+											submit: displayText("Trust this session"),
+										},
+									});
+								};
+								promptTrust.href = "#";
+								promptTrust.title = displayText("Trust this session");
+								promptTrust.textContent = displayText("(embed)");
+								newChildren.push(document.createTextNode(" "));
+								newChildren.push(promptTrust);
+							}
 							break;
 					}
 					linkNode.href = url.href;
 					linkNode.title = url.href;
 					linkNode.target = "_blank";
 					linkNode.appendChild(domNode);
-					newChildren.push(linkNode);
 				} else if (/^#[0-9a-fA-F]{3}([0-9a-fA-F]{3})?$/u.test(words[i])) {
 					const color = document.createElement("span");
 					color.classList.add("bce-color");
@@ -8988,29 +9046,27 @@ async function ForBetterClub() {
 		for (const child of newChildren) {
 			chatMessageElement.appendChild(child);
 		}
+		chatMessageElement.setAttribute("bce-original-text", originalText);
 	}
 
 	function customContentDomainCheck() {
-		if (GameVersion.startsWith("R96")) {
-			return;
-		}
-
-		/** @type {Map<string, "allowed" | "denied">} */
-		const sessionCustomOrigins = new Map();
 		const trustedOrigins = ["https://fs.kinkop.eu", "https://i.imgur.com"];
 
 		let open = false;
 		/**
 		 * @param {string} origin
+		 * @param {"image" | "music"} type
 		 */
-		function showCustomContentDomainCheckWarning(origin) {
+		function showCustomContentDomainCheckWarning(origin, type = null) {
 			if (open) {
 				return;
 			}
 			open = true;
 			showModal({
 				prompt: displayText(
-					"Do you want to allow 3rd party content to be loaded from $origin? $trusted",
+					`Do you want to allow 3rd party ${
+						type ?? "content"
+					} to be loaded from $origin? $trusted`,
 					{
 						$origin: origin,
 						$trusted: trustedOrigins.includes(origin)
@@ -9051,9 +9107,9 @@ async function ForBetterClub() {
 					const musicOrigin = MusicURL && new URL(MusicURL).origin;
 
 					if (imageOrigin && !sessionCustomOrigins.has(imageOrigin)) {
-						showCustomContentDomainCheckWarning(imageOrigin);
+						showCustomContentDomainCheckWarning(imageOrigin, "image");
 					} else if (musicOrigin && !sessionCustomOrigins.has(musicOrigin)) {
-						showCustomContentDomainCheckWarning(musicOrigin);
+						showCustomContentDomainCheckWarning(musicOrigin, "music");
 					}
 
 					if (
