@@ -163,10 +163,10 @@ async function ForBetterClub() {
 	/** @type {Map<string, "allowed" | "denied">} */
 	const sessionCustomOrigins = new Map();
 
-	/** @type {Map<number, BCECharacterState>} */
+	/** @type {Map<number, FBCCharacterState>} */
 	const characterStates = new Map();
 
-	/** @type {ToySyncState} */
+	/** @type {FBCToySyncState} */
 	const toySyncState = {
 		deviceSettings: new Map(),
 	};
@@ -863,7 +863,7 @@ async function ForBetterClub() {
 					if (!isString(newValue)) {
 						throw new Error("expected string for buttplugDevices");
 					}
-					const devices = /** @type {ToySetting[]} */ (JSON.parse(newValue));
+					const devices = /** @type {FBCToySetting[]} */ (JSON.parse(newValue));
 					if (!Array.isArray(devices)) {
 						throw new Error("expected array for devices");
 					}
@@ -879,15 +879,16 @@ async function ForBetterClub() {
 		},
 	});
 
-	/** @type {SocketEventListenerRegister} */
+	/** @type {[any, any][]} */
 	const listeners = [];
-	/** @type {(event: ServerSocketEvent, cb: SocketEventListener) => void} */
+	/** @type {typeof ServerSocket.on} */
 	function registerSocketListener(event, cb) {
 		if (!listeners.some((l) => l[1] === cb)) {
 			listeners.push([event, cb]);
-			// eslint-disable-next-line @typescript-eslint/no-misused-promises
-			ServerSocket.on(event, cb);
+			// @ts-ignore - too lazy to fix
+			return ServerSocket.on(event, cb);
 		}
+		return null;
 	}
 
 	function appendSocketListenersToInit() {
@@ -995,10 +996,6 @@ async function ForBetterClub() {
 		}
 		bceSaveSettings();
 
-		// Polyfill old functions
-		if (typeof Player.CanChange === "undefined") {
-			Player.CanChange = Player.CanChangeOwnClothes;
-		}
 		postSettingsHasRun = true;
 	}
 
@@ -1123,8 +1120,6 @@ async function ForBetterClub() {
 	}
 
 	window.fbcDisplayText = (original, replacements = {}) =>
-		displayText(original, replacements);
-	window.bceDisplayText = (original, replacements = {}) =>
 		displayText(original, replacements);
 
 	/**
@@ -1412,9 +1407,7 @@ async function ForBetterClub() {
 			],
 		});
 	};
-	w.bceSendAction = fbcSendAction;
 
-	w.bceSettingValue = (key) => fbcSettingValue(key);
 	w.fbcSettingValue = (key) => {
 		if (isDefaultSettingKey(key)) {
 			return fbcSettings[key];
@@ -1431,7 +1424,7 @@ async function ForBetterClub() {
 	};
 
 	/**
-	 * @type {(duration: number) => Duration}
+	 * @type {(duration: number) => FBCDuration}
 	 */
 	const durationToComponents = (duration) => {
 		let seconds = Math.floor(duration / 1000);
@@ -1451,7 +1444,7 @@ async function ForBetterClub() {
 	};
 
 	/**
-	 * @type {(dateFuture: Date) => Duration}
+	 * @type {(dateFuture: Date) => FBCDuration}
 	 */
 	const timeUntilDate = (dateFuture) => {
 		// https://stackoverflow.com/a/13904621/1780502 - jackcogdill
@@ -1923,7 +1916,7 @@ async function ForBetterClub() {
 					return;
 				}
 
-				/** @type {Duration} */
+				/** @type {FBCDuration} */
 				const additions = {
 					days: 0,
 					hours: 0,
@@ -2282,7 +2275,7 @@ async function ForBetterClub() {
 					"Import looks from a string (BCX or FBC export)"
 				),
 				Action: () => {
-					if (!Player.CanChange() || !OnlineGameAllowChange()) {
+					if (!Player.CanChangeOwnClothes() || !OnlineGameAllowChange()) {
 						fbcChatNotify(
 							displayText(
 								"You cannot change your appearance while bound or during online games, such as LARP."
@@ -2453,8 +2446,11 @@ async function ForBetterClub() {
 								msg.length > 0 && [".", "/"].includes(msg[0]) ? "\u200b" : ""
 							}${msg}`
 						);
-						// True to skip history
-						ChatRoomSendChat(true);
+						ChatRoomSendChat();
+
+						// Erase duplicate from history to prevent things like automatic shock collars listening to the history from triggering
+						ChatRoomLastMessage.pop();
+
 						ChatRoomTargetMemberNumber = originalTarget;
 					}
 				},
@@ -2511,16 +2507,6 @@ async function ForBetterClub() {
 				},
 			},
 		];
-
-		// Skip history patch for /w
-		patchFunction(
-			"ChatRoomSendChat",
-			{
-				"ChatRoomSendChat()": `ChatRoomSendChat(skipHistory)`,
-				"ChatRoomLastMessage.push(msg);": `if (!skipHistory) ChatRoomLastMessage.push(msg);`,
-			},
-			"Whispers sent via /w will trigger items such as the automated shock collar and futuristic training belt."
-		);
 
 		for (const c of cmds) {
 			if (Commands.some((a) => a.Tag === c.Tag)) {
@@ -2913,6 +2899,8 @@ async function ForBetterClub() {
 				}
 			}
 		);
+
+		// @ts-ignore - BCESettings is a valid subscreen due to our additions
 		PreferenceSubscreenList.push("BCESettings");
 
 		/** @type {(e: KeyboardEvent) => void} */
@@ -3770,7 +3758,7 @@ async function ForBetterClub() {
 			};
 		}
 
-		/** @type {{[key: string]: string[]}} */
+		/** @type {{[key: string]: ExpressionName[]}} */
 		const bceExpressionModifierMap = Object.freeze({
 			Blush: [null, "Low", "Medium", "High", "VeryHigh", "Extreme"],
 		});
@@ -3845,10 +3833,10 @@ async function ForBetterClub() {
 					p.Pose = p.Pose.map(
 						// eslint-disable-next-line no-loop-func
 						(
-							/** @type {string | PoseEx} */
+							/** @type {AssetPoseName | PoseEx} */
 							v
 						) => {
-							/** @type {string} */
+							/** @type {AssetPoseName} */
 							// @ts-ignore
 							const poseName = v;
 							return {
@@ -4957,70 +4945,62 @@ async function ForBetterClub() {
 			];
 		}
 
-		/** @type {(dict: ChatMessageDictionary[]) => boolean} */
+		/** @type {(dict: ChatMessageDictionary) => boolean} */
 		function dictHasPlayerTarget(dict) {
 			return (
 				dict?.some(
 					(t) =>
 						t &&
-						/^(Target|Destination)Character(Name)?$/u.test(t.Tag) &&
-						t.MemberNumber === Player.MemberNumber
-				) ||
-				dict?.some((t) => t && t.TargetCharacter === Player.MemberNumber) ||
-				false
+						"TargetCharacter" in t &&
+						t.TargetCharacter === Player.MemberNumber
+				) || false
 			);
 		}
 
-		registerSocketListener(
-			"ChatRoomMessage",
-			(
-				/** @type {ChatMessage} */
-				data
-			) => {
-				activityTriggers: for (const trigger of w.bce_ActivityTriggers.filter(
-					(t) => t.Type === data.Type
-				)) {
-					for (const matcher of trigger.Matchers) {
-						if (matcher.Tester.test(data.Content)) {
-							if (matcher.Criteria) {
-								if (
-									matcher.Criteria.SenderIsPlayer &&
-									data.Sender !== Player.MemberNumber
-								) {
-									continue;
-								} else if (
-									matcher.Criteria.TargetIsPlayer &&
-									!dictHasPlayerTarget(data.Dictionary)
-								) {
-									continue;
-								} else if (
-									matcher.Criteria.DictionaryMatchers &&
-									!matcher.Criteria.DictionaryMatchers.some((m) =>
-										data.Dictionary?.find((t) =>
-											// eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-											Object.keys(m).every((k) => m[k] === t[k])
-										)
-									)
-								) {
-									continue;
-								}
-								// Criteria met
-								pushEvent(w.bce_EventExpressions[trigger.Event]);
-							} else if (
-								data.Sender === Player.MemberNumber ||
-								dictHasPlayerTarget(data.Dictionary)
+		registerSocketListener("ChatRoomMessage", (data) => {
+			activityTriggers: for (const trigger of w.bce_ActivityTriggers.filter(
+				(t) => t.Type === data.Type
+			)) {
+				for (const matcher of trigger.Matchers) {
+					if (matcher.Tester.test(data.Content)) {
+						if (matcher.Criteria) {
+							if (
+								matcher.Criteria.SenderIsPlayer &&
+								data.Sender !== Player.MemberNumber
 							) {
-								// Lacking criteria, check for presence of player as source or target
-								pushEvent(w.bce_EventExpressions[trigger.Event]);
-								break activityTriggers;
+								continue;
+							} else if (
+								matcher.Criteria.TargetIsPlayer &&
+								!dictHasPlayerTarget(data.Dictionary)
+							) {
+								continue;
+							} else if (
+								matcher.Criteria.DictionaryMatchers &&
+								!matcher.Criteria.DictionaryMatchers.some((m) =>
+									data.Dictionary?.find((t) =>
+										// eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+										Object.keys(m).every((k) => m[k] === t[k])
+									)
+								)
+							) {
+								continue;
 							}
+							// Criteria met
+							pushEvent(w.bce_EventExpressions[trigger.Event]);
+						} else if (
+							data.Sender === Player.MemberNumber ||
+							dictHasPlayerTarget(data.Dictionary)
+						) {
+							// Lacking criteria, check for presence of player as source or target
+							pushEvent(w.bce_EventExpressions[trigger.Event]);
+							break activityTriggers;
 						}
 					}
 				}
 			}
-		);
+		});
 
-		/** @type {(faceComponent: string) => [string | null, boolean]} */
+		/** @type {(faceComponent: string) => [ExpressionName, boolean]} */
 		function expression(t) {
 			const properties =
 				Player.Appearance.filter((a) => a.Asset.Group.Name === t)[0]
@@ -5028,7 +5008,7 @@ async function ForBetterClub() {
 			return [properties?.Expression || null, !properties?.RemoveTimer];
 		}
 
-		/** @type {(faceComponent: string, newExpression: string, color: string) => void} */
+		/** @type {(faceComponent: string, newExpression: ExpressionName, color: string) => void} */
 		function setExpression(t, n, color) {
 			if (!n) {
 				n = null;
@@ -5297,7 +5277,7 @@ async function ForBetterClub() {
 			"CharacterSetFacialExpression",
 			HOOK_PRIORITIES.OverrideBehaviour,
 			/**
-			 * @param {[Character, string, string | null, number, string | null]} args
+			 * @param {[Character, string, ExpressionName, number, string | null]} args
 			 */
 			(args, next) => {
 				// eslint-disable-next-line prefer-const
@@ -5353,9 +5333,8 @@ async function ForBetterClub() {
 		SDK.hookFunction(
 			"CharacterSetActivePose",
 			HOOK_PRIORITIES.OverrideBehaviour,
-			(/** @type {[Character, string | string[] | null]} */ args, next) => {
-				const [C] = args;
-				let [, Pose] = args;
+			(/** @type {[Character, null | AssetPoseName]} */ args, next) => {
+				const [C, Pose] = args;
 				if (
 					!isCharacter(C) ||
 					(!isStringOrStringArray(Pose) && Pose !== null) ||
@@ -5365,11 +5344,12 @@ async function ForBetterClub() {
 					return next(args);
 				}
 
-				if (!Pose || (Array.isArray(Pose) && Pose.every((p) => !p))) {
-					Pose = ["BaseUpper", "BaseLower"];
-				}
 				const p = {};
-				p.Pose = Array.isArray(Pose) ? Pose : [Pose];
+				if (!Pose || (Array.isArray(Pose) && Pose.every((pp) => !pp))) {
+					p.Pose = /** @type {AssetPoseName[]} */ (["BaseUpper", "BaseLower"]);
+				} else {
+					p.Pose = [Pose];
+				}
 				p.Duration = -1;
 				const evt = {
 					Type: MANUAL_OVERRIDE_EVENT_TYPE,
@@ -5400,26 +5380,20 @@ async function ForBetterClub() {
 			}
 		);
 
-		registerSocketListener(
-			"ChatRoomSyncSingle",
-			(
-				/** @type {ChatRoomSyncSingleEvent} */
-				data
-			) => {
-				if (data === null || !isNonNullObject(data)) {
-					return;
-				}
-				if (!bceAnimationEngineEnabled()) {
-					return;
-				}
-				if (data.Character?.MemberNumber === Player.MemberNumber) {
-					const poses = Array.isArray(data.Character.ActivePose)
-						? data.Character.ActivePose
-						: [data.Character.ActivePose];
-					setPoses(poses);
-				}
+		registerSocketListener("ChatRoomSyncSingle", (data) => {
+			if (data === null || !isNonNullObject(data)) {
+				return;
 			}
-		);
+			if (!bceAnimationEngineEnabled()) {
+				return;
+			}
+			if (data.Character?.MemberNumber === Player.MemberNumber) {
+				const poses = Array.isArray(data.Character.ActivePose)
+					? data.Character.ActivePose
+					: [data.Character.ActivePose];
+				setPoses(poses);
+			}
+		});
 
 		resetExpressionQueue([MANUAL_OVERRIDE_EVENT_TYPE, GAME_TIMED_EVENT_TYPE]);
 
@@ -5514,13 +5488,13 @@ async function ForBetterClub() {
 			/** @type {{ [key: string]: ExpressionStage }} */
 			const desiredExpression = {};
 
-			/** @type {{ [key: string]: { Id: number; Pose: string; Category?: string; Duration: number; Priority: number; Type: string }}} */
+			/** @type {{ [key: string]: { Id: number; Pose: AssetPoseName; Category?: string; Duration: number; Priority: number; Type: string }}} */
 			let desiredPose = {};
 
 			/** @type {{ [key: string]: ExpressionStage }} */
 			const nextExpression = {};
 
-			/** @type {(expression: string, stage: ExpressionStage, next: ExpressionEvent, faceComponent: string) => void} */
+			/** @type {(expression: ExpressionName, stage: ExpressionStage, next: ExpressionEvent, faceComponent: string) => void} */
 			const trySetNextExpression = (e, exp, next, t) => {
 				const priority = exp.Priority || next.Priority || 0;
 				if (!nextExpression[t] || nextExpression[t].Priority <= priority) {
@@ -5965,7 +5939,7 @@ async function ForBetterClub() {
 				const drawnLayer = C.AppearanceLayers.find(
 					(a) => a.Asset === FocusItem.Asset && a.Name === layer.Name
 				);
-				let priority = layer.Priority ?? FocusItem.Asset.Priority ?? -1;
+				let priority = layer.Priority ?? -1;
 				if (
 					isNonNullObject(FocusItem?.Property?.OverridePriority) &&
 					layer.Name in FocusItem.Property.OverridePriority
@@ -6455,34 +6429,38 @@ async function ForBetterClub() {
 			// Don't send hello until settings are loaded
 			return;
 		}
-		/** @type {ChatMessage} */
+		/** @type {ServerChatRoomMessage} */
 		const message = {
 			Type: HIDDEN,
 			Content: BCE_MSG,
 			Sender: Player.MemberNumber,
-			Dictionary: [
-				{
-					message: {
-						type: MESSAGE_TYPES.Hello,
-						version: FBC_VERSION,
-						alternateArousal: !!fbcSettings.alternateArousal,
-						replyRequested: requestReply,
-						capabilities: CAPABILITIES,
-					},
-				},
-			],
+			Dictionary: [],
+		};
+		/** @type {FBCDictionaryEntry} */
+		const fbcMessage = {
+			message: {
+				type: MESSAGE_TYPES.Hello,
+				version: FBC_VERSION,
+				alternateArousal: !!fbcSettings.alternateArousal,
+				replyRequested: requestReply,
+				capabilities: CAPABILITIES,
+			},
 		};
 		if (target) {
 			message.Target = target;
 		}
 		if (fbcSettings.alternateArousal) {
-			message.Dictionary[0].message.progress =
+			fbcMessage.message.progress =
 				Player.BCEArousalProgress || Player.ArousalSettings.Progress || 0;
-			message.Dictionary[0].message.enjoyment = Player.BCEEnjoyment || 1;
+			fbcMessage.message.enjoyment = Player.BCEEnjoyment || 1;
 		}
 		if (fbcSettings.shareAddons) {
-			message.Dictionary[0].message.otherAddons = bcModSdk.getModsInfo();
+			fbcMessage.message.otherAddons = bcModSdk.getModsInfo();
 		}
+
+		// @ts-ignore - cannot extend valid dictionary entries to add our type to it, but this is possible within the game's wire format
+		message.Dictionary.push(fbcMessage);
+
 		ServerSend("ChatRoomChat", message);
 	}
 	if (ServerIsConnected && ServerPlayerIsInChatRoom()) {
@@ -6505,7 +6483,7 @@ async function ForBetterClub() {
 		await waitFor(() => ServerSocket && ServerIsConnected);
 
 		/**
-		 * @param {ChatMessage | BCEChatMessage} data
+		 * @param {ServerChatRoomMessage} data
 		 */
 		function parseBCEMessage(data) {
 			/** @type {BCEMessage} */
@@ -6514,9 +6492,15 @@ async function ForBetterClub() {
 				version: null,
 			};
 			if (Array.isArray(data.Dictionary)) {
-				message = data.Dictionary?.find((t) => t.message)?.message || message;
+				const dict = /** @type {FBCDictionaryEntry[]} */ (
+					/** @type {unknown} */ (data.Dictionary)
+				);
+				message = dict?.find((t) => t.message)?.message || message;
 			} else {
-				message = data.Dictionary?.message || message;
+				const dict = /** @type {FBCDictionaryEntry} */ (
+					/** @type {unknown} */ (data.Dictionary)
+				);
+				message = dict?.message || message;
 			}
 			return message;
 		}
@@ -6589,10 +6573,7 @@ async function ForBetterClub() {
 		registerSocketListener(
 			"ChatRoomMessage",
 			// eslint-disable-next-line complexity
-			(
-				/** @type {ChatMessage | BCEChatMessage} */
-				data
-			) => {
+			(data) => {
 				if (data.Type !== HIDDEN) {
 					return;
 				}
@@ -6607,17 +6588,11 @@ async function ForBetterClub() {
 			}
 		);
 
-		registerSocketListener(
-			"ChatRoomSyncMemberJoin",
-			(
-				/** @type {ChatRoomSyncMemberJoinEvent} */
-				data
-			) => {
-				if (data.MemberNumber !== Player.MemberNumber) {
-					sendHello(data.MemberNumber);
-				}
+		registerSocketListener("ChatRoomSyncMemberJoin", (data) => {
+			if (data.SourceMemberNumber !== Player.MemberNumber) {
+				sendHello(data.SourceMemberNumber);
 			}
-		);
+		});
 
 		registerSocketListener("ChatRoomSync", () => {
 			sendHello();
@@ -6887,12 +6862,17 @@ async function ForBetterClub() {
 							{
 								let original = msg;
 								if (
+									// @ts-ignore - BCX's custom dictionary entry, dictionary entries cannot be extended in TS
 									data.Dictionary?.some((d) => d.Tag === BCX_ORIGINAL_MESSAGE)
 								) {
-									original = ChatRoomHTMLEntities(
-										data.Dictionary.find((d) => d.Tag === BCX_ORIGINAL_MESSAGE)
-											.Text
+									const tag = data.Dictionary.find(
+										// @ts-ignore - BCX's custom dictionary entry, dictionary entries cannot be extended in TS
+										(d) => d.Tag === BCX_ORIGINAL_MESSAGE
 									);
+									// @ts-ignore - BCX's custom dictionary entry, dictionary entries cannot be extended in TS
+									// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+									const text = /** @type {string} */ (tag.Text);
+									original = ChatRoomHTMLEntities(text);
 								}
 								if (
 									original.toLowerCase().trim() !== msg.toLowerCase().trim()
@@ -6929,79 +6909,6 @@ async function ForBetterClub() {
 					handled;
 				return { skip, msg };
 			},
-		});
-
-		// ServerSend hook for client-side gagspeak, priority lower than BCX's whisper dictionary hook
-		SDK.hookFunction("ServerSend", 0, (args, next) => {
-			if (args.length < 2) {
-				return next(args);
-			}
-			const [message, data] = args;
-			if (!isString(message) || !isChatMessage(data)) {
-				return next(args);
-			}
-			if (message === "ChatRoomChat") {
-				switch (data.Type) {
-					case "Whisper":
-						{
-							const idx = data.Dictionary?.findIndex(
-								(d) => d.Tag === BCX_ORIGINAL_MESSAGE
-							);
-							if (
-								idx >= 0 &&
-								(fbcSettings.antiAntiGarble ||
-									fbcSettings.antiAntiGarbleStrong ||
-									fbcSettings.antiAntiGarbleExtra)
-							) {
-								data.Dictionary.splice(idx, 1);
-							}
-						}
-						break;
-					case "Chat":
-						{
-							const gagLevel = SpeechGetTotalGagLevel(Player);
-							if (gagLevel > 0) {
-								if (fbcSettings.antiAntiGarble) {
-									data.Content =
-										SpeechGarbleByGagLevel(1, data.Content) +
-										GAGBYPASSINDICATOR;
-								} else if (fbcSettings.antiAntiGarbleExtra && gagLevel > 24) {
-									const icIndicator = "\uF124";
-									let inOOC = false;
-									data.Content = `${data.Content.split("")
-										.map((c) => {
-											switch (c) {
-												case "(":
-													inOOC = true;
-													return c;
-												case ")":
-													inOOC = false;
-													return c;
-												default:
-													return inOOC ? c : icIndicator;
-											}
-										})
-										.join("")
-										.replace(
-											new RegExp(`${icIndicator}+`, "gu"),
-											"m"
-										)}${GAGBYPASSINDICATOR}`;
-								} else if (
-									fbcSettings.antiAntiGarbleStrong ||
-									fbcSettings.antiAntiGarbleExtra
-								) {
-									data.Content =
-										SpeechGarbleByGagLevel(gagLevel, data.Content) +
-										GAGBYPASSINDICATOR;
-								}
-							}
-						}
-						break;
-					default:
-						break;
-				}
-			}
-			return next([message, data, ...args.slice(2)]);
 		});
 
 		// X, Y, width, height. X and Y centered.
@@ -7086,6 +6993,7 @@ async function ForBetterClub() {
 					undefined,
 					// eslint-disable-next-line no-undefined
 					undefined,
+					// @ts-ignore - patched to accept extra params
 					tooltipPosition
 				);
 
@@ -7115,6 +7023,7 @@ async function ForBetterClub() {
 							undefined,
 							tooltipPosition,
 					  ];
+				// @ts-ignore - patched to accept extra params
 				DrawBackNextButton(...gagCheatMenuPosition, ...gagCheatMenuParams);
 
 				return ret;
@@ -7268,18 +7177,22 @@ async function ForBetterClub() {
 			(args, next) => {
 				const [C] = args;
 				if (isCharacter(C) && C.IsPlayer() && CurrentScreen === "ChatRoom") {
+					/** @type {ServerChatRoomMessage} */
 					const message = {
 						Type: HIDDEN,
 						Content: BCE_MSG,
-						Dictionary: {
-							message: {
-								type: MESSAGE_TYPES.ArousalSync,
-								version: FBC_VERSION,
-								alternateArousal: fbcSettings.alternateArousal,
-								progress: C.BCEArousalProgress,
-								enjoyment: C.BCEEnjoyment,
+						Dictionary: [
+							{
+								// @ts-ignore - cannot extend valid dictionary entries to add our type to it, but this is possible within the game's wire format
+								message: {
+									type: MESSAGE_TYPES.ArousalSync,
+									version: FBC_VERSION,
+									alternateArousal: fbcSettings.alternateArousal,
+									progress: C.BCEArousalProgress,
+									enjoyment: C.BCEEnjoyment,
+								},
 							},
-						},
+						],
 					};
 					ServerSend("ChatRoomChat", message);
 				}
@@ -7437,38 +7350,33 @@ async function ForBetterClub() {
 
 	async function autoGhostBroadcast() {
 		await waitFor(() => !!ServerSocket && ServerIsConnected);
-		registerSocketListener(
-			"ChatRoomSyncMemberJoin",
-			(
-				/** @type {ChatRoomSyncMemberJoinEvent} */
-				data
-			) => {
-				if (
-					fbcSettings.ghostNewUsers &&
-					Date.now() - data.Character.Creation < 30000
-				) {
-					ChatRoomListManipulation(
-						Player.BlackList,
-						true,
-						data.Character.MemberNumber
-					);
-					ChatRoomListManipulation(
-						Player.GhostList,
-						true,
-						data.Character.MemberNumber
-					);
-					debug(
-						"Blacklisted",
-						data.Character.Name,
-						CharacterNickname(data.Character),
-						data.Character.MemberNumber,
-						"registered",
-						(Date.now() - data.Character.Creation) / 1000,
-						"seconds ago"
-					);
-				}
+		registerSocketListener("ChatRoomSyncMemberJoin", (data) => {
+			if (
+				fbcSettings.ghostNewUsers &&
+				Date.now() - data.Character.Creation < 30000
+			) {
+				ChatRoomListManipulation(
+					Player.BlackList,
+					true,
+					data.Character.MemberNumber.toString()
+				);
+				ChatRoomListManipulation(
+					Player.GhostList,
+					true,
+					data.Character.MemberNumber.toString()
+				);
+				debug(
+					"Blacklisted",
+					data.Character.Name,
+					// @ts-ignore - CharacterNickname works with this too
+					CharacterNickname(data.Character),
+					data.Character.MemberNumber,
+					"registered",
+					(Date.now() - data.Character.Creation) / 1000,
+					"seconds ago"
+				);
 			}
-		);
+		});
 	}
 
 	async function blindWithoutGlasses() {
@@ -7544,79 +7452,69 @@ async function ForBetterClub() {
 
 		/** @type {Friend[]} */
 		let lastFriends = [];
-		registerSocketListener(
-			"AccountQueryResult",
-			(
-				/** @type {{ Query: string; Result: Friend[] }} */
-				data
-			) => {
-				if (
-					CurrentScreen === "FriendList" ||
-					CurrentScreen === "Relog" ||
-					CurrentScreen === "Login"
-				) {
-					return;
-				}
-				if (!fbcSettings.friendPresenceNotifications) {
-					return;
-				}
-				if (data.Query !== "OnlineFriends") {
-					return;
-				}
-				const friendMemberNumbers = data.Result.map((f) => f.MemberNumber),
-					offlineFriends = lastFriends
-						.map((f) => f.MemberNumber)
-						.filter((f) => !friendMemberNumbers.includes(f)),
-					onlineFriends = friendMemberNumbers.filter(
-						(f) => !lastFriends.some((ff) => ff.MemberNumber === f)
-					);
-				if (onlineFriends.length) {
-					const list = onlineFriends
-						.map((f) => {
-							const { MemberNumber, MemberName } = data.Result.find(
-								(d) => d.MemberNumber === f
-							);
-							return `${MemberName} (${MemberNumber})`;
-						})
-						.join(", ");
-					if (
-						fbcSettings.friendNotificationsInChat &&
-						CurrentScreen === "ChatRoom"
-					) {
-						fbcChatNotify(displayText(`Now online: $list`, { $list: list }));
-					} else {
-						fbcNotify(displayText(`Now online: $list`, { $list: list }), 5000, {
-							ClickAction: BEEP_CLICK_ACTIONS.FriendList,
-						});
-					}
-				}
-				if (fbcSettings.friendOfflineNotifications && offlineFriends.length) {
-					const list = offlineFriends
-						.map((f) => {
-							const { MemberNumber, MemberName } = lastFriends.find(
-								(d) => d.MemberNumber === f
-							);
-							return `${MemberName} (${MemberNumber})`;
-						})
-						.join(", ");
-					if (
-						fbcSettings.friendNotificationsInChat &&
-						CurrentScreen === "ChatRoom"
-					) {
-						fbcChatNotify(displayText(`Now offline: $list`, { $list: list }));
-					} else {
-						fbcNotify(
-							displayText(`Now offline: $list`, { $list: list }),
-							5000,
-							{
-								ClickAction: BEEP_CLICK_ACTIONS.FriendList,
-							}
-						);
-					}
-				}
-				lastFriends = data.Result;
+		registerSocketListener("AccountQueryResult", (data) => {
+			if (
+				CurrentScreen === "FriendList" ||
+				CurrentScreen === "Relog" ||
+				CurrentScreen === "Login"
+			) {
+				return;
 			}
-		);
+			if (!fbcSettings.friendPresenceNotifications) {
+				return;
+			}
+			if (data.Query !== "OnlineFriends") {
+				return;
+			}
+			const friendMemberNumbers = data.Result.map((f) => f.MemberNumber),
+				offlineFriends = lastFriends
+					.map((f) => f.MemberNumber)
+					.filter((f) => !friendMemberNumbers.includes(f)),
+				onlineFriends = friendMemberNumbers.filter(
+					(f) => !lastFriends.some((ff) => ff.MemberNumber === f)
+				);
+			if (onlineFriends.length) {
+				const list = onlineFriends
+					.map((f) => {
+						const { MemberNumber, MemberName } = data.Result.find(
+							(d) => d.MemberNumber === f
+						);
+						return `${MemberName} (${MemberNumber})`;
+					})
+					.join(", ");
+				if (
+					fbcSettings.friendNotificationsInChat &&
+					CurrentScreen === "ChatRoom"
+				) {
+					fbcChatNotify(displayText(`Now online: $list`, { $list: list }));
+				} else {
+					fbcNotify(displayText(`Now online: $list`, { $list: list }), 5000, {
+						ClickAction: BEEP_CLICK_ACTIONS.FriendList,
+					});
+				}
+			}
+			if (fbcSettings.friendOfflineNotifications && offlineFriends.length) {
+				const list = offlineFriends
+					.map((f) => {
+						const { MemberNumber, MemberName } = lastFriends.find(
+							(d) => d.MemberNumber === f
+						);
+						return `${MemberName} (${MemberNumber})`;
+					})
+					.join(", ");
+				if (
+					fbcSettings.friendNotificationsInChat &&
+					CurrentScreen === "ChatRoom"
+				) {
+					fbcChatNotify(displayText(`Now offline: $list`, { $list: list }));
+				} else {
+					fbcNotify(displayText(`Now offline: $list`, { $list: list }), 5000, {
+						ClickAction: BEEP_CLICK_ACTIONS.FriendList,
+					});
+				}
+			}
+			lastFriends = data.Result;
+		});
 
 		SDK.hookFunction(
 			"ServerClickBeep",
@@ -7627,6 +7525,7 @@ async function ForBetterClub() {
 					MouseIn(CurrentScreen === "ChatRoom" ? 0 : 500, 0, 1000, 50) &&
 					CurrentScreen !== "FriendList"
 				) {
+					// @ts-ignore - ClickAction is not in the original game, but we specify it above for ServerBeeps
 					switch (ServerBeep.ClickAction) {
 						case BEEP_CLICK_ACTIONS.FriendList:
 							ServerOpenFriendList();
@@ -7821,7 +7720,7 @@ async function ForBetterClub() {
 				ChatRoomListManipulation(
 					Player.BlackList,
 					true,
-					sourceCharacter.MemberNumber
+					sourceCharacter.MemberNumber.toString()
 				);
 				fbcChatNotify(displayText(`[AntiCheat] ${sourceName} blacklisted.`));
 			}
@@ -7831,13 +7730,17 @@ async function ForBetterClub() {
 		SDK.hookFunction(
 			"ChatRoomSyncItem",
 			HOOK_PRIORITIES.OverrideBehaviour,
-			/** @type {(args: [ChatRoomSyncItemEvent], next: (args: [ChatRoomSyncItemEvent]) => void) => void} */
+			/** @type {(args: [ServerChatRoomSyncItemResponse], next: (args: [ServerChatRoomSyncItemResponse]) => void) => void} */
 			(args, next) => {
 				const [data] = args;
 				if (!fbcSettings.itemAntiCheat) {
 					return next(args);
 				}
-				if (data?.Item?.Target !== Player.MemberNumber) {
+				// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+				const item = /** @type {{ Target: number; } & ItemBundle} */ (
+					data?.Item
+				);
+				if (item?.Target !== Player.MemberNumber) {
 					return next(args);
 				}
 				if (Player.WhiteList.includes(data.Source)) {
@@ -7853,7 +7756,7 @@ async function ForBetterClub() {
 					Player.Appearance.some((a) => a.Asset.Name === "FuturisticHarness") ||
 					ignoreLocks;
 				const oldItem = Player.Appearance.find(
-					(i) => i.Asset.Group.Name === data.Item.Group
+					(i) => i.Asset.Group.Name === item.Group
 				);
 				const oldItemBundle = oldItem
 					? ServerAppearanceBundle([oldItem])[0]
@@ -7861,7 +7764,7 @@ async function ForBetterClub() {
 				const result = validateSingleItemChange(
 					sourceCharacter,
 					oldItemBundle,
-					data.Item,
+					item,
 					ignoreLocks,
 					ignoreColors
 				);
@@ -7876,7 +7779,7 @@ async function ForBetterClub() {
 		SDK.hookFunction(
 			"ChatRoomSyncSingle",
 			HOOK_PRIORITIES.OverrideBehaviour,
-			/** @type {(args: [ChatRoomSyncSingleEvent], next: (args: [ChatRoomSyncSingleEvent]) => void) => void} */
+			/** @type {(args: [ServerChatRoomSyncCharacterResponse], next: (args: [ServerChatRoomSyncCharacterResponse]) => void) => void} */
 			(args, next) => {
 				const [data] = args;
 				if (!fbcSettings.itemAntiCheat) {
@@ -8046,12 +7949,14 @@ async function ForBetterClub() {
 
 			/** @type {(c: Character) => void} */
 			const appendDialog = (c) => {
-				if (!c.Dialog || c.Dialog.some((v) => v.Modded)) {
+				// @ts-ignore - FBC is not a valid property in the game, but we use it here to mark that we've already added the dialog
+				if (!c.Dialog || c.Dialog.some((v) => v.FBC)) {
 					return;
 				}
 				c.Dialog.splice(
 					idx,
 					0,
+					// @ts-ignore - FBC is not a valid property in the game, but we use it here to mark that we've already added the dialog
 					...clubSlaveDialog.map((v) => ({
 						Stage: v[0],
 						NextStage: v[1],
@@ -8065,7 +7970,7 @@ async function ForBetterClub() {
 							(v[4].trim().substring(0, 6) === "Dialog" ? "" : "ChatRoom") +
 							v[4],
 						Prerequisite: v[5],
-						Modded: true,
+						FBC: true,
 					}))
 				);
 			};
@@ -8091,18 +7996,21 @@ async function ForBetterClub() {
 		})();
 
 		w.bceSendToClubSlavery = function () {
-			/** @type {BCEChatMessage} */
+			/** @type {ServerChatRoomMessage} */
 			const message = {
 				Type: HIDDEN,
 				Content: BCE_MSG,
 				Sender: Player.MemberNumber,
-				Dictionary: {
-					message: {
-						type: MESSAGE_TYPES.Activity,
-						version: FBC_VERSION,
-						activity: "ClubSlavery",
+				Dictionary: [
+					{
+						// @ts-ignore - cannot extend valid dictionary entries to add our type to it, but this is possible within the game's wire format
+						message: {
+							type: MESSAGE_TYPES.Activity,
+							version: FBC_VERSION,
+							activity: "ClubSlavery",
+						},
 					},
-				},
+				],
 			};
 			ServerSend("ChatRoomChat", message);
 			DialogLeave();
@@ -8295,7 +8203,7 @@ async function ForBetterClub() {
 			scrollToBottom();
 		};
 
-		/** @type {(friendId: number, sent: boolean, beep: Beep, skipHistory: boolean, createdAt: Date) => void} */
+		/** @type {(friendId: number, sent: boolean, beep: Partial<ServerAccountBeepResponse>, skipHistory: boolean, createdAt: Date) => void} */
 		// eslint-disable-next-line complexity
 		const addMessage = (friendId, sent, beep, skipHistory, createdAt) => {
 			const friend = friendMessages.get(friendId);
@@ -8523,10 +8431,10 @@ async function ForBetterClub() {
 					messageType = "Action";
 				}
 
-				/** @type {Beep} */
+				/** @type {ServerAccountBeepRequest} */
 				const message = {
+					BeepType: "",
 					MemberNumber: activeChat,
-					MemberName: Player.FriendNames.get(activeChat) || "aname",
 					IsSecret: true,
 					Message: `${messageText}\n\n\uf124${JSON.stringify({
 						messageType,
@@ -8536,6 +8444,7 @@ async function ForBetterClub() {
 				addMessage(activeChat, true, message, false, new Date());
 				FriendListBeepLog.push({
 					...message,
+					MemberName: Player.FriendNames.get(activeChat) || "aname",
 					Sent: true,
 					Private: false,
 					Time: new Date(),
@@ -8564,42 +8473,36 @@ async function ForBetterClub() {
 			sortIM();
 		};
 
-		registerSocketListener(
-			"AccountQueryResult",
-			(
-				/** @type {{ Query: string; Result: Friend[] }} */
-				data
-			) => {
-				if (data.Query !== "OnlineFriends") {
-					return;
+		registerSocketListener("AccountQueryResult", (data) => {
+			if (data.Query !== "OnlineFriends") {
+				return;
+			}
+			if (data.Result && fbcSettings.instantMessenger) {
+				for (const friend of data.Result) {
+					const f = handleUnseenFriend(friend.MemberNumber);
+					f.online = true;
+					f.statusText.textContent = displayText("Online");
+					f.listElement.classList.remove(offlineClass);
+					f.listElement.classList.add(onlineClass);
 				}
-				if (data.Result && fbcSettings.instantMessenger) {
-					for (const friend of data.Result) {
-						const f = handleUnseenFriend(friend.MemberNumber);
-						f.online = true;
-						f.statusText.textContent = displayText("Online");
-						f.listElement.classList.remove(offlineClass);
-						f.listElement.classList.add(onlineClass);
-					}
-					for (const friendId of Array.from(friendMessages.keys()).filter(
-						(f) => !data.Result.some((f2) => f2.MemberNumber === f)
-					)) {
-						const f = friendMessages.get(friendId);
-						f.online = false;
-						f.statusText.textContent = displayText("Offline");
-						f.listElement.classList.remove(onlineClass);
-						f.listElement.classList.add(offlineClass);
-					}
-					if (!data.Result.some((f) => f.MemberNumber === activeChat)) {
-						// Disable input, current user is offline
-						messageInput.disabled = true;
-					} else {
-						// Enable input, current user is online
-						messageInput.disabled = false;
-					}
+				for (const friendId of Array.from(friendMessages.keys()).filter(
+					(f) => !data.Result.some((f2) => f2.MemberNumber === f)
+				)) {
+					const f = friendMessages.get(friendId);
+					f.online = false;
+					f.statusText.textContent = displayText("Offline");
+					f.listElement.classList.remove(onlineClass);
+					f.listElement.classList.add(offlineClass);
+				}
+				if (!data.Result.some((f) => f.MemberNumber === activeChat)) {
+					// Disable input, current user is offline
+					messageInput.disabled = true;
+				} else {
+					// Enable input, current user is online
+					messageInput.disabled = false;
 				}
 			}
-		);
+		});
 
 		function sortIM() {
 			[...friendList.children]
@@ -8627,7 +8530,7 @@ async function ForBetterClub() {
 		SDK.hookFunction(
 			"ServerAccountBeep",
 			HOOK_PRIORITIES.OverrideBehaviour,
-			/** @type {(args: Beep[], next: (args: Beep[]) => void) => void} */
+			/** @type {(args: ServerAccountBeepResponse[], next: (args: ServerAccountBeepResponse[]) => void) => void} */
 			(args, next) => {
 				const [beep] = args;
 				if (
@@ -8645,7 +8548,7 @@ async function ForBetterClub() {
 		SDK.hookFunction(
 			"ServerSend",
 			HOOK_PRIORITIES.Observe,
-			/** @type {(args: [string, Beep], next: (args: [string, Beep]) => void) => void} */
+			/** @type {(args: [string, ServerAccountBeepResponse], next: (args: [string, ServerAccountBeepResponse]) => void) => void} */
 			(args, next) => {
 				const [command, beep] = args;
 				if (
@@ -8808,19 +8711,6 @@ async function ForBetterClub() {
 				return next(args);
 			}
 		);
-
-		SDK.hookFunction(
-			"LoginResponse",
-			HOOK_PRIORITIES.Top,
-			/** @type {(args: Character[], next: (args: Character[]) => void) => void} */
-			(args, next) => {
-				const [{ BCEWardrobe }] = args;
-				if (isString(BCEWardrobe)) {
-					Player.BCEWardrobe = BCEWardrobe;
-				}
-				return next(args);
-			}
-		);
 	}
 
 	/** @type {(wardrobe: ItemBundle[][]) => ItemBundle[][]} */
@@ -8828,14 +8718,6 @@ async function ForBetterClub() {
 		if (fbcSettings.extendedWardrobe) {
 			WardrobeSize = EXPANDED_WARDROBE_SIZE;
 			WardrobeFixLength();
-		}
-		if (Player.BCEWardrobe) {
-			Player.OnlineSettings.BCEWardrobe = Player.BCEWardrobe;
-			Player.BCEWardrobe = null;
-			ServerAccountUpdate.QueueData({
-				BCEWardrobe: null,
-				OnlineSettings: Player.OnlineSettings,
-			});
 		}
 		if (Player.OnlineSettings.BCEWardrobe) {
 			try {
@@ -9274,7 +9156,7 @@ async function ForBetterClub() {
 		ServerCharacterNicknameRegex = /^[\p{L}0-9\p{Z}'-]+$/u;
 	}
 
-	/** @type {(effect: string) => boolean} */
+	/** @type {(effect: EffectName) => boolean} */
 	function addCustomEffect(effect) {
 		let updated = false;
 		const emoticon = Player.Appearance.find((a) => a.Asset.Name === "Emoticon");
@@ -9298,7 +9180,7 @@ async function ForBetterClub() {
 		return updated;
 	}
 
-	/** @type {(effect: string) => boolean} */
+	/** @type {(effect: EffectName) => boolean} */
 	function removeCustomEffect(effect) {
 		const emoticon = Player.Appearance.find((a) => a.Asset.Name === "Emoticon");
 		let updated = false;
@@ -9330,8 +9212,11 @@ async function ForBetterClub() {
 		if (Array.isArray(emoticon.Asset.AllowEffect)) {
 			emoticon.Asset.AllowEffect.push("Leash");
 		} else {
+			// @ts-ignore - not readonly
 			emoticon.Asset.AllowEffect = ["Leash"];
 		}
+		// @ts-ignore - not readonly
+		// eslint-disable-next-line @typescript-eslint/no-unsafe-call
 		emoticon.Asset.AllowEffect.push("BlurLight");
 
 		if (fbcSettings.leashAlways) {
@@ -9484,27 +9369,29 @@ async function ForBetterClub() {
 				Description: displayText(
 					"Shows the battery status of all connected buttplug.io toys"
 				),
-				Action: async () => {
-					if (!client.Connected) {
-						fbcChatNotify("buttplug.io is not connected");
-						return;
-					}
+				Action: () => {
+					(async () => {
+						if (!client.Connected) {
+							fbcChatNotify("buttplug.io is not connected");
+							return;
+						}
 
-					const batteryDevices = client.Devices.filter((dev) =>
-						dev.AllowedMessages.includes(8)
-					);
-					if (batteryDevices.length === 0) {
-						fbcChatNotify("No battery devices connected");
-						return;
-					}
+						const batteryDevices = client.Devices.filter((dev) =>
+							dev.AllowedMessages.includes(8)
+						);
+						if (batteryDevices.length === 0) {
+							fbcChatNotify("No battery devices connected");
+							return;
+						}
 
-					const batteryStatus = await Promise.all(
-						batteryDevices.map((dev) => dev.batteryLevel())
-					);
-					for (let i = 0; i < batteryDevices.length; i++) {
-						const battery = batteryStatus[i] * 100;
-						fbcChatNotify(`${batteryDevices[i].Name}: ${battery}%`);
-					}
+						const batteryStatus = await Promise.all(
+							batteryDevices.map((dev) => dev.batteryLevel())
+						);
+						for (let i = 0; i < batteryDevices.length; i++) {
+							const battery = batteryStatus[i] * 100;
+							fbcChatNotify(`${batteryDevices[i].Name}: ${battery}%`);
+						}
+					})();
 				},
 			});
 
@@ -9606,7 +9493,7 @@ async function ForBetterClub() {
 
 		/** @type {(num: number) => Promise<void>} */
 		async function trimProfiles(num) {
-			/** @type {SavedProfile[]} */
+			/** @type {FBCSavedProfile[]} */
 			let list = await profiles.toArray();
 			// Oldest first
 			list.sort((a, b) => a.seen - b.seen);
@@ -9625,7 +9512,7 @@ async function ForBetterClub() {
 			}
 		}
 
-		/** @type {(characterBundle: NetCharacter) => Promise<void>} */
+		/** @type {(characterBundle: ServerAccountDataSynced) => Promise<void>} */
 		async function saveProfile(characterBundle) {
 			await quotaSafetyCheck();
 
@@ -9668,7 +9555,7 @@ async function ForBetterClub() {
 			"ChatRoomSync",
 			HOOK_PRIORITIES.Top,
 			/**
-			 * @param {ChatRoomSyncEvent[]} args
+			 * @param {[ServerChatRoomSyncMessage]} args
 			 */
 			(args, next) => {
 				const [data] = args;
@@ -9685,7 +9572,7 @@ async function ForBetterClub() {
 			"ChatRoomSyncSingle",
 			HOOK_PRIORITIES.Top,
 			/**
-			 * @param {ChatRoomSyncSingleEvent[]} args
+			 * @param {[ServerChatRoomSyncCharacterResponse]} args
 			 */
 			(args, next) => {
 				const [data] = args;
@@ -9721,11 +9608,13 @@ async function ForBetterClub() {
 		/** @type {(memberNumber: number) => Promise<void>} */
 		async function openCharacter(memberNumber) {
 			try {
-				/** @type {SavedProfile} */
+				/** @type {FBCSavedProfile} */
 				// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
 				const profile = await profiles.get(memberNumber);
 				const C = CharacterLoadOnline(
-					/** @type {NetCharacter} */ (JSON.parse(profile.characterBundle)),
+					/** @type {ServerAccountDataSynced} */ (
+						JSON.parse(profile.characterBundle)
+					),
 					memberNumber
 				);
 				C.BCESeen = profile.seen;
@@ -9745,56 +9634,59 @@ async function ForBetterClub() {
 			Description: displayText(
 				"<filter> - List seen profiles, optionally searching by member number or name"
 			),
-			Action: async (args) => {
-				/** @type {SavedProfile[]} */
-				let list = await profiles.toArray();
-				list = list.filter(
-					(p) =>
-						!args ||
-						p.name.toLowerCase().includes(args) ||
-						p.memberNumber.toString().includes(args) ||
-						p.lastNick?.toLowerCase().includes(args)
-				);
-				list.sort((a, b) => b.seen - a.seen);
-				const matches = list.length;
-				list = list.slice(0, 100);
-				list.sort(
-					(a, b) => -(b.lastNick ?? b.name).localeCompare(a.lastNick ?? a.name)
-				);
-				const lines = list.map((p) => {
-					const div = document.createElement("div");
-					div.textContent = displayText(
-						`$nickAndName ($memberNumber) - Seen: $seen`,
+			Action: (argums) => {
+				(async (args) => {
+					/** @type {FBCSavedProfile[]} */
+					let list = await profiles.toArray();
+					list = list.filter(
+						(p) =>
+							!args ||
+							p.name.toLowerCase().includes(args) ||
+							p.memberNumber.toString().includes(args) ||
+							p.lastNick?.toLowerCase().includes(args)
+					);
+					list.sort((a, b) => b.seen - a.seen);
+					const matches = list.length;
+					list = list.slice(0, 100);
+					list.sort(
+						(a, b) =>
+							-(b.lastNick ?? b.name).localeCompare(a.lastNick ?? a.name)
+					);
+					const lines = list.map((p) => {
+						const div = document.createElement("div");
+						div.textContent = displayText(
+							`$nickAndName ($memberNumber) - Seen: $seen`,
+							{
+								$nickAndName: p.lastNick ? `${p.lastNick} / ${p.name}` : p.name,
+								$memberNumber: p.memberNumber.toString(),
+								$seen: new Date(p.seen).toLocaleDateString(),
+							}
+						);
+						const link = document.createElement("a");
+						link.textContent = displayText("Open");
+						link.href = `#`;
+						link.classList.add("bce-profile-open");
+						link.addEventListener("click", (e) => {
+							e.preventDefault();
+							e.stopPropagation();
+							openCharacter(p.memberNumber);
+						});
+						div.prepend(link);
+						return div;
+					});
+					const header = document.createElement("h3");
+					header.textContent = displayText("Saved Profiles");
+					header.style.marginTop = "0";
+					const footer = document.createElement("div");
+					footer.textContent = displayText(
+						"showing $num most recent of $total total profiles matching search",
 						{
-							$nickAndName: p.lastNick ? `${p.lastNick} / ${p.name}` : p.name,
-							$memberNumber: p.memberNumber.toString(),
-							$seen: new Date(p.seen).toLocaleDateString(),
+							$num: list.length.toLocaleString(),
+							$total: matches.toLocaleString(),
 						}
 					);
-					const link = document.createElement("a");
-					link.textContent = displayText("Open");
-					link.href = `#`;
-					link.classList.add("bce-profile-open");
-					link.addEventListener("click", (e) => {
-						e.preventDefault();
-						e.stopPropagation();
-						openCharacter(p.memberNumber);
-					});
-					div.prepend(link);
-					return div;
-				});
-				const header = document.createElement("h3");
-				header.textContent = displayText("Saved Profiles");
-				header.style.marginTop = "0";
-				const footer = document.createElement("div");
-				footer.textContent = displayText(
-					"showing $num most recent of $total total profiles matching search",
-					{
-						$num: list.length.toLocaleString(),
-						$total: matches.toLocaleString(),
-					}
-				);
-				fbcChatNotify([header, ...lines, footer]);
+					fbcChatNotify([header, ...lines, footer]);
+				})(argums);
 			},
 		});
 
@@ -9970,8 +9862,11 @@ async function ForBetterClub() {
 					Array.isArray(args[0].Dictionary)
 				) {
 					const [message] = args;
+					// @ts-ignore - custom dictionary Tag
 					const tag = message.Dictionary?.find?.((d) => d.Tag === "fbc_nonce");
 					if (tag) {
+						// @ts-ignore - custom dictionary Tag
+						// eslint-disable-next-line @typescript-eslint/restrict-template-expressions
 						const el = document.querySelector(`[data-nonce='${tag.Text}']`);
 						if (el) {
 							el.remove();
@@ -9998,7 +9893,9 @@ async function ForBetterClub() {
 					if (nonce >= Number.MAX_SAFE_INTEGER) {
 						nonce = 0;
 					}
+					// @ts-ignore - custom dictionary Tag
 					args[1].Dictionary = addToDictionary(
+						// @ts-ignore - custom dictionary Tag
 						args[1].Dictionary,
 						"fbc_nonce",
 						nonce
@@ -10091,7 +9988,7 @@ async function ForBetterClub() {
 						return;
 					}
 					try {
-						const craft = /** @type {Craft} */ (
+						const craft = /** @type {CraftingItem} */ (
 							JSON.parse(LZString.decompressFromBase64(str))
 						);
 						if (!isNonNullObject(craft)) {
@@ -10493,7 +10390,7 @@ async function ForBetterClub() {
 		return o && typeof o === "object" && !Array.isArray(o);
 	}
 
-	/** @type {(m: unknown) => m is ChatMessage} */
+	/** @type {(m: unknown) => m is ServerChatRoomMessage} */
 	function isChatMessage(m) {
 		return (
 			isNonNullObject(m) &&
@@ -10558,7 +10455,8 @@ async function ForBetterClub() {
 			}
 			if (fbcSettings.confirmLeave) {
 				e.preventDefault();
-				// The connection is closed, this call gets you relogin immediately
+				// @ts-ignore - TS thinks it's private, pffft we don't respect that
+				// eslint-disable-next-line @typescript-eslint/no-unsafe-call
 				ServerSocket.io.disconnect();
 				CommonSetScreen("Character", "Relog");
 				ServerSocket.io.connect();
