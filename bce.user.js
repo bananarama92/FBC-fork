@@ -10180,8 +10180,8 @@ async function ForBetterClub() {
 				const [item, , x, y] = args;
 				if (item) {
 					const { Craft } = item;
-					if (MouseIn(x, y, 225, 275) && Craft) {
-						drawTooltip(x, y, 225, displayText(Craft.Property), "center");
+					if (MouseIn(x, y, DialogInventoryGrid.itemWidth, DialogInventoryGrid.itemHeight) && Craft) {
+						drawTooltip(x, y, DialogInventoryGrid.itemWidth, displayText(Craft.Property), "center");
 						drawTooltip(
 							1000,
 							y - 70,
