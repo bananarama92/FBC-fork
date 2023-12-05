@@ -10433,15 +10433,8 @@ async function ForBetterClub() {
 		const canvas = w.MainCanvas.getContext("2d");
 		const bak = canvas.textAlign;
 		canvas.textAlign = align;
-		canvas.beginPath();
-		canvas.rect(x, y, width, 65);
-		canvas.fillStyle = "#FFFF88";
-		canvas.fillRect(x, y, width, 65);
-		canvas.fill();
-		canvas.lineWidth = 2;
-		canvas.strokeStyle = "black";
-		canvas.stroke();
-		canvas.closePath();
+		DrawRect(x, y, width, 65, "#FFFF88");
+		DrawEmptyRect(x, y, width, 65, "black", 2);
 		DrawTextFit(
 			text,
 			align === "left" ? x + 3 : x + width / 2,
