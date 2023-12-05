@@ -1567,6 +1567,7 @@ async function ForBetterClub() {
 	/** @type {"init" | "enable" | "disable"} */
 	let funcsRegistered = "init";
 	SDK.hookFunction("LoginResponse", HOOK_PRIORITIES.Top, (args, next) => {
+		// TODO: check that the response was a success
 		if (funcsRegistered === "init") {
 			funcsRegistered = "disable";
 		}
