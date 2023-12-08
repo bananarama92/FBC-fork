@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Bondage Club Enhancements
 // @namespace https://www.bondageprojects.com/
-// @version 4.64
+// @version 4.65
 // @description FBC - For Better Club - enhancements for the bondage club - old name kept in tampermonkey for compatibility
 // @author Sidious
 // @match https://bondageprojects.elementfx.com/*
@@ -38,10 +38,13 @@
  *  along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-const FBC_VERSION = "4.64";
+const FBC_VERSION = "4.65";
 const settingsVersion = 55;
 
 const fbcChangelog = `${FBC_VERSION}
+- restore gag anti-cheat
+
+4.64
 - moved settings and wardrobe data to extension settings
 - fixed instant messenger and dialog compatibility with MBCHC
 - fixed a game freeze after a failed login attempt
@@ -59,10 +62,6 @@ const fbcChangelog = `${FBC_VERSION}
 - fixes towards a rare error related to ArousalSettings not being defined on remote characters
 - removed a duplicate hello message on initial load when automatically rejoining a chatroom
 - removed FBC's duplicate implementation of client-side rate limiting
-
-4.61
-- fix a bug where the animation can get in a bad state when presented with an invalid expression
-- preserve formatting in IM messages (dDeepLb)
 `;
 
 /*
@@ -7082,6 +7081,80 @@ async function ForBetterClub() {
 			},
 		});
 
+		// ServerSend hook for client-side gagspeak, priority lower than BCX's whisper dictionary hook
+		SDK.hookFunction("ServerSend", 0, (args, next) => {
+			if (args.length < 2) {
+				return next(args);
+			}
+			const [message, data] = args;
+			if (!isString(message) || !isChatMessage(data)) {
+				return next(args);
+			}
+			if (message === "ChatRoomChat") {
+				switch (data.Type) {
+					case "Whisper":
+						{
+							const idx = data.Dictionary?.findIndex(
+								// @ts-ignore - BCX's custom dictionary entry, dictionary entries cannot be extended in TS
+								(d) => d.Tag === BCX_ORIGINAL_MESSAGE
+							);
+							if (
+								idx >= 0 &&
+								(fbcSettings.antiAntiGarble ||
+									fbcSettings.antiAntiGarbleStrong ||
+									fbcSettings.antiAntiGarbleExtra)
+							) {
+								data.Dictionary.splice(idx, 1);
+							}
+						}
+						break;
+					case "Chat":
+						{
+							const gagLevel = SpeechGetTotalGagLevel(Player);
+							if (gagLevel > 0) {
+								if (fbcSettings.antiAntiGarble) {
+									data.Content =
+										SpeechGarbleByGagLevel(1, data.Content) +
+										GAGBYPASSINDICATOR;
+								} else if (fbcSettings.antiAntiGarbleExtra && gagLevel > 24) {
+									const icIndicator = "\uF124";
+									let inOOC = false;
+									data.Content = `${data.Content.split("")
+										.map((c) => {
+											switch (c) {
+												case "(":
+													inOOC = true;
+													return c;
+												case ")":
+													inOOC = false;
+													return c;
+												default:
+													return inOOC ? c : icIndicator;
+											}
+										})
+										.join("")
+										.replace(
+											new RegExp(`${icIndicator}+`, "gu"),
+											"m"
+										)}${GAGBYPASSINDICATOR}`;
+								} else if (
+									fbcSettings.antiAntiGarbleStrong ||
+									fbcSettings.antiAntiGarbleExtra
+								) {
+									data.Content =
+										SpeechGarbleByGagLevel(gagLevel, data.Content) +
+										GAGBYPASSINDICATOR;
+								}
+							}
+						}
+						break;
+					default:
+						break;
+				}
+			}
+			return next([message, data, ...args.slice(2)]);
+		});
+
 		// X, Y, width, height. X and Y centered.
 		const gagAntiCheatMenuPosition = /** @type {const} */ ([
 				1700, 908, 200, 45,
@@ -10264,8 +10337,22 @@ async function ForBetterClub() {
 				const [item, , x, y] = args;
 				if (item) {
 					const { Craft } = item;
-					if (MouseIn(x, y, DialogInventoryGrid.itemWidth, DialogInventoryGrid.itemHeight) && Craft) {
-						drawTooltip(x, y, DialogInventoryGrid.itemWidth, displayText(Craft.Property), "center");
+					if (
+						MouseIn(
+							x,
+							y,
+							DialogInventoryGrid.itemWidth,
+							DialogInventoryGrid.itemHeight
+						) &&
+						Craft
+					) {
+						drawTooltip(
+							x,
+							y,
+							DialogInventoryGrid.itemWidth,
+							displayText(Craft.Property),
+							"center"
+						);
 						drawTooltip(
 							1000,
 							y - 70,
