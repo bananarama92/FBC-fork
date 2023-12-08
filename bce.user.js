@@ -10544,7 +10544,7 @@ async function ForBetterClub() {
 				InRoom: !!Player.LastChatRoom,
 				InPrivate:
 					// @ts-ignore -- LastChatRoomPrivate removed in R99
-					!!Player.LastChatRoomPrivate || !!Player.LastChatRoom.Private,
+					!!Player.LastChatRoomPrivate || !!Player.LastChatRoom?.Private,
 				// @ts-ignore
 				// eslint-disable-next-line camelcase
 				InTampermonkey: typeof GM_info !== "undefined",
