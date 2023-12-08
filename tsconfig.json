@@ -1,5 +1,6 @@
 {
 	"include": [
+		"node_modules/bc-stubs/bc/**/*.d.ts",
 		"**/*.js",
 		"**/*.ts"
 	],
