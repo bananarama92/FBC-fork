@@ -42,8 +42,10 @@ const FBC_VERSION = "4.64";
 const settingsVersion = 55;
 
 const fbcChangelog = `${FBC_VERSION}
+- moved settings and wardrobe data to extension settings
 - fixed instant messenger and dialog compatibility with MBCHC
 - fixed a game freeze after a failed login attempt
+- preliminary readiness for R99
 - technical changes
   - use bc-stubs for type checking
   - use club functions and variables for drawing tooltips (dDeepLb)
@@ -928,9 +930,17 @@ async function ForBetterClub() {
 			);
 			const onlineSettings = /** @type {typeof fbcSettings} */ (
 				JSON.parse(
-					LZString.decompressFromBase64(Player.OnlineSettings.BCE) || null
+					LZString.decompressFromBase64(
+						Player.ExtensionSettings.FBC || Player.OnlineSettings.BCE
+					) || null
 				)
 			);
+			if (Player.OnlineSettings.BCE) {
+				Player.ExtensionSettings.FBC = Player.OnlineSettings.BCE;
+				ServerPlayerExtensionSettingsSync("FBC");
+				logInfo("Migrated online settings to extension settings");
+				delete Player.OnlineSettings.BCE;
+			}
 			if (
 				onlineSettings?.version >= settings?.version ||
 				(typeof settings?.version === "undefined" &&
@@ -975,12 +985,10 @@ async function ForBetterClub() {
 			);
 		}
 		localStorage.setItem(bceSettingKey(), JSON.stringify(fbcSettings));
-		Player.OnlineSettings.BCE = LZString.compressToBase64(
+		Player.ExtensionSettings.FBC = LZString.compressToBase64(
 			JSON.stringify(fbcSettings)
 		);
-		ServerAccountUpdate.QueueData({
-			OnlineSettings: Player.OnlineSettings,
-		});
+		ServerPlayerExtensionSettingsSync("FBC");
 	};
 
 	/**
@@ -1131,6 +1139,148 @@ async function ForBetterClub() {
 	 */
 	const expectedHashes = (gameVersion) => {
 		switch (gameVersion) {
+			case "R99":
+			case "R99Beta4":
+			case "R99Beta3":
+			case "R99Beta2":
+			case "R99Beta1":
+				return /** @type {const} */ ({
+					ActivityChatRoomArousalSync: "BFF3DED7",
+					ActivitySetArousal: "3AE28123",
+					ActivitySetArousalTimer: "1342AFE2",
+					ActivityTimerProgress: "6CD388A7",
+					AppearanceClick: "4C04C15E",
+					AppearanceExit: "AA300341",
+					AppearanceLoad: "4360C485",
+					AppearanceRun: "6EC75705",
+					CharacterAppearanceWardrobeLoad: "A5B63A03",
+					CharacterBuildDialog: "85F79C6E",
+					CharacterCompressWardrobe: "8D3B1AB1",
+					CharacterDecompressWardrobe: "A9FD29CC",
+					CharacterDelete: "398D1116",
+					CharacterGetCurrent: "45608177",
+					CharacterLoadCanvas: "EAB81BC4",
+					CharacterNickname: "A794EFF5",
+					CharacterRefresh: "F2459653",
+					CharacterReleaseTotal: "396640D1",
+					CharacterSetCurrent: "F46573D8",
+					CharacterSetFacialExpression: "F8272D7A",
+					ChatAdminRoomCustomizationClick: "E194A605",
+					ChatAdminRoomCustomizationProcess: "B33D6388",
+					ChatRoomCharacterItemUpdate: "263DB2F0",
+					ChatRoomCharacterUpdate: "C444E92D",
+					ChatRoomClearAllElements: "14DAAB05",
+					ChatRoomClick: "4C4A7B70",
+					ChatRoomCreateElement: "9A3FD548",
+					ChatRoomCurrentTime: "A462DD3A",
+					ChatRoomDrawBackground: "AEE70C4E",
+					ChatRoomDrawCharacterOverlay: "06FB4CC3",
+					ChatRoomHTMLEntities: "0A7ADB1D",
+					ChatRoomKeyDown: "94E162D3",
+					ChatRoomListManipulation: "75D28A8B",
+					ChatRoomMessage: "BBD61334",
+					ChatRoomMessageDisplay: "A9ACC758",
+					ChatRoomRegisterMessageHandler: "C432923A",
+					ChatRoomResize: "653445D7",
+					ChatRoomRun: "94D14C8C",
+					ChatRoomSendChat: "7F540ED0",
+					ChatRoomStart: "9B822A9A",
+					CommandExecute: "5C948CC3",
+					CommandParse: "C9061FE8",
+					CommonClick: "1F6DF7CB",
+					CommonColorIsValid: "390A2CE4",
+					CommonSetScreen: "E2AC00F4",
+					CraftingClick: "FF1A7B21",
+					CraftingConvertSelectedToItem: "48270B42",
+					CraftingRun: "5BE6E125",
+					DialogClick: "A1B56CDF",
+					DialogDraw: "D8377D69",
+					DialogDrawItemMenu: "FCE556C2",
+					DialogLeave: "C37553DC",
+					DrawBackNextButton: "9AF4BA37",
+					DrawButton: "A7023A82",
+					DrawCharacter: "41CF69C4",
+					DrawCheckbox: "00FD87EB",
+					DrawImageEx: "E01BE7E7",
+					DrawImageResize: "D205975A",
+					DrawItemPreview: "6A7A1E2A",
+					DrawProcess: "BC1E9396",
+					DrawText: "C1BF0F50",
+					DrawTextFit: "F9A1B11E",
+					ElementCreateInput: "60D2EA73",
+					ElementCreateTextArea: "81019A58",
+					ElementIsScrolledToEnd: "1CC4FE11",
+					ElementPosition: "CC4E3C82",
+					ElementRemove: "60809E60",
+					ElementScrollToEnd: "1AC45575",
+					ElementValue: "4F26C62F",
+					FriendListShowBeep: "6C0449BB",
+					GameRun: "ED65B730",
+					GLDrawResetCanvas: "81214642",
+					InformationSheetRun: "90140B32",
+					InventoryGet: "E666F671",
+					InventoryItemMiscMistressTimerPadlockClick: "861419FC",
+					InventoryItemMiscMistressTimerPadlockDraw: "4E1628BE",
+					InventoryItemMiscMistressTimerPadlockExit: "66BC6923",
+					InventoryItemMiscMistressTimerPadlockLoad: "BE46432F",
+					InventoryItemMiscOwnerTimerPadlockClick: "C929699B",
+					InventoryItemMiscOwnerTimerPadlockDraw: "BCA80BF8",
+					InventoryItemMiscOwnerTimerPadlockExit: "1BE66B4A",
+					InventoryItemMiscOwnerTimerPadlockLoad: "8A55C0D1",
+					InventoryItemMiscTimerPasswordPadlockClick: "BAE0BAC9",
+					InventoryItemMiscTimerPasswordPadlockDraw: "0BB8E88D",
+					InventoryItemMiscTimerPasswordPadlockExit: "7323E56D",
+					InventoryItemMiscTimerPasswordPadlockLoad: "82223608",
+					LoginClick: "EE94BEC7",
+					LoginRun: "C3926C4F",
+					LoginSetSubmitted: "C88F4A8E",
+					LoginStatusReset: "18619F02",
+					MouseIn: "CA8B839E",
+					NotificationDrawFavicon: "AB88656B",
+					NotificationRaise: "E8F29646",
+					NotificationTitleUpdate: "0E92F3ED",
+					OnlineGameAllowChange: "3779F42C",
+					OnlineProfileClick: "521146DF",
+					OnlineProfileRun: "7F57EF9A",
+					PoseSetActive: "2FE9ABBA",
+					RelogRun: "10AF5A60",
+					RelogExit: "2DFB2DAD",
+					ServerAccountBeep: "F16771D4",
+					ServerAppearanceBundle: "4D069622",
+					ServerAppearanceLoadFromBundle: "946537FD",
+					ServerClickBeep: "3E6277BE",
+					ServerConnect: "845E50A6",
+					ServerDisconnect: "06C1A6B0",
+					ServerInit: "FEC6457F",
+					ServerOpenFriendList: "FA8D3CDE",
+					ServerPlayerExtensionSettingsSync: "348E5FFB",
+					ServerSend: "ABE74E75",
+					ServerSendQueueProcess: "BD4277AC",
+					SkillGetWithRatio: "3EB4BC45",
+					SpeechGarble: "9D669F73",
+					SpeechGarbleByGagLevel: "5F6E16C8",
+					SpeechGetTotalGagLevel: "5F4F6D45",
+					StruggleDexterityProcess: "7E19ADA9",
+					StruggleFlexibilityCheck: "727CE05B",
+					StruggleFlexibilityProcess: "278D7285",
+					StruggleLockPickDraw: "2F1F603B",
+					StruggleMinigameHandleExpression: "B6E4A1A0",
+					StruggleMinigameStop: "206F85E7",
+					StruggleStrengthProcess: "D20CF698",
+					TextGet: "4DDE5794",
+					TextLoad: "ADF7C890",
+					TimerInventoryRemove: "1FA771FB",
+					TimerProcess: "52458C63",
+					TitleExit: "F13F533C",
+					ValidationSanitizeProperties: "08E81594",
+					WardrobeClick: "33405B1D",
+					WardrobeExit: "12D14AE4",
+					WardrobeFastLoad: "5C54EA7B",
+					WardrobeFastSave: "61D02972",
+					WardrobeFixLength: "CA3334C6",
+					WardrobeLoad: "C343A4C7",
+					WardrobeRun: "633B3570",
+				});
 			default:
 				return /** @type {const} */ ({
 					ActivityChatRoomArousalSync: "21318CAF",
@@ -1223,6 +1373,7 @@ async function ForBetterClub() {
 					LoginClick: "EE94BEC7",
 					LoginRun: "C3926C4F",
 					LoginSetSubmitted: "C88F4A8E",
+					LoginStatusReset: "18619F02",
 					MouseIn: "CA8B839E",
 					NotificationDrawFavicon: "AB88656B",
 					NotificationRaise: "E8F29646",
@@ -1240,6 +1391,7 @@ async function ForBetterClub() {
 					ServerDisconnect: "06C1A6B0",
 					ServerInit: "FEC6457F",
 					ServerOpenFriendList: "FA8D3CDE",
+					ServerPlayerExtensionSettingsSync: "348E5FFB",
 					ServerSend: "D356D537",
 					ServerSendQueueProcess: "BD4277AC",
 					SkillGetWithRatio: "3EB4BC45",
@@ -1787,16 +1939,18 @@ async function ForBetterClub() {
 			}
 		);
 
-		// Send responses immediately
-		SDK.hookFunction(
-			"ServerSend",
-			HOOK_PRIORITIES.AddBehaviour,
-			(args, next) => {
-				const ret = next(args);
-				ServerSendQueueProcess();
-				return ret;
-			}
-		);
+		if (GameVersion.startsWith("R98")) {
+			// Send responses immediately
+			SDK.hookFunction(
+				"ServerSend",
+				HOOK_PRIORITIES.AddBehaviour,
+				(args, next) => {
+					const ret = next(args);
+					ServerSendQueueProcess();
+					return ret;
+				}
+			);
+		}
 
 		// Prevent processing of sent messages when disconnected
 		SDK.hookFunction(
@@ -2608,7 +2762,7 @@ async function ForBetterClub() {
 		w.PreferenceSubscreenBCESettingsRun = function () {
 			w.MainCanvas.getContext("2d").textAlign = "left";
 			DrawText(
-				displayText("For Better Club Settings (formerly BCE)"),
+				displayText("For Better Club Settings (FBC)"),
 				300,
 				125,
 				"Black",
@@ -5217,7 +5371,11 @@ async function ForBetterClub() {
 				poses.includes(p.Name.toLowerCase())
 			).map((p) => p.Name);
 			for (const poseName of poseNames) {
-				CharacterSetActivePose(Player, poseName, false);
+				if (GameVersion.startsWith("R98")) {
+					CharacterSetActivePose(Player, poseName, false);
+				} else {
+					PoseSetActive(Player, poseName, false);
+				}
 			}
 		}
 
@@ -5341,7 +5499,9 @@ async function ForBetterClub() {
 		);
 
 		SDK.hookFunction(
-			"CharacterSetActivePose",
+			GameVersion.startsWith("R98")
+				? "CharacterSetActivePose"
+				: "PoseSetActive",
 			HOOK_PRIORITIES.OverrideBehaviour,
 			(/** @type {[Character, null | AssetPoseName]} */ args, next) => {
 				const [C, Pose] = args;
@@ -5677,8 +5837,9 @@ async function ForBetterClub() {
 			}
 
 			// Clean up unused poses
-			let needsPoseUpdate = false,
-				needsRefresh = false;
+			let needsRefresh = false;
+			/** @type {false | AssetPoseName[]} */
+			let poseUpdate = false;
 			if (Player.ActivePose) {
 				for (let i = 0; i < Player.ActivePose.length; i++) {
 					const pose = Player.ActivePose[i];
@@ -5687,9 +5848,9 @@ async function ForBetterClub() {
 						!p?.Category &&
 						Object.values(desiredPose).every((v) => v.Pose !== pose)
 					) {
-						Player.ActivePose.splice(i, 1);
+						poseUpdate = [...Player.ActivePose];
+						poseUpdate.splice(i, 1);
 						i--;
-						needsPoseUpdate = true;
 						needsRefresh = true;
 					}
 				}
@@ -5813,14 +5974,14 @@ async function ForBetterClub() {
 				.map((p) => p.Pose)
 				.filter((p) => !basePoseMatcher.test(p));
 			if (JSON.stringify(Player.ActivePose) !== JSON.stringify(newPose)) {
-				Player.ActivePose = newPose;
-				needsPoseUpdate = true;
+				poseUpdate = newPose;
 				needsRefresh = true;
 			}
 
-			if (needsPoseUpdate) {
+			if (poseUpdate) {
+				Player.ActivePose = poseUpdate;
 				ServerSend("ChatRoomCharacterPoseUpdate", {
-					Pose: Player.ActivePose,
+					Pose: poseUpdate,
 				});
 			}
 
@@ -8077,7 +8238,11 @@ async function ForBetterClub() {
 
 			await waitFor(() => !!ManagementMistress);
 
-			CharacterSetActivePose(Player, "Kneel", false);
+			if (GameVersion.startsWith("R98")) {
+				CharacterSetActivePose(Player, "Kneel", false);
+			} else {
+				PoseSetActive(Player, "Kneel", false);
+			}
 			// eslint-disable-next-line require-atomic-updates
 			ManagementMistress.Stage = "320";
 			ManagementMistress.CurrentDialog = displayText(
@@ -8717,13 +8882,11 @@ async function ForBetterClub() {
 				if (isWardrobe(wardrobe)) {
 					const additionalWardrobe = wardrobe.slice(DEFAULT_WARDROBE_SIZE);
 					if (additionalWardrobe.length > 0) {
-						Player.OnlineSettings.BCEWardrobe = LZString.compressToUTF16(
+						Player.ExtensionSettings.FBCWardrobe = LZString.compressToUTF16(
 							JSON.stringify(additionalWardrobe)
 						);
 						args[0] = wardrobe.slice(0, DEFAULT_WARDROBE_SIZE);
-						ServerAccountUpdate.QueueData({
-							OnlineSettings: Player.OnlineSettings,
-						});
+						ServerPlayerExtensionSettingsSync("FBCWardrobe");
 					}
 				}
 				return next(args);
@@ -8737,12 +8900,19 @@ async function ForBetterClub() {
 			WardrobeSize = EXPANDED_WARDROBE_SIZE;
 			WardrobeFixLength();
 		}
-		if (Player.OnlineSettings.BCEWardrobe) {
+
+		const wardrobeData =
+			Player.ExtensionSettings.FBCWardrobe || Player.OnlineSettings.BCEWardrobe;
+		if (wardrobeData) {
+			if (Player.OnlineSettings.BCEWardrobe) {
+				Player.ExtensionSettings.FBCWardrobe = wardrobeData;
+				ServerPlayerExtensionSettingsSync("FBCWardrobe");
+				logInfo("Migrated wardrobe from OnlineSettings to ExtensionSettings");
+				delete Player.OnlineSettings.BCEWardrobe;
+			}
 			try {
 				const additionalItemBundle = /** @type {ItemBundle[][]} */ (
-					JSON.parse(
-						LZString.decompressFromUTF16(Player.OnlineSettings.BCEWardrobe)
-					)
+					JSON.parse(LZString.decompressFromUTF16(wardrobeData))
 				);
 				if (isWardrobe(additionalItemBundle)) {
 					for (let i = DEFAULT_WARDROBE_SIZE; i < EXPANDED_WARDROBE_SIZE; i++) {
@@ -8757,8 +8927,9 @@ async function ForBetterClub() {
 				logError("Failed to load extended wardrobe", e);
 				fbcBeepNotify(
 					"Wardrobe error",
-					`Failed to load extended wardrobe.\n\nBackup: ${Player.OnlineSettings.BCEWardrobe}`
+					`Failed to load extended wardrobe.\n\nBackup: ${wardrobeData}`
 				);
+				logInfo("Backup wardrobe", wardrobeData);
 			}
 		}
 		return wardrobe;
@@ -8774,9 +8945,7 @@ async function ForBetterClub() {
 			)
 		);
 		await waitFor(() => !!document.getElementById("TextAreaChatLog"));
-		fbcChatNotify(
-			`For Better Club (formerly BCE - Bondage Club Enhancements) changelog:\n${fbcChangelog}`
-		);
+		fbcChatNotify(`For Better Club (FBC) changelog:\n${fbcChangelog}`);
 	}
 
 	/** @type {(word: string) => URL | false} */
@@ -10286,7 +10455,9 @@ async function ForBetterClub() {
 				GameVersion,
 				// !! to avoid passing room name to statbot, only presence inside a room or not
 				InRoom: !!Player.LastChatRoom,
-				InPrivate: !!Player.LastChatRoomPrivate,
+				InPrivate:
+					// @ts-ignore -- LastChatRoomPrivate removed in R99
+					!!Player.LastChatRoomPrivate || !!Player.LastChatRoom.Private,
 				// @ts-ignore
 				// eslint-disable-next-line camelcase
 				InTampermonkey: typeof GM_info !== "undefined",
