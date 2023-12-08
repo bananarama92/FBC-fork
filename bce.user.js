@@ -10264,8 +10264,8 @@ async function ForBetterClub() {
 				const [item, , x, y] = args;
 				if (item) {
 					const { Craft } = item;
-					if (MouseIn(x, y, 225, 275) && Craft) {
-						drawTooltip(x, y, 225, displayText(Craft.Property), "center");
+					if (MouseIn(x, y, DialogInventoryGrid.itemWidth, DialogInventoryGrid.itemHeight) && Craft) {
+						drawTooltip(x, y, DialogInventoryGrid.itemWidth, displayText(Craft.Property), "center");
 						drawTooltip(
 							1000,
 							y - 70,
@@ -10524,15 +10524,8 @@ async function ForBetterClub() {
 		const canvas = w.MainCanvas.getContext("2d");
 		const bak = canvas.textAlign;
 		canvas.textAlign = align;
-		canvas.beginPath();
-		canvas.rect(x, y, width, 65);
-		canvas.fillStyle = "#FFFF88";
-		canvas.fillRect(x, y, width, 65);
-		canvas.fill();
-		canvas.lineWidth = 2;
-		canvas.strokeStyle = "black";
-		canvas.stroke();
-		canvas.closePath();
+		DrawRect(x, y, width, 65, "#FFFF88");
+		DrawEmptyRect(x, y, width, 65, "black", 2);
 		DrawTextFit(
 			text,
 			align === "left" ? x + 3 : x + width / 2,
