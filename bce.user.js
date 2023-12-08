@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Bondage Club Enhancements
 // @namespace https://www.bondageprojects.com/
-// @version 4.63
+// @version 4.64
 // @description FBC - For Better Club - enhancements for the bondage club - old name kept in tampermonkey for compatibility
 // @author Sidious
 // @match https://bondageprojects.elementfx.com/*
@@ -38,10 +38,17 @@
  *  along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-const FBC_VERSION = "4.63";
+const FBC_VERSION = "4.64";
 const settingsVersion = 55;
 
 const fbcChangelog = `${FBC_VERSION}
+- fixed instant messenger and dialog compatibility with MBCHC
+- fixed a game freeze after a failed login attempt
+- technical changes
+  - use bc-stubs for type checking
+  - use club functions and variables for drawing tooltips (dDeepLb)
+
+4.63
 - R98 compatibility
 - linked chat embeds to the trusted origins for 3rd party content
 
@@ -53,9 +60,6 @@ const fbcChangelog = `${FBC_VERSION}
 
 4.61
 - fix a bug where the animation can get in a bad state when presented with an invalid expression
-
-4.60
-- add ability to define target for /versions command (dDeepLb)
 - preserve formatting in IM messages (dDeepLb)
 `;
 
@@ -1567,9 +1571,14 @@ async function ForBetterClub() {
 	/** @type {"init" | "enable" | "disable"} */
 	let funcsRegistered = "init";
 	SDK.hookFunction("LoginResponse", HOOK_PRIORITIES.Top, (args, next) => {
-		// TODO: check that the response was a success
 		if (funcsRegistered === "init") {
 			funcsRegistered = "disable";
+		}
+		return next(args);
+	});
+	SDK.hookFunction("LoginStatusReset", HOOK_PRIORITIES.Top, (args, next) => {
+		if (funcsRegistered === "disable") {
+			funcsRegistered = "init";
 		}
 		return next(args);
 	});
@@ -8119,6 +8128,10 @@ async function ForBetterClub() {
 		const messageInput = document.createElement("textarea");
 		messageInput.id = "bce-message-input";
 		messageInput.setAttribute("maxlength", "2000");
+		messageInput.addEventListener("keydown", (e) => {
+			// MBCHC compatibility: prevent chatroom keydown events from triggering at document level
+			e.stopPropagation();
+		});
 
 		const friendSearch = document.createElement("input");
 		friendSearch.id = "bce-friend-search";
@@ -8127,6 +8140,10 @@ async function ForBetterClub() {
 			displayText("Search for a friend")
 		);
 		friendSearch.autocomplete = "off";
+		friendSearch.addEventListener("keydown", (e) => {
+			// MBCHC compatibility: prevent chatroom keydown events from triggering at document level
+			e.stopPropagation();
+		});
 
 		const onlineClass = "bce-friend-list-handshake-completed";
 		const offlineClass = "bce-friend-list-handshake-false";
@@ -10155,6 +10172,11 @@ async function ForBetterClub() {
 			});
 			input.addEventListener("change", () => {
 				inputValue = input.value;
+			});
+
+			input.addEventListener("keydown", (e) => {
+				// MBCHC compatibility: prevent chatroom keydown events from triggering at document level
+				e.stopPropagation();
 			});
 
 			input.value = opts.input.initial;
