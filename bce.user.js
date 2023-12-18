@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Bondage Club Enhancements
 // @namespace https://www.bondageprojects.com/
-// @version 4.66
+// @version 4.67
 // @description FBC - For Better Club - enhancements for the bondage club - old name kept in tampermonkey for compatibility
 // @author Sidious
 // @match https://bondageprojects.elementfx.com/*
@@ -38,10 +38,13 @@
  *  along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-const FBC_VERSION = "4.66";
+const FBC_VERSION = "4.67";
 const settingsVersion = 55;
 
 const fbcChangelog = `${FBC_VERSION}
+- fixed timers not working
+
+4.66
 - R99 compatibility
 - added option to show numeric arousal, when meter is expanded
 
@@ -56,10 +59,6 @@ const fbcChangelog = `${FBC_VERSION}
 - technical changes
   - use bc-stubs for type checking
   - use club functions and variables for drawing tooltips (dDeepLb)
-
-4.63
-- R98 compatibility
-- linked chat embeds to the trusted origins for 3rd party content
 `;
 
 /*
@@ -10757,7 +10756,7 @@ async function ForBetterClub() {
 			/**
 			 * @param {Parameters<typeof GameRun>} args
 			 */ (args, next) => {
-				const [ts] = args;
+				const ts = Date.now();
 				if (ts - lastTime > intval) {
 					lastTime = ts;
 					cb();
