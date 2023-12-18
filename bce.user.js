@@ -907,6 +907,9 @@ async function ForBetterClub() {
 		SDK.hookFunction(
 			"ServerInit",
 			HOOK_PRIORITIES.AddBehaviour,
+			/**
+			 * @param {Parameters<typeof ServerInit>} args
+			 */
 			(args, next) => {
 				const ret = next(args);
 				for (const [event, cb] of listeners) {
@@ -1588,25 +1591,43 @@ async function ForBetterClub() {
 	// Delay game processes until registration is complete
 	/** @type {"init" | "enable" | "disable"} */
 	let funcsRegistered = "init";
-	SDK.hookFunction("LoginResponse", HOOK_PRIORITIES.Top, (args, next) => {
-		if (funcsRegistered === "init") {
-			funcsRegistered = "disable";
+	SDK.hookFunction(
+		"LoginResponse",
+		HOOK_PRIORITIES.Top,
+		/**
+		 * @param {Parameters<typeof LoginResponse>} args
+		 */ (args, next) => {
+			if (funcsRegistered === "init") {
+				funcsRegistered = "disable";
+			}
+			return next(args);
 		}
-		return next(args);
-	});
-	SDK.hookFunction("LoginStatusReset", HOOK_PRIORITIES.Top, (args, next) => {
-		if (funcsRegistered === "disable") {
-			funcsRegistered = "init";
+	);
+	SDK.hookFunction(
+		"LoginStatusReset",
+		HOOK_PRIORITIES.Top,
+		/**
+		 * @param {Parameters<typeof LoginStatusReset>} args
+		 */ (args, next) => {
+			if (funcsRegistered === "disable") {
+				funcsRegistered = "init";
+			}
+			return next(args);
 		}
-		return next(args);
-	});
-	SDK.hookFunction("GameRun", HOOK_PRIORITIES.Top, (args, next) => {
-		if (funcsRegistered === "disable") {
-			requestAnimationFrame(GameRun);
-			return null;
+	);
+	SDK.hookFunction(
+		"GameRun",
+		HOOK_PRIORITIES.Top,
+		/**
+		 * @param {Parameters<typeof GameRun>} args
+		 */ (args, next) => {
+			if (funcsRegistered === "disable") {
+				requestAnimationFrame(GameRun);
+				return null;
+			}
+			return next(args);
 		}
-		return next(args);
-	});
+	);
 
 	(async function () {
 		await waitFor(() => !!w.FUSAM?.present);
@@ -1777,6 +1798,9 @@ async function ForBetterClub() {
 		SDK.hookFunction(
 			"ChatRoomCreateElement",
 			HOOK_PRIORITIES.AddBehaviour,
+			/**
+			 * @param {Parameters<typeof ChatRoomCreateElement>} args
+			 */
 			(args, next) => {
 				const isRelog = !!RelogChatLog;
 				const ret = next(args);
@@ -1797,6 +1821,9 @@ async function ForBetterClub() {
 		SDK.hookFunction(
 			"FriendListLoadFriendList",
 			HOOK_PRIORITIES.OverrideBehaviour,
+			/**
+			 * @param {Parameters<typeof FriendListLoadFriendList>} args
+			 */
 			(args, next) => {
 				if (!document.getElementById("FriendList")) {
 					return;
@@ -1810,6 +1837,9 @@ async function ForBetterClub() {
 		SDK.hookFunction(
 			"ServerSendQueueProcess",
 			HOOK_PRIORITIES.OverrideBehaviour,
+			/**
+			 * @param {Parameters<typeof ServerSendQueueProcess>} args
+			 */
 			(args, next) => {
 				if (!ServerIsConnected) {
 					return null;
@@ -1828,7 +1858,9 @@ async function ForBetterClub() {
 		SDK.hookFunction(
 			"GameRun",
 			HOOK_PRIORITIES.Observe,
-			/** @type {(args: DOMHighResTimeStamp[], next: (args: DOMHighResTimeStamp[]) => void) => void} */
+			/**
+			 * @param {Parameters<typeof GameRun>} args
+			 */
 			(args, next) => {
 				const [time] = args;
 				if (lastFrame >= 0 && time > 0) {
@@ -2055,6 +2087,9 @@ async function ForBetterClub() {
 			SDK.hookFunction(
 				fn,
 				HOOK_PRIORITIES.AddBehaviour,
+				/**
+				 * @param {Parameters<typeof InventoryItemMiscMistressTimerPadlockLoad>} args
+				 */
 				// eslint-disable-next-line no-loop-func
 				(args, next) => {
 					const ret = next(args);
@@ -2070,6 +2105,9 @@ async function ForBetterClub() {
 			SDK.hookFunction(
 				fn,
 				HOOK_PRIORITIES.AddBehaviour,
+				/**
+				 * @param {Parameters<typeof InventoryItemMiscMistressTimerPadlockExit>} args
+				 */
 				// eslint-disable-next-line no-loop-func
 				(args, next) => {
 					const ret = next(args);
@@ -2892,6 +2930,9 @@ async function ForBetterClub() {
 		SDK.hookFunction(
 			"DrawButton",
 			HOOK_PRIORITIES.ModifyBehaviourMedium,
+			/**
+			 * @param {Parameters<typeof DrawButton>} args
+			 */
 			(args, next) => {
 				// 7th argument is image URL
 				switch (args[6]) {
@@ -2908,6 +2949,9 @@ async function ForBetterClub() {
 		SDK.hookFunction(
 			"TextGet",
 			HOOK_PRIORITIES.ModifyBehaviourHigh,
+			/**
+			 * @param {Parameters<typeof TextGet>} args
+			 */
 			(args, next) => {
 				switch (args[0]) {
 					case "HomepageBCESettings":
@@ -2952,6 +2996,9 @@ async function ForBetterClub() {
 		SDK.hookFunction(
 			"StruggleLockPickDraw",
 			HOOK_PRIORITIES.AddBehaviour,
+			/**
+			 * @param {Parameters<typeof StruggleLockPickDraw>} args
+			 */
 			(args, next) => {
 				if (fbcSettings.lockpick && w.StruggleLockPickOrder) {
 					const seed = parseInt(StruggleLockPickOrder.join(""));
@@ -3032,65 +3079,77 @@ async function ForBetterClub() {
 				posMaps: {},
 			};
 
-			SDK.hookFunction("LoginRun", HOOK_PRIORITIES.Top, (args, next) => {
-				const ret = next(args);
-				if (Object.keys(loginData.passwords).length > 0) {
-					DrawText(
-						displayText("Saved Logins (FBC)"),
-						170,
-						35,
-						"White",
-						"Black"
-					);
-				}
-				DrawButton(1250, 385, 180, 60, displayText("Save (FBC)"), "White");
-
-				let y = 60;
-				for (const user in loginData.passwords) {
-					if (
-						!Object.prototype.hasOwnProperty.call(loginData.passwords, user)
-					) {
-						continue;
+			SDK.hookFunction(
+				"LoginRun",
+				HOOK_PRIORITIES.Top,
+				/**
+				 * @param {Parameters<typeof LoginRun>} args
+				 */ (args, next) => {
+					const ret = next(args);
+					if (Object.keys(loginData.passwords).length > 0) {
+						DrawText(
+							displayText("Saved Logins (FBC)"),
+							170,
+							35,
+							"White",
+							"Black"
+						);
 					}
-					loginData.posMaps[y] = user;
-					DrawButton(10, y, 350, 60, user, "White");
-					DrawButton(355, y, 60, 60, "X", "White");
-					y += 70;
-				}
-				return ret;
-			});
+					DrawButton(1250, 385, 180, 60, displayText("Save (FBC)"), "White");
 
-			SDK.hookFunction("LoginClick", HOOK_PRIORITIES.Top, (args, next) => {
-				const ret = next(args);
-				if (MouseIn(1250, 385, 180, 60)) {
-					bceUpdatePasswordForReconnect();
-					loginData.posMaps = {};
-					loginData.passwords = loadPasswords() || {};
-				}
-				const now = Date.now();
-				if (now - lastClick < 150) {
+					let y = 60;
+					for (const user in loginData.passwords) {
+						if (
+							!Object.prototype.hasOwnProperty.call(loginData.passwords, user)
+						) {
+							continue;
+						}
+						loginData.posMaps[y] = user;
+						DrawButton(10, y, 350, 60, user, "White");
+						DrawButton(355, y, 60, 60, "X", "White");
+						y += 70;
+					}
 					return ret;
 				}
-				lastClick = now;
-				for (const pos in loginData.posMaps) {
-					if (!Object.prototype.hasOwnProperty.call(loginData.posMaps, pos)) {
-						continue;
-					}
-					const idx = parseInt(pos);
-					if (MouseIn(10, idx, 350, 60)) {
-						ElementValue("InputName", loginData.posMaps[idx]);
-						ElementValue(
-							"InputPassword",
-							loginData.passwords[loginData.posMaps[idx]]
-						);
-					} else if (MouseIn(355, idx, 60, 60)) {
-						bceClearPassword(loginData.posMaps[idx]);
+			);
+
+			SDK.hookFunction(
+				"LoginClick",
+				HOOK_PRIORITIES.Top,
+				/**
+				 * @param {Parameters<typeof LoginClick>} args
+				 */ (args, next) => {
+					const ret = next(args);
+					if (MouseIn(1250, 385, 180, 60)) {
+						bceUpdatePasswordForReconnect();
 						loginData.posMaps = {};
 						loginData.passwords = loadPasswords() || {};
 					}
+					const now = Date.now();
+					if (now - lastClick < 150) {
+						return ret;
+					}
+					lastClick = now;
+					for (const pos in loginData.posMaps) {
+						if (!Object.prototype.hasOwnProperty.call(loginData.posMaps, pos)) {
+							continue;
+						}
+						const idx = parseInt(pos);
+						if (MouseIn(10, idx, 350, 60)) {
+							ElementValue("InputName", loginData.posMaps[idx]);
+							ElementValue(
+								"InputPassword",
+								loginData.passwords[loginData.posMaps[idx]]
+							);
+						} else if (MouseIn(355, idx, 60, 60)) {
+							bceClearPassword(loginData.posMaps[idx]);
+							loginData.posMaps = {};
+							loginData.passwords = loadPasswords() || {};
+						}
+					}
+					return ret;
 				}
-				return ret;
-			});
+			);
 
 			CurrentScreenFunctions.Run = LoginRun;
 			CurrentScreenFunctions.Click = LoginClick;
@@ -3150,34 +3209,46 @@ async function ForBetterClub() {
 			]);
 		}
 
-		SDK.hookFunction("RelogRun", HOOK_PRIORITIES.Top, (args, next) => {
-			const forbiddenReasons = ["ErrorDuplicatedLogin"];
-			if (!forbiddenReasons.includes(LoginErrorMessage)) {
-				relog();
-			} else if (!breakCircuit) {
-				SDK.callOriginal("ServerAccountBeep", [
-					{
-						MemberNumber: Player.MemberNumber,
-						MemberName: Player.Name,
-						ChatRoomName: displayText("ERROR"),
-						Private: true,
-						Message: displayText(
-							"Signed in from a different location! Refresh the page to re-enable relogin in this tab."
-						),
-						ChatRoomSpace: "",
-					},
-				]);
-				breakCircuit = true;
-				breakCircuitFull = true;
+		SDK.hookFunction(
+			"RelogRun",
+			HOOK_PRIORITIES.Top,
+			/**
+			 * @param {Parameters<typeof RelogRun>} args
+			 */ (args, next) => {
+				const forbiddenReasons = ["ErrorDuplicatedLogin"];
+				if (!forbiddenReasons.includes(LoginErrorMessage)) {
+					relog();
+				} else if (!breakCircuit) {
+					SDK.callOriginal("ServerAccountBeep", [
+						{
+							MemberNumber: Player.MemberNumber,
+							MemberName: Player.Name,
+							ChatRoomName: displayText("ERROR"),
+							Private: true,
+							Message: displayText(
+								"Signed in from a different location! Refresh the page to re-enable relogin in this tab."
+							),
+							ChatRoomSpace: "",
+						},
+					]);
+					breakCircuit = true;
+					breakCircuitFull = true;
+				}
+				return next(args);
 			}
-			return next(args);
-		});
+		);
 
-		SDK.hookFunction("RelogExit", HOOK_PRIORITIES.Top, (args, next) => {
-			breakCircuit = false;
-			breakCircuitFull = false;
-			return next(args);
-		});
+		SDK.hookFunction(
+			"RelogExit",
+			HOOK_PRIORITIES.Top,
+			/**
+			 * @param {Parameters<typeof RelogExit>} args
+			 */ (args, next) => {
+				breakCircuit = false;
+				breakCircuitFull = false;
+				return next(args);
+			}
+		);
 
 		registerSocketListener("connect", () => {
 			breakCircuit = false;
@@ -3186,7 +3257,9 @@ async function ForBetterClub() {
 		SDK.hookFunction(
 			"ServerDisconnect",
 			HOOK_PRIORITIES.ModifyBehaviourHigh,
-			/** @type {(args: [unknown, boolean], next: (args: [unknown, boolean]) => void) => void} */
+			/**
+			 * @param {Parameters<typeof ServerDisconnect>} args
+			 */
 			(args, next) => {
 				const [, force] = args;
 				args[1] = false;
@@ -3722,6 +3795,9 @@ async function ForBetterClub() {
 		SDK.hookFunction(
 			"StruggleMinigameStop",
 			HOOK_PRIORITIES.ModifyBehaviourMedium,
+			/**
+			 * @param {Parameters<typeof StruggleMinigameStop>} args
+			 */
 			(args, next) => {
 				if (bceAnimationEngineEnabled()) {
 					StruggleExpressionStore = null;
@@ -5026,7 +5102,7 @@ async function ForBetterClub() {
 			return [properties?.Expression || null, !properties?.RemoveTimer];
 		}
 
-		/** @type {(faceComponent: string, newExpression: ExpressionName, color: string) => void} */
+		/** @type {(faceComponent: string, newExpression: ExpressionName, color: string | string[]) => void} */
 		function setExpression(t, n, color) {
 			if (!n) {
 				n = null;
@@ -5295,7 +5371,7 @@ async function ForBetterClub() {
 			"CharacterSetFacialExpression",
 			HOOK_PRIORITIES.OverrideBehaviour,
 			/**
-			 * @param {[Character, string, ExpressionName, number, string | null]} args
+			 * @param {Parameters<typeof CharacterSetFacialExpression>} args
 			 */
 			(args, next) => {
 				// eslint-disable-next-line prefer-const
@@ -5351,7 +5427,10 @@ async function ForBetterClub() {
 		SDK.hookFunction(
 			"PoseSetActive",
 			HOOK_PRIORITIES.OverrideBehaviour,
-			(/** @type {[Character, null | AssetPoseName]} */ args, next) => {
+			/**
+			 * @param {Parameters<typeof PoseSetActive>} args
+			 */
+			(args, next) => {
 				const [C, Pose] = args;
 				if (
 					!isCharacter(C) ||
@@ -5379,24 +5458,18 @@ async function ForBetterClub() {
 			}
 		);
 
-		registerSocketListener(
-			"ChatRoomSyncPose",
-			(
-				/** @type {{ MemberNumber: number; Character?: Character; Pose: string | string[]; }} */
-				data
-			) => {
-				if (data === null || !isNonNullObject(data)) {
-					return;
-				}
-				if (!bceAnimationEngineEnabled()) {
-					return;
-				}
-				if (data.MemberNumber === Player.MemberNumber) {
-					const poses = Array.isArray(data.Pose) ? data.Pose : [data.Pose];
-					setPoses(poses);
-				}
+		registerSocketListener("ChatRoomSyncPose", (data) => {
+			if (data === null || !isNonNullObject(data)) {
+				return;
 			}
-		);
+			if (!bceAnimationEngineEnabled()) {
+				return;
+			}
+			if (data.MemberNumber === Player.MemberNumber) {
+				const poses = Array.isArray(data.Pose) ? data.Pose : [data.Pose];
+				setPoses(poses);
+			}
+		});
 
 		registerSocketListener("ChatRoomSyncSingle", (data) => {
 			if (data === null || !isNonNullObject(data)) {
@@ -6016,6 +6089,9 @@ async function ForBetterClub() {
 			SDK.hookFunction(
 				func,
 				HOOK_PRIORITIES.OverrideBehaviour,
+				/**
+				 * @param {Parameters<typeof DialogLeave> | Parameters<typeof DialogLeaveItemMenu>} args
+				 */
 				// eslint-disable-next-line no-loop-func
 				(args, next) => {
 					if (prioritySubscreen) {
@@ -6030,6 +6106,9 @@ async function ForBetterClub() {
 		SDK.hookFunction(
 			"AppearanceExit",
 			HOOK_PRIORITIES.AddBehaviour,
+			/**
+			 * @param {Parameters<typeof AppearanceExit>} args
+			 */
 			(args, next) => {
 				if (CharacterAppearanceMode === "") {
 					ElementRemove(layerPriority);
@@ -6041,6 +6120,9 @@ async function ForBetterClub() {
 		SDK.hookFunction(
 			"AppearanceLoad",
 			HOOK_PRIORITIES.AddBehaviour,
+			/**
+			 * @param {Parameters<typeof AppearanceLoad>} args
+			 */
 			(args, next) => {
 				const ret = next(args);
 				ElementCreateInput(layerPriority, "number", "", "20");
@@ -6052,6 +6134,9 @@ async function ForBetterClub() {
 		SDK.hookFunction(
 			"AppearanceRun",
 			HOOK_PRIORITIES.OverrideBehaviour,
+			/**
+			 * @param {Parameters<typeof AppearanceRun>} args
+			 */
 			(args, next) => {
 				if (prioritySubscreen) {
 					prioritySubscreenDraw();
@@ -6081,6 +6166,9 @@ async function ForBetterClub() {
 		SDK.hookFunction(
 			"AppearanceClick",
 			HOOK_PRIORITIES.OverrideBehaviour,
+			/**
+			 * @param {Parameters<typeof AppearanceClick>} args
+			 */
 			(args, next) => {
 				if (fbcSettings.layeringMenu) {
 					const C = CharacterAppearanceSelection;
@@ -6105,6 +6193,9 @@ async function ForBetterClub() {
 		SDK.hookFunction(
 			"DialogDraw",
 			HOOK_PRIORITIES.AddBehaviour,
+			/**
+			 * @param {Parameters<typeof DialogDraw>} args
+			 */
 			(args, next) => {
 				const C = CharacterGetCurrent();
 				const ret = next(args);
@@ -6239,6 +6330,9 @@ async function ForBetterClub() {
 		SDK.hookFunction(
 			"DialogDraw",
 			HOOK_PRIORITIES.OverrideBehaviour,
+			/**
+			 * @param {Parameters<typeof DialogDraw>} args
+			 */
 			(args, next) => {
 				const C = CharacterGetCurrent(),
 					focusItem = InventoryGet(C, C.FocusGroup?.Name);
@@ -6260,6 +6354,9 @@ async function ForBetterClub() {
 		SDK.hookFunction(
 			"DialogClick",
 			HOOK_PRIORITIES.OverrideBehaviour,
+			/**
+			 * @param {Parameters<typeof DialogClick>} args
+			 */
 			(args, next) => {
 				if (!canAccessLayeringMenus()) {
 					return next(args);
@@ -6395,6 +6492,9 @@ async function ForBetterClub() {
 		SDK.hookFunction(
 			"ChatRoomDrawCharacterOverlay",
 			HOOK_PRIORITIES.AddBehaviour,
+			/**
+			 * @param {Parameters<typeof ChatRoomDrawCharacterOverlay>} args
+			 */
 			(args, next) => {
 				const ret = next(args);
 				const [C, CharX, CharY, Zoom] = args;
@@ -6649,6 +6749,9 @@ async function ForBetterClub() {
 		SDK.hookFunction(
 			"CharacterAppearanceWardrobeLoad",
 			HOOK_PRIORITIES.OverrideBehaviour,
+			/**
+			 * @param {Parameters<typeof CharacterAppearanceWardrobeLoad>} args
+			 */
 			(args, next) => {
 				const [C] = args;
 				if (fbcSettings.privateWardrobe && CurrentScreen === "Appearance") {
@@ -6664,6 +6767,9 @@ async function ForBetterClub() {
 		SDK.hookFunction(
 			"AppearanceLoad",
 			HOOK_PRIORITIES.AddBehaviour,
+			/**
+			 * @param {Parameters<typeof AppearanceLoad>} args
+			 */
 			(args, next) => {
 				const ret = next(args);
 				if (inCustomWardrobe) {
@@ -6676,6 +6782,9 @@ async function ForBetterClub() {
 		SDK.hookFunction(
 			"AppearanceRun",
 			HOOK_PRIORITIES.AddBehaviour,
+			/**
+			 * @param {Parameters<typeof AppearanceRun>} args
+			 */
 			(args, next) => {
 				if (
 					CharacterAppearanceMode === "Wardrobe" &&
@@ -6697,6 +6806,9 @@ async function ForBetterClub() {
 		SDK.hookFunction(
 			"AppearanceClick",
 			HOOK_PRIORITIES.ModifyBehaviourMedium,
+			/**
+			 * @param {Parameters<typeof AppearanceClick>} args
+			 */
 			(args, next) => {
 				if (
 					CharacterAppearanceMode === "Wardrobe" &&
@@ -6713,6 +6825,9 @@ async function ForBetterClub() {
 		SDK.hookFunction(
 			"WardrobeLoad",
 			HOOK_PRIORITIES.AddBehaviour,
+			/**
+			 * @param {Parameters<typeof WardrobeLoad>} args
+			 */
 			(args, next) => {
 				appearanceBackup = CharacterAppearanceBackup;
 				return next(args);
@@ -6722,6 +6837,9 @@ async function ForBetterClub() {
 		SDK.hookFunction(
 			"WardrobeRun",
 			HOOK_PRIORITIES.AddBehaviour,
+			/**
+			 * @param {Parameters<typeof WardrobeRun>} args
+			 */
 			(args, next) => {
 				const playerBackup = Player;
 				// Replace Player with target character in rendering
@@ -6754,6 +6872,9 @@ async function ForBetterClub() {
 		SDK.hookFunction(
 			"WardrobeClick",
 			HOOK_PRIORITIES.ModifyBehaviourMedium,
+			/**
+			 * @param {Parameters<typeof WardrobeClick>} args
+			 */
 			(args, next) => {
 				if (MouseIn(10, 74, 64, 64)) {
 					excludeBodyparts = !excludeBodyparts;
@@ -6766,6 +6887,9 @@ async function ForBetterClub() {
 		SDK.hookFunction(
 			"WardrobeExit",
 			HOOK_PRIORITIES.OverrideBehaviour,
+			/**
+			 * @param {Parameters<typeof WardrobeExit>} args
+			 */
 			(args, next) => {
 				if (!inCustomWardrobe) {
 					return next(args);
@@ -6779,7 +6903,9 @@ async function ForBetterClub() {
 		SDK.hookFunction(
 			"WardrobeFastLoad",
 			HOOK_PRIORITIES.OverrideBehaviour,
-			/** @type {(args: [Character, number, boolean], next: (args: [Character, number, boolean]) => unknown) => unknown} */
+			/**
+			 * @param {Parameters<typeof WardrobeFastLoad>} args
+			 */
 			(args, next) => {
 				let [C] = args;
 				const base = C.Appearance.filter(
@@ -6807,6 +6933,9 @@ async function ForBetterClub() {
 		SDK.hookFunction(
 			"WardrobeFastSave",
 			HOOK_PRIORITIES.OverrideBehaviour,
+			/**
+			 * @param {Parameters<typeof WardrobeFastSave>} args
+			 */
 			(args, next) => {
 				const [C] = args;
 				if (inCustomWardrobe && isCharacter(C) && C.IsPlayer()) {
@@ -6819,7 +6948,9 @@ async function ForBetterClub() {
 		SDK.hookFunction(
 			"ServerPlayerIsInChatRoom",
 			HOOK_PRIORITIES.AddBehaviour,
-			/** @type {(args: [], next: (args: []) => boolean) => boolean} */
+			/**
+			 * @param {Parameters<typeof ServerPlayerIsInChatRoom>} args
+			 */
 			(args, next) =>
 				(inCustomWardrobe && CharacterAppearanceReturnRoom === "ChatRoom") ||
 				next(args)
@@ -6931,78 +7062,84 @@ async function ForBetterClub() {
 		});
 
 		// ServerSend hook for client-side gagspeak, priority lower than BCX's whisper dictionary hook
-		SDK.hookFunction("ServerSend", 0, (args, next) => {
-			if (args.length < 2) {
-				return next(args);
-			}
-			const [message, data] = args;
-			if (!isString(message) || !isChatMessage(data)) {
-				return next(args);
-			}
-			if (message === "ChatRoomChat") {
-				switch (data.Type) {
-					case "Whisper":
-						{
-							const idx = data.Dictionary?.findIndex(
-								// @ts-ignore - BCX's custom dictionary entry, dictionary entries cannot be extended in TS
-								(d) => d.Tag === BCX_ORIGINAL_MESSAGE
-							);
-							if (
-								idx >= 0 &&
-								(fbcSettings.antiAntiGarble ||
-									fbcSettings.antiAntiGarbleStrong ||
-									fbcSettings.antiAntiGarbleExtra)
-							) {
-								data.Dictionary.splice(idx, 1);
-							}
-						}
-						break;
-					case "Chat":
-						{
-							const gagLevel = SpeechGetTotalGagLevel(Player);
-							if (gagLevel > 0) {
-								if (fbcSettings.antiAntiGarble) {
-									data.Content =
-										SpeechGarbleByGagLevel(1, data.Content) +
-										GAGBYPASSINDICATOR;
-								} else if (fbcSettings.antiAntiGarbleExtra && gagLevel > 24) {
-									const icIndicator = "\uF124";
-									let inOOC = false;
-									data.Content = `${data.Content.split("")
-										.map((c) => {
-											switch (c) {
-												case "(":
-													inOOC = true;
-													return c;
-												case ")":
-													inOOC = false;
-													return c;
-												default:
-													return inOOC ? c : icIndicator;
-											}
-										})
-										.join("")
-										.replace(
-											new RegExp(`${icIndicator}+`, "gu"),
-											"m"
-										)}${GAGBYPASSINDICATOR}`;
-								} else if (
-									fbcSettings.antiAntiGarbleStrong ||
-									fbcSettings.antiAntiGarbleExtra
+		SDK.hookFunction(
+			"ServerSend",
+			HOOK_PRIORITIES.Observe,
+			/**
+			 * @param {Parameters<typeof ServerSend>} args
+			 */ (args, next) => {
+				if (args.length < 2) {
+					return next(args);
+				}
+				const [message, data] = args;
+				if (!isString(message) || !isChatMessage(data)) {
+					return next(args);
+				}
+				if (message === "ChatRoomChat") {
+					switch (data.Type) {
+						case "Whisper":
+							{
+								const idx = data.Dictionary?.findIndex(
+									// @ts-ignore - BCX's custom dictionary entry, dictionary entries cannot be extended in TS
+									(d) => d.Tag === BCX_ORIGINAL_MESSAGE
+								);
+								if (
+									idx >= 0 &&
+									(fbcSettings.antiAntiGarble ||
+										fbcSettings.antiAntiGarbleStrong ||
+										fbcSettings.antiAntiGarbleExtra)
 								) {
-									data.Content =
-										SpeechGarbleByGagLevel(gagLevel, data.Content) +
-										GAGBYPASSINDICATOR;
+									data.Dictionary.splice(idx, 1);
 								}
 							}
-						}
-						break;
-					default:
-						break;
+							break;
+						case "Chat":
+							{
+								const gagLevel = SpeechGetTotalGagLevel(Player);
+								if (gagLevel > 0) {
+									if (fbcSettings.antiAntiGarble) {
+										data.Content =
+											SpeechGarbleByGagLevel(1, data.Content) +
+											GAGBYPASSINDICATOR;
+									} else if (fbcSettings.antiAntiGarbleExtra && gagLevel > 24) {
+										const icIndicator = "\uF124";
+										let inOOC = false;
+										data.Content = `${data.Content.split("")
+											.map((c) => {
+												switch (c) {
+													case "(":
+														inOOC = true;
+														return c;
+													case ")":
+														inOOC = false;
+														return c;
+													default:
+														return inOOC ? c : icIndicator;
+												}
+											})
+											.join("")
+											.replace(
+												new RegExp(`${icIndicator}+`, "gu"),
+												"m"
+											)}${GAGBYPASSINDICATOR}`;
+									} else if (
+										fbcSettings.antiAntiGarbleStrong ||
+										fbcSettings.antiAntiGarbleExtra
+									) {
+										data.Content =
+											SpeechGarbleByGagLevel(gagLevel, data.Content) +
+											GAGBYPASSINDICATOR;
+									}
+								}
+							}
+							break;
+						default:
+							break;
+					}
 				}
+				return next([message, data, ...args.slice(2)]);
 			}
-			return next([message, data, ...args.slice(2)]);
-		});
+		);
 
 		// X, Y, width, height. X and Y centered.
 		const gagAntiCheatMenuPosition = /** @type {const} */ ([
@@ -7015,6 +7152,9 @@ async function ForBetterClub() {
 		SDK.hookFunction(
 			"ChatRoomRun",
 			HOOK_PRIORITIES.ModifyBehaviourHigh,
+			/**
+			 * @param {Parameters<typeof ChatRoomRun>} args
+			 */
 			(args, nextFunc) => {
 				const ret = nextFunc(args);
 
@@ -7126,6 +7266,9 @@ async function ForBetterClub() {
 		SDK.hookFunction(
 			"ChatRoomClick",
 			HOOK_PRIORITIES.ModifyBehaviourHigh,
+			/**
+			 * @param {Parameters<typeof ChatRoomClick>} args
+			 */
 			(args, nextFunc) => {
 				if (fbcSettings.showQuickAntiGarble && !fbcSettings.discreetMode) {
 					if (MouseIn(...gagAntiCheatMenuPosition)) {
@@ -7267,6 +7410,9 @@ async function ForBetterClub() {
 		SDK.hookFunction(
 			"ActivityChatRoomArousalSync",
 			HOOK_PRIORITIES.Observe,
+			/**
+			 * @param {Parameters<typeof ActivityChatRoomArousalSync>} args
+			 */
 			(args, next) => {
 				const [C] = args;
 				if (isCharacter(C) && C.IsPlayer() && CurrentScreen === "ChatRoom") {
@@ -7296,6 +7442,9 @@ async function ForBetterClub() {
 		SDK.hookFunction(
 			"ActivitySetArousal",
 			HOOK_PRIORITIES.AddBehaviour,
+			/**
+			 * @param {Parameters<typeof ActivitySetArousal>} args
+			 */
 			(args, next) => {
 				const [C, Progress] = args;
 				const ret = next(args);
@@ -7313,6 +7462,9 @@ async function ForBetterClub() {
 		SDK.hookFunction(
 			"ActivitySetArousalTimer",
 			HOOK_PRIORITIES.AddBehaviour,
+			/**
+			 * @param {Parameters<typeof ActivitySetArousalTimer>} args
+			 */
 			(args, next) => {
 				const [C, , , Factor] = args;
 				if (isCharacter(C) && typeof Factor === "number") {
@@ -7325,6 +7477,9 @@ async function ForBetterClub() {
 		SDK.hookFunction(
 			"ActivityTimerProgress",
 			HOOK_PRIORITIES.AddBehaviour,
+			/**
+			 * @param {Parameters<typeof ActivityTimerProgress>} args
+			 */
 			(args, next) => {
 				const [C, progress] = args;
 				if (isCharacter(C) && typeof progress === "number") {
@@ -7516,10 +7671,16 @@ async function ForBetterClub() {
 			}
 		}
 
-		SDK.hookFunction("GameRun", HOOK_PRIORITIES.Observe, (args, next) => {
-			checkBlindness();
-			return next(args);
-		});
+		SDK.hookFunction(
+			"GameRun",
+			HOOK_PRIORITIES.Observe,
+			/**
+			 * @param {Parameters<typeof GameRun>} args
+			 */ (args, next) => {
+				checkBlindness();
+				return next(args);
+			}
+		);
 	}
 
 	async function friendPresenceNotifications() {
@@ -7612,6 +7773,9 @@ async function ForBetterClub() {
 		SDK.hookFunction(
 			"ServerClickBeep",
 			HOOK_PRIORITIES.OverrideBehaviour,
+			/**
+			 * @param {Parameters<typeof ServerClickBeep>} args
+			 */
 			(args, next) => {
 				if (
 					ServerBeep.Timer > Date.now() &&
@@ -7823,7 +7987,9 @@ async function ForBetterClub() {
 		SDK.hookFunction(
 			"ChatRoomSyncItem",
 			HOOK_PRIORITIES.OverrideBehaviour,
-			/** @type {(args: [ServerChatRoomSyncItemResponse], next: (args: [ServerChatRoomSyncItemResponse]) => void) => void} */
+			/**
+			 * @param {Parameters<typeof ChatRoomSyncItem>} args
+			 */
 			(args, next) => {
 				const [data] = args;
 				if (!fbcSettings.itemAntiCheat) {
@@ -7872,7 +8038,9 @@ async function ForBetterClub() {
 		SDK.hookFunction(
 			"ChatRoomSyncSingle",
 			HOOK_PRIORITIES.OverrideBehaviour,
-			/** @type {(args: [ServerChatRoomSyncCharacterResponse], next: (args: [ServerChatRoomSyncCharacterResponse]) => void) => void} */
+			/**
+			 * @param {Parameters<typeof ChatRoomSyncSingle>} args
+			 */
 			(args, next) => {
 				const [data] = args;
 				if (!fbcSettings.itemAntiCheat) {
@@ -8077,6 +8245,9 @@ async function ForBetterClub() {
 			SDK.hookFunction(
 				"CharacterBuildDialog",
 				HOOK_PRIORITIES.AddBehaviour,
+				/**
+				 * @param {Parameters<typeof CharacterBuildDialog>} args
+				 */
 				(args, next) => {
 					const ret = next(args);
 					const [C] = args;
@@ -8632,7 +8803,7 @@ async function ForBetterClub() {
 		SDK.hookFunction(
 			"ServerAccountBeep",
 			HOOK_PRIORITIES.OverrideBehaviour,
-			/** @type {(args: ServerAccountBeepResponse[], next: (args: ServerAccountBeepResponse[]) => void) => void} */
+			/** @type {(args: [ServerAccountBeepResponse], next: (args: [ServerAccountBeepResponse]) => void) => void} */
 			(args, next) => {
 				const [beep] = args;
 				if (
@@ -8682,7 +8853,9 @@ async function ForBetterClub() {
 		SDK.hookFunction(
 			"DrawProcess",
 			HOOK_PRIORITIES.AddBehaviour,
-			/** @type {(args: DOMHighResTimeStamp[], next: (args: DOMHighResTimeStamp[]) => void) => void} */
+			/**
+			 * @param {Parameters<typeof DrawProcess>} args
+			 */
 			(args, next) => {
 				next(args);
 				if (fbcSettings.instantMessenger) {
@@ -8720,7 +8893,9 @@ async function ForBetterClub() {
 		SDK.hookFunction(
 			"CommonClick",
 			HOOK_PRIORITIES.OverrideBehaviour,
-			/** @type {(args: (MouseEvent | TouchEvent)[], next: (args: (MouseEvent | TouchEvent)[]) => void) => void} */
+			/**
+			 * @param {Parameters<typeof CommonClick>} args
+			 */
 			(args, next) => {
 				if (fbcSettings.instantMessenger && MouseIn(...buttonPosition())) {
 					if (!container.classList.contains("bce-hidden")) {
@@ -8742,7 +8917,9 @@ async function ForBetterClub() {
 		SDK.hookFunction(
 			"NotificationRaise",
 			HOOK_PRIORITIES.ModifyBehaviourHigh,
-			/** @type {(args: [string, Partial<{ body: string }>], next: (args: [string, Partial<{ body: string }>]) => void) => void} */
+			/**
+			 * @param {Parameters<typeof NotificationRaise>} args
+			 */
 			(args, next) => {
 				if (args[0] === "Beep" && args[1].body) {
 					args[1].body = bceStripBeepMetadata(args[1].body);
@@ -8779,6 +8956,9 @@ async function ForBetterClub() {
 		SDK.hookFunction(
 			"CharacterDecompressWardrobe",
 			HOOK_PRIORITIES.ModifyBehaviourMedium,
+			/**
+			 * @param {Parameters<typeof CharacterDecompressWardrobe>} args
+			 */
 			(args, next) => {
 				let wardrobe = next(args);
 				if (
@@ -8795,7 +8975,9 @@ async function ForBetterClub() {
 		SDK.hookFunction(
 			"CharacterCompressWardrobe",
 			HOOK_PRIORITIES.Top,
-			/** @type {(args: (ItemBundle[][] | string)[][], next: (args: (ItemBundle[][] | string)[][]) => string) => string} */
+			/**
+			 * @param {Parameters<typeof CharacterCompressWardrobe>} args
+			 */
 			(args, next) => {
 				const [wardrobe] = args;
 				if (isWardrobe(wardrobe)) {
@@ -9116,6 +9298,9 @@ async function ForBetterClub() {
 		SDK.hookFunction(
 			"ChatAdminRoomCustomizationClick",
 			HOOK_PRIORITIES.Observe,
+			/**
+			 * @param {Parameters<typeof ChatAdminRoomCustomizationClick>} args
+			 */
 			(args, next) => {
 				for (const s of [
 					ElementValue("InputImageURL").trim(),
@@ -9159,7 +9344,9 @@ async function ForBetterClub() {
 		SDK.hookFunction(
 			"DrawImageEx",
 			HOOK_PRIORITIES.Top,
-			/** @type {(args: [string | HTMLImageElement | HTMLCanvasElement], next: (args: [string | HTMLImageElement | HTMLCanvasElement]) => boolean) => boolean} */
+			/**
+			 * @param {Parameters<typeof DrawImageEx>} args
+			 */
 			(args, next) => {
 				if (fbcSettings.discreetMode) {
 					if (!args) {
@@ -9183,6 +9370,9 @@ async function ForBetterClub() {
 		SDK.hookFunction(
 			"NotificationTitleUpdate",
 			HOOK_PRIORITIES.Top,
+			/**
+			 * @param {Parameters<typeof NotificationTitleUpdate>} args
+			 */
 			(args, next) => {
 				if (fbcSettings.discreetMode) {
 					const notificationCount = NotificationGetTotalCount(1);
@@ -9201,6 +9391,9 @@ async function ForBetterClub() {
 		SDK.hookFunction(
 			"StruggleFlexibilityCheck",
 			HOOK_PRIORITIES.OverrideBehaviour,
+			/**
+			 * @param {Parameters<typeof StruggleFlexibilityCheck>} args
+			 */
 			(args, next) => {
 				if (fbcSettings.autoStruggle) {
 					if (StruggleProgressFlexCircles.length > 0) {
@@ -9661,7 +9854,7 @@ async function ForBetterClub() {
 			"ChatRoomSync",
 			HOOK_PRIORITIES.Top,
 			/**
-			 * @param {[ServerChatRoomSyncMessage]} args
+			 * @param {Parameters<typeof ChatRoomSync>} args
 			 */
 			(args, next) => {
 				const [data] = args;
@@ -9678,7 +9871,7 @@ async function ForBetterClub() {
 			"ChatRoomSyncSingle",
 			HOOK_PRIORITIES.Top,
 			/**
-			 * @param {[ServerChatRoomSyncCharacterResponse]} args
+			 * @param {Parameters<typeof ChatRoomSyncSingle>} args
 			 */
 			(args, next) => {
 				const [data] = args;
@@ -9692,7 +9885,9 @@ async function ForBetterClub() {
 		SDK.hookFunction(
 			"InformationSheetRun",
 			HOOK_PRIORITIES.AddBehaviour,
-			/** @type {(args: unknown[], next: (args: unknown[]) => unknown) => unknown} */
+			/**
+			 * @param {Parameters<typeof InformationSheetRun>} args
+			 */
 			(args, next) => {
 				if (InformationSheetSelection.BCESeen) {
 					w.MainCanvas.getContext("2d").textAlign = "left";
@@ -9706,7 +9901,6 @@ async function ForBetterClub() {
 					);
 					w.MainCanvas.getContext("2d").textAlign = "center";
 				}
-				// eslint-disable-next-line consistent-return
 				return next(args);
 			}
 		);
@@ -9848,6 +10042,9 @@ async function ForBetterClub() {
 		SDK.hookFunction(
 			"OnlineProfileRun",
 			HOOK_PRIORITIES.OverrideBehaviour,
+			/**
+			 * @param {Parameters<typeof OnlineProfileRun>} args
+			 */
 			(args, next) => {
 				if (inNotes) {
 					DrawText(
@@ -9910,6 +10107,9 @@ async function ForBetterClub() {
 		SDK.hookFunction(
 			"OnlineProfileClick",
 			HOOK_PRIORITIES.AddBehaviour,
+			/**
+			 * @param {Parameters<typeof OnlineProfileClick>} args
+			 */
 			(args, next) => {
 				if (inNotes) {
 					if (MouseIn(1720, 60, 90, 90)) {
@@ -9959,6 +10159,9 @@ async function ForBetterClub() {
 		SDK.hookFunction(
 			"ChatRoomMessage",
 			HOOK_PRIORITIES.Observe,
+			/**
+			 * @param {Parameters<typeof ChatRoomMessage>} args
+			 */
 			(args, next) => {
 				const ret = next(args);
 				if (
@@ -9986,6 +10189,9 @@ async function ForBetterClub() {
 		SDK.hookFunction(
 			"ServerSend",
 			HOOK_PRIORITIES.AddBehaviour,
+			/**
+			 * @param {Parameters<typeof ServerSend>} args
+			 */
 			(args, next) => {
 				if (
 					fbcSettings.pendingMessages &&
@@ -10065,7 +10271,9 @@ async function ForBetterClub() {
 		SDK.hookFunction(
 			"DrawCharacter",
 			HOOK_PRIORITIES.ModifyBehaviourLow,
-			/** @type {(args: [Character], next: (args: [Character]) => void) => void} */
+			/**
+			 * @param {Parameters<typeof DrawCharacter>} args
+			 */
 			(args, next) => {
 				const [c] = args;
 				if (!c || !fbcSettings.hideHiddenItemsIcon) {
@@ -10130,6 +10338,9 @@ async function ForBetterClub() {
 		SDK.hookFunction(
 			"CraftingClick",
 			HOOK_PRIORITIES.AddBehaviour,
+			/**
+			 * @param {Parameters<typeof CraftingClick>} args
+			 */
 			(args, next) => {
 				switch (CraftingMode) {
 					case "Name":
@@ -10161,6 +10372,9 @@ async function ForBetterClub() {
 		SDK.hookFunction(
 			"CraftingRun",
 			HOOK_PRIORITIES.ModifyBehaviourMedium,
+			/**
+			 * @param {Parameters<typeof CraftingRun>} args
+			 */
 			(args, next) => {
 				const ret = next(args);
 				if (CraftingMode === "Name") {
@@ -10175,8 +10389,7 @@ async function ForBetterClub() {
 			"DrawItemPreview",
 			HOOK_PRIORITIES.AddBehaviour,
 			/**
-			 * @param {[Item, Character, number, number, {}]} args
-			 * @param {(args: [Item, Character, number, number, {}]) => void} next
+			 * @param {Parameters<typeof DrawItemPreview>} args
 			 */
 			(args, next) => {
 				const ret = next(args);
@@ -10538,13 +10751,20 @@ async function ForBetterClub() {
 	/** @type {(cb: () => void, intval: number) => void} */
 	function createTimer(cb, intval) {
 		let lastTime = Date.now();
-		SDK.hookFunction("GameRun", HOOK_PRIORITIES.Top, (args, next) => {
-			if (Date.now() - lastTime > intval) {
-				lastTime = Date.now();
-				cb();
+		SDK.hookFunction(
+			"GameRun",
+			HOOK_PRIORITIES.Top,
+			/**
+			 * @param {Parameters<typeof GameRun>} args
+			 */ (args, next) => {
+				const [ts] = args;
+				if (ts - lastTime > intval) {
+					lastTime = ts;
+					cb();
+				}
+				return next(args);
 			}
-			return next(args);
-		});
+		);
 	}
 
 	/** @type {(addon: string) => boolean} */

@@ -157,7 +157,7 @@ declare global {
     Duration: number;
     Priority?: number;
     Skip?: boolean;
-    Color?: string;
+    Color?: string | string[];
     Applied?: boolean;
   };
   type ExpressionStages = Record<string, ExpressionStage[]>;
