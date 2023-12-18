@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Bondage Club Enhancements
 // @namespace https://www.bondageprojects.com/
-// @version 4.65
+// @version 4.66
 // @description FBC - For Better Club - enhancements for the bondage club - old name kept in tampermonkey for compatibility
 // @author Sidious
 // @match https://bondageprojects.elementfx.com/*
@@ -38,10 +38,14 @@
  *  along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-const FBC_VERSION = "4.65";
+const FBC_VERSION = "4.66";
 const settingsVersion = 55;
 
 const fbcChangelog = `${FBC_VERSION}
+- R99 compatibility
+- added option to show numeric arousal, when meter is expanded
+
+4.65
 - restore gag anti-cheat
 
 4.64
@@ -56,12 +60,6 @@ const fbcChangelog = `${FBC_VERSION}
 4.63
 - R98 compatibility
 - linked chat embeds to the trusted origins for 3rd party content
-
-4.62
-- added a patch to prevent the game from processing serversends while the game does not have connection with the server
-- fixes towards a rare error related to ArousalSettings not being defined on remote characters
-- removed a duplicate hello message on initial load when automatically rejoining a chatroom
-- removed FBC's duplicate implementation of client-side rate limiting
 `;
 
 /*
@@ -78,7 +76,7 @@ var bcModSdk=function(){"use strict";const e="1.1.0";function o(e){alert("Mod ER
 async function ForBetterClub() {
 	"use strict";
 
-	const SUPPORTED_GAME_VERSIONS = ["R98"];
+	const SUPPORTED_GAME_VERSIONS = ["R99"];
 	const CAPABILITIES = /** @type {const} */ (["clubslave"]);
 
 	const w = window;
@@ -259,6 +257,15 @@ async function ForBetterClub() {
 			category: "activities",
 			description:
 				"More stuttering at high arousal, moans between words with vibrators.",
+		},
+		numericArousalMeter: {
+			label: "Show numeric arousal meter",
+			value: true,
+			sideEffects: (newValue) => {
+				debug("numericArousalMeter", newValue);
+			},
+			category: "activities",
+			description: "Shows the numeric value of arousal meters when expanded.",
 		},
 		layeringMenu: {
 			label: "Enable layering menus",
@@ -1138,11 +1145,7 @@ async function ForBetterClub() {
 	 */
 	const expectedHashes = (gameVersion) => {
 		switch (gameVersion) {
-			case "R99":
-			case "R99Beta4":
-			case "R99Beta3":
-			case "R99Beta2":
-			case "R99Beta1":
+			default:
 				return /** @type {const} */ ({
 					ActivityChatRoomArousalSync: "BFF3DED7",
 					ActivitySetArousal: "3AE28123",
@@ -1154,8 +1157,8 @@ async function ForBetterClub() {
 					AppearanceRun: "6EC75705",
 					CharacterAppearanceWardrobeLoad: "A5B63A03",
 					CharacterBuildDialog: "85F79C6E",
-					CharacterCompressWardrobe: "8D3B1AB1",
-					CharacterDecompressWardrobe: "A9FD29CC",
+					CharacterCompressWardrobe: "2A05ECD1",
+					CharacterDecompressWardrobe: "327FADA4",
 					CharacterDelete: "398D1116",
 					CharacterGetCurrent: "45608177",
 					CharacterLoadCanvas: "EAB81BC4",
@@ -1170,12 +1173,12 @@ async function ForBetterClub() {
 					ChatRoomCharacterUpdate: "C444E92D",
 					ChatRoomClearAllElements: "14DAAB05",
 					ChatRoomClick: "4C4A7B70",
-					ChatRoomCreateElement: "9A3FD548",
+					ChatRoomCreateElement: "AA36E8B6",
 					ChatRoomCurrentTime: "A462DD3A",
 					ChatRoomDrawBackground: "AEE70C4E",
 					ChatRoomDrawCharacterOverlay: "06FB4CC3",
 					ChatRoomHTMLEntities: "0A7ADB1D",
-					ChatRoomKeyDown: "94E162D3",
+					ChatRoomKeyDown: "2C43231C",
 					ChatRoomListManipulation: "75D28A8B",
 					ChatRoomMessage: "BBD61334",
 					ChatRoomMessageDisplay: "A9ACC758",
@@ -1185,17 +1188,19 @@ async function ForBetterClub() {
 					ChatRoomSendChat: "7F540ED0",
 					ChatRoomStart: "9B822A9A",
 					CommandExecute: "5C948CC3",
-					CommandParse: "C9061FE8",
+					CommandParse: "C63F98C3",
 					CommonClick: "1F6DF7CB",
 					CommonColorIsValid: "390A2CE4",
 					CommonSetScreen: "E2AC00F4",
-					CraftingClick: "FF1A7B21",
-					CraftingConvertSelectedToItem: "48270B42",
+					CraftingClick: "571D9763",
+					CraftingConvertSelectedToItem: "308B958C",
 					CraftingRun: "5BE6E125",
 					DialogClick: "A1B56CDF",
 					DialogDraw: "D8377D69",
 					DialogDrawItemMenu: "FCE556C2",
 					DialogLeave: "C37553DC",
+					DrawArousalMeter: "BB0755AF",
+					DrawArousalThermometer: "7ED6D822",
 					DrawBackNextButton: "9AF4BA37",
 					DrawButton: "A7023A82",
 					DrawCharacter: "41CF69C4",
@@ -1252,7 +1257,7 @@ async function ForBetterClub() {
 					ServerDisconnect: "06C1A6B0",
 					ServerInit: "FEC6457F",
 					ServerOpenFriendList: "FA8D3CDE",
-					ServerPlayerExtensionSettingsSync: "348E5FFB",
+					ServerPlayerExtensionSettingsSync: "1776666B",
 					ServerSend: "ABE74E75",
 					ServerSendQueueProcess: "BD4277AC",
 					SkillGetWithRatio: "3EB4BC45",
@@ -1279,144 +1284,6 @@ async function ForBetterClub() {
 					WardrobeFixLength: "CA3334C6",
 					WardrobeLoad: "C343A4C7",
 					WardrobeRun: "633B3570",
-				});
-			default:
-				return /** @type {const} */ ({
-					ActivityChatRoomArousalSync: "21318CAF",
-					ActivitySetArousal: "3AE28123",
-					ActivitySetArousalTimer: "1342AFE2",
-					ActivityTimerProgress: "6CD388A7",
-					AppearanceClick: "723EA7F1",
-					AppearanceExit: "AA300341",
-					AppearanceLoad: "4360C485",
-					AppearanceRun: "0BBDEE59",
-					CharacterAppearanceWardrobeLoad: "A5B63A03",
-					CharacterBuildDialog: "85F79C6E",
-					CharacterCompressWardrobe: "8D3B1AB1",
-					CharacterDecompressWardrobe: "A9FD29CC",
-					CharacterDelete: "398D1116",
-					CharacterGetCurrent: "45608177",
-					CharacterLoadCanvas: "BA6AD4FF",
-					CharacterNickname: "A794EFF5",
-					CharacterRefresh: "5BF9DA5A",
-					CharacterReleaseTotal: "396640D1",
-					CharacterSetActivePose: "5BCD2A9E",
-					CharacterSetCurrent: "F46573D8",
-					CharacterSetFacialExpression: "F8272D7A",
-					ChatAdminRoomCustomizationClick: "E194A605",
-					ChatAdminRoomCustomizationProcess: "B33D6388",
-					ChatRoomCharacterItemUpdate: "263DB2F0",
-					ChatRoomCharacterUpdate: "9D0EEA39",
-					ChatRoomClearAllElements: "14DAAB05",
-					ChatRoomClick: "120B0F0B",
-					ChatRoomCreateElement: "9A3FD548",
-					ChatRoomCurrentTime: "A462DD3A",
-					ChatRoomDrawBackground: "AEE70C4E",
-					ChatRoomDrawCharacterOverlay: "06FB4CC3",
-					ChatRoomHTMLEntities: "0A7ADB1D",
-					ChatRoomKeyDown: "B4BFDB0C",
-					ChatRoomListManipulation: "75D28A8B",
-					ChatRoomMessage: "BBD61334",
-					ChatRoomMessageDisplay: "C7053411",
-					ChatRoomRegisterMessageHandler: "C432923A",
-					ChatRoomResize: "653445D7",
-					ChatRoomRun: "6F4C7B4D",
-					ChatRoomSendChat: "7F540ED0",
-					ChatRoomStart: "9B822A9A",
-					CommandExecute: "5C948CC3",
-					CommandParse: "C9061FE8",
-					CommonClick: "1F6DF7CB",
-					CommonColorIsValid: "390A2CE4",
-					CommonSetScreen: "E2AC00F4",
-					CraftingClick: "FF76A404",
-					CraftingConvertSelectedToItem: "E827EA50",
-					CraftingRun: "5BE6E125",
-					DialogClick: "D0FA2714",
-					DialogDraw: "8A814153",
-					DialogDrawItemMenu: "FCE556C2",
-					DialogLeave: "C37553DC",
-					DrawBackNextButton: "9AF4BA37",
-					DrawButton: "A7023A82",
-					DrawCharacter: "35E09A1E",
-					DrawCheckbox: "00FD87EB",
-					DrawImageEx: "3D3D74F5",
-					DrawImageResize: "8CF55F04",
-					DrawItemPreview: "58E9BA94",
-					DrawProcess: "BC1E9396",
-					DrawText: "C1BF0F50",
-					DrawTextFit: "F9A1B11E",
-					ElementCreateInput: "60D2EA73",
-					ElementCreateTextArea: "81019A58",
-					ElementIsScrolledToEnd: "1CC4FE11",
-					ElementPosition: "CC4E3C82",
-					ElementRemove: "60809E60",
-					ElementScrollToEnd: "1AC45575",
-					ElementValue: "4F26C62F",
-					FriendListShowBeep: "6C0449BB",
-					GameRun: "ED65B730",
-					GLDrawResetCanvas: "81214642",
-					InformationSheetRun: "E248ADC7",
-					InventoryGet: "E666F671",
-					InventoryItemMiscMistressTimerPadlockClick: "861419FC",
-					InventoryItemMiscMistressTimerPadlockDraw: "4E1628BE",
-					InventoryItemMiscMistressTimerPadlockExit: "66BC6923",
-					InventoryItemMiscMistressTimerPadlockLoad: "BE46432F",
-					InventoryItemMiscOwnerTimerPadlockClick: "C929699B",
-					InventoryItemMiscOwnerTimerPadlockDraw: "BCA80BF8",
-					InventoryItemMiscOwnerTimerPadlockExit: "1BE66B4A",
-					InventoryItemMiscOwnerTimerPadlockLoad: "8A55C0D1",
-					InventoryItemMiscTimerPasswordPadlockClick: "BAE0BAC9",
-					InventoryItemMiscTimerPasswordPadlockDraw: "0BB8E88D",
-					InventoryItemMiscTimerPasswordPadlockExit: "7323E56D",
-					InventoryItemMiscTimerPasswordPadlockLoad: "82223608",
-					LoginClick: "EE94BEC7",
-					LoginRun: "C3926C4F",
-					LoginSetSubmitted: "C88F4A8E",
-					LoginStatusReset: "18619F02",
-					MouseIn: "CA8B839E",
-					NotificationDrawFavicon: "AB88656B",
-					NotificationRaise: "E8F29646",
-					NotificationTitleUpdate: "0E92F3ED",
-					OnlineGameAllowChange: "3779F42C",
-					OnlineProfileClick: "CC034993",
-					OnlineProfileRun: "B0AF608D",
-					RelogRun: "10AF5A60",
-					RelogExit: "2DFB2DAD",
-					ServerAccountBeep: "F16771D4",
-					ServerAppearanceBundle: "4D069622",
-					ServerAppearanceLoadFromBundle: "C9F5FFAC",
-					ServerClickBeep: "3E6277BE",
-					ServerConnect: "845E50A6",
-					ServerDisconnect: "06C1A6B0",
-					ServerInit: "FEC6457F",
-					ServerOpenFriendList: "FA8D3CDE",
-					ServerPlayerExtensionSettingsSync: "348E5FFB",
-					ServerSend: "D356D537",
-					ServerSendQueueProcess: "BD4277AC",
-					SkillGetWithRatio: "3EB4BC45",
-					SpeechGarble: "9D669F73",
-					SpeechGarbleByGagLevel: "5F6E16C8",
-					SpeechGetTotalGagLevel: "C55B705A",
-					StruggleDexterityProcess: "7E19ADA9",
-					StruggleFlexibilityCheck: "727CE05B",
-					StruggleFlexibilityProcess: "278D7285",
-					StruggleLockPickDraw: "2F1F603B",
-					StruggleMinigameHandleExpression: "B6E4A1A0",
-					StruggleMinigameStop: "206F85E7",
-					StruggleStrengthProcess: "D20CF698",
-					TextGet: "4DDE5794",
-					TextLoad: "ADF7C890",
-					TimerInventoryRemove: "1FA771FB",
-					TimerProcess: "52458C63",
-					TitleExit: "F13F533C",
-					ValidationSanitizeProperties: "C6A54638",
-					WardrobeClick: "E96F7F63",
-					WardrobeExit: "EE83FF29",
-					WardrobeFastLoad: "38627DC2",
-					WardrobeFastSave: "B62385C1",
-					WardrobeFixLength: "CA3334C6",
-					WardrobeLoad: "C343A4C7",
-					WardrobeRun: "9616EB3A",
 				});
 		}
 	};
@@ -1789,6 +1656,7 @@ async function ForBetterClub() {
 	registerFunction(leashFix, "leashFix");
 	registerFunction(hookBCXAPI, "hookBCXAPI");
 	registerFunction(customContentDomainCheck, "customContentDomainCheck");
+	registerFunction(numericArousalMeters, "numericArousalMeters");
 	funcsRegistered = "enable";
 
 	// Post ready when in a chat room
@@ -1937,19 +1805,6 @@ async function ForBetterClub() {
 				return next(args);
 			}
 		);
-
-		if (GameVersion.startsWith("R98")) {
-			// Send responses immediately
-			SDK.hookFunction(
-				"ServerSend",
-				HOOK_PRIORITIES.AddBehaviour,
-				(args, next) => {
-					const ret = next(args);
-					ServerSendQueueProcess();
-					return ret;
-				}
-			);
-		}
 
 		// Prevent processing of sent messages when disconnected
 		SDK.hookFunction(
@@ -5370,11 +5225,7 @@ async function ForBetterClub() {
 				poses.includes(p.Name.toLowerCase())
 			).map((p) => p.Name);
 			for (const poseName of poseNames) {
-				if (GameVersion.startsWith("R98")) {
-					CharacterSetActivePose(Player, poseName, false);
-				} else {
-					PoseSetActive(Player, poseName, false);
-				}
+				PoseSetActive(Player, poseName, false);
 			}
 		}
 
@@ -5498,9 +5349,7 @@ async function ForBetterClub() {
 		);
 
 		SDK.hookFunction(
-			GameVersion.startsWith("R98")
-				? "CharacterSetActivePose"
-				: "PoseSetActive",
+			"PoseSetActive",
 			HOOK_PRIORITIES.OverrideBehaviour,
 			(/** @type {[Character, null | AssetPoseName]} */ args, next) => {
 				const [C, Pose] = args;
@@ -8311,11 +8160,8 @@ async function ForBetterClub() {
 
 			await waitFor(() => !!ManagementMistress);
 
-			if (GameVersion.startsWith("R98")) {
-				CharacterSetActivePose(Player, "Kneel", false);
-			} else {
-				PoseSetActive(Player, "Kneel", false);
-			}
+			PoseSetActive(Player, "Kneel", false);
+
 			// eslint-disable-next-line require-atomic-updates
 			ManagementMistress.Stage = "320";
 			ManagementMistress.CurrentDialog = displayText(
@@ -10364,6 +10210,64 @@ async function ForBetterClub() {
 						);
 					}
 				}
+				return ret;
+			}
+		);
+	}
+
+	function numericArousalMeters() {
+		let isExpanded = false;
+		let increasing = false;
+		SDK.hookFunction(
+			"DrawArousalMeter",
+			HOOK_PRIORITIES.Observe,
+			/**
+			 * @param {Parameters<typeof DrawArousalMeter>} args
+			 */
+			(args, next) => {
+				const [C] = args;
+				isExpanded = !!C.ArousalZoom;
+				const activityGoing = C.ArousalSettings?.ProgressTimer > 0;
+				const vibed = C.ArousalSettings?.VibratorLevel > 0;
+				const vibedOnEdge =
+					(C.IsEdged() || C.HasEffect("DenialMode")) &&
+					C.ArousalSettings?.Progress >= 95;
+				increasing = activityGoing || (vibed && !vibedOnEdge);
+				const ret = next(args);
+				isExpanded = false;
+				return ret;
+			}
+		);
+
+		SDK.hookFunction(
+			"DrawArousalThermometer",
+			HOOK_PRIORITIES.Observe,
+			/**
+			 * @param {Parameters<typeof DrawArousalThermometer>} args
+			 */ (args, next) => {
+				const ret = next(args);
+				if (fbcSettings.numericArousalMeter && isExpanded) {
+					const [x, y, zoom, progress] = args;
+					let color = "white";
+					if (progress >= 95) {
+						if (increasing) {
+							color = "red";
+						} else {
+							color = "hotpink";
+						}
+					} else if (progress >= 70) {
+						color = "pink";
+					}
+					DrawTextFit(
+						progress.toLocaleString() + (increasing ? "↑" : " "),
+						x + 50 * zoom,
+						y - 30 * zoom,
+						100 * zoom,
+						color,
+						"black"
+					);
+				}
+
 				return ret;
 			}
 		);
