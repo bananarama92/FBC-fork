@@ -8996,7 +8996,7 @@ async function ForBetterClub() {
 
 	/**
 	 * Convert old {@link ItemProperties.Type} remnants into {@link ItemProperties.TypeRecord} in the passed item bundles.
-	 * @type {(bundeList: ItemBundle[]) => ItemBundle[]}
+	 * @param {ItemBundle[]} bundleList
 	 */
 	function sanitizeBundles(bundleList) {
 		if (!Array.isArray(bundleList)) {
