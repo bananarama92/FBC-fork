@@ -3589,7 +3589,7 @@ async function ForBetterClub() {
 							fbcChatNotify("Tried to OOC send a command. Use double // to confirm sending to chat.");
 							return;
 						}
-						
+
 						ElementValue("InputChat", prefix + "(" + text.replace(/\\)/g, "${CLOSINGBRACKETINDICATOR}"));
 					}
 					ChatRoomSendChat()`,
@@ -8994,6 +8994,25 @@ async function ForBetterClub() {
 		);
 	}
 
+	/**
+	 * Convert old {@link ItemProperties.Type} remnants into {@link ItemProperties.TypeRecord} in the passed item bundles.
+	 * @type {(bundeList: ItemBundle[]) => ItemBundle[]}
+	 */
+	function sanitizeBundles(bundleList) {
+		if (!Array.isArray(bundleList)) {
+			return bundleList;
+		}
+		return bundleList.map((bundle) => {
+			if (typeof bundle.Property?.Type === "string" && !CommonIsObject(bundle.Property?.TypeRecord)) {
+				const asset = AssetGet("Female3DCG", bundle.Group, bundle.Name);
+				if (asset) {
+					bundle.Property.TypeRecord = ExtendedItemTypeToRecord(asset, bundle.Property.Type);
+				}
+			}
+			return bundle;
+		});
+	}
+
 	/** @type {(wardrobe: ItemBundle[][]) => ItemBundle[][]} */
 	function loadExtendedWardrobe(wardrobe) {
 		if (fbcSettings.extendedWardrobe) {
@@ -9020,7 +9039,7 @@ async function ForBetterClub() {
 						if (additionalIdx >= additionalItemBundle.length) {
 							break;
 						}
-						wardrobe[i] = additionalItemBundle[additionalIdx];
+						wardrobe[i] = sanitizeBundles(additionalItemBundle[additionalIdx]);
 					}
 				}
 			} catch (e) {
