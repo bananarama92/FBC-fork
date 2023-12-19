@@ -59,6 +59,7 @@ declare global {
   var StartBcUtil: () => void;
 }
 declare global {
+  var GM_info: unknown;
   interface Window {
     InputChat?: HTMLTextAreaElement;
     MainCanvas: HTMLCanvasElement;
@@ -141,7 +142,7 @@ declare global {
   };
   type ItemLayer = Item & { Name: string | null; Priority?: number };
   type ArousalExpressionStage = {
-    Expression: string | null;
+    Expression: ExpressionName | null;
     Limit: number;
   };
   type ArousalExpressionStages = Record<string, ArousalExpressionStage[]>;

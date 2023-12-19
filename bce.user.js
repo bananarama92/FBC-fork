@@ -194,6 +194,9 @@ async function ForBetterClub() {
 	const defaultSettings = /** @type {const} */ ({
 		animationEngine: {
 			label: "Animation Engine",
+			/**
+			 * @param {unknown} newValue
+			 */
 			sideEffects: (newValue) => {
 				if (newValue) {
 					// Disable conflicting settings
@@ -207,6 +210,9 @@ async function ForBetterClub() {
 		},
 		expressions: {
 			label: "Automatic Arousal Expressions (Replaces Vanilla)",
+			/**
+			 * @param {unknown} newValue
+			 */
 			sideEffects: (newValue) => {
 				if (newValue) {
 					fbcSettings.animationEngine = true;
@@ -221,6 +227,9 @@ async function ForBetterClub() {
 		activityExpressions: {
 			label: "Activity Expressions",
 			value: false,
+			/**
+			 * @param {unknown} newValue
+			 */
 			sideEffects: (newValue) => {
 				if (newValue) {
 					fbcSettings.animationEngine = true;
@@ -235,6 +244,9 @@ async function ForBetterClub() {
 			label:
 				"Alternate Arousal (Replaces Vanilla, requires hybrid/locked arousal meter)",
 			value: false,
+			/**
+			 * @param {unknown} newValue
+			 */
 			sideEffects: (newValue) => {
 				sendHello();
 				Player.BCEArousal = !!newValue;
@@ -250,6 +262,9 @@ async function ForBetterClub() {
 		stutters: {
 			label: "Alternative speech stutter",
 			value: false,
+			/**
+			 * @param {unknown} newValue
+			 */
 			sideEffects: (newValue) => {
 				debug("stutters", newValue);
 			},
@@ -260,6 +275,9 @@ async function ForBetterClub() {
 		numericArousalMeter: {
 			label: "Show numeric arousal meter",
 			value: true,
+			/**
+			 * @param {unknown} newValue
+			 */
 			sideEffects: (newValue) => {
 				debug("numericArousalMeter", newValue);
 			},
@@ -269,6 +287,9 @@ async function ForBetterClub() {
 		layeringMenu: {
 			label: "Enable layering menus",
 			value: false,
+			/**
+			 * @param {unknown} newValue
+			 */
 			sideEffects: (newValue) => {
 				debug("layeringMenu", newValue);
 			},
@@ -279,6 +300,9 @@ async function ForBetterClub() {
 		extendedWardrobe: {
 			label: "Extended wardrobe slots (96)",
 			value: false,
+			/**
+			 * @param {unknown} newValue
+			 */
 			sideEffects: (newValue) => {
 				debug("extendedWardrobe", newValue);
 				if (newValue) {
@@ -300,6 +324,9 @@ async function ForBetterClub() {
 		privateWardrobe: {
 			label: "Replace wardrobe list with character previews",
 			value: false,
+			/**
+			 * @param {unknown} newValue
+			 */
 			sideEffects: (newValue) => {
 				debug("privateWardrobe", newValue);
 			},
@@ -310,6 +337,9 @@ async function ForBetterClub() {
 		automateCacheClear: {
 			label: "Clear Drawing Cache Hourly",
 			value: false,
+			/**
+			 * @param {unknown} newValue
+			 */
 			sideEffects: (newValue) => {
 				debug("automateCacheClear", newValue);
 			},
@@ -320,6 +350,9 @@ async function ForBetterClub() {
 		instantMessenger: {
 			label: "Instant messenger",
 			value: true,
+			/**
+			 * @param {unknown} newValue
+			 */
 			sideEffects: (newValue) => {
 				debug("instantMessenger", newValue);
 			},
@@ -330,6 +363,9 @@ async function ForBetterClub() {
 		augmentChat: {
 			label: "Chat Links and Embeds",
 			value: true,
+			/**
+			 * @param {unknown} newValue
+			 */
 			sideEffects: (newValue) => {
 				debug("augmentChat", newValue);
 			},
@@ -340,6 +376,9 @@ async function ForBetterClub() {
 		ctrlEnterOoc: {
 			label: "Use Ctrl+Enter to OOC",
 			value: true,
+			/**
+			 * @param {unknown} newValue
+			 */
 			sideEffects: (newValue) => {
 				debug("ctrlEnterOoc", newValue);
 			},
@@ -349,6 +388,9 @@ async function ForBetterClub() {
 		whisperInput: {
 			label: "Use italics for input when whispering",
 			value: true,
+			/**
+			 * @param {unknown} newValue
+			 */
 			sideEffects: (newValue) => {
 				debug("whisperInput", newValue);
 			},
@@ -359,6 +401,9 @@ async function ForBetterClub() {
 		chatColors: {
 			label: "Improve colors for readability",
 			value: true,
+			/**
+			 * @param {unknown} newValue
+			 */
 			sideEffects: (newValue) => {
 				if (newValue) {
 					document.body.classList.add(BCE_COLOR_ADJUSTMENTS_CLASS_NAME);
@@ -374,6 +419,9 @@ async function ForBetterClub() {
 		friendPresenceNotifications: {
 			label: "Show friend presence notifications",
 			value: false,
+			/**
+			 * @param {unknown} newValue
+			 */
 			sideEffects: (newValue) => {
 				debug("friendPresenceNotifications", newValue);
 			},
@@ -384,6 +432,9 @@ async function ForBetterClub() {
 		friendOfflineNotifications: {
 			label: "Show friends going offline too",
 			value: false,
+			/**
+			 * @param {unknown} newValue
+			 */
 			sideEffects: (newValue) => {
 				debug("friendOfflineNotifications", newValue);
 			},
@@ -394,6 +445,9 @@ async function ForBetterClub() {
 		friendNotificationsInChat: {
 			label: "Show friend presence notifications in chat, when possible",
 			value: false,
+			/**
+			 * @param {unknown} newValue
+			 */
 			sideEffects: (newValue) => {
 				debug("friendNotificationsInChat", newValue);
 			},
@@ -404,6 +458,9 @@ async function ForBetterClub() {
 		pastProfiles: {
 			label: "Save & browse seen profiles (requires refresh)",
 			value: false,
+			/**
+			 * @param {unknown} newValue
+			 */
 			sideEffects: (newValue) => {
 				debug("pastProfiles", newValue);
 			},
@@ -414,6 +471,9 @@ async function ForBetterClub() {
 		pendingMessages: {
 			label: "Show sent messages while waiting for server",
 			value: true,
+			/**
+			 * @param {unknown} newValue
+			 */
 			sideEffects: (newValue) => {
 				debug("showSentMessages", newValue);
 			},
@@ -424,6 +484,9 @@ async function ForBetterClub() {
 		gagspeak: {
 			label: "Understand All Gagged and when Deafened",
 			value: false,
+			/**
+			 * @param {unknown} newValue
+			 */
 			sideEffects: (newValue) => {
 				debug("gagspeak", newValue);
 			},
@@ -434,6 +497,9 @@ async function ForBetterClub() {
 		lockpick: {
 			label: "Reveal Lockpicking Order Based on Skill",
 			value: false,
+			/**
+			 * @param {unknown} newValue
+			 */
 			sideEffects: (newValue) => {
 				debug("lockpick", newValue);
 			},
@@ -444,6 +510,9 @@ async function ForBetterClub() {
 		allowLayeringWhileBound: {
 			label: "Allow layering menus while bound",
 			value: false,
+			/**
+			 * @param {unknown} newValue
+			 */
 			sideEffects: (newValue) => {
 				debug("allowLayeringWhileBound", newValue);
 				if (newValue && !fbcSettings.layeringMenu) {
@@ -458,6 +527,9 @@ async function ForBetterClub() {
 		autoStruggle: {
 			label: "Make automatic progress while struggling",
 			value: false,
+			/**
+			 * @param {unknown} newValue
+			 */
 			sideEffects: (newValue) => {
 				debug("autoStruggle", newValue);
 			},
@@ -468,6 +540,9 @@ async function ForBetterClub() {
 		allowIMBypassBCX: {
 			label: "Allow IMs to bypass BCX beep restrictions",
 			value: false,
+			/**
+			 * @param {unknown} newValue
+			 */
 			sideEffects: (newValue) => {
 				debug("allowIMBypassBCX", newValue);
 			},
@@ -478,6 +553,9 @@ async function ForBetterClub() {
 		shareAddons: {
 			label: "Share Addons",
 			value: true,
+			/**
+			 * @param {unknown} newValue
+			 */
 			sideEffects: (newValue) => {
 				debug("shareAddons", newValue);
 			},
@@ -488,6 +566,9 @@ async function ForBetterClub() {
 		bcx: {
 			label: "Load BCX by Jomshir98",
 			value: false,
+			/**
+			 * @param {unknown} newValue
+			 */
 			sideEffects: (newValue) => {
 				if (newValue) {
 					fbcSettings.bcxDevel = false;
@@ -511,6 +592,9 @@ async function ForBetterClub() {
 		bcxDevel: {
 			label: "Load BCX beta",
 			value: false,
+			/**
+			 * @param {unknown} newValue
+			 */
 			sideEffects: (newValue) => {
 				if (newValue) {
 					fbcSettings.bcx = false;
@@ -534,6 +618,9 @@ async function ForBetterClub() {
 		ebch: {
 			label: "Load EBCH by Elicia",
 			value: false,
+			/**
+			 * @param {unknown} newValue
+			 */
 			sideEffects: (newValue) => {
 				if (newValue) {
 					if (handledByFUSAM("EBCH")) {
@@ -555,6 +642,9 @@ async function ForBetterClub() {
 		mbs: {
 			label: "Load MBS by Rama",
 			value: false,
+			/**
+			 * @param {unknown} newValue
+			 */
 			sideEffects: (newValue) => {
 				if (newValue) {
 					if (handledByFUSAM("MBS")) {
@@ -575,6 +665,9 @@ async function ForBetterClub() {
 		lscg: {
 			label: "Load LSCG by LittleSera",
 			value: false,
+			/**
+			 * @param {unknown} newValue
+			 */
 			sideEffects: (newValue) => {
 				if (newValue) {
 					if (handledByFUSAM("LSCG")) {
@@ -595,6 +688,9 @@ async function ForBetterClub() {
 		toySync: {
 			label: "Enable buttplug.io (requires refresh)",
 			value: false,
+			/**
+			 * @param {unknown} newValue
+			 */
 			sideEffects: (newValue) => {
 				debug("toySync", newValue);
 			},
@@ -605,6 +701,9 @@ async function ForBetterClub() {
 		antiAntiGarble: {
 			label: "Limited gag anti-cheat: cloth-gag equivalent garbling",
 			value: false,
+			/**
+			 * @param {unknown} newValue
+			 */
 			sideEffects: (newValue) => {
 				if (newValue) {
 					fbcSettings.antiAntiGarbleStrong = false;
@@ -619,6 +718,9 @@ async function ForBetterClub() {
 		antiAntiGarbleStrong: {
 			label: "Full gag anti-cheat: use equipped gags to determine garbling",
 			value: false,
+			/**
+			 * @param {unknown} newValue
+			 */
 			sideEffects: (newValue) => {
 				if (newValue) {
 					fbcSettings.antiAntiGarble = false;
@@ -634,6 +736,9 @@ async function ForBetterClub() {
 			label:
 				"Extra gag anti-cheat: even more garbling for the most extreme gags",
 			value: false,
+			/**
+			 * @param {unknown} newValue
+			 */
 			sideEffects: (newValue) => {
 				if (newValue) {
 					fbcSettings.antiAntiGarble = false;
@@ -648,6 +753,9 @@ async function ForBetterClub() {
 		blindWithoutGlasses: {
 			label: "Require glasses to see",
 			value: false,
+			/**
+			 * @param {unknown} newValue
+			 */
 			sideEffects: (newValue) => {
 				if (!newValue) {
 					removeCustomEffect("BlurLight");
@@ -661,6 +769,9 @@ async function ForBetterClub() {
 			label:
 				"Allow leashing without wearing a leashable item (requires leasher to have FBC too)",
 			value: false,
+			/**
+			 * @param {unknown} newValue
+			 */
 			sideEffects: (newValue) => {
 				debug("leashAlways", newValue);
 				if (newValue) {
@@ -676,6 +787,9 @@ async function ForBetterClub() {
 		hideHiddenItemsIcon: {
 			label: "Hide the hidden items icon",
 			value: false,
+			/**
+			 * @param {unknown} newValue
+			 */
 			sideEffects: (newValue) => {
 				debug("hideHiddenItemsIcon", newValue);
 			},
@@ -686,6 +800,9 @@ async function ForBetterClub() {
 		itemAntiCheat: {
 			label: "Enable anti-cheat",
 			value: false,
+			/**
+			 * @param {unknown} newValue
+			 */
 			sideEffects: (newValue) => {
 				debug("itemAntiCheat", newValue);
 			},
@@ -696,6 +813,9 @@ async function ForBetterClub() {
 		antiCheatBlackList: {
 			label: "Blacklist detected cheaters automatically",
 			value: false,
+			/**
+			 * @param {unknown} newValue
+			 */
 			sideEffects: (newValue) => {
 				debug("antiCheatBlackList", newValue);
 			},
@@ -705,6 +825,9 @@ async function ForBetterClub() {
 		},
 		checkUpdates: {
 			label: "Check for updates",
+			/**
+			 * @param {unknown} newValue
+			 */
 			sideEffects: (newValue) => {
 				debug("checkUpdates", newValue);
 			},
@@ -714,6 +837,9 @@ async function ForBetterClub() {
 		},
 		relogin: {
 			label: "Automatic Relogin on Disconnect",
+			/**
+			 * @param {unknown} newValue
+			 */
 			sideEffects: (newValue) => {
 				debug("relogin", newValue);
 			},
@@ -725,6 +851,9 @@ async function ForBetterClub() {
 		showQuickAntiGarble: {
 			label: "Show gag cheat and anti-cheat options in chat",
 			value: false,
+			/**
+			 * @param {unknown} newValue
+			 */
 			sideEffects: (newValue) => {
 				if (newValue) {
 					ChatRoomChatInputRect = [1356, 950, 700, 82];
@@ -741,6 +870,9 @@ async function ForBetterClub() {
 		ghostNewUsers: {
 			label: "Automatically ghost+blocklist unnaturally new users",
 			value: false,
+			/**
+			 * @param {unknown} newValue
+			 */
 			sideEffects: (newValue) => {
 				debug("ghostNewUsers", newValue);
 			},
@@ -751,6 +883,9 @@ async function ForBetterClub() {
 		accurateTimerLocks: {
 			label: "Use accurate timer inputs",
 			value: false,
+			/**
+			 * @param {unknown} newValue
+			 */
 			sideEffects: (newValue) => {
 				debug("accurateTimerLocks", newValue);
 			},
@@ -760,6 +895,9 @@ async function ForBetterClub() {
 		confirmLeave: {
 			label: "Confirm leaving the game",
 			value: true,
+			/**
+			 * @param {unknown} newValue
+			 */
 			sideEffects: (newValue) => {
 				debug("confirmLeave", newValue);
 			},
@@ -770,6 +908,9 @@ async function ForBetterClub() {
 		discreetMode: {
 			label: "Discreet mode (disable drawing)",
 			value: false,
+			/**
+			 * @param {unknown} newValue
+			 */
 			sideEffects: (newValue) => {
 				debug("discreetMode", newValue);
 				if (newValue) {
@@ -786,6 +927,9 @@ async function ForBetterClub() {
 		customContentDomainCheck: {
 			label: "Prompt before loading content from a 3rd party domain",
 			value: true,
+			/**
+			 * @param {unknown} newValue
+			 */
 			sideEffects: (newValue) => {
 				debug("customContentDomainCheck", newValue);
 			},
@@ -796,6 +940,9 @@ async function ForBetterClub() {
 		fpsCounter: {
 			label: "Show FPS counter",
 			value: false,
+			/**
+			 * @param {unknown} newValue
+			 */
 			sideEffects: (newValue) => {
 				debug("fpsCounter", newValue);
 			},
@@ -806,6 +953,9 @@ async function ForBetterClub() {
 		limitFPSInBackground: {
 			label: "Limit FPS in background",
 			value: false,
+			/**
+			 * @param {unknown} newValue
+			 */
 			sideEffects: (newValue) => {
 				debug("limitFPSInBackground", newValue);
 			},
@@ -816,6 +966,9 @@ async function ForBetterClub() {
 		limitFPSTo15: {
 			label: "Limit FPS to ~15",
 			value: false,
+			/**
+			 * @param {unknown} newValue
+			 */
 			sideEffects: (newValue) => {
 				debug("limitFPSTo15", newValue);
 				if (newValue) {
@@ -829,6 +982,9 @@ async function ForBetterClub() {
 		limitFPSTo30: {
 			label: "Limit FPS to ~30",
 			value: false,
+			/**
+			 * @param {unknown} newValue
+			 */
 			sideEffects: (newValue) => {
 				debug("limitFPSTo30", newValue);
 				if (newValue) {
@@ -842,6 +998,9 @@ async function ForBetterClub() {
 		limitFPSTo60: {
 			label: "Limit FPS to ~60",
 			value: false,
+			/**
+			 * @param {unknown} newValue
+			 */
 			sideEffects: (newValue) => {
 				debug("limitFPSTo60", newValue);
 				if (newValue) {
@@ -852,18 +1011,12 @@ async function ForBetterClub() {
 			category: "performance",
 			description: "Limits the FPS to 60. This is useful for saving resources.",
 		},
-		nickname: {
-			label: "Nickname",
-			value: "",
-			sideEffects: (newValue) => {
-				debug("nickname", newValue);
-			},
-			category: "hidden",
-			description: "",
-		},
 		buttplugDevices: {
 			label: "Buttplug Devices",
 			value: "",
+			/**
+			 * @param {unknown} newValue
+			 */
 			sideEffects: (newValue) => {
 				debug("buttplugDevices", newValue);
 				// Don't handle empty string
@@ -1009,10 +1162,11 @@ async function ForBetterClub() {
 
 	function postSettings() {
 		debug("handling settings side effects");
-		for (const [k, v] of Object.entries(fbcSettings)) {
-			if (isDefaultSettingKey(k)) {
-				defaultSettings[k].sideEffects(v);
+		for (const [k, v] of objEntries(fbcSettings)) {
+			if (k === "version") {
+				continue;
 			}
+			defaultSettings[k].sideEffects(v);
 		}
 		bceSaveSettings();
 
@@ -1131,7 +1285,7 @@ async function ForBetterClub() {
 			original in translations[TranslationLanguage]
 				? translations[TranslationLanguage][original]
 				: original;
-		for (const [key, val] of Object.entries(replacements)) {
+		for (const [key, val] of objEntries(replacements)) {
 			while (text.includes(key)) {
 				text = text.replace(key, val);
 			}
@@ -1143,7 +1297,7 @@ async function ForBetterClub() {
 		displayText(original, replacements);
 
 	/**
-	 * @type {(gameVersion: string) => Readonly<{ [key: string]: string }>}
+	 * @param {string} gameVersion
 	 */
 	const expectedHashes = (gameVersion) => {
 		switch (gameVersion) {
@@ -1500,7 +1654,11 @@ async function ForBetterClub() {
 		return date.getTime();
 	};
 
+	/** @type {string[]} */
 	const incompleteFunctions = [];
+	/**
+	 * @param {boolean} [copy] - Whether to copy the report to the clipboard
+	 */
 	const fbcDebug = async (copy) => {
 		/** @type {Map<string, string>} */
 		const info = new Map();
@@ -1515,7 +1673,7 @@ async function ForBetterClub() {
 		info.set("FBC Version", FBC_VERSION);
 		info.set(
 			"FBC Enabled Settings",
-			`\n- ${Object.entries(fbcSettings)
+			`\n- ${objEntries(fbcSettings)
 				.filter(([k, v]) => v || k === "version")
 				.map(([k, v]) => `${k}: ${v.toString()}`)
 				.join("\n- ")}`
@@ -1694,7 +1852,7 @@ async function ForBetterClub() {
 				typeof ServerIsConnected === "boolean" &&
 				ServerIsConnected
 		);
-		for (const [func, hash] of Object.entries(expectedHashes(GameVersion))) {
+		for (const [func, hash] of objEntries(expectedHashes(GameVersion))) {
 			if (!w[func]) {
 				logWarn(`Expected function ${func} not found.`);
 				continue;
@@ -1703,7 +1861,6 @@ async function ForBetterClub() {
 				logWarn(`Expected function ${func} is not a function.`);
 				continue;
 			}
-			// eslint-disable-next-line
 			const actualHash = SDK.getOriginalHash(func);
 			if (actualHash !== hash) {
 				logWarn(
@@ -2582,6 +2739,9 @@ async function ForBetterClub() {
 			settingsYIncrement = 70,
 			settingsYStart = 225;
 
+		/**
+		 * @param {SettingsCategory} category
+		 */
 		const settingsPageCount = (category) =>
 			Math.ceil(
 				Object.values(defaultSettings).filter((v) => v.category === category)
@@ -2637,8 +2797,11 @@ async function ForBetterClub() {
 
 		const scanButtonPosition = /** @type {const} */ ([1650, 225, 150, 50]);
 
+		/**
+		 * @param {SettingsCategory} category
+		 */
 		const currentDefaultSettings = (category) =>
-			Object.entries(defaultSettings).filter(
+			objEntries(defaultSettings).filter(
 				([, v]) => v.category === category && v.value === !!v.value
 			);
 
@@ -5072,6 +5235,7 @@ async function ForBetterClub() {
 								!matcher.Criteria.DictionaryMatchers.some((m) =>
 									data.Dictionary?.find((t) =>
 										// eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+										// @ts-ignore - intentional dynamic indexing on statically defined types
 										Object.keys(m).every((k) => m[k] === t[k])
 									)
 								)
@@ -5203,13 +5367,13 @@ async function ForBetterClub() {
 				pushEvent({
 					Type: MANUAL_OVERRIDE_EVENT_TYPE,
 					Duration: -1,
-					Expression: Object.entries(manualComponents).reduce(
+					Expression: objEntries(manualComponents).reduce(
 						(a, [k, v]) => ({ ...a, [k]: [{ Expression: v }] }),
 						{}
 					),
 				});
 			} else {
-				for (const k of Object.keys(manualComponents)) {
+				for (const [k] of objEntries(manualComponents)) {
 					delete manualComponents[k];
 				}
 			}
@@ -5389,12 +5553,15 @@ async function ForBetterClub() {
 						typeof Timer === "number" && Timer > 0 ? Timer * 1000 : -1,
 					/** @type {Record<string, ExpressionStage[]>} */
 					e = {},
-					types = [AssetGroup];
+					/** @type {(keyof typeof manualComponents)[]} */
+					types = [];
 
 				if (AssetGroup === "Eyes") {
 					types.push("Eyes2");
 				} else if (AssetGroup === "Eyes1") {
 					types[0] = "Eyes";
+				} else {
+					types[0] = AssetGroup;
 				}
 
 				if (
@@ -5779,6 +5946,7 @@ async function ForBetterClub() {
 			// Handle arousal-based expressions
 			outer: for (const t of Object.keys(w.bce_ArousalExpressionStages)) {
 				const [exp] = expression(t);
+				/** @type {ExpressionName} */
 				// eslint-disable-next-line init-declarations
 				let chosenExpression;
 				for (const face of w.bce_ArousalExpressionStages[t]) {
@@ -5794,6 +5962,7 @@ async function ForBetterClub() {
 					}
 				}
 				if (typeof chosenExpression !== "undefined") {
+					/** @type {ExpressionStages} */
 					const e = {};
 					e[t] = [{ Expression: chosenExpression, Duration: -1, Priority: 0 }];
 					pushEvent({
@@ -5848,7 +6017,7 @@ async function ForBetterClub() {
 				const maxPriority = Math.max(
 						...Object.values(desiredPose).map((p) => p.Priority)
 					),
-					maxPriorityPoses = Object.entries(desiredPose).filter(
+					maxPriorityPoses = objEntries(desiredPose).filter(
 						(p) => p[1].Priority === maxPriority
 					);
 				let [maxPriorityPose] = maxPriorityPoses;
@@ -5970,13 +6139,14 @@ async function ForBetterClub() {
 		function updateItemPriorityFromLayerPriorityInput(item) {
 			if (item) {
 				if (advancedPriorities) {
-					const priorities = Object.entries(layerPriorities);
+					const priorities = objEntries(layerPriorities);
 					if (!item.Property) {
 						item.Property = { OverridePriority: {} };
 					} else {
 						item.Property.OverridePriority = {};
 					}
 					for (const [layer, priority] of priorities) {
+						// @ts-ignore - typescript isn't smart enough to understand that OverridePriority is an object, where any string key is valid
 						item.Property.OverridePriority[layer] = priority;
 					}
 				} else {
@@ -8431,6 +8601,7 @@ async function ForBetterClub() {
 		};
 
 		const saveHistory = () => {
+			/** @type {Record<number, { historyRaw: RawHistory[] }>} */
 			const history = {};
 			friendMessages.forEach((friend, id) => {
 				if (friend.historyRaw.length === 0) {
@@ -8579,6 +8750,9 @@ async function ForBetterClub() {
 					unreadSinceOpened++;
 				}
 			}
+			/**
+			 * @returns {null}
+			 */
 			const noop = () => null;
 			processChatAugmentsForLine(
 				message,
@@ -8635,7 +8809,7 @@ async function ForBetterClub() {
 		const history = /** @type {Record<string, {historyRaw: RawHistory[]}>} */ (
 			JSON.parse(localStorage.getItem(storageKey()) || "{}")
 		);
-		for (const [friendIdStr, friendHistory] of Object.entries(history)) {
+		for (const [friendIdStr, friendHistory] of objEntries(history)) {
 			const friendId = parseInt(friendIdStr);
 			const friend = handleUnseenFriend(friendId);
 			friend.historyRaw = friendHistory.historyRaw;
@@ -9818,6 +9992,7 @@ async function ForBetterClub() {
 			const nick = characterBundle.Nickname;
 
 			// Delete unnecessary data
+			/** @type {(keyof ServerAccountDataSynced)[]} */
 			const unnecessaryFields = [
 				"ActivePose",
 				"Inventory",
@@ -10308,7 +10483,7 @@ async function ForBetterClub() {
 							logError(craft);
 							throw new Error(`invalid craft type ${typeof craft} ${str}`);
 						}
-						for (const [key, value] of Object.entries(craft)) {
+						for (const [key, value] of objEntries(craft)) {
 							if (
 								!isString(value) &&
 								!Number.isInteger(value) &&
@@ -10653,6 +10828,16 @@ async function ForBetterClub() {
 
 	(function () {
 		const sendHeartbeat = () => {
+			/**
+			 * @type {{
+			 * Version: string;
+			 * GameVersion: string;
+			 * InRoom: boolean;
+			 * InPrivate: boolean;
+			 * InTampermonkey: boolean;
+			 * FUSAM: boolean;
+			 * FBCviaFUSAM: boolean;} & Partial<Record<keyof typeof addonTypes, string>>}
+			 */
 			const payload = {
 				Version: FBC_VERSION,
 				GameVersion,
@@ -10661,13 +10846,12 @@ async function ForBetterClub() {
 				InPrivate:
 					// @ts-ignore -- LastChatRoomPrivate removed in R99
 					!!Player.LastChatRoomPrivate || !!Player.LastChatRoom?.Private,
-				// @ts-ignore
 				// eslint-disable-next-line camelcase
 				InTampermonkey: typeof GM_info !== "undefined",
 				FUSAM: !!w.FUSAM?.present,
 				FBCviaFUSAM: w.FUSAM?.addons?.FBC?.status === "loaded",
 			};
-			for (const [key, value] of Object.entries(addonTypes)) {
+			for (const [key, value] of objEntries(addonTypes)) {
 				if (
 					bcModSdk.getModsInfo().some((mod) => mod.name === key) &&
 					value === "none"
@@ -10836,6 +11020,15 @@ async function ForBetterClub() {
 	function deepCopy(o) {
 		// eslint-disable-next-line
 		return structuredClone(o);
+	}
+
+	/**
+	 * @template T
+	 * @param {T} obj
+	 */
+	function objEntries(obj) {
+		// eslint-disable-next-line @typescript-eslint/no-unsafe-return
+		return /** @type {[keyof T, T[keyof T]][]} */ (Object.entries(obj));
 	}
 
 	// Confirm leaving the page to prevent accidental back button, refresh, or other navigation-related disruptions

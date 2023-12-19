@@ -10,5 +10,6 @@
 		"noEmit": true,
 		"target": "es2020",
 		"checkJs": true,
+		"noImplicitAny": true,
 	}
 }
