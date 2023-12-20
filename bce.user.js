@@ -15,10 +15,6 @@
 // ==/UserScript==
 /* eslint-disable no-inline-comments */
 // @ts-check
-// eslint-disable-next-line
-/// <reference path="./node_modules/@total-typescript/ts-reset/dist/recommended.d.ts"/>
-// eslint-disable-next-line
-/// <reference path="./bce.d.ts" />
 
 /**
  *     BCE/FBC
@@ -1027,7 +1023,7 @@ async function ForBetterClub() {
 					if (!isString(newValue)) {
 						throw new Error("expected string for buttplugDevices");
 					}
-					const devices = /** @type {FBCToySetting[]} */ (JSON.parse(newValue));
+					const devices = /** @type {FBCToySetting[]} */ (parseJSON(newValue));
 					if (!Array.isArray(devices)) {
 						throw new Error("expected array for devices");
 					}
@@ -1087,10 +1083,10 @@ async function ForBetterClub() {
 		debug("loading settings");
 		if (Object.keys(fbcSettings).length === 0) {
 			let settings = /** @type {typeof fbcSettings} */ (
-				JSON.parse(localStorage.getItem(key))
+				parseJSON(localStorage.getItem(key))
 			);
 			const onlineSettings = /** @type {typeof fbcSettings} */ (
-				JSON.parse(
+				parseJSON(
 					LZString.decompressFromBase64(
 						Player.ExtensionSettings.FBC || Player.OnlineSettings.BCE
 					) || null
@@ -2514,8 +2510,8 @@ async function ForBetterClub() {
 							try {
 								const bundle = /** @type {ItemBundle[]} */ (
 									bundleString.startsWith("[")
-										? JSON.parse(bundleString)
-										: JSON.parse(LZString.decompressFromBase64(bundleString))
+										? parseJSON(bundleString)
+										: parseJSON(LZString.decompressFromBase64(bundleString))
 								);
 
 								if (
@@ -3202,7 +3198,7 @@ async function ForBetterClub() {
 			}
 
 			let passwords = /** @type {Passwords} */ (
-				JSON.parse(localStorage.getItem(localStoragePasswordsKey))
+				parseJSON(localStorage.getItem(localStoragePasswordsKey))
 			);
 			if (!passwords) {
 				passwords = {};
@@ -3213,7 +3209,7 @@ async function ForBetterClub() {
 
 		w.bceClearPassword = (accountname) => {
 			const passwords = /** @type {Passwords} */ (
-				JSON.parse(localStorage.getItem(localStoragePasswordsKey))
+				parseJSON(localStorage.getItem(localStoragePasswordsKey))
 			);
 			if (
 				!passwords ||
@@ -3232,7 +3228,7 @@ async function ForBetterClub() {
 
 			const loadPasswords = () =>
 				/** @type {Passwords} */ (
-					JSON.parse(localStorage.getItem(localStoragePasswordsKey))
+					parseJSON(localStorage.getItem(localStoragePasswordsKey))
 				);
 
 			/** @type {{ passwords: Passwords, posMaps: Record<string, string> }} */
@@ -3335,7 +3331,7 @@ async function ForBetterClub() {
 			}
 			breakCircuit = true;
 			let passwords = /** @type {Passwords} */ (
-				JSON.parse(localStorage.getItem(localStoragePasswordsKey))
+				parseJSON(localStorage.getItem(localStoragePasswordsKey))
 			);
 			debug("Attempting to log in again as", Player.AccountName);
 			if (!passwords) {
@@ -8657,7 +8653,7 @@ async function ForBetterClub() {
 			/** @type {{ messageType?: "Message" | "Emote" | "Action"; messageColor?: string; }?} */
 			// @ts-ignore
 			// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-			const details = JSON.parse(
+			const details = parseJSON(
 				beep.Message?.split("\n")
 					.find((line) => line.startsWith("\uf124"))
 					?.substring(1) ?? "{}"
@@ -8807,7 +8803,7 @@ async function ForBetterClub() {
 		};
 
 		const history = /** @type {Record<string, {historyRaw: RawHistory[]}>} */ (
-			JSON.parse(localStorage.getItem(storageKey()) || "{}")
+			parseJSON(localStorage.getItem(storageKey()) || "{}")
 		);
 		for (const [friendIdStr, friendHistory] of objEntries(history)) {
 			const friendId = parseInt(friendIdStr);
@@ -9186,7 +9182,7 @@ async function ForBetterClub() {
 			}
 			try {
 				const additionalItemBundle = /** @type {ItemBundle[][]} */ (
-					JSON.parse(LZString.decompressFromUTF16(wardrobeData))
+					parseJSON(LZString.decompressFromUTF16(wardrobeData))
 				);
 				if (isWardrobe(additionalItemBundle)) {
 					for (let i = DEFAULT_WARDROBE_SIZE; i < EXPANDED_WARDROBE_SIZE; i++) {
@@ -10087,7 +10083,7 @@ async function ForBetterClub() {
 				const profile = await profiles.get(memberNumber);
 				const C = CharacterLoadOnline(
 					/** @type {ServerAccountDataSynced} */ (
-						JSON.parse(profile.characterBundle)
+						parseJSON(profile.characterBundle)
 					),
 					memberNumber
 				);
@@ -10477,7 +10473,7 @@ async function ForBetterClub() {
 					}
 					try {
 						const craft = /** @type {CraftingItem} */ (
-							JSON.parse(LZString.decompressFromBase64(str))
+							parseJSON(LZString.decompressFromBase64(str))
 						);
 						if (!isNonNullObject(craft)) {
 							logError(craft);
@@ -11029,6 +11025,16 @@ async function ForBetterClub() {
 	function objEntries(obj) {
 		// eslint-disable-next-line @typescript-eslint/no-unsafe-return
 		return /** @type {[keyof T, T[keyof T]][]} */ (Object.entries(obj));
+	}
+
+	/**
+	 * @template T
+	 * @param {string} jsonString
+	 * @throws {SyntaxError} If the string to parse is not valid JSON.
+	 */
+	function parseJSON(jsonString) {
+		// eslint-disable-next-line @typescript-eslint/no-unsafe-return
+		return /** @type {T} */ (/** @type {unknown} */ (JSON.parse(jsonString)));
 	}
 
 	// Confirm leaving the page to prevent accidental back button, refresh, or other navigation-related disruptions
