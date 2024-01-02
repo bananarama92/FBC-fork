@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Bondage Club Enhancements
 // @namespace https://www.bondageprojects.com/
-// @version 4.71
+// @version 4.72
 // @description FBC - For Better Club - enhancements for the bondage club - old name kept in tampermonkey for compatibility
 // @author Sidious
 // @match https://bondageprojects.elementfx.com/*
@@ -34,10 +34,13 @@
  *  along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-const FBC_VERSION = "4.71";
+const FBC_VERSION = "4.72";
 const settingsVersion = 55;
 
 const fbcChangelog = `${FBC_VERSION}
+- fix manual overrides to eyes only impacting Eyes2
+
+4.71
 - fix wardrobe save/load when triggered outside of wardrobe
 
 4.70
@@ -5611,16 +5614,16 @@ async function ForBetterClub() {
 				const duration =
 						typeof Timer === "number" && Timer > 0 ? Timer * 1000 : -1,
 					/** @type {Record<string, ExpressionStage[]>} */
-					e = {},
-					/** @type {(keyof typeof manualComponents)[]} */
-					types = [];
+					e = {};
+				/** @type {(keyof typeof manualComponents)[]} */
+				let types = [];
 
 				if (AssetGroup === "Eyes") {
-					types.push("Eyes2");
+					types = ["Eyes", "Eyes2"];
 				} else if (AssetGroup === "Eyes1") {
-					types[0] = "Eyes";
+					types = ["Eyes"];
 				} else {
-					types[0] = AssetGroup;
+					types = [AssetGroup];
 				}
 
 				if (
