@@ -7503,7 +7503,7 @@ async function ForBetterClub() {
 
 		Player.BCEArousalProgress = Math.min(
 			BCE_MAX_AROUSAL,
-			Player.ArousalSettings.Progress
+			Player.ArousalSettings?.Progress ?? 0
 		);
 		Player.BCEEnjoyment = 1;
 		const enjoymentMultiplier = 0.2;
@@ -7518,17 +7518,30 @@ async function ForBetterClub() {
 					// Skip player's own sync messages since we're tracking locally
 					return;
 				}
+
 				const target = ChatRoomCharacter.find(
 					(c) => c.MemberNumber === data.MemberNumber
 				);
+
 				if (!target) {
 					return;
 				}
-				target.BCEArousalProgress = Math.min(
-					BCE_MAX_AROUSAL,
-					data.Progress || 0
-				);
-				target.ArousalSettings.Progress = Math.round(target.BCEArousalProgress);
+
+				queueMicrotask(() => {
+					target.BCEArousalProgress = Math.min(
+						BCE_MAX_AROUSAL,
+						data.Progress || 0
+					);
+
+					if (!target?.ArousalSettings) {
+						logWarn("No arousal settings found for", target);
+						return;
+					}
+
+					target.ArousalSettings.Progress = Math.round(
+						target.BCEArousalProgress
+					);
+				});
 			}
 		);
 
@@ -9173,10 +9186,16 @@ async function ForBetterClub() {
 			return bundleList;
 		}
 		return bundleList.map((bundle) => {
-			if (typeof bundle.Property?.Type === "string" && !CommonIsObject(bundle.Property?.TypeRecord)) {
+			if (
+				typeof bundle.Property?.Type === "string" &&
+				!CommonIsObject(bundle.Property?.TypeRecord)
+			) {
 				const asset = AssetGet("Female3DCG", bundle.Group, bundle.Name);
 				if (asset) {
-					bundle.Property.TypeRecord = ExtendedItemTypeToRecord(asset, bundle.Property.Type);
+					bundle.Property.TypeRecord = ExtendedItemTypeToRecord(
+						asset,
+						bundle.Property.Type
+					);
 				}
 			}
 			return bundle;
