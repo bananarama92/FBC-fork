@@ -34,10 +34,13 @@
  *  along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-const FBC_VERSION = "4.68";
+const FBC_VERSION = "4.69";
 const settingsVersion = 55;
 
 const fbcChangelog = `${FBC_VERSION}
+- fix layering button error
+
+4.68
 - fixed more rare ArousalSettings-related errors
 - code cleanup & additional error case handling
 - automated wardrobe format conversion R98 -> R99 (by Rama)
@@ -48,9 +51,6 @@ const fbcChangelog = `${FBC_VERSION}
 4.66
 - R99 compatibility
 - added option to show numeric arousal, when meter is expanded
-
-4.65
-- restore gag anti-cheat
 `;
 
 /*
@@ -6222,16 +6222,16 @@ async function ForBetterClub() {
 
 		const layerPriority = "bce_LayerPriority";
 
-		/** @type {(C: Character, item?: Item) => boolean} */
+		/** @type {(C: Character, item?: Item | null) => boolean} */
 		function assetVisible(C, item) {
 			return (
 				!!item && !!C.AppearanceLayers?.find((a) => a.Asset === item.Asset)
 			);
 		}
 
-		/** @type {(C: Character, item: Item) => boolean} */
+		/** @type {(C: Character, item?: Item | null) => boolean} */
 		function assetWorn(C, item) {
-			return item && !!C.Appearance.find((a) => a === item);
+			return !!item && !!C.Appearance.find((a) => a === item);
 		}
 
 		/** @type {Record<string, number>} */
@@ -6513,12 +6513,12 @@ async function ForBetterClub() {
 						throw new Error("layering button not guarded behind C.FocusGroup");
 					}
 					const focusItem = InventoryGet(C, C.FocusGroup.Name);
-					if (!focusItem) {
-						throw new Error(
-							"layering button not guarded behind focus being on a worn item"
-						);
-					}
 					if (assetWorn(C, focusItem)) {
+						if (!focusItem) {
+							throw new Error(
+								"layering button not guarded behind focus being on a worn item"
+							);
+						}
 						if (
 							colorCopiableAssets.includes(focusItem.Asset.Name) &&
 							Player.CanInteract()
