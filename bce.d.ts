@@ -164,13 +164,9 @@ declare global {
   type ExpressionStages = Record<string, ExpressionStage[]>;
   type FBCPose = {
     Id?: number;
-    Pose: AssetPoseName[] | PoseEx[];
+    Pose: AssetPoseName[];
     Duration: number;
     Priority?: number;
-  };
-  type PoseEx = {
-    Pose: AssetPoseName;
-    Category?: string;
   };
   type Expression = {
     Type: string;
@@ -239,24 +235,6 @@ declare global {
   type FBCDictionaryEntry = {
     message: BCEMessage;
   };
-  //   type ChatMessageDictionary = {
-  //     Tag?: string;
-  //     message?: BCEMessage;
-  //     MemberNumber?: number;
-  //     Text?: string;
-  //     TargetCharacter?: number;
-  //     SourceCharacter?: number;
-  //   };
-  //   type ChatMessageBase = {
-  //     Type: string;
-  //     Content: string;
-  //     Sender?: number;
-  //     Target?: number;
-  //   };
-  //   type ChatMessage = ChatMessageBase & {
-  //     Dictionary: ChatMessageDictionary[];
-  //   };
-  type FBCCharacterState = { clamped: number };
 
   type FBCToySetting = {
     Name: string;
@@ -306,9 +284,9 @@ declare global {
   }
   interface PlayerOnlineSettings {
     /** @deprecated */
-    BCE: string;
+    BCE?: string;
     /** @deprecated */
-    BCEWardrobe: string;
+    BCEWardrobe?: string;
   }
   interface ExtensionSettings {
     FBC: string;

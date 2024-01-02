@@ -171,7 +171,7 @@ export declare interface PatchedFunctionInfo {
  * @public
  */
 export declare type PatchHook<Unknown = unknown> = (
-  args: Unknown[],
+  args: any,
   next: (args: unknown[]) => Unknown
 ) => unknown;
 
