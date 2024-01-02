@@ -40,6 +40,7 @@ const settingsVersion = 55;
 const fbcChangelog = `${FBC_VERSION}
 - fixed more rare ArousalSettings-related errors
 - code cleanup & additional error case handling
+- automated wardrobe format conversion R98 -> R99 (by Rama)
 
 4.67
 - fixed timers not working
