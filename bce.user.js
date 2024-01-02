@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Bondage Club Enhancements
 // @namespace https://www.bondageprojects.com/
-// @version 4.68
+// @version 4.70
 // @description FBC - For Better Club - enhancements for the bondage club - old name kept in tampermonkey for compatibility
 // @author Sidious
 // @match https://bondageprojects.elementfx.com/*
@@ -34,10 +34,13 @@
  *  along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-const FBC_VERSION = "4.69";
+const FBC_VERSION = "4.70";
 const settingsVersion = 55;
 
 const fbcChangelog = `${FBC_VERSION}
+- fix appearance menu clicks
+
+4.69
 - fix layering button error
 
 4.68
@@ -47,10 +50,6 @@ const fbcChangelog = `${FBC_VERSION}
 
 4.67
 - fixed timers not working
-
-4.66
-- R99 compatibility
-- added option to show numeric arousal, when meter is expanded
 `;
 
 /*
@@ -6477,10 +6476,10 @@ async function ForBetterClub() {
 					const item = C.Appearance.find(
 						(a) => a.Asset.Group?.Name === C.FocusGroup?.Name
 					);
-					if (!item) {
-						throw new Error("focus item is not defined in layering menu");
-					}
 					if (prioritySubscreen) {
+						if (!item) {
+							throw new Error("focus item is not defined in layering menu");
+						}
 						prioritySubscreenClick(C, item);
 						return null;
 					} else if (
@@ -6488,6 +6487,9 @@ async function ForBetterClub() {
 						CharacterAppearanceMode === "Cloth" &&
 						assetVisible(C, item)
 					) {
+						if (!item) {
+							throw new Error("focus item is not defined in layering menu");
+						}
 						prioritySubscreenEnter(C, item);
 					}
 				}
