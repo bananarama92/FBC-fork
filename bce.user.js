@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Bondage Club Enhancements
 // @namespace https://www.bondageprojects.com/
-// @version 4.70
+// @version 4.71
 // @description FBC - For Better Club - enhancements for the bondage club - old name kept in tampermonkey for compatibility
 // @author Sidious
 // @match https://bondageprojects.elementfx.com/*
@@ -34,10 +34,13 @@
  *  along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-const FBC_VERSION = "4.70";
+const FBC_VERSION = "4.71";
 const settingsVersion = 55;
 
 const fbcChangelog = `${FBC_VERSION}
+- fix wardrobe save/load when triggered outside of wardrobe
+
+4.70
 - fix appearance menu clicks
 
 4.69
@@ -47,9 +50,6 @@ const fbcChangelog = `${FBC_VERSION}
 - fixed more rare ArousalSettings-related errors
 - code cleanup & additional error case handling
 - automated wardrobe format conversion R98 -> R99 (by Rama)
-
-4.67
-- fixed timers not working
 `;
 
 /*
@@ -7222,10 +7222,12 @@ async function ForBetterClub() {
 				const base = C.Appearance.filter(
 					(a) => a.Asset.Group.IsDefault && !a.Asset.Group.Clothing
 				);
-				if (!targetCharacter) {
-					throw new Error("targetCharacter is not defined in WardrobeFastLoad");
-				}
 				if (inCustomWardrobe && isCharacter(C) && C.IsPlayer()) {
+					if (!targetCharacter) {
+						throw new Error(
+							"targetCharacter is not defined in WardrobeFastLoad"
+						);
+					}
 					args[0] = targetCharacter;
 					C = targetCharacter;
 					args[2] = false;
@@ -7252,10 +7254,12 @@ async function ForBetterClub() {
 			 */
 			(args, next) => {
 				const [C] = args;
-				if (!targetCharacter) {
-					throw new Error("targetCharacter is not defined in WardrobeFastSave");
-				}
 				if (inCustomWardrobe && isCharacter(C) && C.IsPlayer()) {
+					if (!targetCharacter) {
+						throw new Error(
+							"targetCharacter is not defined in WardrobeFastSave"
+						);
+					}
 					args[0] = targetCharacter;
 				}
 				return next(args);
