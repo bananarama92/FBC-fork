@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Bondage Club Enhancements
 // @namespace https://www.bondageprojects.com/
-// @version 4.72
+// @version 4.73
 // @description FBC - For Better Club - enhancements for the bondage club - old name kept in tampermonkey for compatibility
 // @author Sidious
 // @match https://bondageprojects.elementfx.com/*
@@ -34,10 +34,13 @@
  *  along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-const FBC_VERSION = "4.72";
+const FBC_VERSION = "4.73";
 const settingsVersion = 55;
 
 const fbcChangelog = `${FBC_VERSION}
+- fix settings loading on incognito
+
+4.72
 - fix manual overrides to eyes only impacting Eyes2
 
 4.71
@@ -1098,7 +1101,7 @@ async function ForBetterClub() {
 				logInfo("Migrated online settings to extension settings");
 				delete Player.OnlineSettings.BCE;
 			}
-			if (onlineSettings.version >= settings.version) {
+			if (onlineSettings.version >= settings.version || !settings?.version) {
 				settings = onlineSettings;
 			}
 			if (!settings) {
