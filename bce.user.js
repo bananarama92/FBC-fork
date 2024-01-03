@@ -1101,7 +1101,7 @@ async function ForBetterClub() {
 				logInfo("Migrated online settings to extension settings");
 				delete Player.OnlineSettings.BCE;
 			}
-			if (onlineSettings.version >= settings.version || !settings?.version) {
+			if (!settings?.version || onlineSettings.version >= settings.version) {
 				settings = onlineSettings;
 			}
 			if (!settings) {
