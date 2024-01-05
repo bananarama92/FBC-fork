@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Bondage Club Enhancements
 // @namespace https://www.bondageprojects.com/
-// @version 4.73
+// @version 4.74
 // @description FBC - For Better Club - enhancements for the bondage club - old name kept in tampermonkey for compatibility
 // @author Sidious
 // @match https://bondageprojects.elementfx.com/*
@@ -34,10 +34,13 @@
  *  along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-const FBC_VERSION = "4.73";
+const FBC_VERSION = "4.74";
 const settingsVersion = 55;
 
 const fbcChangelog = `${FBC_VERSION}
+- fix pose changes coming from addons that have not updated to R99
+
+4.73
 - fix settings loading on incognito
 
 4.72
@@ -45,17 +48,6 @@ const fbcChangelog = `${FBC_VERSION}
 
 4.71
 - fix wardrobe save/load when triggered outside of wardrobe
-
-4.70
-- fix appearance menu clicks
-
-4.69
-- fix layering button error
-
-4.68
-- fixed more rare ArousalSettings-related errors
-- code cleanup & additional error case handling
-- automated wardrobe format conversion R98 -> R99 (by Rama)
 `;
 
 /*
@@ -1321,6 +1313,7 @@ async function ForBetterClub() {
 					CharacterReleaseTotal: "396640D1",
 					CharacterSetCurrent: "F46573D8",
 					CharacterSetFacialExpression: "F8272D7A",
+					CharacterSetActivePose: "2FE9ABBA",
 					ChatAdminRoomCustomizationClick: "E194A605",
 					ChatAdminRoomCustomizationProcess: "B33D6388",
 					ChatRoomCharacterItemUpdate: "263DB2F0",
@@ -5655,39 +5648,46 @@ async function ForBetterClub() {
 			}
 		);
 
-		SDK.hookFunction(
-			"PoseSetActive",
-			HOOK_PRIORITIES.OverrideBehaviour,
-			/**
-			 * @param {Parameters<typeof PoseSetActive>} args
-			 */
-			(args, next) => {
-				const [C, Pose] = args;
-				if (
-					!isCharacter(C) ||
-					(!isStringOrStringArray(Pose) && Pose !== null) ||
-					!C.IsPlayer() ||
-					!bceAnimationEngineEnabled()
-				) {
-					return next(args);
-				}
+		const poseFuncs = ["CharacterSetActivePose", "PoseSetActive"];
+		for (const poseFunc of poseFuncs) {
+			SDK.hookFunction(
+				poseFunc,
+				HOOK_PRIORITIES.OverrideBehaviour,
+				/**
+				 * @param {Parameters<typeof PoseSetActive>} args
+				 */
+				// eslint-disable-next-line no-loop-func
+				(args, next) => {
+					const [C, Pose] = args;
+					if (
+						!isCharacter(C) ||
+						(!isStringOrStringArray(Pose) && Pose !== null) ||
+						!C.IsPlayer() ||
+						!bceAnimationEngineEnabled()
+					) {
+						return next(args);
+					}
 
-				const p = {};
-				if (!Pose || (Array.isArray(Pose) && Pose.every((pp) => !pp))) {
-					p.Pose = /** @type {AssetPoseName[]} */ (["BaseUpper", "BaseLower"]);
-				} else {
-					p.Pose = [Pose];
+					const p = {};
+					if (!Pose || (Array.isArray(Pose) && Pose.every((pp) => !pp))) {
+						p.Pose = /** @type {AssetPoseName[]} */ ([
+							"BaseUpper",
+							"BaseLower",
+						]);
+					} else {
+						p.Pose = [Pose];
+					}
+					p.Duration = -1;
+					const evt = {
+						Type: MANUAL_OVERRIDE_EVENT_TYPE,
+						Duration: -1,
+						Poses: [p],
+					};
+					pushEvent(evt);
+					return CustomArousalExpression();
 				}
-				p.Duration = -1;
-				const evt = {
-					Type: MANUAL_OVERRIDE_EVENT_TYPE,
-					Duration: -1,
-					Poses: [p],
-				};
-				pushEvent(evt);
-				return CustomArousalExpression();
-			}
-		);
+			);
+		}
 
 		registerSocketListener("ChatRoomSyncPose", (data) => {
 			if (data === null || !isNonNullObject(data)) {
