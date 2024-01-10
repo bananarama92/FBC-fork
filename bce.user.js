@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Bondage Club Enhancements
 // @namespace https://www.bondageprojects.com/
-// @version 4.74
+// @version 4.75
 // @description FBC - For Better Club - enhancements for the bondage club - old name kept in tampermonkey for compatibility
 // @author Sidious
 // @match https://bondageprojects.elementfx.com/*
@@ -34,10 +34,14 @@
  *  along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-const FBC_VERSION = "4.74";
+const FBC_VERSION = "4.75";
 const settingsVersion = 55;
 
 const fbcChangelog = `${FBC_VERSION}
+- allow exportlooks to include collars and collar accessories
+- preliminary R100 support
+
+4.74
 - fix pose changes coming from addons that have not updated to R99
 
 4.73
@@ -45,9 +49,6 @@ const fbcChangelog = `${FBC_VERSION}
 
 4.72
 - fix manual overrides to eyes only impacting Eyes2
-
-4.71
-- fix wardrobe save/load when triggered outside of wardrobe
 `;
 
 /*
@@ -1291,6 +1292,146 @@ async function ForBetterClub() {
 	 */
 	const expectedHashes = (gameVersion) => {
 		switch (gameVersion) {
+			case "R100":
+			case "R100Beta4":
+			case "R100Beta3":
+			case "R100Beta2":
+			case "R100Beta1":
+				return /** @type {const} */ ({
+					ActivityChatRoomArousalSync: "BFF3DED7",
+					ActivitySetArousal: "3AE28123",
+					ActivitySetArousalTimer: "1342AFE2",
+					ActivityTimerProgress: "6CD388A7",
+					AppearanceClick: "4C04C15E",
+					AppearanceExit: "AA300341",
+					AppearanceLoad: "4360C485",
+					AppearanceRun: "6EC75705",
+					CharacterAppearanceWardrobeLoad: "A5B63A03",
+					CharacterBuildDialog: "85F79C6E",
+					CharacterCompressWardrobe: "2A05ECD1",
+					CharacterDecompressWardrobe: "327FADA4",
+					CharacterDelete: "398D1116",
+					CharacterGetCurrent: "45608177",
+					CharacterLoadCanvas: "EAB81BC4",
+					CharacterNickname: "A794EFF5",
+					CharacterRefresh: "F2459653",
+					CharacterReleaseTotal: "BB9C6989",
+					CharacterSetCurrent: "F46573D8",
+					CharacterSetFacialExpression: "F8272D7A",
+					CharacterSetActivePose: "22C02050",
+					ChatAdminRoomCustomizationClick: "E194A605",
+					ChatAdminRoomCustomizationProcess: "B33D6388",
+					ChatRoomCharacterItemUpdate: "263DB2F0",
+					ChatRoomCharacterUpdate: "C444E92D",
+					ChatRoomClearAllElements: "14DAAB05",
+					ChatRoomClick: "BB1CE058",
+					ChatRoomCreateElement: "AA36E8B6",
+					ChatRoomCurrentTime: "A462DD3A",
+					ChatRoomDrawBackground: "AEE70C4E",
+					ChatRoomDrawCharacterOverlay: "4D8E24CB",
+					ChatRoomDrawCharacterStatusIcons: "198C8657",
+					ChatRoomHTMLEntities: "0A7ADB1D",
+					ChatRoomKeyDown: "48C7F35A",
+					ChatRoomListManipulation: "75D28A8B",
+					ChatRoomMessage: "BBD61334",
+					ChatRoomMessageDisplay: "E966EA70",
+					ChatRoomRegisterMessageHandler: "C432923A",
+					ChatRoomResize: "653445D7",
+					ChatRoomRun: "8D91EC46",
+					ChatRoomSendChat: "7F540ED0",
+					ChatRoomStart: "9B822A9A",
+					CommandExecute: "BBBC035B",
+					CommandParse: "097A8636",
+					CommonClick: "1F6DF7CB",
+					CommonColorIsValid: "390A2CE4",
+					CommonSetScreen: "E0CA772F",
+					CraftingClick: "FF1A7B21",
+					CraftingConvertSelectedToItem: "48270B42",
+					CraftingRun: "5BE6E125",
+					DialogClick: "E6F5CC58",
+					DialogDraw: "D8377D69",
+					DialogDrawItemMenu: "FCE556C2",
+					DialogLeave: "C37553DC",
+					DrawArousalMeter: "BB0755AF",
+					DrawArousalThermometer: "7ED6D822",
+					DrawBackNextButton: "9AF4BA37",
+					DrawButton: "A7023A82",
+					DrawCharacter: "41CF69C4",
+					DrawCheckbox: "00FD87EB",
+					DrawImageEx: "E01BE7E7",
+					DrawImageResize: "D205975A",
+					DrawItemPreview: "6A7A1E2A",
+					DrawProcess: "BC1E9396",
+					DrawText: "C1BF0F50",
+					DrawTextFit: "F9A1B11E",
+					ElementCreateInput: "EB2A3EC8",
+					ElementCreateTextArea: "AA4AEDE7",
+					ElementIsScrolledToEnd: "1CC4FE11",
+					ElementPosition: "CC4E3C82",
+					ElementRemove: "60809E60",
+					ElementScrollToEnd: "1AC45575",
+					ElementValue: "4F26C62F",
+					FriendListShowBeep: "6C0449BB",
+					GameRun: "ED65B730",
+					GLDrawResetCanvas: "81214642",
+					InformationSheetRun: "90140B32",
+					InventoryGet: "E666F671",
+					InventoryItemMiscMistressTimerPadlockClickHook: "6A5C3FC2",
+					InventoryItemMiscMistressTimerPadlockDrawHook: "6A5C3FC2",
+					InventoryItemMiscOwnerTimerPadlockClickHook: "6A5C3FC2",
+					InventoryItemMiscOwnerTimerPadlockDrawHook: "6A5C3FC2",
+					InventoryItemMiscTimerPasswordPadlockClickHook: "6A5C3FC2",
+					InventoryItemMiscTimerPasswordPadlockDrawHook: "6A5C3FC2",
+					LoginClick: "EE94BEC7",
+					LoginRun: "C3926C4F",
+					LoginSetSubmitted: "C88F4A8E",
+					LoginStatusReset: "18619F02",
+					MouseIn: "CA8B839E",
+					NotificationDrawFavicon: "AB88656B",
+					NotificationRaise: "E8F29646",
+					NotificationTitleUpdate: "0E92F3ED",
+					OnlineGameAllowChange: "3779F42C",
+					OnlineProfileClick: "521146DF",
+					OnlineProfileRun: "7F57EF9A",
+					PoseSetActive: "22C02050",
+					RelogRun: "10AF5A60",
+					RelogExit: "2DFB2DAD",
+					ServerAccountBeep: "F16771D4",
+					ServerAppearanceBundle: "4D069622",
+					ServerAppearanceLoadFromBundle: "946537FD",
+					ServerClickBeep: "3E6277BE",
+					ServerConnect: "845E50A6",
+					ServerDisconnect: "06C1A6B0",
+					ServerInit: "11B7D69A",
+					ServerOpenFriendList: "FA8D3CDE",
+					ServerPlayerExtensionSettingsSync: "1776666B",
+					ServerSend: "ABE74E75",
+					ServerSendQueueProcess: "BD4277AC",
+					SkillGetWithRatio: "3EB4BC45",
+					SpeechGarble: "9D669F73",
+					SpeechGarbleByGagLevel: "42386B35",
+					SpeechGetTotalGagLevel: "5F4F6D45",
+					StruggleDexterityProcess: "7E19ADA9",
+					StruggleFlexibilityCheck: "727CE05B",
+					StruggleFlexibilityProcess: "278D7285",
+					StruggleLockPickDraw: "2F1F603B",
+					StruggleMinigameHandleExpression: "B6E4A1A0",
+					StruggleMinigameStop: "206F85E7",
+					StruggleStrengthProcess: "D20CF698",
+					TextGet: "4DDE5794",
+					TextLoad: "ADF7C890",
+					TimerInventoryRemove: "1FA771FB",
+					TimerProcess: "52458C63",
+					TitleExit: "F13F533C",
+					ValidationSanitizeProperties: "08E81594",
+					WardrobeClick: "33405B1D",
+					WardrobeExit: "12D14AE4",
+					WardrobeFastLoad: "5C54EA7B",
+					WardrobeFastSave: "61D02972",
+					WardrobeFixLength: "CA3334C6",
+					WardrobeLoad: "C343A4C7",
+					WardrobeRun: "633B3570",
+				});
 			default:
 				return /** @type {const} */ ({
 					ActivityChatRoomArousalSync: "BFF3DED7",
@@ -1487,12 +1628,12 @@ async function ForBetterClub() {
 		pushLog("error", ...args);
 	};
 
-	/** @type {string[]} */
+	/** @type {unknown[]} */
 	const deviatingHashes = [];
 	/** @type {string[]} */
 	const skippedFunctionality = [];
 
-	/** @type {(functionName: string, patches: Record<string,string>, affectedFunctionality: string) => void} */
+	/** @type {(functionName: keyof typeof window, patches: Record<string,string>, affectedFunctionality: string) => void} */
 	const patchFunction = (functionName, patches, affectedFunctionality) => {
 		// Guard against patching a function that has been modified by another addon not using the shared SDK on supported versions.
 		if (
@@ -1836,6 +1977,23 @@ async function ForBetterClub() {
 	}
 
 	async function functionIntegrityCheck() {
+		/*
+		 * Functions that are no longer present on latest supported version
+		 * but still exist on older supported versions
+		 */
+		const removedFuncs = /** @type {const} */ ([
+			"InventoryItemMiscMistressTimerPadlockExit",
+			"InventoryItemMiscOwnerTimerPadlockExit",
+		]);
+
+		/**
+		 * @param {keyof ReturnType<expectedHashes>} func
+		 * @returns {func is keyof typeof w}
+		 */
+		function funcExists(func) {
+			return !removedFuncs.includes(func);
+		}
+
 		await waitFor(
 			() =>
 				GameVersion !== "R0" &&
@@ -1843,6 +2001,10 @@ async function ForBetterClub() {
 				ServerIsConnected
 		);
 		for (const [func, hash] of objEntries(expectedHashes(GameVersion))) {
+			if (!funcExists(func)) {
+				logWarn(`Did not expect removed function ${func} on this GameVersion.`);
+				continue;
+			}
 			if (!w[func]) {
 				logWarn(`Expected function ${func} not found.`);
 				continue;
@@ -2121,6 +2283,10 @@ async function ForBetterClub() {
 	}
 
 	function accurateTimerInputs() {
+		if (GameVersion !== "R99") {
+			logWarn("Accurate timer inputs are only available on R99.");
+			return;
+		}
 		const timerInputElement = `ElementPosition("${TIMER_INPUT_ID}", 1400, 930, 250, 70);document.getElementById('${TIMER_INPUT_ID}').disabled = false;`;
 
 		const loadLockTimerInput = () => {
@@ -2457,11 +2623,7 @@ async function ForBetterClub() {
 					);
 					const binds = targetCharacter.Appearance.filter(
 						(a) =>
-							a.Asset.Group.Category === "Item" &&
-							!["ItemNeck", "ItemNeckAccessories"].includes(
-								a.Asset.Group.Name
-							) &&
-							!a.Asset.Group.BodyCosplay
+							a.Asset.Group.Category === "Item" && !a.Asset.Group.BodyCosplay
 					);
 
 					const appearance = [...clothes];
@@ -2673,7 +2835,6 @@ async function ForBetterClub() {
 					const [target] = args;
 					const [, , ...message] = command.split(" ");
 					const msg = message?.join(" ");
-					/** @type {Character[]} */
 					const targetMembers = findDrawnCharacters(target);
 					if (!target || !targetMembers || targetMembers.length === 0) {
 						fbcChatNotify(`Whisper target not found: ${target}`);
@@ -5498,7 +5659,7 @@ async function ForBetterClub() {
 		}
 
 		/**
-		 * @param {string[]} poses
+		 * @param {readonly string[]} poses
 		 */
 		function setPoses(poses) {
 			poses = poses.filter((p) => p).map((p) => p.toLowerCase());
@@ -5648,7 +5809,10 @@ async function ForBetterClub() {
 			}
 		);
 
-		const poseFuncs = ["CharacterSetActivePose", "PoseSetActive"];
+		const poseFuncs = /** @type {const} */ ([
+			"CharacterSetActivePose",
+			"PoseSetActive",
+		]);
 		for (const poseFunc of poseFuncs) {
 			SDK.hookFunction(
 				poseFunc,
@@ -6382,7 +6546,11 @@ async function ForBetterClub() {
 			DialogFocusItem = null;
 		}
 
-		for (const func of ["DialogLeave", "DialogLeaveItemMenu"]) {
+		const dialogLeaveFuncs = /** @type {const} */ ([
+			"DialogLeave",
+			"DialogLeaveItemMenu",
+		]);
+		for (const func of dialogLeaveFuncs) {
 			SDK.hookFunction(
 				func,
 				HOOK_PRIORITIES.OverrideBehaviour,
@@ -6821,45 +6989,87 @@ async function ForBetterClub() {
 	}
 
 	function chatRoomOverlay() {
-		SDK.hookFunction(
-			"ChatRoomDrawCharacterOverlay",
-			HOOK_PRIORITIES.AddBehaviour,
-			/**
-			 * @param {Parameters<typeof ChatRoomDrawCharacterOverlay>} args
-			 */
-			(args, next) => {
-				const ret = next(args);
-				const [C, CharX, CharY, Zoom] = args;
-				if (
-					isCharacter(C) &&
-					typeof CharX === "number" &&
-					typeof CharY === "number" &&
-					typeof Zoom === "number" &&
-					C.FBC &&
-					ChatRoomHideIconState === 0
-				) {
-					const icon = ["1", "2", "3"].includes(C.FBC.split(".")[0])
-						? ICONS.BCE_USER
-						: ICONS.USER;
-					DrawImageResize(
-						icon,
-						CharX + 270 * Zoom,
-						CharY,
-						40 * Zoom,
-						40 * Zoom
-					);
-					DrawTextFit(
-						/^\d+\.\d+(\.\d+)?$/u.test(C.FBC) ? C.FBC : "",
-						CharX + 290 * Zoom,
-						CharY + 30 * Zoom,
-						40 * Zoom,
-						"White",
-						"Black"
-					);
+		if (GameVersion === "R99") {
+			SDK.hookFunction(
+				"ChatRoomDrawCharacterOverlay",
+				HOOK_PRIORITIES.AddBehaviour,
+				/**
+				 * @param {Parameters<typeof ChatRoomDrawCharacterOverlay>} args
+				 */
+				(args, next) => {
+					const ret = next(args);
+					const [C, CharX, CharY, Zoom] = args;
+					if (
+						isCharacter(C) &&
+						typeof CharX === "number" &&
+						typeof CharY === "number" &&
+						typeof Zoom === "number" &&
+						C.FBC &&
+						ChatRoomHideIconState === 0
+					) {
+						const icon = ["1", "2", "3"].includes(C.FBC.split(".")[0])
+							? ICONS.BCE_USER
+							: ICONS.USER;
+						DrawImageResize(
+							icon,
+							CharX + 270 * Zoom,
+							CharY,
+							40 * Zoom,
+							40 * Zoom
+						);
+						DrawTextFit(
+							/^\d+\.\d+(\.\d+)?$/u.test(C.FBC) ? C.FBC : "",
+							CharX + 290 * Zoom,
+							CharY + 30 * Zoom,
+							40 * Zoom,
+							"White",
+							"Black"
+						);
+					}
+					return ret;
 				}
-				return ret;
-			}
-		);
+			);
+		} else {
+			SDK.hookFunction(
+				"ChatRoomDrawCharacterStatusIcons",
+				HOOK_PRIORITIES.AddBehaviour,
+				/**
+				 * @param {Parameters<typeof ChatRoomDrawCharacterStatusIcons>} args
+				 */
+				(args, next) => {
+					const ret = next(args);
+					const [C, CharX, CharY, Zoom] = args;
+					if (
+						isCharacter(C) &&
+						typeof CharX === "number" &&
+						typeof CharY === "number" &&
+						typeof Zoom === "number" &&
+						C.FBC &&
+						ChatRoomHideIconState === 0
+					) {
+						const icon = ["1", "2", "3"].includes(C.FBC.split(".")[0])
+							? ICONS.BCE_USER
+							: ICONS.USER;
+						DrawImageResize(
+							icon,
+							CharX + 270 * Zoom,
+							CharY,
+							40 * Zoom,
+							40 * Zoom
+						);
+						DrawTextFit(
+							/^\d+\.\d+(\.\d+)?$/u.test(C.FBC) ? C.FBC : "",
+							CharX + 290 * Zoom,
+							CharY + 30 * Zoom,
+							40 * Zoom,
+							"White",
+							"Black"
+						);
+					}
+					return ret;
+				}
+			);
+		}
 	}
 
 	/** @type {(target?: number | null, requestReply?: boolean) => void} */

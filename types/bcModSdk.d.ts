@@ -57,7 +57,7 @@ export declare interface ModSDKModAPI<Unknown = unknown> {
    * @returns Function that can be called to remove this hook
    */
   hookFunction(
-    functionName: string,
+    functionName: keyof typeof window,
     priority: number,
     hook: PatchHook<Unknown>
   ): () => void;
@@ -68,7 +68,7 @@ export declare interface ModSDKModAPI<Unknown = unknown> {
    * @param context - `this` context to use. Defaults to `window`. If calling method of object, then set this to the object itself (e.g. `functionName` = `Player.CanChange` then `context` = `Player`)
    */
   callOriginal(
-    functionName: string,
+    functionName: keyof typeof window,
     args: unknown[],
     context?: unknown
   ): unknown;
@@ -88,7 +88,7 @@ export declare interface ModSDKModAPI<Unknown = unknown> {
    * Specifying value of `null` removes patch with this key.
    */
   patchFunction(
-    functionName: string,
+    functionName: keyof typeof window,
     patches: Record<string, string | null>
   ): void;
   /**
