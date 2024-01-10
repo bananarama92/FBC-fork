@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Bondage Club Enhancements
 // @namespace https://www.bondageprojects.com/
-// @version 4.75
+// @version 4.76
 // @description FBC - For Better Club - enhancements for the bondage club - old name kept in tampermonkey for compatibility
 // @author Sidious
 // @match https://bondageprojects.elementfx.com/*
@@ -34,10 +34,13 @@
  *  along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-const FBC_VERSION = "4.75";
+const FBC_VERSION = "4.76";
 const settingsVersion = 55;
 
 const fbcChangelog = `${FBC_VERSION}
+- fix chat augments on R100Beta1
+
+4.75
 - allow exportlooks to include collars and collar accessories
 - preliminary R100 support
 
@@ -3955,6 +3958,18 @@ async function ForBetterClub() {
 	}
 
 	function chatAugments() {
+		if (GameVersion !== "R99") {
+			patchFunction(
+				"ChatRoomMessageDisplay",
+				{
+					// eslint-disable-next-line no-template-curly-in-string
+					"msg = `<span>${senderTag} ${ChatRoomHTMLEntities(msg)}</span>`;":
+						"msg = senderTag + ChatRoomHTMLEntities(msg);",
+				},
+				"no chat links, embeds, and other augments"
+			);
+		}
+
 		// CTRL+Enter OOC implementation
 		patchFunction(
 			"ChatRoomKeyDown",
