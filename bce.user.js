@@ -130,7 +130,6 @@ async function ForBetterClub() {
 			ArousalSync: "ArousalSync",
 			Hello: "Hello",
 		}),
-		TIMER_INPUT_ID = "bce_timerInput",
 		WHISPER_CLASS = "bce-whisper-input";
 
 	const EMBED_TYPE = /** @type {const} */ ({
@@ -1295,11 +1294,7 @@ async function ForBetterClub() {
 	 */
 	const expectedHashes = (gameVersion) => {
 		switch (gameVersion) {
-			case "R100":
-			case "R100Beta4":
-			case "R100Beta3":
-			case "R100Beta2":
-			case "R100Beta1":
+			default:
 				return /** @type {const} */ ({
 					ActivityChatRoomArousalSync: "BFF3DED7",
 					ActivitySetArousal: "3AE28123",
@@ -1379,12 +1374,6 @@ async function ForBetterClub() {
 					GLDrawResetCanvas: "81214642",
 					InformationSheetRun: "90140B32",
 					InventoryGet: "E666F671",
-					InventoryItemMiscMistressTimerPadlockClickHook: "6A5C3FC2",
-					InventoryItemMiscMistressTimerPadlockDrawHook: "6A5C3FC2",
-					InventoryItemMiscOwnerTimerPadlockClickHook: "6A5C3FC2",
-					InventoryItemMiscOwnerTimerPadlockDrawHook: "6A5C3FC2",
-					InventoryItemMiscTimerPasswordPadlockClickHook: "6A5C3FC2",
-					InventoryItemMiscTimerPasswordPadlockDrawHook: "6A5C3FC2",
 					LoginClick: "EE94BEC7",
 					LoginRun: "C3926C4F",
 					LoginSetSubmitted: "C88F4A8E",
@@ -1413,147 +1402,6 @@ async function ForBetterClub() {
 					SkillGetWithRatio: "3EB4BC45",
 					SpeechGarble: "9D669F73",
 					SpeechGarbleByGagLevel: "42386B35",
-					SpeechGetTotalGagLevel: "5F4F6D45",
-					StruggleDexterityProcess: "7E19ADA9",
-					StruggleFlexibilityCheck: "727CE05B",
-					StruggleFlexibilityProcess: "278D7285",
-					StruggleLockPickDraw: "2F1F603B",
-					StruggleMinigameHandleExpression: "B6E4A1A0",
-					StruggleMinigameStop: "206F85E7",
-					StruggleStrengthProcess: "D20CF698",
-					TextGet: "4DDE5794",
-					TextLoad: "ADF7C890",
-					TimerInventoryRemove: "1FA771FB",
-					TimerProcess: "52458C63",
-					TitleExit: "F13F533C",
-					ValidationSanitizeProperties: "08E81594",
-					WardrobeClick: "33405B1D",
-					WardrobeExit: "12D14AE4",
-					WardrobeFastLoad: "5C54EA7B",
-					WardrobeFastSave: "61D02972",
-					WardrobeFixLength: "CA3334C6",
-					WardrobeLoad: "C343A4C7",
-					WardrobeRun: "633B3570",
-				});
-			default:
-				return /** @type {const} */ ({
-					ActivityChatRoomArousalSync: "BFF3DED7",
-					ActivitySetArousal: "3AE28123",
-					ActivitySetArousalTimer: "1342AFE2",
-					ActivityTimerProgress: "6CD388A7",
-					AppearanceClick: "4C04C15E",
-					AppearanceExit: "AA300341",
-					AppearanceLoad: "4360C485",
-					AppearanceRun: "6EC75705",
-					CharacterAppearanceWardrobeLoad: "A5B63A03",
-					CharacterBuildDialog: "85F79C6E",
-					CharacterCompressWardrobe: "2A05ECD1",
-					CharacterDecompressWardrobe: "327FADA4",
-					CharacterDelete: "398D1116",
-					CharacterGetCurrent: "45608177",
-					CharacterLoadCanvas: "EAB81BC4",
-					CharacterNickname: "A794EFF5",
-					CharacterRefresh: "F2459653",
-					CharacterReleaseTotal: "396640D1",
-					CharacterSetCurrent: "F46573D8",
-					CharacterSetFacialExpression: "F8272D7A",
-					CharacterSetActivePose: "2FE9ABBA",
-					ChatAdminRoomCustomizationClick: "E194A605",
-					ChatAdminRoomCustomizationProcess: "B33D6388",
-					ChatRoomCharacterItemUpdate: "263DB2F0",
-					ChatRoomCharacterUpdate: "C444E92D",
-					ChatRoomClearAllElements: "14DAAB05",
-					ChatRoomClick: "4C4A7B70",
-					ChatRoomCreateElement: "AA36E8B6",
-					ChatRoomCurrentTime: "A462DD3A",
-					ChatRoomDrawBackground: "AEE70C4E",
-					ChatRoomDrawCharacterOverlay: "06FB4CC3",
-					ChatRoomHTMLEntities: "0A7ADB1D",
-					ChatRoomKeyDown: "2C43231C",
-					ChatRoomListManipulation: "75D28A8B",
-					ChatRoomMessage: "BBD61334",
-					ChatRoomMessageDisplay: "A9ACC758",
-					ChatRoomRegisterMessageHandler: "C432923A",
-					ChatRoomResize: "653445D7",
-					ChatRoomRun: "94D14C8C",
-					ChatRoomSendChat: "7F540ED0",
-					ChatRoomStart: "9B822A9A",
-					CommandExecute: "5C948CC3",
-					CommandParse: "C63F98C3",
-					CommonClick: "1F6DF7CB",
-					CommonColorIsValid: "390A2CE4",
-					CommonSetScreen: "E2AC00F4",
-					CraftingClick: "571D9763",
-					CraftingConvertSelectedToItem: "308B958C",
-					CraftingRun: "5BE6E125",
-					DialogClick: "A1B56CDF",
-					DialogDraw: "D8377D69",
-					DialogDrawItemMenu: "FCE556C2",
-					DialogLeave: "C37553DC",
-					DrawArousalMeter: "BB0755AF",
-					DrawArousalThermometer: "7ED6D822",
-					DrawBackNextButton: "9AF4BA37",
-					DrawButton: "A7023A82",
-					DrawCharacter: "41CF69C4",
-					DrawCheckbox: "00FD87EB",
-					DrawImageEx: "E01BE7E7",
-					DrawImageResize: "D205975A",
-					DrawItemPreview: "6A7A1E2A",
-					DrawProcess: "BC1E9396",
-					DrawText: "C1BF0F50",
-					DrawTextFit: "F9A1B11E",
-					ElementCreateInput: "60D2EA73",
-					ElementCreateTextArea: "81019A58",
-					ElementIsScrolledToEnd: "1CC4FE11",
-					ElementPosition: "CC4E3C82",
-					ElementRemove: "60809E60",
-					ElementScrollToEnd: "1AC45575",
-					ElementValue: "4F26C62F",
-					FriendListShowBeep: "6C0449BB",
-					GameRun: "ED65B730",
-					GLDrawResetCanvas: "81214642",
-					InformationSheetRun: "90140B32",
-					InventoryGet: "E666F671",
-					InventoryItemMiscMistressTimerPadlockClick: "861419FC",
-					InventoryItemMiscMistressTimerPadlockDraw: "4E1628BE",
-					InventoryItemMiscMistressTimerPadlockExit: "66BC6923",
-					InventoryItemMiscMistressTimerPadlockLoad: "BE46432F",
-					InventoryItemMiscOwnerTimerPadlockClick: "C929699B",
-					InventoryItemMiscOwnerTimerPadlockDraw: "BCA80BF8",
-					InventoryItemMiscOwnerTimerPadlockExit: "1BE66B4A",
-					InventoryItemMiscOwnerTimerPadlockLoad: "8A55C0D1",
-					InventoryItemMiscTimerPasswordPadlockClick: "BAE0BAC9",
-					InventoryItemMiscTimerPasswordPadlockDraw: "0BB8E88D",
-					InventoryItemMiscTimerPasswordPadlockExit: "7323E56D",
-					InventoryItemMiscTimerPasswordPadlockLoad: "82223608",
-					LoginClick: "EE94BEC7",
-					LoginRun: "C3926C4F",
-					LoginSetSubmitted: "C88F4A8E",
-					LoginStatusReset: "18619F02",
-					MouseIn: "CA8B839E",
-					NotificationDrawFavicon: "AB88656B",
-					NotificationRaise: "E8F29646",
-					NotificationTitleUpdate: "0E92F3ED",
-					OnlineGameAllowChange: "3779F42C",
-					OnlineProfileClick: "521146DF",
-					OnlineProfileRun: "7F57EF9A",
-					PoseSetActive: "2FE9ABBA",
-					RelogRun: "10AF5A60",
-					RelogExit: "2DFB2DAD",
-					ServerAccountBeep: "F16771D4",
-					ServerAppearanceBundle: "4D069622",
-					ServerAppearanceLoadFromBundle: "946537FD",
-					ServerClickBeep: "3E6277BE",
-					ServerConnect: "845E50A6",
-					ServerDisconnect: "06C1A6B0",
-					ServerInit: "FEC6457F",
-					ServerOpenFriendList: "FA8D3CDE",
-					ServerPlayerExtensionSettingsSync: "1776666B",
-					ServerSend: "ABE74E75",
-					ServerSendQueueProcess: "BD4277AC",
-					SkillGetWithRatio: "3EB4BC45",
-					SpeechGarble: "9D669F73",
-					SpeechGarbleByGagLevel: "5F6E16C8",
 					SpeechGetTotalGagLevel: "5F4F6D45",
 					StruggleDexterityProcess: "7E19ADA9",
 					StruggleFlexibilityCheck: "727CE05B",
@@ -1736,59 +1584,6 @@ async function ForBetterClub() {
 		// Here to not break customizer script
 	};
 
-	/**
-	 * @type {(duration: number) => FBCDuration}
-	 */
-	const durationToComponents = (duration) => {
-		let seconds = Math.floor(duration / 1000);
-		let minutes = Math.floor(seconds / 60);
-		let hours = Math.floor(minutes / 60);
-		const days = Math.floor(hours / 24);
-
-		hours -= days * 24;
-		minutes = minutes - days * 24 * 60 - hours * 60;
-		seconds = seconds - days * 24 * 60 * 60 - hours * 60 * 60 - minutes * 60;
-		return {
-			days,
-			hours,
-			minutes,
-			seconds,
-		};
-	};
-
-	/**
-	 * @type {(dateFuture: Date) => FBCDuration}
-	 */
-	const timeUntilDate = (dateFuture) => {
-		// https://stackoverflow.com/a/13904621/1780502 - jackcogdill
-		const dateNow = new Date();
-		return durationToComponents(dateFuture.getTime() - dateNow.getTime());
-	};
-
-	/**
-	 * @type {(timestamp: string | number | Date, days: number, hours: number, minutes: number, seconds: number) => number}
-	 */
-	const addToTimestamp = (timestamp, days, hours, minutes, seconds) => {
-		if (!days) {
-			days = 0;
-		}
-		if (!hours) {
-			hours = 0;
-		}
-		if (!minutes) {
-			minutes = 0;
-		}
-		if (!seconds) {
-			seconds = 0;
-		}
-		const date = new Date(timestamp);
-		date.setDate(date.getDate() + days);
-		date.setHours(date.getHours() + hours);
-		date.setMinutes(date.getMinutes() + minutes);
-		date.setSeconds(date.getSeconds() + seconds);
-		return date.getTime();
-	};
-
 	/** @type {string[]} */
 	const incompleteFunctions = [];
 	/**
@@ -1952,7 +1747,6 @@ async function ForBetterClub() {
 	registerFunction(autoGhostBroadcast, "autoGhostBroadcast");
 	registerFunction(blindWithoutGlasses, "blindWithoutGlasses");
 	registerFunction(friendPresenceNotifications, "friendPresenceNotifications");
-	registerFunction(accurateTimerInputs, "accurateTimerInputs");
 	registerFunction(forcedClubSlave, "forcedClubSlave");
 	registerFunction(fpsCounter, "fpsCounter");
 	registerFunction(instantMessenger, "instantMessenger");
@@ -1980,23 +1774,6 @@ async function ForBetterClub() {
 	}
 
 	async function functionIntegrityCheck() {
-		/*
-		 * Functions that are no longer present on latest supported version
-		 * but still exist on older supported versions
-		 */
-		const removedFuncs = /** @type {const} */ ([
-			"InventoryItemMiscMistressTimerPadlockExit",
-			"InventoryItemMiscOwnerTimerPadlockExit",
-		]);
-
-		/**
-		 * @param {keyof ReturnType<expectedHashes>} func
-		 * @returns {func is keyof typeof w}
-		 */
-		function funcExists(func) {
-			return !removedFuncs.includes(func);
-		}
-
 		await waitFor(
 			() =>
 				GameVersion !== "R0" &&
@@ -2004,10 +1781,6 @@ async function ForBetterClub() {
 				ServerIsConnected
 		);
 		for (const [func, hash] of objEntries(expectedHashes(GameVersion))) {
-			if (!funcExists(func)) {
-				logWarn(`Did not expect removed function ${func} on this GameVersion.`);
-				continue;
-			}
 			if (!w[func]) {
 				logWarn(`Expected function ${func} not found.`);
 				continue;
@@ -2282,237 +2055,6 @@ async function ForBetterClub() {
 				}`,
 			},
 			"Beeps are not enhanced by FBC."
-		);
-	}
-
-	function accurateTimerInputs() {
-		if (GameVersion !== "R99") {
-			logWarn("Accurate timer inputs are only available on R99.");
-			return;
-		}
-		const timerInputElement = `ElementPosition("${TIMER_INPUT_ID}", 1400, 930, 250, 70);document.getElementById('${TIMER_INPUT_ID}').disabled = false;`;
-
-		const loadLockTimerInput = () => {
-			let defaultValue = "0d0h5m0s";
-			if (DialogFocusSourceItem?.Property?.RemoveTimer) {
-				const parsedTime = timeUntilDate(
-					new Date(DialogFocusSourceItem.Property.RemoveTimer)
-				);
-				defaultValue = `${parsedTime.days}d${parsedTime.hours}h${parsedTime.minutes}m${parsedTime.seconds}s`;
-			}
-			ElementCreateInput(TIMER_INPUT_ID, "text", defaultValue, "11");
-			ElementPosition(TIMER_INPUT_ID, -100, -100, 0, 0);
-			// @ts-ignore
-			document.getElementById(TIMER_INPUT_ID).disabled = true;
-			/** @type {HTMLInputElement} */
-			// @ts-ignore
-			const timerInput = document.getElementById(TIMER_INPUT_ID);
-			timerInput.onchange = function onchange() {
-				/** @type {{ value: string }} */
-				// @ts-ignore - value does exist on this type
-				const { value } = this;
-
-				// Validate input
-				if (!/^[0-9]*d?[0-9]*h?[0-9]*m?[0-9]*s?$/u.test(value)) {
-					return;
-				}
-
-				/** @type {FBCDuration} */
-				const additions = {
-					days: 0,
-					hours: 0,
-					minutes: 0,
-					seconds: 0,
-				};
-				value.replace(
-					/([0-9]+)[dhms]/gu,
-					/** @type {(match: string, number: string) => string} */
-					(match, number) => {
-						switch (match.slice(-1)) {
-							case "d":
-								additions.days = parseInt(number);
-								if (additions.days > 7) {
-									additions.days = 7;
-								}
-								break;
-							case "h":
-								additions.hours = parseInt(number);
-								if (additions.hours > 23) {
-									additions.hours = 23;
-								}
-								break;
-							case "m":
-								additions.minutes = parseInt(number);
-								if (additions.minutes > 59) {
-									additions.minutes = 59;
-								}
-								break;
-							case "s":
-								additions.seconds = parseInt(number);
-								if (additions.seconds > 59) {
-									additions.seconds = 59;
-								}
-								break;
-							default:
-								break;
-						}
-						return "";
-					}
-				);
-				if (!DialogFocusSourceItem?.Property) {
-					throw new Error(
-						"Attempted to modify timer but the item or its properties do not exist."
-					);
-				}
-				DialogFocusSourceItem.Property.RemoveTimer = addToTimestamp(
-					Date.now(),
-					additions.days,
-					additions.hours,
-					additions.minutes,
-					additions.seconds
-				);
-				if (
-					DialogFocusSourceItem.Property.RemoveTimer - Date.now() >
-					(DialogFocusItem?.Asset?.MaxTimer || 604800) * 1000
-				) {
-					DialogFocusSourceItem.Property.RemoveTimer =
-						Date.now() + (DialogFocusItem?.Asset?.MaxTimer || 604800) * 1000;
-				}
-				if (ServerPlayerIsInChatRoom()) {
-					const target = CharacterGetCurrent();
-					if (!target) {
-						throw new Error(
-							"Attempted to modify timer but target does not exist."
-						);
-					}
-					ChatRoomCharacterItemUpdate(
-						target,
-						DialogFocusSourceItem.Asset.Group.Name
-					);
-					const until = timeUntilDate(
-						new Date(DialogFocusSourceItem.Property.RemoveTimer)
-					);
-					let timeMessage = "";
-					if (DialogFocusSourceItem.Property.ShowTimer) {
-						timeMessage =
-							" to $days days, $hours hours, $minutes minutes, and $seconds seconds";
-					}
-					fbcSendAction(
-						displayText(
-							`$PlayerName changed the timer on the $ItemName on $TargetName's $GroupName ${timeMessage}`,
-							{
-								$PlayerName: CharacterNickname(Player),
-								$ItemName:
-									DialogFocusItem?.Asset?.Description?.toLowerCase() || "",
-								$TargetName: CharacterNickname(target),
-								$GroupName: target.FocusGroup?.Description?.toLowerCase() || "",
-								$days: until.days.toString(),
-								$hours: until.hours.toString(),
-								$minutes: until.minutes.toString(),
-								$seconds: until.seconds.toString(),
-							}
-						)
-					);
-				}
-			};
-		};
-
-		// Owner/Lover locks
-		patchFunction(
-			"InventoryItemMiscOwnerTimerPadlockDraw",
-			{
-				"// Draw buttons to add/remove time if available": `if (fbcSettingValue("accurateTimerLocks") && Player.CanInteract() && validator(C)) {${timerInputElement}} else`,
-			},
-			"Accurate timer inputs are not available for owner/lover locks."
-		);
-		patchFunction(
-			"InventoryItemMiscOwnerTimerPadlockClick",
-			{
-				"InventoryItemMiscOwnerTimerPadlockAdd(OwnerTimerChooseList[OwnerTimerChooseIndex] * 3600);":
-					'if (!fbcSettingValue("accurateTimerLocks")) InventoryItemMiscOwnerTimerPadlockAdd(OwnerTimerChooseList[OwnerTimerChooseIndex] * 3600);',
-			},
-			"Accurate timer inputs are not available for owner/lover locks."
-		);
-
-		const timerLoadMethods = /** @type {const} */ ([
-			"InventoryItemMiscMistressTimerPadlockLoad",
-			"InventoryItemMiscOwnerTimerPadlockLoad",
-			"InventoryItemMiscTimerPasswordPadlockLoad",
-		]);
-		const timerExitMethods = /** @type {const} */ ([
-			"InventoryItemMiscMistressTimerPadlockExit",
-			"InventoryItemMiscOwnerTimerPadlockExit",
-			"InventoryItemMiscTimerPasswordPadlockExit",
-		]);
-
-		for (const fn of timerLoadMethods) {
-			SDK.hookFunction(
-				fn,
-				HOOK_PRIORITIES.AddBehaviour,
-				/**
-				 * @param {Parameters<typeof InventoryItemMiscMistressTimerPadlockLoad>} args
-				 */
-				// eslint-disable-next-line no-loop-func
-				(args, next) => {
-					const ret = next(args);
-					if (fbcSettings.accurateTimerLocks) {
-						loadLockTimerInput();
-					}
-					return ret;
-				}
-			);
-		}
-
-		for (const fn of timerExitMethods) {
-			SDK.hookFunction(
-				fn,
-				HOOK_PRIORITIES.AddBehaviour,
-				/**
-				 * @param {Parameters<typeof InventoryItemMiscMistressTimerPadlockExit>} args
-				 */
-				// eslint-disable-next-line no-loop-func
-				(args, next) => {
-					const ret = next(args);
-					if (fbcSettings.accurateTimerLocks) {
-						ElementRemove(TIMER_INPUT_ID);
-					}
-					return ret;
-				}
-			);
-		}
-
-		// Password timer
-		patchFunction(
-			"InventoryItemMiscTimerPasswordPadlockDraw",
-			{
-				"// Draw buttons to add/remove time if available": `if (fbcSettingValue("accurateTimerLocks") && Player.CanInteract() && Player.MemberNumber == Property.LockMemberNumber) {${timerInputElement}} else`,
-			},
-			"Accurate timer inputs are not available for password locks."
-		);
-		patchFunction(
-			"InventoryItemMiscTimerPasswordPadlockClick",
-			{
-				"InventoryItemMiscTimerPasswordPadlockAdd(PasswordTimerChooseList[PasswordTimerChooseIndex] * 60, false);":
-					'if (!fbcSettingValue("accurateTimerLocks")) InventoryItemMiscTimerPasswordPadlockAdd(PasswordTimerChooseList[PasswordTimerChooseIndex] * 60, false);',
-			},
-			"Accurate timer inputs are not available for password locks."
-		);
-
-		// Mistress locks
-		patchFunction(
-			"InventoryItemMiscMistressTimerPadlockDraw",
-			{
-				"// Draw buttons to add/remove time if available": `if (fbcSettingValue("accurateTimerLocks") && Player.CanInteract() && (LogQuery("ClubMistress", "Management") || (Player.MemberNumber == DialogFocusSourceItem.Property.LockMemberNumber))) {${timerInputElement}} else`,
-			},
-			"Accurate timer inputs are not available for mistress locks."
-		);
-		patchFunction(
-			"InventoryItemMiscMistressTimerPadlockClick",
-			{
-				"InventoryItemMiscMistressTimerPadlockAdd(MistressTimerChooseList[MistressTimerChooseIndex] * 60, false);":
-					'if (!fbcSettingValue("accurateTimerLocks")) InventoryItemMiscMistressTimerPadlockAdd(MistressTimerChooseList[MistressTimerChooseIndex] * 60, false);',
-			},
-			"Accurate timer inputs are not available for mistress locks."
 		);
 	}
 
@@ -5872,12 +5414,17 @@ async function ForBetterClub() {
 			if (data === null || !isNonNullObject(data)) {
 				return;
 			}
+			if (!Array.isArray(data.Pose)) {
+				logWarn(
+					`data.Pose in ChatRoomSyncPose for ${data.MemberNumber?.toString()} is not an array`
+				);
+				return;
+			}
 			if (!bceAnimationEngineEnabled()) {
 				return;
 			}
 			if (data.MemberNumber === Player.MemberNumber) {
-				const poses = Array.isArray(data.Pose) ? data.Pose : [data.Pose];
-				setPoses(poses);
+				setPoses(data.Pose);
 			}
 		});
 
@@ -7715,6 +7262,7 @@ async function ForBetterClub() {
 					/** @type {() => boolean} */
 					const isWhispering = () =>
 						w.InputChat?.value.startsWith("/w ") ||
+						w.InputChat?.value.startsWith("/whisper ") ||
 						!!w.ChatRoomTargetMemberNumber;
 					if (
 						w.InputChat?.classList.contains(WHISPER_CLASS) &&
