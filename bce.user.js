@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Bondage Club Enhancements
 // @namespace https://www.bondageprojects.com/
-// @version 4.78
+// @version 4.79
 // @description FBC - For Better Club - enhancements for the bondage club - old name kept in tampermonkey for compatibility
 // @author Sidious
 // @match https://bondageprojects.elementfx.com/*
@@ -34,10 +34,13 @@
  *  along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-const FBC_VERSION = "4.78";
+const FBC_VERSION = "4.79";
 const settingsVersion = 56;
 
 const fbcChangelog = `${FBC_VERSION}
+- Fixed minor layout issues with the whisper button
+
+4.78
 - Added a setting to disable FBC's modifications to the whisper button
 - Fixed the whisper button to respect map whisper range
 - Repositioned the whisper button
@@ -52,10 +55,6 @@ const fbcChangelog = `${FBC_VERSION}
 
 4.76
 - Fixed chat augments on R100Beta1
-
-4.75
-- Changed exportlooks to include collars and collar accessories
-- Preliminary R100 support
 `;
 
 /*
@@ -3371,11 +3370,13 @@ async function ForBetterClub() {
 		}
 		.bce-line-icon-wrapper {
 			display: none;
+			position: absolute;
+			right: 1em;
 		}
 		.ChatMessage:hover .bce-line-icon-wrapper,
+		.ChatMessage:focus .bce-line-icon-wrapper,
 		.ChatMessage:focus-within .bce-line-icon-wrapper {
 			display: inline;
-			float: right;
 		}
 		.bce-line-icon {
 			height: 1em;
