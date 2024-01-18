@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Bondage Club Enhancements
 // @namespace https://www.bondageprojects.com/
-// @version 4.76
+// @version 4.77
 // @description FBC - For Better Club - enhancements for the bondage club - old name kept in tampermonkey for compatibility
 // @author Sidious
 // @match https://bondageprojects.elementfx.com/*
@@ -34,24 +34,25 @@
  *  along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-const FBC_VERSION = "4.76";
-const settingsVersion = 55;
+const FBC_VERSION = "4.77";
+const settingsVersion = 56;
 
 const fbcChangelog = `${FBC_VERSION}
-- fix chat augments on R100Beta1
+- Added whisper icon to all messages with a sender
+- Updated whisper icon
+- Fixed /r <component>
+- R100 support
+- Removed accurate timer inputs
+
+4.76
+- Fixed chat augments on R100Beta1
 
 4.75
-- allow exportlooks to include collars and collar accessories
-- preliminary R100 support
+- Changed exportlooks to include collars and collar accessories
+- Preliminary R100 support
 
 4.74
-- fix pose changes coming from addons that have not updated to R99
-
-4.73
-- fix settings loading on incognito
-
-4.72
-- fix manual overrides to eyes only impacting Eyes2
+- Fixed pose changes coming from addons that have not updated to R99
 `;
 
 /*
@@ -873,18 +874,6 @@ async function ForBetterClub() {
 			description:
 				"Automatically ghost+blocklist unnaturally new users. This is useful for preventing malicious bots, but is not recommended to be enabled normally.",
 		},
-		accurateTimerLocks: {
-			label: "Use accurate timer inputs",
-			value: false,
-			/**
-			 * @param {unknown} newValue
-			 */
-			sideEffects: (newValue) => {
-				debug("accurateTimerLocks", newValue);
-			},
-			category: "misc",
-			description: "Allows you to set specific durations for timer locks.",
-		},
 		confirmLeave: {
 			label: "Confirm leaving the game",
 			value: true,
@@ -1234,7 +1223,6 @@ async function ForBetterClub() {
 					"在聊天室里显示堵嘴作弊和反作弊选项",
 				"Automatically ghost+blocklist unnaturally new users":
 					"自动对不自然的用户无视并添加黑名单",
-				"Use accurate timer inputs": "使用准确的计时器输入",
 				"Confirm leaving the game": "离开游戏前需要确认",
 				"Discreet mode (disable drawing)": "谨慎模式 (禁用绘图)",
 				"Keep tab active (requires refresh)":
