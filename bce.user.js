@@ -69,7 +69,7 @@ var bcModSdk=function(){"use strict";const e="1.1.0";function o(e){alert("Mod ER
 async function ForBetterClub() {
 	"use strict";
 
-	const SUPPORTED_GAME_VERSIONS = ["R99"];
+	const SUPPORTED_GAME_VERSIONS = ["R100"];
 	const CAPABILITIES = /** @type {const} */ (["clubslave"]);
 
 	const w = window;
@@ -6575,87 +6575,45 @@ async function ForBetterClub() {
 	}
 
 	function chatRoomOverlay() {
-		if (GameVersion === "R99") {
-			SDK.hookFunction(
-				"ChatRoomDrawCharacterOverlay",
-				HOOK_PRIORITIES.AddBehaviour,
-				/**
-				 * @param {Parameters<typeof ChatRoomDrawCharacterOverlay>} args
-				 */
-				(args, next) => {
-					const ret = next(args);
-					const [C, CharX, CharY, Zoom] = args;
-					if (
-						isCharacter(C) &&
-						typeof CharX === "number" &&
-						typeof CharY === "number" &&
-						typeof Zoom === "number" &&
-						C.FBC &&
-						ChatRoomHideIconState === 0
-					) {
-						const icon = ["1", "2", "3"].includes(C.FBC.split(".")[0])
-							? ICONS.BCE_USER
-							: ICONS.USER;
-						DrawImageResize(
-							icon,
-							CharX + 270 * Zoom,
-							CharY,
-							40 * Zoom,
-							40 * Zoom
-						);
-						DrawTextFit(
-							/^\d+\.\d+(\.\d+)?$/u.test(C.FBC) ? C.FBC : "",
-							CharX + 290 * Zoom,
-							CharY + 30 * Zoom,
-							40 * Zoom,
-							"White",
-							"Black"
-						);
-					}
-					return ret;
+		SDK.hookFunction(
+			"ChatRoomDrawCharacterStatusIcons",
+			HOOK_PRIORITIES.AddBehaviour,
+			/**
+			 * @param {Parameters<typeof ChatRoomDrawCharacterStatusIcons>} args
+			 */
+			(args, next) => {
+				const ret = next(args);
+				const [C, CharX, CharY, Zoom] = args;
+				if (
+					isCharacter(C) &&
+					typeof CharX === "number" &&
+					typeof CharY === "number" &&
+					typeof Zoom === "number" &&
+					C.FBC &&
+					ChatRoomHideIconState === 0
+				) {
+					const icon = ["1", "2", "3"].includes(C.FBC.split(".")[0])
+						? ICONS.BCE_USER
+						: ICONS.USER;
+					DrawImageResize(
+						icon,
+						CharX + 270 * Zoom,
+						CharY,
+						40 * Zoom,
+						40 * Zoom
+					);
+					DrawTextFit(
+						/^\d+\.\d+(\.\d+)?$/u.test(C.FBC) ? C.FBC : "",
+						CharX + 290 * Zoom,
+						CharY + 30 * Zoom,
+						40 * Zoom,
+						"White",
+						"Black"
+					);
 				}
-			);
-		} else {
-			SDK.hookFunction(
-				"ChatRoomDrawCharacterStatusIcons",
-				HOOK_PRIORITIES.AddBehaviour,
-				/**
-				 * @param {Parameters<typeof ChatRoomDrawCharacterStatusIcons>} args
-				 */
-				(args, next) => {
-					const ret = next(args);
-					const [C, CharX, CharY, Zoom] = args;
-					if (
-						isCharacter(C) &&
-						typeof CharX === "number" &&
-						typeof CharY === "number" &&
-						typeof Zoom === "number" &&
-						C.FBC &&
-						ChatRoomHideIconState === 0
-					) {
-						const icon = ["1", "2", "3"].includes(C.FBC.split(".")[0])
-							? ICONS.BCE_USER
-							: ICONS.USER;
-						DrawImageResize(
-							icon,
-							CharX + 270 * Zoom,
-							CharY,
-							40 * Zoom,
-							40 * Zoom
-						);
-						DrawTextFit(
-							/^\d+\.\d+(\.\d+)?$/u.test(C.FBC) ? C.FBC : "",
-							CharX + 290 * Zoom,
-							CharY + 30 * Zoom,
-							40 * Zoom,
-							"White",
-							"Black"
-						);
-					}
-					return ret;
-				}
-			);
-		}
+				return ret;
+			}
+		);
 	}
 
 	/** @type {(target?: number | null, requestReply?: boolean) => void} */
@@ -10944,9 +10902,7 @@ async function ForBetterClub() {
 				GameVersion,
 				// !! to avoid passing room name to statbot, only presence inside a room or not
 				InRoom: !!Player.LastChatRoom,
-				InPrivate:
-					// @ts-ignore -- LastChatRoomPrivate removed in R99
-					!!Player.LastChatRoomPrivate || !!Player.LastChatRoom?.Private,
+				InPrivate: !!Player.LastChatRoom?.Private,
 				// eslint-disable-next-line camelcase
 				InTampermonkey: typeof GM_info !== "undefined",
 				FUSAM: !!w.FUSAM?.present,
