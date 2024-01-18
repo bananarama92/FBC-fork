@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Bondage Club Enhancements
 // @namespace https://www.bondageprojects.com/
-// @version 4.77
+// @version 4.78
 // @description FBC - For Better Club - enhancements for the bondage club - old name kept in tampermonkey for compatibility
 // @author Sidious
 // @match https://bondageprojects.elementfx.com/*
@@ -34,10 +34,16 @@
  *  along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-const FBC_VERSION = "4.77";
+const FBC_VERSION = "4.78";
 const settingsVersion = 56;
 
 const fbcChangelog = `${FBC_VERSION}
+- Added a setting to disable FBC's modifications to the whisper button
+- Fixed the whisper button to respect map whisper range
+- Repositioned the whisper button
+- Fixed /versions to respect character visibility in maps to match behaviour in normal rooms
+
+4.77
 - Added whisper icon to all messages with a sender
 - Updated whisper icon
 - Fixed /r <component>
@@ -50,9 +56,6 @@ const fbcChangelog = `${FBC_VERSION}
 4.75
 - Changed exportlooks to include collars and collar accessories
 - Preliminary R100 support
-
-4.74
-- Fixed pose changes coming from addons that have not updated to R99
 `;
 
 /*
@@ -474,6 +477,19 @@ async function ForBetterClub() {
 			category: "chat",
 			description:
 				"Shows messages you've sent while waiting for the server to respond, confirming you have sent the message and the server is just being slow.",
+		},
+		whisperButton: {
+			label: "Show whisper button on chat messages",
+			value: true,
+			/**
+			 * @param {unknown} newValue
+			 */
+			sideEffects: (newValue) => {
+				debug("whisperButton", newValue);
+			},
+			category: "chat",
+			description:
+				"Adds a whisper button to chat messages, allowing you to whisper to the sender more conveniently.",
 		},
 		gagspeak: {
 			label: "Understand All Gagged and when Deafened",
@@ -2093,15 +2109,23 @@ async function ForBetterClub() {
 			 * @param {Parameters<typeof ChatRoomAppendChat>} args
 			 */
 			(args, next) => {
-				const [div] = args;
-
-				const replyButton = div.querySelector(".ReplyButton");
-				if (replyButton) {
-					replyButton.remove();
+				if (!fbcSettings.whisperButton) {
+					return next(args);
 				}
 
+				const [div] = args;
+				const replyButton = div.querySelector(".ReplyButton");
+				replyButton?.remove();
+
 				const sender = div.getAttribute("data-sender");
-				if (sender && sender !== Player.MemberNumber?.toString()) {
+				const matchingCharacters = sender ? findDrawnCharacters(sender) : [];
+				if (
+					sender &&
+					sender !== Player.MemberNumber?.toString() &&
+					matchingCharacters.length > 0 &&
+					(!ChatRoomMapVisible ||
+						matchingCharacters.some(ChatRoomMapCharacterOnWhisperRange))
+				) {
 					const repl = document.createElement("a");
 					repl.href = "#";
 					repl.onclick = (e) => {
@@ -2116,6 +2140,7 @@ async function ForBetterClub() {
 						window.InputChat?.focus();
 					};
 					repl.title = "Whisper";
+					repl.classList.add("bce-line-icon-wrapper");
 					const img = document.createElement("img");
 					img.src = ICONS.WHISPER;
 					img.alt = "Whisper";
@@ -2409,6 +2434,12 @@ async function ForBetterClub() {
 					"[target name] [message]: whisper the target player. Use first name only. Finds the first person in the room with a matching name, left-to-right, top-to-bottom."
 				),
 				Action: (_, command, args) => {
+					if (args.length < 2) {
+						fbcChatNotify(
+							displayText(`Whisper target or message not provided`)
+						);
+					}
+
 					const [target] = args;
 					const [, , ...message] = command.split(" ");
 					const msg = message?.join(" ");
@@ -2487,11 +2518,10 @@ async function ForBetterClub() {
 								: ""
 						}`;
 
-					const targets =
-						args.length > 0 ? findDrawnCharacters(args[0], true) : [];
-
-					const printList =
-						targets.length > 0 ? targets : ChatRoomCharacterDrawlist;
+					const printList = findDrawnCharacters(
+						args.length > 0 ? args[0] : null,
+						true
+					);
 
 					const versionOutput = printList
 						.map(getCharacterModInfo)
@@ -3338,6 +3368,14 @@ async function ForBetterClub() {
 			width: 0.1px;
 			height: 0.1px;
 			opacity: 0.01;
+		}
+		.bce-line-icon-wrapper {
+			display: none;
+		}
+		.ChatMessage:hover .bce-line-icon-wrapper,
+		.ChatMessage:focus-within .bce-line-icon-wrapper {
+			display: inline;
+			float: right;
 		}
 		.bce-line-icon {
 			height: 1em;
@@ -10940,13 +10978,20 @@ async function ForBetterClub() {
 	})();
 
 	/**
-	 * @param {string} target
+	 * @param {string | null} target
 	 * @param {boolean} [limitVisible]
 	 */
 	function findDrawnCharacters(target, limitVisible = false) {
-		const baseList = limitVisible
-			? ChatRoomCharacterDrawlist
-			: ChatRoomCharacter;
+		let baseList = limitVisible ? ChatRoomCharacterDrawlist : ChatRoomCharacter;
+
+		if (ChatRoomMapVisible) {
+			baseList = baseList.filter(ChatRoomMapCharacterIsVisible);
+		}
+
+		if (target === null) {
+			return baseList;
+		}
+
 		let targetMembers = [];
 		if (/^\d+$/u.test(target)) {
 			targetMembers = [
