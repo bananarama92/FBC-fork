@@ -1341,8 +1341,8 @@ async function ForBetterClub() {
 					ChatRoomRun: "8D91EC46",
 					ChatRoomSendChat: "7F540ED0",
 					ChatRoomStart: "9B822A9A",
-					CommandExecute: "BBBC035B",
-					CommandParse: "097A8636",
+					CommandExecute: "803D6C70",
+					CommandParse: "8412C411",
 					CommonClick: "1F6DF7CB",
 					CommonColorIsValid: "390A2CE4",
 					CommonSetScreen: "E0CA772F",
@@ -1404,14 +1404,14 @@ async function ForBetterClub() {
 					ServerSendQueueProcess: "BD4277AC",
 					SkillGetWithRatio: "3EB4BC45",
 					SpeechGarble: "9D669F73",
-					SpeechGarbleByGagLevel: "42386B35",
+					SpeechGarbleByGagLevel: "3D604B82",
 					SpeechGetTotalGagLevel: "5F4F6D45",
 					StruggleDexterityProcess: "7E19ADA9",
 					StruggleFlexibilityCheck: "727CE05B",
 					StruggleFlexibilityProcess: "278D7285",
 					StruggleLockPickDraw: "2F1F603B",
 					StruggleMinigameHandleExpression: "B6E4A1A0",
-					StruggleMinigameStop: "206F85E7",
+					StruggleMinigameStop: "FB05E8A9",
 					StruggleStrengthProcess: "D20CF698",
 					TextGet: "4DDE5794",
 					TextLoad: "ADF7C890",
@@ -5203,7 +5203,7 @@ async function ForBetterClub() {
 						if (component === "Eyes" && "Eyes2" in e) {
 							delete e.Eyes2;
 						}
-						if (component in e.Expression) {
+						if (component in e) {
 							delete e[component];
 						}
 					}
