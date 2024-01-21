@@ -29,7 +29,6 @@ At a glance, **everything is entirely optional, enable in settings** (profile ->
 - Confirmation prompt when leaving the page
 - Beeps display their text in chat. Clicking on them takes you directly to the beep.
 - Ctrl+Enter to OOC
-- Accurate timer inputs
 - Club slave as an option for owners under forced labor
 - Extended Wardrobe (more slots)
 - Modify outfit layering
@@ -97,12 +96,6 @@ FBC can notify you when friends come and go.
 ![](static/bceMessagePreviewDemo.png)
 
 FBC will display a snippet of the message received in beeps in chat, and clicking the message takes you directly to the beep. This functionality is incompatible with BcUtil and disabled, when that addon is detected.
-
-### Accurate Timer Durations
-
-![](static/bceTimerInput.png)
-
-FBC allows you to set timer locks at a greater accuracy. Does not allow exceeding maximum duration of the locks.
 
 ### Automatic relogin
 
