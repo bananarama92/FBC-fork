@@ -18,7 +18,7 @@
 
 /**
  *     BCE/FBC
- *  Copyright (C) 2023  Sid
+ *  Copyright (C) 2024  Sid
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
