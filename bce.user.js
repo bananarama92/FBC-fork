@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Bondage Club Enhancements
 // @namespace https://www.bondageprojects.com/
-// @version 4.79
+// @version 4.80
 // @description FBC - For Better Club - enhancements for the bondage club - old name kept in tampermonkey for compatibility
 // @author Sidious
 // @match https://bondageprojects.elementfx.com/*
@@ -34,10 +34,13 @@
  *  along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-const FBC_VERSION = "4.79";
+const FBC_VERSION = "4.80";
 const settingsVersion = 56;
 
 const fbcChangelog = `${FBC_VERSION}
+- Added warning to non-FUSAM users
+
+4.79
 - Fixed minor layout issues with the whisper button
 
 4.78
@@ -84,6 +87,19 @@ async function ForBetterClub() {
 	if (!w.bcModSdk) {
 		console.warn("bcModSdk not found. Skipping load.");
 		return;
+	}
+
+	if (!handledByFUSAM("FBC")) {
+		alert(
+			"Please load FBC via FUSAM. FBC will not work properly without it starting with R101 beta release on 2024-02-10."
+		);
+		(async function () {
+			await waitFor(() => !!Player?.Name);
+			fbcBeepNotify(
+				"Load FBC via FUSAM",
+				"Please load FBC via FUSAM. FBC will not work properly without it starting with R101 beta release on 2024-02-10. FUSAM instructions can be found at: https://sidiousious.gitlab.io/bc-addon-loader/ or join https://discord.gg/dkWsEjf for assistance."
+			);
+		})();
 	}
 
 	const SDK = w.bcModSdk.registerMod(
@@ -1528,7 +1544,7 @@ async function ForBetterClub() {
 	/**
 	 * @type {(title: string, text: string) => void}
 	 */
-	const fbcBeepNotify = (title, text) => {
+	function fbcBeepNotify(title, text) {
 		SDK.callOriginal("ServerAccountBeep", [
 			{
 				MemberNumber: Player.MemberNumber,
@@ -1539,7 +1555,7 @@ async function ForBetterClub() {
 				ChatRoomSpace: "",
 			},
 		]);
-	};
+	}
 
 	/**
 	 * @type {(text: string, duration?: number, properties?: Partial<ServerBeep>) => Promise<void>}
