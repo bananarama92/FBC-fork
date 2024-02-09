@@ -43,8 +43,11 @@ async function ForBetterClub() {
 	const fbcChangelog = `${FBC_VERSION}
 - Added uwall anticheat to immersion settings
 - Removed other addon loading
-- Removed support for loading without FUSAM
+- Removed support for loading without FUSAM, changed warning to error
 - Preliminary R101 support
+
+4.80
+- Added warning to non-FUSAM users
 
 4.79
 - Fixed minor layout issues with the whisper button
