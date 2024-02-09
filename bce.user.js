@@ -66,11 +66,16 @@ async function ForBetterClub() {
 		return;
 	}
 
-	if (!bcModSdk) {
+	if (typeof bcModSdk !== "object" || !bcModSdk) {
 		console.warn("bcModSdk not found. Skipping load.");
 		alert(
 			"bcModSdk not found. FBC will not load. Loading FBC is only supported via FUSAM."
 		);
+		return;
+	}
+
+	if (typeof FUSAM !== "object" || !FUSAM?.present) {
+		console.warn("FUSAM not found. Skipping load.");
 		return;
 	}
 
@@ -1670,6 +1675,7 @@ async function ForBetterClub() {
 		return print;
 	};
 	w.fbcDebug = fbcDebug;
+	FUSAM.registerDebugMethod("FBC", fbcDebug);
 
 	/** @type {(func: () => (Promise<unknown> | unknown), label: string) => Promise<void>} */
 	const registerFunction = async (func, label) => {
@@ -1727,12 +1733,6 @@ async function ForBetterClub() {
 			return next(args);
 		}
 	);
-
-	(async function () {
-		await waitFor(() => !!w.FUSAM?.present);
-		debug("FUSAM present, registering debug methods");
-		w.FUSAM?.registerDebugMethod("FBC", fbcDebug);
-	})();
 
 	await registerFunction(functionIntegrityCheck, "functionIntegrityCheck");
 	registerFunction(bceStyles, "bceStyles");
@@ -10938,8 +10938,8 @@ async function ForBetterClub() {
 				InPrivate: !!Player.LastChatRoom?.Private,
 				// eslint-disable-next-line camelcase
 				InTampermonkey: typeof GM_info !== "undefined",
-				FUSAM: !!w.FUSAM?.present,
-				FBCviaFUSAM: w.FUSAM?.addons?.FBC?.status === "loaded",
+				FUSAM: !!FUSAM.present,
+				FBCviaFUSAM: FUSAM.addons?.FBC?.status === "loaded",
 			};
 			SDK.callOriginal("ServerSend", [
 				"AccountBeep",

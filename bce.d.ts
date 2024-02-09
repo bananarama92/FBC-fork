@@ -44,8 +44,8 @@ declare global {
   // Mod SDK - can technically be undefined, but the script checks on startup and bails, if not present
   var bcModSdk: ModSDKGlobalAPI;
 
-  // FUSAM
-  var FUSAM: FUSAMPublicAPI | undefined;
+  // FUSAM - can technically be undefined, but the script checks on startup and bails, if not present
+  var FUSAM: FUSAMPublicAPI;
 
   // BCX
   var bcx:
