@@ -41,8 +41,8 @@ declare global {
   var ChatRoombceSendToClubSlavery: () => void;
   var ChatRoombceCanSendToClubSlavery: () => boolean;
 
-  // Mod SDK
-  var bcModSdk: ModSDKGlobalAPI | undefined;
+  // Mod SDK - can technically be undefined, but the script checks on startup and bails, if not present
+  var bcModSdk: ModSDKGlobalAPI;
 
   // FUSAM
   var FUSAM: FUSAMPublicAPI | undefined;
@@ -71,7 +71,6 @@ declare global {
     | "activities"
     | "immersion"
     | "appearance"
-    | "addons"
     | "misc"
     | "cheats"
     | "buttplug"
@@ -287,6 +286,9 @@ declare global {
     BCE?: string;
     /** @deprecated */
     BCEWardrobe?: string;
+  }
+  interface CharacterOnlineSharedSettings {
+    Uwall?: boolean;
   }
   interface ExtensionSettings {
     FBC: string;
