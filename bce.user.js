@@ -1611,7 +1611,7 @@ async function ForBetterClub() {
 	/**
 	 * @param {boolean} [copy] - Whether to copy the report to the clipboard
 	 */
-	const fbcDebug = async (copy) => {
+	async function fbcDebug(copy) {
 		/** @type {Map<string, string>} */
 		const info = new Map();
 		info.set("Browser", navigator.userAgent);
@@ -1623,6 +1623,10 @@ async function ForBetterClub() {
 		);
 		info.set("WebGL Version", GLVersion);
 		info.set("FBC Version", FBC_VERSION);
+		info.set(
+			"Loaded via FUSAM",
+			typeof FUSAM === "object" && FUSAM?.addons?.FBC ? "Yes" : "No"
+		);
 		info.set(
 			"FBC Enabled Settings",
 			`\n- ${objEntries(fbcSettings)
@@ -1677,7 +1681,7 @@ async function ForBetterClub() {
 			);
 		}
 		return print;
-	};
+	}
 	w.fbcDebug = fbcDebug;
 	FUSAM.registerDebugMethod("FBC", fbcDebug);
 
