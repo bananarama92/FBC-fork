@@ -12,5 +12,6 @@
 		"checkJs": true,
 		"noImplicitAny": true,
 		"strict": true,
+		"allowSyntheticDefaultImports": true
 	}
 }

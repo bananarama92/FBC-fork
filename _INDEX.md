@@ -16,7 +16,6 @@ At a glance, **everything is entirely optional, enable in settings** (profile ->
 - Improved automatic facial expressions that play nice with manual control
 - Automatic relogin after disconnect
 - FPS limiter: save your computer's resources
-- Addon loader for other addons ([BCX](https://github.com/Jomshir98/bondage-club-extended), [EBCH](https://e2466.gitlab.io/ebch/)), [MBS](https://github.com/bananarama92/MBS), [LSCG](https://github.com/littlesera/LSCG/wiki)
 - Clickable links and embedded images from trusted websites in chat (e.g. imgur, Discord)
 - Lockpicking helper
 - Convenient chat commands, such as `/w <name> <message>` to whisper another player
@@ -33,7 +32,6 @@ At a glance, **everything is entirely optional, enable in settings** (profile ->
 - Extended Wardrobe (more slots)
 - Modify outfit layering
 - Importing and exporting outfits
-- Change your nickname
 - Save and review profiles of, and add notes to, players you have seen before (incompatible with incognito/private browsing due to saving in browser storage) - /profiles to search them
 - Basic anti-cheat
 
@@ -77,8 +75,8 @@ FBC can allow using the full wardrobe with previews from the singleplayer privat
 
 ![](static/bceCommands.png)
 
-- `/exportlooks <member number> <include restraints: true/false> <include body, eyes, etc: true/false>` allows you to save your or another player's last seen appearance as a string you can later import with BCX or on yourself `/importlooks`. If no member number is given, copies your own appearance. Additional parameters default to "false".
-- `/importlooks [looks string]` sets your current appearance to the copied appearance.
+- `/exportlooks <member number>` allows you to save your or another player's last seen appearance as a string you can later import with BCX or on yourself `/importlooks`. If no member number is given, copies your own appearance. Additional parameters default to "false".
+- `/importlooks` sets your current appearance to the copied appearance.
 - `/w [target's first name] [message]` sends a whisper to the target. No message will be sent if the target cannot be found or if many people with the same name are present in the room. No more danger of the other player disconnecting and you uttering the message out loud in public.
 - `/versions` show what versions of BC, BCX and FBC other players in the room are using.
 - `/r` resets animations and expressions. You can optionally define part of the face to reset, leaving other parts intact, e.g. `/r eyes`

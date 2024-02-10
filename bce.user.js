@@ -1,18 +1,3 @@
-// ==UserScript==
-// @name Bondage Club Enhancements
-// @namespace https://www.bondageprojects.com/
-// @version 5.0
-// @description FBC - For Better Club - enhancements for the bondage club - old name kept in tampermonkey for compatibility
-// @author Sidious
-// @match https://bondageprojects.elementfx.com/*
-// @match https://www.bondageprojects.elementfx.com/*
-// @match https://bondage-europe.com/*
-// @match https://www.bondage-europe.com/*
-// @match http://localhost:*/*
-// @icon data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==
-// @grant none
-// @run-at document-end
-// ==/UserScript==
 /* eslint-disable no-inline-comments */
 // @ts-check
 
@@ -37,11 +22,14 @@
 async function ForBetterClub() {
 	"use strict";
 
-	const FBC_VERSION = "5.0";
+	// @version included here for backwards compatibility in version checker
+	// eslint-disable-next-line prefer-destructuring
+	const FBC_VERSION = "@version 5.0".split(" ")[1];
 	const settingsVersion = 57;
 
 	const fbcChangelog = `${FBC_VERSION}
 - Added uwall anticheat to immersion settings
+- Added rich online profile to chat & social settings
 - Removed other addon loading
 - Removed support for loading without FUSAM, changed warning to error
 - Preliminary R101 support
@@ -470,6 +458,19 @@ async function ForBetterClub() {
 			category: "chat",
 			description:
 				"Adds a whisper button to chat messages, allowing you to whisper to the sender more conveniently.",
+		},
+		richOnlineProfile: {
+			label: "Rich online profile",
+			value: true,
+			/**
+			 * @param {unknown} newValue
+			 */
+			sideEffects: (newValue) => {
+				debug("richOnlineProfile", newValue);
+			},
+			category: "chat",
+			description:
+				"Changes the online profile to support clickable links and embedded images.",
 		},
 		gagspeak: {
 			label: "Understand All Gagged and when Deafened",
@@ -1178,12 +1179,12 @@ async function ForBetterClub() {
 	 * @param {string} gameVersion
 	 */
 	const expectedHashes = (gameVersion) => {
-		switch (gameVersion) {
-			case "R101Beta1":
-			case "R101Beta2":
-			case "R101Beta3":
-			case "R101Beta4":
-			case "R101":
+		switch (gameVersion.toLowerCase()) {
+			case "r101beta1":
+			case "r101beta2":
+			case "r101beta3":
+			case "r101beta4":
+			case "r101":
 				return /** @type {const} */ ({
 					ActivityChatRoomArousalSync: "BFF3DED7",
 					ActivitySetArousal: "3AE28123",
@@ -1779,6 +1780,7 @@ async function ForBetterClub() {
 	registerFunction(hookBCXAPI, "hookBCXAPI");
 	registerFunction(customContentDomainCheck, "customContentDomainCheck");
 	registerFunction(numericArousalMeters, "numericArousalMeters");
+	registerFunction(richOnlineProfile, "richOnlineProfile");
 	funcsRegistered = "enable";
 
 	// Post ready when in a chat room
@@ -1796,6 +1798,8 @@ async function ForBetterClub() {
 				typeof ServerIsConnected === "boolean" &&
 				ServerIsConnected
 		);
+
+		logInfo("Checking function integrity with GameVersion", GameVersion);
 
 		/**
 		 * @param {keyof ReturnType<typeof expectedHashes>} func
@@ -10359,7 +10363,7 @@ async function ForBetterClub() {
 
 		SDK.hookFunction(
 			"OnlineProfileClick",
-			HOOK_PRIORITIES.AddBehaviour,
+			HOOK_PRIORITIES.OverrideBehaviour,
 			/**
 			 * @param {Parameters<typeof OnlineProfileClick>} args
 			 */
@@ -10546,6 +10550,144 @@ async function ForBetterClub() {
 				const ret = next(args);
 				c.HasHiddenItems = backup;
 				return ret;
+			}
+		);
+	}
+
+	function richOnlineProfile() {
+		const descTextArea = "DescriptionInput";
+		const descRich = "bceRichOnlineProfile";
+		let originalShown = true;
+
+		function hideOriginalTextArea() {
+			const ta = document.getElementById(descTextArea);
+			if (!ta) {
+				return;
+			}
+			originalShown = false;
+			ta.style.display = "none";
+		}
+
+		function showOriginalTextArea() {
+			const ta = document.getElementById(descTextArea);
+			if (!ta) {
+				return;
+			}
+			originalShown = true;
+			ta.style.display = "";
+		}
+
+		function enableRichTextArea() {
+			hideOriginalTextArea();
+
+			const div = document.createElement("div");
+			div.id = descRich;
+			div.style.overflowY = "scroll";
+			div.style.overflowX = "hidden";
+			div.style.overflowWrap = "break-word";
+			div.style.whiteSpace = "pre-wrap";
+			div.style.background = "rgb(244, 236, 216)";
+			div.style.color = "rgb(45, 35, 27)";
+			div.style.border = "2px solid black";
+			div.style.padding = "2px";
+			div.classList.add("bce-rich-textarea");
+			div.textContent = InformationSheetSelection?.Description || "";
+			processChatAugmentsForLine(div, () => false);
+
+			document.body.append(div);
+
+			ElementPositionFix(descRich, 36, 100, 160, 1790, 750);
+		}
+
+		function disableRichTextArea() {
+			const div = document.getElementById(descRich);
+			if (div) {
+				div.remove();
+			}
+
+			showOriginalTextArea();
+		}
+
+		SDK.hookFunction(
+			"OnlineProfileLoad",
+			HOOK_PRIORITIES.ModifyBehaviourMedium,
+			/**
+			 * @param {Parameters<typeof OnlineProfileLoad>} args
+			 */
+			(args, next) => {
+				originalShown = true;
+				const ret = next(args);
+				const ta = document.getElementById(descTextArea);
+				if (!fbcSettings.richOnlineProfile || !ta) {
+					return ret;
+				}
+
+				enableRichTextArea();
+
+				return ret;
+			}
+		);
+
+		const toggleEditButtonPos = /** @type {const} */ ([90, 60, 90, 90]);
+		SDK.hookFunction(
+			"OnlineProfileRun",
+			HOOK_PRIORITIES.ModifyBehaviourMedium,
+			/**
+			 * @param {Parameters<typeof OnlineProfileRun>} args
+			 */
+			(args, next) => {
+				if (!fbcSettings.richOnlineProfile) {
+					return next(args);
+				}
+				DrawButton(
+					...toggleEditButtonPos,
+					"",
+					"White",
+					"Icons/Crafting.png",
+					displayText("Toggle Editing Mode")
+				);
+
+				const ret = next(args);
+				if (!originalShown) {
+					hideOriginalTextArea();
+				}
+				return ret;
+			}
+		);
+
+		SDK.hookFunction(
+			"OnlineProfileClick",
+			HOOK_PRIORITIES.ModifyBehaviourMedium,
+			/**
+			 * @param {Parameters<typeof OnlineProfileClick>} args
+			 */
+			(args, next) => {
+				if (!fbcSettings.richOnlineProfile) {
+					return next(args);
+				}
+				if (MouseIn(...toggleEditButtonPos)) {
+					if (originalShown) {
+						enableRichTextArea();
+					} else {
+						disableRichTextArea();
+					}
+					return true;
+				}
+				return next(args);
+			}
+		);
+
+		SDK.hookFunction(
+			"OnlineProfileExit",
+			HOOK_PRIORITIES.ModifyBehaviourMedium,
+			/**
+			 * @param {Parameters<typeof OnlineProfileExit>} args
+			 */
+			(args, next) => {
+				if (!originalShown) {
+					disableRichTextArea();
+				}
+				return next(args);
 			}
 		);
 	}
