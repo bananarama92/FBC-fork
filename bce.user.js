@@ -22,12 +22,13 @@
 async function ForBetterClub() {
 	"use strict";
 
-	// @version included here for backwards compatibility in version checker
-	// eslint-disable-next-line prefer-destructuring
-	const FBC_VERSION = "@version 5.0".split(" ")[1];
-	const settingsVersion = 57;
+	const FBC_VERSION = "5.1";
+	const settingsVersion = 58;
 
 	const fbcChangelog = `${FBC_VERSION}
+- Removed update checker; FUSAM always loads the latest version
+
+5.0
 - Added uwall anticheat to immersion settings
 - Added rich online profile to chat & social settings
 - Removed other addon loading
@@ -39,12 +40,6 @@ async function ForBetterClub() {
 
 4.79
 - Fixed minor layout issues with the whisper button
-
-4.78
-- Added a setting to disable FBC's modifications to the whisper button
-- Fixed the whisper button to respect map whisper range
-- Repositioned the whisper button
-- Fixed /versions to respect character visibility in maps to match behaviour in normal rooms
 `;
 
 	const SUPPORTED_GAME_VERSIONS = ["R100"];
@@ -699,18 +694,6 @@ async function ForBetterClub() {
 			category: "immersion",
 			description:
 				"Prevents certain other addon cheats from impacting your character.",
-		},
-		checkUpdates: {
-			label: "Check for updates",
-			/**
-			 * @param {unknown} newValue
-			 */
-			sideEffects: (newValue) => {
-				debug("checkUpdates", newValue);
-			},
-			value: true,
-			category: "misc",
-			description: "Check for FBC updates on startup.",
 		},
 		relogin: {
 			label: "Automatic Relogin on Disconnect",
@@ -1791,9 +1774,6 @@ async function ForBetterClub() {
 	await fbcNotify(`For Better Club v${w.FBC_VERSION} Loaded`);
 
 	Player.FBC = FBC_VERSION;
-	if (fbcSettings.checkUpdates) {
-		checkUpdate();
-	}
 
 	async function functionIntegrityCheck() {
 		await waitFor(
@@ -1834,52 +1814,6 @@ async function ForBetterClub() {
 				deviatingHashes.push(func);
 			}
 		}
-	}
-
-	async function checkUpdate() {
-		await sleep(5000);
-		// Version check
-		debug("checking for updates...");
-		fetch(
-			`https://sidiousious.gitlab.io/bce/bce.user.js?_=${
-				(Date.now() / 1000 / 3600) | 0
-			}`
-		)
-			.then((r) => r.text())
-			.then((r) => {
-				const result = /@version (.*)$/mu.exec(r);
-				if (!result) {
-					logWarn("FBC update checker error: no version found");
-					return;
-				}
-
-				const [, latest] = result;
-				debug("latest version:", latest);
-				if (latest !== FBC_VERSION) {
-					// Create beep
-					fbcBeepNotify(
-						displayText("Update"),
-						displayText(
-							`Your version of FBC is outdated and may not be supported. Please update.
-
-	Your version: $Version
-	Latest version: $Latest
-
-	Changelog available on GitLab (raw) and Discord:
-	- https://gitlab.com/Sidiousious/bce/-/commits/main/
-	- $DiscordUrl`,
-							{
-								$Version: FBC_VERSION,
-								$Latest: latest,
-								$DiscordUrl: DISCORD_INVITE_URL,
-							}
-						)
-					);
-				}
-			})
-			.catch((e) => {
-				logError("FBC update checker error:", e);
-			});
 	}
 
 	/**
