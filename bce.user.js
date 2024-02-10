@@ -22,10 +22,13 @@
 async function ForBetterClub() {
 	"use strict";
 
-	const FBC_VERSION = "5.1";
+	const FBC_VERSION = "5.2";
 	const settingsVersion = 58;
 
 	const fbcChangelog = `${FBC_VERSION}
+- Fixed resizing rich online profile
+
+5.1
 - Removed update checker; FUSAM always loads the latest version
 
 5.0
@@ -37,9 +40,6 @@ async function ForBetterClub() {
 
 4.80
 - Added warning to non-FUSAM users
-
-4.79
-- Fixed minor layout issues with the whisper button
 `;
 
 	const SUPPORTED_GAME_VERSIONS = ["R100"];
@@ -1258,6 +1258,8 @@ async function ForBetterClub() {
 					NotificationTitleUpdate: "0E92F3ED",
 					OnlineGameAllowChange: "3779F42C",
 					OnlineProfileClick: "521146DF",
+					OnlineProfileExit: "1C673DC8",
+					OnlineProfileLoad: "BE8B009B",
 					OnlineProfileRun: "7F57EF9A",
 					PoseSetActive: "22C02050",
 					RelogRun: "10AF5A60",
@@ -1389,6 +1391,8 @@ async function ForBetterClub() {
 					NotificationTitleUpdate: "0E92F3ED",
 					OnlineGameAllowChange: "3779F42C",
 					OnlineProfileClick: "521146DF",
+					OnlineProfileExit: "1C673DC8",
+					OnlineProfileLoad: "BE8B009B",
 					OnlineProfileRun: "7F57EF9A",
 					PoseSetActive: "22C02050",
 					RelogRun: "10AF5A60",
@@ -10533,7 +10537,10 @@ async function ForBetterClub() {
 			processChatAugmentsForLine(div, () => false);
 
 			document.body.append(div);
+			resizeRichTextArea();
+		}
 
+		function resizeRichTextArea() {
 			ElementPositionFix(descRich, 36, 100, 160, 1790, 750);
 		}
 
@@ -10588,6 +10595,7 @@ async function ForBetterClub() {
 				const ret = next(args);
 				if (!originalShown) {
 					hideOriginalTextArea();
+					resizeRichTextArea();
 				}
 				return ret;
 			}
