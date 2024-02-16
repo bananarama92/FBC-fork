@@ -971,11 +971,17 @@ async function ForBetterClub() {
 				logInfo("Migrated online settings to extension settings");
 				delete Player.OnlineSettings.BCE;
 			}
-			if (!settings?.version || onlineSettings.version >= settings.version) {
-				settings = onlineSettings;
+			if (!settings?.version) {
+				if (onlineSettings && onlineSettings.version >= settings.version) {
+					settings = onlineSettings;
+				}
 			}
 			if (!settings) {
 				debug("no settings", key);
+				fbcBeepNotify(
+					"Welcome to FBC",
+					`Welcome to For Better Club v${w.FBC_VERSION}! As this is your first time using FBC on this account, you may want to check out the settings page for some options to customize your experience. You can find it in the game preferences. Enjoy! In case of problems, you can contact us via Discord at ${DISCORD_INVITE_URL}`
+				);
 				// @ts-ignore -- this is fully populated in the loop below
 				settings = {};
 			}
