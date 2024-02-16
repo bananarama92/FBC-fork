@@ -22,10 +22,16 @@
 async function ForBetterClub() {
 	"use strict";
 
-	const FBC_VERSION = "5.2";
+	const FBC_VERSION = "5.3";
 	const settingsVersion = 58;
 
 	const fbcChangelog = `${FBC_VERSION}
+- Added support for R101
+- Changed anti-garble to only work with other FBC users' messages, when they have opted in
+- Changed full gag anti-cheat to be enabled by default
+- Removed support for R100
+
+5.2
 - Fixed resizing rich online profile
 
 5.1
@@ -37,13 +43,10 @@ async function ForBetterClub() {
 - Removed other addon loading
 - Removed support for loading without FUSAM, changed warning to error
 - Preliminary R101 support
-
-4.80
-- Added warning to non-FUSAM users
 `;
 
-	const SUPPORTED_GAME_VERSIONS = ["R100"];
-	const CAPABILITIES = /** @type {const} */ (["clubslave"]);
+	const SUPPORTED_GAME_VERSIONS = ["R101"];
+	const CAPABILITIES = /** @type {const} */ (["clubslave", "antigarble"]);
 
 	const w = window;
 
@@ -561,6 +564,7 @@ async function ForBetterClub() {
 					fbcSettings.antiAntiGarbleExtra = false;
 				}
 				debug("antiAntiGarble", newValue);
+				sendHello();
 			},
 			category: "immersion",
 			description:
@@ -568,7 +572,7 @@ async function ForBetterClub() {
 		},
 		antiAntiGarbleStrong: {
 			label: "Full gag anti-cheat: use equipped gags to determine garbling",
-			value: false,
+			value: true,
 			/**
 			 * @param {unknown} newValue
 			 */
@@ -578,6 +582,7 @@ async function ForBetterClub() {
 					fbcSettings.antiAntiGarbleExtra = false;
 				}
 				debug("antiAntiGarbleStrong", newValue);
+				sendHello();
 			},
 			category: "immersion",
 			description:
@@ -596,6 +601,7 @@ async function ForBetterClub() {
 					fbcSettings.antiAntiGarbleStrong = false;
 				}
 				debug("antiAntiGarbleExtra", newValue);
+				sendHello();
 			},
 			category: "immersion",
 			description:
@@ -1034,6 +1040,14 @@ async function ForBetterClub() {
 		postSettingsHasRun = true;
 	}
 
+	function blockAntiGarble() {
+		return !!(
+			fbcSettings.antiAntiGarble ||
+			fbcSettings.antiAntiGarbleStrong ||
+			fbcSettings.antiAntiGarbleExtra
+		);
+	}
+
 	// ICONS
 	const ICONS = Object.freeze({
 		BCE_USER:
@@ -1163,11 +1177,7 @@ async function ForBetterClub() {
 	 */
 	const expectedHashes = (gameVersion) => {
 		switch (gameVersion.toLowerCase()) {
-			case "r101beta1":
-			case "r101beta2":
-			case "r101beta3":
-			case "r101beta4":
-			case "r101":
+			default:
 				return /** @type {const} */ ({
 					ActivityChatRoomArousalSync: "BFF3DED7",
 					ActivitySetArousal: "3AE28123",
@@ -1200,7 +1210,6 @@ async function ForBetterClub() {
 					ChatRoomClick: "AE612190",
 					ChatRoomCreateElement: "78F86423",
 					ChatRoomCurrentTime: "A462DD3A",
-					ChatRoomDrawBackground: "SKIP",
 					ChatRoomDrawCharacterStatusIcons: "198C8657",
 					ChatRoomHTMLEntities: "0A7ADB1D",
 					ChatRoomKeyDown: "DBBC9035",
@@ -1244,7 +1253,7 @@ async function ForBetterClub() {
 					ElementScrollToEnd: "1AC45575",
 					ElementValue: "4F26C62F",
 					FriendListShowBeep: "6C0449BB",
-					GameRun: "ED65B730",
+					GameRun: "4FDC9390",
 					GLDrawResetCanvas: "81214642",
 					InformationSheetRun: "90140B32",
 					InventoryGet: "E666F671",
@@ -1284,139 +1293,6 @@ async function ForBetterClub() {
 					StruggleFlexibilityProcess: "278D7285",
 					StruggleLockPickDraw: "2F1F603B",
 					StruggleMinigameHandleExpression: "1B3ABF55",
-					StruggleMinigameStop: "FB05E8A9",
-					StruggleStrengthProcess: "D20CF698",
-					TextGet: "4DDE5794",
-					TextLoad: "ADF7C890",
-					TimerInventoryRemove: "1FA771FB",
-					TimerProcess: "52458C63",
-					TitleExit: "F13F533C",
-					ValidationSanitizeProperties: "08E81594",
-					WardrobeClick: "33405B1D",
-					WardrobeExit: "12D14AE4",
-					WardrobeFastLoad: "5C54EA7B",
-					WardrobeFastSave: "61D02972",
-					WardrobeFixLength: "CA3334C6",
-					WardrobeLoad: "C343A4C7",
-					WardrobeRun: "633B3570",
-				});
-			default:
-				return /** @type {const} */ ({
-					ActivityChatRoomArousalSync: "BFF3DED7",
-					ActivitySetArousal: "3AE28123",
-					ActivitySetArousalTimer: "1342AFE2",
-					ActivityTimerProgress: "6CD388A7",
-					AppearanceClick: "4C04C15E",
-					AppearanceExit: "AA300341",
-					AppearanceLoad: "4360C485",
-					AppearanceRun: "6EC75705",
-					CharacterAppearanceWardrobeLoad: "A5B63A03",
-					CharacterBuildDialog: "85F79C6E",
-					CharacterCompressWardrobe: "2A05ECD1",
-					CharacterDecompressWardrobe: "327FADA4",
-					CharacterDelete: "398D1116",
-					CharacterGetCurrent: "45608177",
-					CharacterLoadCanvas: "EAB81BC4",
-					CharacterNickname: "A794EFF5",
-					CharacterRefresh: "F2459653",
-					CharacterReleaseTotal: "BB9C6989",
-					CharacterSetCurrent: "F46573D8",
-					CharacterSetFacialExpression: "F8272D7A",
-					CharacterSetActivePose: "566A14D7",
-					ChatAdminRoomCustomizationClick: "E194A605",
-					ChatAdminRoomCustomizationProcess: "B33D6388",
-					ChatRoomAppendChat: "998F2F98",
-					ChatRoomCharacterItemUpdate: "263DB2F0",
-					ChatRoomCharacterUpdate: "C444E92D",
-					ChatRoomCharacterViewDrawBackground: "SKIP",
-					ChatRoomClearAllElements: "14DAAB05",
-					ChatRoomClick: "BB1CE058",
-					ChatRoomCreateElement: "AA36E8B6",
-					ChatRoomCurrentTime: "A462DD3A",
-					ChatRoomDrawBackground: "AEE70C4E",
-					ChatRoomDrawCharacterStatusIcons: "198C8657",
-					ChatRoomHTMLEntities: "0A7ADB1D",
-					ChatRoomKeyDown: "48C7F35A",
-					ChatRoomListManipulation: "75D28A8B",
-					ChatRoomMessage: "BBD61334",
-					ChatRoomMessageDisplay: "32B1CF42",
-					ChatRoomRegisterMessageHandler: "C432923A",
-					ChatRoomResize: "653445D7",
-					ChatRoomRun: "8D91EC46",
-					ChatRoomSendChat: "7F540ED0",
-					ChatRoomStart: "9B822A9A",
-					CommandExecute: "803D6C70",
-					CommandParse: "8412C411",
-					CommonClick: "1F6DF7CB",
-					CommonColorIsValid: "390A2CE4",
-					CommonSetScreen: "E0CA772F",
-					CraftingClick: "FF1A7B21",
-					CraftingConvertSelectedToItem: "48270B42",
-					CraftingRun: "5BE6E125",
-					DialogClick: "E6F5CC58",
-					DialogDraw: "D8377D69",
-					DialogDrawItemMenu: "FCE556C2",
-					DialogLeave: "C37553DC",
-					DrawArousalMeter: "BB0755AF",
-					DrawArousalThermometer: "7ED6D822",
-					DrawBackNextButton: "9AF4BA37",
-					DrawButton: "A7023A82",
-					DrawCharacter: "41CF69C4",
-					DrawCheckbox: "00FD87EB",
-					DrawImageEx: "E01BE7E7",
-					DrawImageResize: "D205975A",
-					DrawItemPreview: "6A7A1E2A",
-					DrawProcess: "BC1E9396",
-					DrawText: "C1BF0F50",
-					DrawTextFit: "F9A1B11E",
-					ElementCreateInput: "EB2A3EC8",
-					ElementCreateTextArea: "AA4AEDE7",
-					ElementIsScrolledToEnd: "1CC4FE11",
-					ElementPosition: "CC4E3C82",
-					ElementRemove: "60809E60",
-					ElementScrollToEnd: "1AC45575",
-					ElementValue: "4F26C62F",
-					FriendListShowBeep: "6C0449BB",
-					GameRun: "ED65B730",
-					GLDrawResetCanvas: "81214642",
-					InformationSheetRun: "90140B32",
-					InventoryGet: "E666F671",
-					LoginClick: "EE94BEC7",
-					LoginRun: "C3926C4F",
-					LoginSetSubmitted: "C88F4A8E",
-					LoginStatusReset: "18619F02",
-					MouseIn: "CA8B839E",
-					NotificationDrawFavicon: "AB88656B",
-					NotificationRaise: "E8F29646",
-					NotificationTitleUpdate: "0E92F3ED",
-					OnlineGameAllowChange: "3779F42C",
-					OnlineProfileClick: "521146DF",
-					OnlineProfileExit: "1C673DC8",
-					OnlineProfileLoad: "BE8B009B",
-					OnlineProfileRun: "7F57EF9A",
-					PoseSetActive: "22C02050",
-					RelogRun: "10AF5A60",
-					RelogExit: "2DFB2DAD",
-					ServerAccountBeep: "F16771D4",
-					ServerAppearanceBundle: "4D069622",
-					ServerAppearanceLoadFromBundle: "946537FD",
-					ServerClickBeep: "3E6277BE",
-					ServerConnect: "845E50A6",
-					ServerDisconnect: "06C1A6B0",
-					ServerInit: "11B7D69A",
-					ServerOpenFriendList: "FA8D3CDE",
-					ServerPlayerExtensionSettingsSync: "1776666B",
-					ServerSend: "ABE74E75",
-					ServerSendQueueProcess: "BD4277AC",
-					SkillGetWithRatio: "3EB4BC45",
-					SpeechGarble: "9D669F73",
-					SpeechGarbleByGagLevel: "3D604B82",
-					SpeechGetTotalGagLevel: "5F4F6D45",
-					StruggleDexterityProcess: "7E19ADA9",
-					StruggleFlexibilityCheck: "727CE05B",
-					StruggleFlexibilityProcess: "278D7285",
-					StruggleLockPickDraw: "2F1F603B",
-					StruggleMinigameHandleExpression: "B6E4A1A0",
 					StruggleMinigameStop: "FB05E8A9",
 					StruggleStrengthProcess: "D20CF698",
 					TextGet: "4DDE5794",
@@ -6601,6 +6477,10 @@ async function ForBetterClub() {
 			// Don't send hello until settings are loaded
 			return;
 		}
+		if (!ServerIsConnected || !ServerPlayerIsInChatRoom()) {
+			// Don't send hello if not in chat room
+			return;
+		}
 		/** @type {ServerChatRoomMessage} */
 		const message = {
 			Type: HIDDEN,
@@ -6616,6 +6496,7 @@ async function ForBetterClub() {
 				alternateArousal: !!fbcSettings.alternateArousal,
 				replyRequested: requestReply,
 				capabilities: CAPABILITIES,
+				blockAntiGarble: blockAntiGarble(),
 			},
 		};
 		if (target) {
@@ -6709,16 +6590,7 @@ async function ForBetterClub() {
 
 			switch (message.type) {
 				case MESSAGE_TYPES.Hello:
-					sender.FBC = message.version ?? "0.0";
-					sender.BCEArousal = message.alternateArousal || false;
-					sender.BCEArousalProgress =
-						message.progress || sender.ArousalSettings?.Progress || 0;
-					sender.BCEEnjoyment = message.enjoyment || 1;
-					sender.BCECapabilities = message.capabilities ?? [];
-					if (message.replyRequested) {
-						sendHello(sender.MemberNumber);
-					}
-					sender.FBCOtherAddons = message.otherAddons;
+					processHello(sender, message);
 					break;
 				case MESSAGE_TYPES.ArousalSync:
 					sender.BCEArousal = message.alternateArousal || false;
@@ -6737,6 +6609,24 @@ async function ForBetterClub() {
 				default:
 					break;
 			}
+		}
+
+		/**
+		 * @param {Character} sender
+		 * @param {Partial<BCEMessage>} message
+		 */
+		function processHello(sender, message) {
+			sender.FBC = message.version ?? "0.0";
+			sender.BCEArousal = message.alternateArousal || false;
+			sender.BCEArousalProgress =
+				message.progress || sender.ArousalSettings?.Progress || 0;
+			sender.BCEEnjoyment = message.enjoyment || 1;
+			sender.BCECapabilities = message.capabilities ?? [];
+			sender.BCEBlockAntiGarble = message.blockAntiGarble ?? false;
+			if (message.replyRequested) {
+				sendHello(sender.MemberNumber);
+			}
+			sender.FBCOtherAddons = message.otherAddons;
 		}
 
 		registerSocketListener(
@@ -7035,6 +6925,17 @@ async function ForBetterClub() {
 	async function antiGarbling() {
 		await waitFor(() => !!SpeechGarbleByGagLevel);
 
+		/**
+		 * @param {Character} c
+		 */
+		function allowedToUngarble(c) {
+			return (
+				c.IsNpc() ||
+				(c.BCECapabilities?.includes("antigarble") &&
+					c.BCEBlockAntiGarble === false)
+			);
+		}
+
 		ChatRoomRegisterMessageHandler({
 			Priority: 1,
 			Description: "Anti-garbling by FBC",
@@ -7042,7 +6943,11 @@ async function ForBetterClub() {
 				const clientGagged = msg.endsWith(GAGBYPASSINDICATOR);
 				msg = msg.replace(/[\uf123-\uf124]/gu, "");
 				let handled = clientGagged;
-				if (fbcSettings.gagspeak && !clientGagged) {
+				if (
+					fbcSettings.gagspeak &&
+					!clientGagged &&
+					allowedToUngarble(sender)
+				) {
 					switch (data.Type) {
 						case "Whisper":
 							{
