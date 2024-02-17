@@ -22,10 +22,17 @@
 async function ForBetterClub() {
 	"use strict";
 
-	const FBC_VERSION = "5.2";
+	const FBC_VERSION = "5.3";
 	const settingsVersion = 58;
 
 	const fbcChangelog = `${FBC_VERSION}
+- Added support for R101
+- Updated CN translations (by Da'Inihlus)
+- Changed anti-garble to only work with other FBC users' messages, when they have opted in
+- Changed full gag anti-cheat to be enabled by default
+- Removed support for R100
+
+5.2
 - Fixed resizing rich online profile
 
 5.1
@@ -37,13 +44,10 @@ async function ForBetterClub() {
 - Removed other addon loading
 - Removed support for loading without FUSAM, changed warning to error
 - Preliminary R101 support
-
-4.80
-- Added warning to non-FUSAM users
 `;
 
-	const SUPPORTED_GAME_VERSIONS = ["R100"];
-	const CAPABILITIES = /** @type {const} */ (["clubslave"]);
+	const SUPPORTED_GAME_VERSIONS = ["R101"];
+	const CAPABILITIES = /** @type {const} */ (["clubslave", "antigarble"]);
 
 	const w = window;
 
@@ -561,6 +565,7 @@ async function ForBetterClub() {
 					fbcSettings.antiAntiGarbleExtra = false;
 				}
 				debug("antiAntiGarble", newValue);
+				sendHello();
 			},
 			category: "immersion",
 			description:
@@ -568,7 +573,7 @@ async function ForBetterClub() {
 		},
 		antiAntiGarbleStrong: {
 			label: "Full gag anti-cheat: use equipped gags to determine garbling",
-			value: false,
+			value: true,
 			/**
 			 * @param {unknown} newValue
 			 */
@@ -578,6 +583,7 @@ async function ForBetterClub() {
 					fbcSettings.antiAntiGarbleExtra = false;
 				}
 				debug("antiAntiGarbleStrong", newValue);
+				sendHello();
 			},
 			category: "immersion",
 			description:
@@ -596,6 +602,7 @@ async function ForBetterClub() {
 					fbcSettings.antiAntiGarbleStrong = false;
 				}
 				debug("antiAntiGarbleExtra", newValue);
+				sendHello();
 			},
 			category: "immersion",
 			description:
@@ -964,11 +971,17 @@ async function ForBetterClub() {
 				logInfo("Migrated online settings to extension settings");
 				delete Player.OnlineSettings.BCE;
 			}
-			if (!settings?.version || onlineSettings.version >= settings.version) {
-				settings = onlineSettings;
+			if (!settings?.version) {
+				if (onlineSettings && onlineSettings.version >= settings.version) {
+					settings = onlineSettings;
+				}
 			}
 			if (!settings) {
 				debug("no settings", key);
+				fbcBeepNotify(
+					"Welcome to FBC",
+					`Welcome to For Better Club v${w.FBC_VERSION}! As this is your first time using FBC on this account, you may want to check out the settings page for some options to customize your experience. You can find it in the game preferences. Enjoy! In case of problems, you can contact us via Discord at ${DISCORD_INVITE_URL}`
+				);
 				// @ts-ignore -- this is fully populated in the loop below
 				settings = {};
 			}
@@ -1032,6 +1045,14 @@ async function ForBetterClub() {
 		bceSaveSettings();
 
 		postSettingsHasRun = true;
+	}
+
+	function blockAntiGarble() {
+		return !!(
+			fbcSettings.antiAntiGarble ||
+			fbcSettings.antiAntiGarbleStrong ||
+			fbcSettings.antiAntiGarbleExtra
+		);
 	}
 
 	// ICONS
@@ -1139,6 +1160,108 @@ async function ForBetterClub() {
 				haa: "哈啊",
 				nng: "嗯嗯❤",
 				mnng: "唔啊❤",
+				"FBC Developer": "FBC 开发者",
+				Incompatibility: "不兼容",
+				"Show recent FBC changelog": "显示最近的FBC更新日志",
+				"Include binds?": "包括束缚？",
+				"Include locks?": "包括锁？",
+				"Include height, body type, hair, etc?": "包括身高，体型，头发等？",
+				"Copy the looks string below": "复制下面的外观字符串",
+				"Paste your looks here": "在这里粘贴你的外观",
+				"No looks string provided": "没有提供外观字符串",
+				"Applied looks": "应用外观",
+				"Could not parse looks": "无法解析外观",
+				"[membernumber] [message]: beep someone": "[用户编号] [消息]: 发送beep",
+				"For Better Club Settings (FBC)": "For Better Club (FBC)设置",
+				"Join Discord": "加入Discord",
+				License: "授权",
+				Information: "信息",
+				"Still connecting or connection failed...": "正在连接或连接失败...",
+				Scan: "搜索",
+				"Device Name": "设备名称",
+				"Synchronized Slot": "同步栏位",
+				"Click on a setting to see its description": "点击设置以查看其描述",
+				"FBC Settings": "FBC设置",
+				"Saved Logins (FBC)": "已保存的登录 (FBC)",
+				"Save (FBC)": "保存 (FBC)",
+				"Reconnected!": "重新连接！",
+				ERROR: "错误",
+				"Reset all expressions": "重置所有表情",
+				"['list' or name of emote]: run an animation":
+					"['list' 或 表情名称]: 运行一个动画",
+				"['list' or list of poses]: set your pose":
+					"['list' 或 姿势列表]: 设置你的姿势",
+				"Modify layering priority": "修改分层优先级",
+				"Adjust individual layers": "调整单个层",
+				"Load without body parts": "加载时不包括身体部位",
+				"Exclude body parts": "排除身体部位",
+				Gagging: "堵嘴",
+				"Antigarble anti-cheat strength": "反堵嘴反作弊强度",
+				"Understand: Yes": "理解: 是",
+				"Understand gagspeak: No": "理解堵嘴说话: 否",
+				"Understand gagspeak: Yes": "理解堵嘴说话: 是",
+				"Having recovered your glasses you can see again!":
+					"找回了你的眼镜，你可以看见了！",
+				"Having lost your glasses your eyesight is impaired!":
+					"失去了你的眼镜，你的视力受损了！",
+				"([FBC] Force them to become a Club Slave.)":
+					"([FBC] 强制他们成为俱乐部奴隶。)",
+				"(She will become a Club Slave for the next hour.)":
+					"(她将成为俱乐部奴隶，持续一个小时。)",
+				"Search for a friend": "搜索好友",
+				"Sending beeps is currently restricted by BCX rules":
+					"发送beep目前受到BCX规则的限制",
+				Online: "在线",
+				Offline: "离线",
+				"Instant Messenger (Disabled by BCX)": "即时通讯器 (被BCX禁用)",
+				"Instant Messenger": "即时通讯器",
+				"FBC Changelog": "FBC更新日志",
+				"Trust this session": "信任此会话",
+				"(embed)": "(嵌入)",
+				"(This origin is trusted by authors of FBC)": "(此来源已被FBC作者信任)",
+				"Deny for session": "拒绝此会话",
+				"Allow for session": "允许此会话",
+				OnlineChat: "在线聊天",
+				"Scans for connected buttplug.io toys": "扫描已连接的buttplug.io玩具",
+				"buttplug.io is not connected": "buttplug.io未连接",
+				"Scanning stopped": "扫描停止",
+				"Scanning for toys": "扫描玩具",
+				"Last seen: ": "最后在线: ",
+				"No profile found": "未找到个人资料",
+				Open: "打开",
+				"Saved Profiles": "已保存的个人资料",
+				"Personal notes (only you can read these):":
+					"个人笔记 (只有你可以读到):",
+				"[FBC] Notes": "[FBC] 笔记",
+				"Toggle Editing Mode": "切换编辑模式",
+				"Paste the craft here": "在这里粘贴制作物品",
+				"Copy the craft here": "在这里复制制作物品",
+				Import: "导入",
+				Export: "导出",
+				"Description:": "描述:",
+				Submit: "提交",
+				Cancel: "取消",
+				"Click to close the modal": "点击关闭情态",
+				"Animation Engine": "动画引擎",
+				"Show numeric arousal meter": "显示欲望条数值",
+				"Show friends going offline too": "显示朋友离线通知",
+				"Show friend presence notifications in chat, when possible":
+					"在聊天室里显示好友在线通知",
+				"Show sent messages while waiting for server":
+					"在等待服务器时显示已发送的消息",
+				"Show whisper button on chat messages": "在聊天消息上显示悄悄话按钮",
+				"Rich online profile": "丰富的在线个人资料",
+				"Allow IMs to bypass BCX beep restrictions":
+					"允许即时通讯绕过BCX beep限制",
+				"Hide the hidden items icon": "不显示隐藏的物品图标",
+				"Enable anti-cheat": "启用反作弊",
+				"Blacklist detected cheaters automatically":
+					"自动将检测到的作弊者加入黑名单",
+				"Enable uwall anti-cheat": "启用uwall反作弊",
+				"Prompt before loading content from a 3rd party domain":
+					"在加载第三方域名的内容前提示",
+				"Share Addons": "分享插件设置",
+				"Buttplug Devices": "Buttplug设备",
 			},
 		});
 
@@ -1163,11 +1286,7 @@ async function ForBetterClub() {
 	 */
 	const expectedHashes = (gameVersion) => {
 		switch (gameVersion.toLowerCase()) {
-			case "r101beta1":
-			case "r101beta2":
-			case "r101beta3":
-			case "r101beta4":
-			case "r101":
+			default:
 				return /** @type {const} */ ({
 					ActivityChatRoomArousalSync: "BFF3DED7",
 					ActivitySetArousal: "3AE28123",
@@ -1200,7 +1319,6 @@ async function ForBetterClub() {
 					ChatRoomClick: "AE612190",
 					ChatRoomCreateElement: "78F86423",
 					ChatRoomCurrentTime: "A462DD3A",
-					ChatRoomDrawBackground: "SKIP",
 					ChatRoomDrawCharacterStatusIcons: "198C8657",
 					ChatRoomHTMLEntities: "0A7ADB1D",
 					ChatRoomKeyDown: "DBBC9035",
@@ -1244,7 +1362,7 @@ async function ForBetterClub() {
 					ElementScrollToEnd: "1AC45575",
 					ElementValue: "4F26C62F",
 					FriendListShowBeep: "6C0449BB",
-					GameRun: "ED65B730",
+					GameRun: "4FDC9390",
 					GLDrawResetCanvas: "81214642",
 					InformationSheetRun: "90140B32",
 					InventoryGet: "E666F671",
@@ -1284,139 +1402,6 @@ async function ForBetterClub() {
 					StruggleFlexibilityProcess: "278D7285",
 					StruggleLockPickDraw: "2F1F603B",
 					StruggleMinigameHandleExpression: "1B3ABF55",
-					StruggleMinigameStop: "FB05E8A9",
-					StruggleStrengthProcess: "D20CF698",
-					TextGet: "4DDE5794",
-					TextLoad: "ADF7C890",
-					TimerInventoryRemove: "1FA771FB",
-					TimerProcess: "52458C63",
-					TitleExit: "F13F533C",
-					ValidationSanitizeProperties: "08E81594",
-					WardrobeClick: "33405B1D",
-					WardrobeExit: "12D14AE4",
-					WardrobeFastLoad: "5C54EA7B",
-					WardrobeFastSave: "61D02972",
-					WardrobeFixLength: "CA3334C6",
-					WardrobeLoad: "C343A4C7",
-					WardrobeRun: "633B3570",
-				});
-			default:
-				return /** @type {const} */ ({
-					ActivityChatRoomArousalSync: "BFF3DED7",
-					ActivitySetArousal: "3AE28123",
-					ActivitySetArousalTimer: "1342AFE2",
-					ActivityTimerProgress: "6CD388A7",
-					AppearanceClick: "4C04C15E",
-					AppearanceExit: "AA300341",
-					AppearanceLoad: "4360C485",
-					AppearanceRun: "6EC75705",
-					CharacterAppearanceWardrobeLoad: "A5B63A03",
-					CharacterBuildDialog: "85F79C6E",
-					CharacterCompressWardrobe: "2A05ECD1",
-					CharacterDecompressWardrobe: "327FADA4",
-					CharacterDelete: "398D1116",
-					CharacterGetCurrent: "45608177",
-					CharacterLoadCanvas: "EAB81BC4",
-					CharacterNickname: "A794EFF5",
-					CharacterRefresh: "F2459653",
-					CharacterReleaseTotal: "BB9C6989",
-					CharacterSetCurrent: "F46573D8",
-					CharacterSetFacialExpression: "F8272D7A",
-					CharacterSetActivePose: "566A14D7",
-					ChatAdminRoomCustomizationClick: "E194A605",
-					ChatAdminRoomCustomizationProcess: "B33D6388",
-					ChatRoomAppendChat: "998F2F98",
-					ChatRoomCharacterItemUpdate: "263DB2F0",
-					ChatRoomCharacterUpdate: "C444E92D",
-					ChatRoomCharacterViewDrawBackground: "SKIP",
-					ChatRoomClearAllElements: "14DAAB05",
-					ChatRoomClick: "BB1CE058",
-					ChatRoomCreateElement: "AA36E8B6",
-					ChatRoomCurrentTime: "A462DD3A",
-					ChatRoomDrawBackground: "AEE70C4E",
-					ChatRoomDrawCharacterStatusIcons: "198C8657",
-					ChatRoomHTMLEntities: "0A7ADB1D",
-					ChatRoomKeyDown: "48C7F35A",
-					ChatRoomListManipulation: "75D28A8B",
-					ChatRoomMessage: "BBD61334",
-					ChatRoomMessageDisplay: "32B1CF42",
-					ChatRoomRegisterMessageHandler: "C432923A",
-					ChatRoomResize: "653445D7",
-					ChatRoomRun: "8D91EC46",
-					ChatRoomSendChat: "7F540ED0",
-					ChatRoomStart: "9B822A9A",
-					CommandExecute: "803D6C70",
-					CommandParse: "8412C411",
-					CommonClick: "1F6DF7CB",
-					CommonColorIsValid: "390A2CE4",
-					CommonSetScreen: "E0CA772F",
-					CraftingClick: "FF1A7B21",
-					CraftingConvertSelectedToItem: "48270B42",
-					CraftingRun: "5BE6E125",
-					DialogClick: "E6F5CC58",
-					DialogDraw: "D8377D69",
-					DialogDrawItemMenu: "FCE556C2",
-					DialogLeave: "C37553DC",
-					DrawArousalMeter: "BB0755AF",
-					DrawArousalThermometer: "7ED6D822",
-					DrawBackNextButton: "9AF4BA37",
-					DrawButton: "A7023A82",
-					DrawCharacter: "41CF69C4",
-					DrawCheckbox: "00FD87EB",
-					DrawImageEx: "E01BE7E7",
-					DrawImageResize: "D205975A",
-					DrawItemPreview: "6A7A1E2A",
-					DrawProcess: "BC1E9396",
-					DrawText: "C1BF0F50",
-					DrawTextFit: "F9A1B11E",
-					ElementCreateInput: "EB2A3EC8",
-					ElementCreateTextArea: "AA4AEDE7",
-					ElementIsScrolledToEnd: "1CC4FE11",
-					ElementPosition: "CC4E3C82",
-					ElementRemove: "60809E60",
-					ElementScrollToEnd: "1AC45575",
-					ElementValue: "4F26C62F",
-					FriendListShowBeep: "6C0449BB",
-					GameRun: "ED65B730",
-					GLDrawResetCanvas: "81214642",
-					InformationSheetRun: "90140B32",
-					InventoryGet: "E666F671",
-					LoginClick: "EE94BEC7",
-					LoginRun: "C3926C4F",
-					LoginSetSubmitted: "C88F4A8E",
-					LoginStatusReset: "18619F02",
-					MouseIn: "CA8B839E",
-					NotificationDrawFavicon: "AB88656B",
-					NotificationRaise: "E8F29646",
-					NotificationTitleUpdate: "0E92F3ED",
-					OnlineGameAllowChange: "3779F42C",
-					OnlineProfileClick: "521146DF",
-					OnlineProfileExit: "1C673DC8",
-					OnlineProfileLoad: "BE8B009B",
-					OnlineProfileRun: "7F57EF9A",
-					PoseSetActive: "22C02050",
-					RelogRun: "10AF5A60",
-					RelogExit: "2DFB2DAD",
-					ServerAccountBeep: "F16771D4",
-					ServerAppearanceBundle: "4D069622",
-					ServerAppearanceLoadFromBundle: "946537FD",
-					ServerClickBeep: "3E6277BE",
-					ServerConnect: "845E50A6",
-					ServerDisconnect: "06C1A6B0",
-					ServerInit: "11B7D69A",
-					ServerOpenFriendList: "FA8D3CDE",
-					ServerPlayerExtensionSettingsSync: "1776666B",
-					ServerSend: "ABE74E75",
-					ServerSendQueueProcess: "BD4277AC",
-					SkillGetWithRatio: "3EB4BC45",
-					SpeechGarble: "9D669F73",
-					SpeechGarbleByGagLevel: "3D604B82",
-					SpeechGetTotalGagLevel: "5F4F6D45",
-					StruggleDexterityProcess: "7E19ADA9",
-					StruggleFlexibilityCheck: "727CE05B",
-					StruggleFlexibilityProcess: "278D7285",
-					StruggleLockPickDraw: "2F1F603B",
-					StruggleMinigameHandleExpression: "B6E4A1A0",
 					StruggleMinigameStop: "FB05E8A9",
 					StruggleStrengthProcess: "D20CF698",
 					TextGet: "4DDE5794",
@@ -6601,6 +6586,10 @@ async function ForBetterClub() {
 			// Don't send hello until settings are loaded
 			return;
 		}
+		if (!ServerIsConnected || !ServerPlayerIsInChatRoom()) {
+			// Don't send hello if not in chat room
+			return;
+		}
 		/** @type {ServerChatRoomMessage} */
 		const message = {
 			Type: HIDDEN,
@@ -6616,6 +6605,7 @@ async function ForBetterClub() {
 				alternateArousal: !!fbcSettings.alternateArousal,
 				replyRequested: requestReply,
 				capabilities: CAPABILITIES,
+				blockAntiGarble: blockAntiGarble(),
 			},
 		};
 		if (target) {
@@ -6709,16 +6699,7 @@ async function ForBetterClub() {
 
 			switch (message.type) {
 				case MESSAGE_TYPES.Hello:
-					sender.FBC = message.version ?? "0.0";
-					sender.BCEArousal = message.alternateArousal || false;
-					sender.BCEArousalProgress =
-						message.progress || sender.ArousalSettings?.Progress || 0;
-					sender.BCEEnjoyment = message.enjoyment || 1;
-					sender.BCECapabilities = message.capabilities ?? [];
-					if (message.replyRequested) {
-						sendHello(sender.MemberNumber);
-					}
-					sender.FBCOtherAddons = message.otherAddons;
+					processHello(sender, message);
 					break;
 				case MESSAGE_TYPES.ArousalSync:
 					sender.BCEArousal = message.alternateArousal || false;
@@ -6737,6 +6718,24 @@ async function ForBetterClub() {
 				default:
 					break;
 			}
+		}
+
+		/**
+		 * @param {Character} sender
+		 * @param {Partial<BCEMessage>} message
+		 */
+		function processHello(sender, message) {
+			sender.FBC = message.version ?? "0.0";
+			sender.BCEArousal = message.alternateArousal || false;
+			sender.BCEArousalProgress =
+				message.progress || sender.ArousalSettings?.Progress || 0;
+			sender.BCEEnjoyment = message.enjoyment || 1;
+			sender.BCECapabilities = message.capabilities ?? [];
+			sender.BCEBlockAntiGarble = message.blockAntiGarble ?? false;
+			if (message.replyRequested) {
+				sendHello(sender.MemberNumber);
+			}
+			sender.FBCOtherAddons = message.otherAddons;
 		}
 
 		registerSocketListener(
@@ -7035,6 +7034,17 @@ async function ForBetterClub() {
 	async function antiGarbling() {
 		await waitFor(() => !!SpeechGarbleByGagLevel);
 
+		/**
+		 * @param {Character} c
+		 */
+		function allowedToUngarble(c) {
+			return (
+				c.IsNpc() ||
+				(c.BCECapabilities?.includes("antigarble") &&
+					c.BCEBlockAntiGarble === false)
+			);
+		}
+
 		ChatRoomRegisterMessageHandler({
 			Priority: 1,
 			Description: "Anti-garbling by FBC",
@@ -7042,7 +7052,11 @@ async function ForBetterClub() {
 				const clientGagged = msg.endsWith(GAGBYPASSINDICATOR);
 				msg = msg.replace(/[\uf123-\uf124]/gu, "");
 				let handled = clientGagged;
-				if (fbcSettings.gagspeak && !clientGagged) {
+				if (
+					fbcSettings.gagspeak &&
+					!clientGagged &&
+					allowedToUngarble(sender)
+				) {
 					switch (data.Type) {
 						case "Whisper":
 							{
