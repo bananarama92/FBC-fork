@@ -22,10 +22,13 @@
 async function ForBetterClub() {
 	"use strict";
 
-	const FBC_VERSION = "5.3";
+	const FBC_VERSION = "5.4";
 	const settingsVersion = 58;
 
 	const fbcChangelog = `${FBC_VERSION}
+- Added logging around settings
+
+5.3
 - Added support for R101
 - Updated CN translations (by Da'Inihlus)
 - Changed anti-garble to only work with other FBC users' messages, when they have opted in
@@ -37,13 +40,6 @@ async function ForBetterClub() {
 
 5.1
 - Removed update checker; FUSAM always loads the latest version
-
-5.0
-- Added uwall anticheat to immersion settings
-- Added rich online profile to chat & social settings
-- Removed other addon loading
-- Removed support for loading without FUSAM, changed warning to error
-- Preliminary R101 support
 `;
 
 	const SUPPORTED_GAME_VERSIONS = ["R101"];
@@ -133,8 +129,7 @@ async function ForBetterClub() {
 		deviceSettings: new Map(),
 	};
 
-	/** @type {Readonly<{Top: 11; OverrideBehaviour: 10; ModifyBehaviourHigh: 6; ModifyBehaviourMedium: 5; ModifyBehaviourLow: 4; AddBehaviour: 3; Observe: 0}>} */
-	const HOOK_PRIORITIES = {
+	const HOOK_PRIORITIES = /** @type {const} */ ({
 		Top: 11,
 		OverrideBehaviour: 10,
 		ModifyBehaviourHigh: 6,
@@ -142,7 +137,7 @@ async function ForBetterClub() {
 		ModifyBehaviourLow: 4,
 		AddBehaviour: 3,
 		Observe: 0,
-	};
+	});
 
 	/**
 	 * @type {Record<keyof defaultSettings, string | boolean> & {version: number}}
@@ -965,6 +960,11 @@ async function ForBetterClub() {
 					) || null
 				)
 			);
+			if (!onlineSettings) {
+				logWarn("No online settings found");
+				debug("onlineSettings", Player.OnlineSettings);
+				debug("extensionSettings", Player.ExtensionSettings);
+			}
 			if (Player.OnlineSettings?.BCE) {
 				Player.ExtensionSettings.FBC = Player.OnlineSettings.BCE;
 				ServerPlayerExtensionSettingsSync("FBC");
@@ -1009,6 +1009,7 @@ async function ForBetterClub() {
 	};
 
 	const bceSaveSettings = () => {
+		debug("saving settings");
 		if (toySyncState.deviceSettings.size > 0) {
 			fbcSettings.buttplugDevices = JSON.stringify(
 				Array.from(toySyncState.deviceSettings.values())
@@ -1019,6 +1020,7 @@ async function ForBetterClub() {
 			JSON.stringify(fbcSettings)
 		);
 		ServerPlayerExtensionSettingsSync("FBC");
+		debug("saved settings", fbcSettings);
 	};
 
 	/**
@@ -1867,6 +1869,30 @@ async function ForBetterClub() {
 				}
 
 				return ret;
+			}
+		);
+
+		// Looking for settings erasure by client
+		SDK.hookFunction(
+			"ServerSend",
+			HOOK_PRIORITIES.Top,
+			/**
+			 * @param {Parameters<typeof ServerSend>} args
+			 */
+			(args, next) => {
+				const [msgType, data] = args;
+				if (msgType !== "AccountUpdate") {
+					return next(args);
+				}
+				if (!isNonNullObject(data)) {
+					return next(args);
+				}
+				if ("ExtensionSettings" in data) {
+					throw new Error(
+						"misuse of ExtensionSettings detected; write prevented"
+					);
+				}
+				return next(args);
 			}
 		);
 
