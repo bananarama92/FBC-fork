@@ -956,6 +956,7 @@ async function ForBetterClub() {
 			const onlineSettings = /** @type {typeof fbcSettings | null} */ (
 				parseJSON(
 					LZString.decompressFromBase64(
+						// eslint-disable-next-line deprecation/deprecation
 						Player.ExtensionSettings.FBC || (Player.OnlineSettings?.BCE ?? "")
 					) || null
 				)
@@ -965,10 +966,12 @@ async function ForBetterClub() {
 				debug("onlineSettings", Player.OnlineSettings);
 				debug("extensionSettings", Player.ExtensionSettings);
 			}
+			// eslint-disable-next-line deprecation/deprecation
 			if (Player.OnlineSettings?.BCE) {
 				Player.ExtensionSettings.FBC = Player.OnlineSettings.BCE;
 				ServerPlayerExtensionSettingsSync("FBC");
 				logInfo("Migrated online settings to extension settings");
+				// eslint-disable-next-line deprecation/deprecation
 				delete Player.OnlineSettings.BCE;
 			}
 			const localVersion = settings?.version || 0;
@@ -1321,6 +1324,7 @@ async function ForBetterClub() {
 					ChatRoomCharacterItemUpdate: "263DB2F0",
 					ChatRoomCharacterUpdate: "C444E92D",
 					ChatRoomCharacterViewDrawBackground: "BCD8B409",
+					ChatRoomCharacterViewIsActive: "D7C20A57",
 					ChatRoomClearAllElements: "14DAAB05",
 					ChatRoomClick: "AE612190",
 					ChatRoomCreateElement: "78F86423",
@@ -1329,6 +1333,9 @@ async function ForBetterClub() {
 					ChatRoomHTMLEntities: "0A7ADB1D",
 					ChatRoomKeyDown: "DBBC9035",
 					ChatRoomListManipulation: "75D28A8B",
+					ChatRoomMapViewCharacterIsVisible: "286C447D",
+					ChatRoomMapViewCharacterOnWhisperRange: "B0D08E96",
+					ChatRoomMapViewIsActive: "C5BA8D6A",
 					ChatRoomMessage: "BBD61334",
 					ChatRoomMessageDisplay: "37B5D4F2",
 					ChatRoomRegisterMessageHandler: "C432923A",
@@ -2078,8 +2085,8 @@ async function ForBetterClub() {
 					sender &&
 					sender !== Player.MemberNumber?.toString() &&
 					matchingCharacters.length > 0 &&
-					(!ChatRoomMapVisible ||
-						matchingCharacters.some(ChatRoomMapCharacterOnWhisperRange))
+					(ChatRoomCharacterViewIsActive() ||
+						matchingCharacters.some(ChatRoomMapViewCharacterOnWhisperRange))
 				) {
 					const repl = document.createElement("a");
 					repl.href = "#";
@@ -9177,6 +9184,7 @@ async function ForBetterClub() {
 		}
 		return bundleList.map((bundle) => {
 			if (
+				// eslint-disable-next-line deprecation/deprecation
 				typeof bundle.Property?.Type === "string" &&
 				!CommonIsObject(bundle.Property?.TypeRecord)
 			) {
@@ -9184,6 +9192,7 @@ async function ForBetterClub() {
 				if (asset) {
 					bundle.Property.TypeRecord = ExtendedItemTypeToRecord(
 						asset,
+						// eslint-disable-next-line deprecation/deprecation
 						bundle.Property.Type
 					);
 				}
@@ -9201,12 +9210,15 @@ async function ForBetterClub() {
 
 		const wardrobeData =
 			Player.ExtensionSettings.FBCWardrobe ||
+			// eslint-disable-next-line deprecation/deprecation
 			Player.OnlineSettings?.BCEWardrobe;
 		if (wardrobeData) {
+			// eslint-disable-next-line deprecation/deprecation
 			if (Player.OnlineSettings?.BCEWardrobe) {
 				Player.ExtensionSettings.FBCWardrobe = wardrobeData;
 				ServerPlayerExtensionSettingsSync("FBCWardrobe");
 				logInfo("Migrated wardrobe from OnlineSettings to ExtensionSettings");
+				// eslint-disable-next-line deprecation/deprecation
 				delete Player.OnlineSettings.BCEWardrobe;
 			}
 			try {
@@ -10941,8 +10953,8 @@ async function ForBetterClub() {
 	function findDrawnCharacters(target, limitVisible = false) {
 		let baseList = limitVisible ? ChatRoomCharacterDrawlist : ChatRoomCharacter;
 
-		if (ChatRoomMapVisible) {
-			baseList = baseList.filter(ChatRoomMapCharacterIsVisible);
+		if (ChatRoomMapViewIsActive()) {
+			baseList = baseList.filter(ChatRoomMapViewCharacterIsVisible);
 		}
 
 		if (target === null) {

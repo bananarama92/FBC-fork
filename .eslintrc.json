@@ -11,7 +11,8 @@
 	],
 	"parser": "@typescript-eslint/parser",
 	"plugins": [
-		"@typescript-eslint"
+		"@typescript-eslint",
+		"deprecation"
 	],
 	"parserOptions": {
 		"sourceType": "script",
@@ -78,6 +79,7 @@
 		"default-case": "warn",
 		"default-case-last": "error",
 		"default-param-last": "error",
+		"deprecation/deprecation": "warn",
 		"dot-location": [
 			"error",
 			"property"

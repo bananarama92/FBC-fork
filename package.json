@@ -8,6 +8,7 @@
     "dexie": "^3.2.3",
     "eslint": "^8.40.0",
     "eslint-config-prettier": "^8.8.0",
+    "eslint-plugin-deprecation": "^2.0.0",
     "typescript": "^5.0.4"
   }
 }
