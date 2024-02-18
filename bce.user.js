@@ -22,12 +22,17 @@
 async function ForBetterClub() {
 	"use strict";
 
-	const FBC_VERSION = "5.5";
+	const FBC_VERSION = "5.6";
 	const settingsVersion = 58;
 
 	const fbcChangelog = `${FBC_VERSION}
-- Added logging around settings
+- Changed modals to use FUSAM's modal system
+
+5.5
 - Fixed a bug where local settings would get priority over online settings, which could cause issues when using multiple devices
+
+5.4
+- Added logging around settings
 
 5.3
 - Added support for R101
@@ -35,12 +40,6 @@ async function ForBetterClub() {
 - Changed anti-garble to only work with other FBC users' messages, when they have opted in
 - Changed full gag anti-cheat to be enabled by default
 - Removed support for R100
-
-5.2
-- Fixed resizing rich online profile
-
-5.1
-- Removed update checker; FUSAM always loads the latest version
 `;
 
 	const SUPPORTED_GAME_VERSIONS = ["R101"];
@@ -2144,7 +2143,7 @@ async function ForBetterClub() {
 						logInfo("Could not find member", target);
 						return;
 					}
-					const [bindSubmit] = await showAsyncModal({
+					const [bindSubmit] = await FUSAM.modals.openAsync({
 						prompt: displayText("Include binds?"),
 						buttons: {
 							cancel: "No",
@@ -2154,7 +2153,7 @@ async function ForBetterClub() {
 					const includeBinds = bindSubmit === "submit";
 					let includeLocks = false;
 					if (includeBinds) {
-						const [lockSubmit] = await showAsyncModal({
+						const [lockSubmit] = await FUSAM.modals.openAsync({
 							prompt: displayText("Include locks?"),
 							buttons: {
 								cancel: "No",
@@ -2163,7 +2162,7 @@ async function ForBetterClub() {
 						});
 						includeLocks = lockSubmit === "submit";
 					}
-					const [baseSubmit] = await showAsyncModal({
+					const [baseSubmit] = await FUSAM.modals.openAsync({
 						prompt: displayText("Include height, body type, hair, etc?"),
 						buttons: {
 							cancel: "No",
@@ -2218,7 +2217,7 @@ async function ForBetterClub() {
 
 					const exportString = LZString.compressToBase64(JSON.stringify(looks));
 
-					showAsyncModal({
+					FUSAM.modals.openAsync({
 						prompt: displayText(displayText("Copy the looks string below")),
 						input: {
 							initial: exportString,
@@ -2253,7 +2252,7 @@ async function ForBetterClub() {
 						return;
 					}
 
-					showModal({
+					FUSAM.modals.open({
 						prompt: displayText("Paste your looks here"),
 						input: {
 							initial: "",
@@ -9344,12 +9343,13 @@ async function ForBetterClub() {
 							domNode = document.createTextNode(url.href);
 							if (embedType !== EMBED_TYPE.None) {
 								const promptTrust = document.createElement("a");
+								// eslint-disable-next-line no-loop-func
 								promptTrust.onclick = (e) => {
 									e.preventDefault();
 									e.stopPropagation();
 									// eslint-disable-next-line prefer-destructuring
 									const target = /** @type {HTMLAnchorElement} */ (e.target);
-									showModal({
+									FUSAM.modals.open({
 										prompt: displayText(
 											"Do you want to add $origin to trusted origins?",
 											{
@@ -9437,7 +9437,7 @@ async function ForBetterClub() {
 				return;
 			}
 			open = true;
-			showModal({
+			FUSAM.modals.open({
 				prompt: displayText(
 					`Do you want to allow 3rd party ${
 						type ?? "content"
@@ -10690,7 +10690,7 @@ async function ForBetterClub() {
 		const exportPosition = /** @type {const} */ ([1585, 15, 90, 90]);
 
 		function importCraft() {
-			showModal({
+			FUSAM.modals.open({
 				prompt: displayText("Paste the craft here"),
 				callback: (action, str) => {
 					if (action !== "submit" || !str) {
@@ -10740,7 +10740,7 @@ async function ForBetterClub() {
 				switch (CraftingMode) {
 					case "Name":
 						if (MouseIn(...exportPosition)) {
-							showModal({
+							FUSAM.modals.open({
 								prompt: displayText("Copy the craft here"),
 								input: {
 									initial: LZString.compressToBase64(
@@ -10881,166 +10881,6 @@ async function ForBetterClub() {
 				return ret;
 			}
 		);
-	}
-
-	let disabledUntil = 0;
-	/**
-	 * @typedef {{ prompt: string | Node, input?: { initial: string, readonly: boolean, type: "input" | "textarea" }, callback: (action: ModalAction, inputValue?: string) => void, buttons?: { submit?: string, cancel?: string } }} ModalOptions
-	 * @typedef {"submit" | "cancel" | "close"} ModalAction
-	 */
-	/**
-	 * @param {ModalOptions} opts
-	 */
-	function showModal(opts) {
-		disabledUntil = Date.now() + 500;
-		const modal = document.createElement("dialog");
-		modal.style.zIndex = "1001";
-		modal.style.display = "flex";
-		modal.style.flexDirection = "column";
-		modal.style.width = "50em";
-		modal.style.fontFamily = "Arial, Helvetica, sans-serif";
-		modal.open = true;
-
-		const prompt = document.createElement("div");
-		if (isString(opts.prompt)) {
-			prompt.textContent = opts.prompt;
-		} else {
-			prompt.append(opts.prompt);
-		}
-		modal.append(prompt);
-		document.body.append(modal);
-
-		let inputValue = "";
-
-		if (opts.input) {
-			const input = document.createElement(opts.input.type);
-			switch (opts.input.type) {
-				case "input":
-					{
-						const el = /** @type {HTMLInputElement} */ (input);
-						el.type = "text";
-					}
-					break;
-				case "textarea":
-					{
-						const el = /** @type {HTMLTextAreaElement} */ (input);
-						el.rows = 10;
-					}
-					break;
-				default:
-					// This should never happen
-					// eslint-disable-next-line @typescript-eslint/restrict-template-expressions
-					throw new Error(`invalid input type ${opts.input.type}`);
-			}
-			input.style.width = "100%";
-			input.readOnly = opts.input.readonly;
-			input.addEventListener("mouseover", () => {
-				input.select();
-			});
-			input.addEventListener("focus", () => {
-				input.select();
-			});
-			input.addEventListener("change", () => {
-				inputValue = input.value;
-			});
-
-			input.addEventListener("keydown", (e) => {
-				// MBCHC compatibility: prevent chatroom keydown events from triggering at document level
-				e.stopPropagation();
-			});
-
-			input.value = opts.input.initial;
-			modal.append(input);
-		}
-
-		const buttonContainer = document.createElement("div");
-		buttonContainer.style.display = "flex";
-		buttonContainer.style.flexDirection = "row";
-		buttonContainer.style.justifyContent = "space-between";
-		buttonContainer.style.marginTop = "1em";
-		buttonContainer.style.width = "100%";
-		modal.append(buttonContainer);
-
-		const submit = document.createElement("button");
-		submit.textContent = opts.buttons?.submit || displayText("Submit");
-		submit.addEventListener("click", () => {
-			close("submit");
-		});
-
-		const cancel = document.createElement("button");
-		cancel.textContent = opts.buttons?.cancel || displayText("Cancel");
-		cancel.addEventListener("click", () => {
-			close("cancel");
-		});
-
-		for (const button of [submit, cancel]) {
-			button.style.padding = "0.5em";
-			button.style.flexGrow = "1";
-		}
-
-		buttonContainer.append(cancel, submit);
-
-		modal.addEventListener("click", (e) => {
-			e.stopPropagation();
-		});
-		/**
-		 * @param {KeyboardEvent} e
-		 */
-		const keyClick = (e) => {
-			e.stopPropagation();
-			if (e.key === "Escape") {
-				close();
-			}
-		};
-		document.addEventListener("keydown", keyClick);
-
-		// Click-blocker
-		const blocker = document.createElement("div");
-		blocker.style.position = "fixed";
-		blocker.style.top = "0";
-		blocker.style.left = "0";
-		blocker.style.width = "100vw";
-		blocker.style.height = "100vh";
-		blocker.style.zIndex = "1000";
-		blocker.style.backgroundColor = "rgba(0, 0, 0, 0.9)";
-		blocker.title = displayText("Click to close the modal");
-		blocker.addEventListener("click", () => {
-			close();
-		});
-		blocker.addEventListener("focus", () => {
-			close();
-		});
-		document.body.append(blocker);
-
-		/**
-		 * @param {ModalAction} action
-		 */
-		function close(action = "close") {
-			if (Date.now() < disabledUntil) {
-				return;
-			}
-			disabledUntil = Date.now() + 500;
-			modal.close();
-			modal.remove();
-			blocker.remove();
-			document.removeEventListener("keydown", keyClick);
-			opts.callback(action, inputValue);
-		}
-	}
-
-	/**
-	 * @param {Omit<ModalOptions, "callback">} opts
-	 * @returns {Promise<[ModalAction, string | null]>}
-	 */
-	function showAsyncModal(opts) {
-		return new Promise((resolve) => {
-			showModal({
-				...opts,
-				callback: (action, inputValue) => {
-					resolve([action, inputValue ?? null]);
-				},
-			});
-		});
 	}
 
 	function hideChatRoomElements() {
