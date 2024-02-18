@@ -22,11 +22,12 @@
 async function ForBetterClub() {
 	"use strict";
 
-	const FBC_VERSION = "5.4";
+	const FBC_VERSION = "5.5";
 	const settingsVersion = 58;
 
 	const fbcChangelog = `${FBC_VERSION}
 - Added logging around settings
+- Fixed a bug where local settings would get priority over online settings, which could cause issues when using multiple devices
 
 5.3
 - Added support for R101
@@ -950,10 +951,10 @@ async function ForBetterClub() {
 		const key = bceSettingKey();
 		debug("loading settings");
 		if (Object.keys(fbcSettings).length === 0) {
-			let settings = /** @type {typeof fbcSettings} */ (
+			let settings = /** @type {typeof fbcSettings | null} */ (
 				parseJSON(localStorage.getItem(key))
 			);
-			const onlineSettings = /** @type {typeof fbcSettings} */ (
+			const onlineSettings = /** @type {typeof fbcSettings | null} */ (
 				parseJSON(
 					LZString.decompressFromBase64(
 						Player.ExtensionSettings.FBC || (Player.OnlineSettings?.BCE ?? "")
@@ -971,19 +972,23 @@ async function ForBetterClub() {
 				logInfo("Migrated online settings to extension settings");
 				delete Player.OnlineSettings.BCE;
 			}
-			if (!settings?.version) {
-				if (onlineSettings && onlineSettings.version >= settings.version) {
-					settings = onlineSettings;
-				}
+			const localVersion = settings?.version || 0;
+			if (onlineSettings && onlineSettings.version >= localVersion) {
+				logInfo("using online settings");
+				settings = onlineSettings;
 			}
-			if (!settings) {
+			if (!isNonNullObject(settings)) {
 				debug("no settings", key);
 				fbcBeepNotify(
 					"Welcome to FBC",
 					`Welcome to For Better Club v${w.FBC_VERSION}! As this is your first time using FBC on this account, you may want to check out the settings page for some options to customize your experience. You can find it in the game preferences. Enjoy! In case of problems, you can contact us via Discord at ${DISCORD_INVITE_URL}`
 				);
-				// @ts-ignore -- this is fully populated in the loop below
+				// @ts-expect-error -- this is fully populated in the loop below
 				settings = {};
+			}
+
+			if (!isNonNullObject(settings)) {
+				throw new Error("failed to initialize settings");
 			}
 
 			for (const [setting] of objEntries(defaultSettings)) {
