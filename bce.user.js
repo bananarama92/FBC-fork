@@ -22,10 +22,13 @@
 async function ForBetterClub() {
 	"use strict";
 
-	const FBC_VERSION = "5.6";
+	const FBC_VERSION = "5.7";
 	const settingsVersion = 58;
 
 	const fbcChangelog = `${FBC_VERSION}
+- Added support for R102
+
+5.6
 - Changed modals to use FUSAM's modal system
 
 5.5
@@ -42,7 +45,7 @@ async function ForBetterClub() {
 - Removed support for R100
 `;
 
-	const SUPPORTED_GAME_VERSIONS = ["R101"];
+	const SUPPORTED_GAME_VERSIONS = ["R102"];
 	const CAPABILITIES = /** @type {const} */ (["clubslave", "antigarble"]);
 
 	const w = window;
@@ -968,6 +971,7 @@ async function ForBetterClub() {
 			}
 			// eslint-disable-next-line deprecation/deprecation
 			if (Player.OnlineSettings?.BCE) {
+				// eslint-disable-next-line deprecation/deprecation
 				Player.ExtensionSettings.FBC = Player.OnlineSettings.BCE;
 				ServerPlayerExtensionSettingsSync("FBC");
 				logInfo("Migrated online settings to extension settings");
@@ -1309,38 +1313,38 @@ async function ForBetterClub() {
 					CharacterBuildDialog: "85F79C6E",
 					CharacterCompressWardrobe: "2A05ECD1",
 					CharacterDecompressWardrobe: "327FADA4",
-					CharacterDelete: "398D1116",
-					CharacterGetCurrent: "45608177",
+					CharacterDelete: "BD2D4761",
+					CharacterGetCurrent: "69F45A41",
 					CharacterLoadCanvas: "EAB81BC4",
 					CharacterNickname: "A794EFF5",
-					CharacterRefresh: "F2459653",
+					CharacterRefresh: "3A32BC2A",
 					CharacterReleaseTotal: "BB9C6989",
 					CharacterSetCurrent: "F46573D8",
-					CharacterSetFacialExpression: "FC680736",
+					CharacterSetFacialExpression: "F83CE881",
 					CharacterSetActivePose: "566A14D7",
 					ChatAdminRoomCustomizationClick: "E194A605",
 					ChatAdminRoomCustomizationProcess: "B33D6388",
 					ChatRoomAppendChat: "998F2F98",
 					ChatRoomCharacterItemUpdate: "263DB2F0",
-					ChatRoomCharacterUpdate: "C444E92D",
-					ChatRoomCharacterViewDrawBackground: "BCD8B409",
-					ChatRoomCharacterViewIsActive: "D7C20A57",
+					ChatRoomCharacterUpdate: "DE2DC592",
+					ChatRoomCharacterViewDrawBackground: "39EFE213",
+					ChatRoomCharacterViewIsActive: "CD8066FA",
 					ChatRoomClearAllElements: "14DAAB05",
-					ChatRoomClick: "AE612190",
+					ChatRoomClick: "F57069BB",
 					ChatRoomCreateElement: "78F86423",
 					ChatRoomCurrentTime: "A462DD3A",
 					ChatRoomDrawCharacterStatusIcons: "198C8657",
 					ChatRoomHTMLEntities: "0A7ADB1D",
-					ChatRoomKeyDown: "DBBC9035",
+					ChatRoomKeyDown: "CBE6830E",
 					ChatRoomListManipulation: "75D28A8B",
 					ChatRoomMapViewCharacterIsVisible: "286C447D",
 					ChatRoomMapViewCharacterOnWhisperRange: "B0D08E96",
-					ChatRoomMapViewIsActive: "C5BA8D6A",
+					ChatRoomMapViewIsActive: "D181020D",
 					ChatRoomMessage: "BBD61334",
 					ChatRoomMessageDisplay: "37B5D4F2",
 					ChatRoomRegisterMessageHandler: "C432923A",
 					ChatRoomResize: "653445D7",
-					ChatRoomRun: "B3CE0AC6",
+					ChatRoomRun: "9E0D7899",
 					ChatRoomSendChat: "76A693E3",
 					ChatRoomStart: "9B822A9A",
 					CommandExecute: "803D6C70",
@@ -1359,12 +1363,12 @@ async function ForBetterClub() {
 					DrawArousalThermometer: "7ED6D822",
 					DrawBackNextButton: "9AF4BA37",
 					DrawButton: "A7023A82",
-					DrawCharacter: "762FA8A6",
+					DrawCharacter: "B175AF5E",
 					DrawCheckbox: "00FD87EB",
 					DrawImageEx: "E01BE7E7",
 					DrawImageResize: "D205975A",
 					DrawItemPreview: "6A7A1E2A",
-					DrawProcess: "BC1E9396",
+					DrawProcess: "1E1BBA16",
 					DrawText: "C1BF0F50",
 					DrawTextFit: "F9A1B11E",
 					ElementCreateInput: "EB2A3EC8",
@@ -1377,7 +1381,7 @@ async function ForBetterClub() {
 					FriendListShowBeep: "6C0449BB",
 					GameRun: "4FDC9390",
 					GLDrawResetCanvas: "81214642",
-					InformationSheetRun: "90140B32",
+					InformationSheetRun: "91B4FF1F",
 					InventoryGet: "E666F671",
 					LoginClick: "EE94BEC7",
 					LoginRun: "C3926C4F",
@@ -1418,15 +1422,15 @@ async function ForBetterClub() {
 					StruggleMinigameStop: "FB05E8A9",
 					StruggleStrengthProcess: "D20CF698",
 					TextGet: "4DDE5794",
-					TextLoad: "ADF7C890",
+					TextLoad: "0D535190",
 					TimerInventoryRemove: "1FA771FB",
 					TimerProcess: "52458C63",
 					TitleExit: "F13F533C",
-					ValidationSanitizeProperties: "08E81594",
+					ValidationSanitizeProperties: "659F5965",
 					WardrobeClick: "33405B1D",
 					WardrobeExit: "12D14AE4",
-					WardrobeFastLoad: "5C54EA7B",
-					WardrobeFastSave: "61D02972",
+					WardrobeFastLoad: "AAB9F25B",
+					WardrobeFastSave: "D1E906FD",
 					WardrobeFixLength: "CA3334C6",
 					WardrobeLoad: "C343A4C7",
 					WardrobeRun: "633B3570",
@@ -6037,8 +6041,8 @@ async function ForBetterClub() {
 		patchFunction(
 			"DrawCharacter",
 			{
-				"var OverrideDark = ":
-					"var OverrideDark = C.AccountName.startsWith('LayeringPreview') || ",
+				"var OverridesDark = ":
+					"var OverridesDark = C.AccountName.startsWith('LayeringPreview') || ",
 			},
 			"Layering preview affected by blindness"
 		);
@@ -6560,7 +6564,7 @@ async function ForBetterClub() {
 					c.IsOnline?.() &&
 					!ChatRoomCharacter.some((cc) => cc.MemberNumber === c.MemberNumber)
 			);
-			oldOnlineCharacters.forEach((c) => CharacterDelete(c.AccountName));
+			oldOnlineCharacters.forEach((c) => CharacterDelete(c));
 			Character.filter((c) => c.IsOnline?.()).forEach((c) =>
 				CharacterRefresh(c, false, false)
 			);
@@ -9548,10 +9552,7 @@ async function ForBetterClub() {
 		};
 
 		SDK.hookFunction(
-			// @ts-ignore - R100 migration
-			GameVersion.startsWith("R100")
-				? "ChatRoomDrawBackground"
-				: "ChatRoomCharacterViewDrawBackground",
+			"ChatRoomCharacterViewDrawBackground",
 			HOOK_PRIORITIES.Top,
 			discreetModeHook
 		);
