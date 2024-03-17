@@ -295,6 +295,7 @@ declare global {
     BCEArousalProgress: number;
     BCEEnjoyment: number;
     BCESeen: number;
+    FBCNoteExists: boolean;
   }
   interface PlayerOnlineSettings {
     /** @deprecated */

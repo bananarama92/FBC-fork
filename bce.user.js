@@ -27,6 +27,7 @@ async function ForBetterClub() {
 
 	const fbcChangelog = `${FBC_VERSION}
 - Added support for R102
+- Changed characters with notes to have cyan FBC version number
 
 5.6
 - Changed modals to use FUSAM's modal system
@@ -1316,6 +1317,7 @@ async function ForBetterClub() {
 					CharacterDelete: "BD2D4761",
 					CharacterGetCurrent: "69F45A41",
 					CharacterLoadCanvas: "EAB81BC4",
+					CharacterLoadOnline: "B1BCD3B1",
 					CharacterNickname: "A794EFF5",
 					CharacterRefresh: "3A32BC2A",
 					CharacterReleaseTotal: "BB9C6989",
@@ -6041,8 +6043,8 @@ async function ForBetterClub() {
 		patchFunction(
 			"DrawCharacter",
 			{
-				"var OverridesDark = ":
-					"var OverridesDark = C.AccountName.startsWith('LayeringPreview') || ",
+				"const OverrideDark = ":
+					"const OverrideDark = C.AccountName.startsWith('LayeringPreview') || ",
 			},
 			"Layering preview affected by blindness"
 		);
@@ -6612,7 +6614,7 @@ async function ForBetterClub() {
 						CharX + 290 * Zoom,
 						CharY + 30 * Zoom,
 						40 * Zoom,
-						"White",
+						C.FBCNoteExists ? "Cyan" : "White",
 						"Black"
 					);
 				}
@@ -10278,6 +10280,23 @@ async function ForBetterClub() {
 					logError("getting note", reason);
 				});
 		}
+
+		SDK.hookFunction(
+			"CharacterLoadOnline",
+			HOOK_PRIORITIES.Top,
+			/**
+			 * @param {Parameters<typeof CharacterLoadOnline>} args
+			 */
+			(args, next) => {
+				const C = next(args);
+				if (isCharacter(C) && C.MemberNumber) {
+					notes.get(C.MemberNumber).then((note) => {
+						C.FBCNoteExists = Boolean(isNote(note) && note.note);
+					});
+				}
+				return C;
+			}
+		);
 
 		function hideNoteInput() {
 			noteInput.classList.add("bce-hidden");
