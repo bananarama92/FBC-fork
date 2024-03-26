@@ -1497,7 +1497,7 @@ async function ForBetterClub() {
 	/** @type {string[]} */
 	const skippedFunctionality = [];
 
-	/** @type {(functionName: keyof typeof window, patches: Record<string,string>, affectedFunctionality: string) => void} */
+	/** @type {(functionName: string, patches: Record<string,string>, affectedFunctionality: string) => void} */
 	const patchFunction = (functionName, patches, affectedFunctionality) => {
 		// Guard against patching a function that has been modified by another addon not using the shared SDK on supported versions.
 		if (
@@ -1538,7 +1538,8 @@ async function ForBetterClub() {
 	function fbcBeepNotify(title, text) {
 		SDK.callOriginal("ServerAccountBeep", [
 			{
-				MemberNumber: Player.MemberNumber,
+				MemberNumber: Player.MemberNumber || -1,
+				BeepType: "",
 				MemberName: "FBC",
 				ChatRoomName: title,
 				Private: true,
@@ -3158,7 +3159,8 @@ async function ForBetterClub() {
 			await sleep(500);
 			SDK.callOriginal("ServerAccountBeep", [
 				{
-					MemberNumber: Player.MemberNumber,
+					MemberNumber: Player.MemberNumber || -1,
+					BeepType: "",
 					MemberName: "VOID",
 					ChatRoomName: "VOID",
 					Private: true,
@@ -3180,7 +3182,8 @@ async function ForBetterClub() {
 				} else if (!breakCircuit) {
 					SDK.callOriginal("ServerAccountBeep", [
 						{
-							MemberNumber: Player.MemberNumber,
+							MemberNumber: Player.MemberNumber || -1,
+							BeepType: "",
 							MemberName: Player.Name,
 							ChatRoomName: displayText("ERROR"),
 							Private: true,
@@ -7231,7 +7234,7 @@ async function ForBetterClub() {
 							break;
 					}
 				}
-				return next([message, data, ...args.slice(2)]);
+				return next([message, data]);
 			}
 		);
 
@@ -9006,11 +9009,16 @@ async function ForBetterClub() {
 		SDK.hookFunction(
 			"ServerSend",
 			HOOK_PRIORITIES.Observe,
-			/** @type {(args: [string, ServerAccountBeepResponse], next: (args: [string, ServerAccountBeepResponse]) => void) => void} */
+			/**
+			 * @param {Parameters<typeof ServerSend>} args
+			 */
 			(args, next) => {
-				const [command, beep] = args;
+				const [command, b] = args;
+				if (command !== "AccountBeep") {
+					return next(args);
+				}
+				const beep = /** @type {ServerAccountBeepRequest} */ (b);
 				if (
-					command === "AccountBeep" &&
 					!beep?.BeepType &&
 					isString(beep?.Message) &&
 					!beep.Message.includes("\uf124")
@@ -9486,7 +9494,7 @@ async function ForBetterClub() {
 			"ChatAdminRoomCustomizationProcess",
 			HOOK_PRIORITIES.OverrideBehaviour,
 			/**
-			 * @param {[{ ImageURL: string, MusicURL: string }]} args
+			 * @param {Parameters<typeof ChatAdminRoomCustomizationProcess>} args
 			 */
 			(args, next) => {
 				if (!fbcSettings.customContentDomainCheck) {
@@ -9494,20 +9502,29 @@ async function ForBetterClub() {
 				}
 
 				try {
+					// @ts-ignore - the function's types are garbage
 					const [{ ImageURL, MusicURL }] = args;
 
+					// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-argument
 					const imageOrigin = ImageURL && new URL(ImageURL).origin;
+					// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-argument
 					const musicOrigin = MusicURL && new URL(MusicURL).origin;
 
+					// eslint-disable-next-line @typescript-eslint/no-unsafe-argument
 					if (imageOrigin && !sessionCustomOrigins.has(imageOrigin)) {
+						// eslint-disable-next-line @typescript-eslint/no-unsafe-argument
 						showCustomContentDomainCheckWarning(imageOrigin, "image");
+						// eslint-disable-next-line @typescript-eslint/no-unsafe-argument
 					} else if (musicOrigin && !sessionCustomOrigins.has(musicOrigin)) {
+						// eslint-disable-next-line @typescript-eslint/no-unsafe-argument
 						showCustomContentDomainCheckWarning(musicOrigin, "music");
 					}
 
 					if (
 						(!ImageURL ||
+							// eslint-disable-next-line @typescript-eslint/no-unsafe-argument
 							sessionCustomOrigins.get(imageOrigin) === "allowed") &&
+						// eslint-disable-next-line @typescript-eslint/no-unsafe-argument
 						(!MusicURL || sessionCustomOrigins.get(musicOrigin) === "allowed")
 					) {
 						return next(args);
@@ -9544,7 +9561,10 @@ async function ForBetterClub() {
 	}
 
 	function discreetMode() {
-		/** @type {(args: [unknown], next: (args: [unknown]) => unknown) => unknown} */
+		/**
+		 * @param {any} args
+		 * @param {(args: any) => void} next
+		 */
 		const discreetModeHook = (args, next) => {
 			if (fbcSettings.discreetMode) {
 				return;
