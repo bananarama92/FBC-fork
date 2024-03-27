@@ -1908,32 +1908,35 @@ async function ForBetterClub() {
 			}
 		);
 
-		/*
-		 * Chat scroll after relog
-		 * delay is the number of frames to delay the scroll
-		 */
-		let delay = 0;
-		SDK.hookFunction(
-			"ChatRoomCreateElement",
-			HOOK_PRIORITIES.AddBehaviour,
-			/**
-			 * @param {Parameters<typeof ChatRoomCreateElement>} args
-			 */
-			(args, next) => {
-				const isRelog = !!RelogChatLog;
-				const ret = next(args);
-				if (isRelog) {
-					delay = 3;
-				}
-				if (delay > 0) {
-					delay--;
-					if (delay === 0) {
-						ElementScrollToEnd("TextAreaChatLog");
+		// TODO: Remove the now-redundant hook once R103 is live
+		if (typeof RelogChatLog !== "undefined") {
+			/*
+			* Chat scroll after relog
+			* delay is the number of frames to delay the scroll
+			*/
+			let delay = 0;
+			SDK.hookFunction(
+				"ChatRoomCreateElement",
+				HOOK_PRIORITIES.AddBehaviour,
+				/**
+				 * @param {Parameters<typeof ChatRoomCreateElement>} args
+				 */
+				(args, next) => {
+					const isRelog = !!RelogChatLog;
+					const ret = next(args);
+					if (isRelog) {
+						delay = 3;
 					}
+					if (delay > 0) {
+						delay--;
+						if (delay === 0) {
+							ElementScrollToEnd("TextAreaChatLog");
+						}
+					}
+					return ret;
 				}
-				return ret;
-			}
-		);
+			);
+		}
 
 		// Prevent friendlist results from attempting to load into the HTML outside of the appropriate view
 		SDK.hookFunction(
