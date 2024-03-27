@@ -1908,12 +1908,12 @@ async function ForBetterClub() {
 			}
 		);
 
-		// TODO: Remove the now-redundant hook once R103 is live
+		// GameVersion R102 - no longer required on R103
 		if (typeof RelogChatLog !== "undefined") {
 			/*
-			* Chat scroll after relog
-			* delay is the number of frames to delay the scroll
-			*/
+			 * Chat scroll after relog
+			 * delay is the number of frames to delay the scroll
+			 */
 			let delay = 0;
 			SDK.hookFunction(
 				"ChatRoomCreateElement",
