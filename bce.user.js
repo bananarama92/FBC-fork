@@ -22,10 +22,14 @@
 async function ForBetterClub() {
 	"use strict";
 
-	const FBC_VERSION = "5.7";
+	const FBC_VERSION = "5.8";
 	const settingsVersion = 58;
 
 	const fbcChangelog = `${FBC_VERSION}
+- Changed discreet mode to allow friend list and main hall backgrounds
+- Changed /beep to respect BCX beep restrictions
+
+5.7
 - Added support for R102
 - Changed characters with notes to have cyan FBC version number
 
@@ -34,16 +38,6 @@ async function ForBetterClub() {
 
 5.5
 - Fixed a bug where local settings would get priority over online settings, which could cause issues when using multiple devices
-
-5.4
-- Added logging around settings
-
-5.3
-- Added support for R101
-- Updated CN translations (by Da'Inihlus)
-- Changed anti-garble to only work with other FBC users' messages, when they have opted in
-- Changed full gag anti-cheat to be enabled by default
-- Removed support for R100
 `;
 
 	const SUPPORTED_GAME_VERSIONS = ["R102"];
@@ -2340,6 +2334,11 @@ async function ForBetterClub() {
 				Tag: "beep",
 				Description: displayText("[membernumber] [message]: beep someone"),
 				Action: (_, command, args) => {
+					if (BCX?.getRuleState("speech_restrict_beep_send")?.isEnforced) {
+						fbcChatNotify(
+							displayText("Sending beeps is restricted by BCX rule.")
+						);
+					}
 					const [target] = args,
 						[, , ...message] = command.split(" "),
 						msg = message?.join(" ");
@@ -9597,9 +9596,15 @@ async function ForBetterClub() {
 					if (!args) {
 						return false;
 					}
+					const isBackground =
+						isString(args[0]) && args[0].startsWith("Backgrounds/");
 					const ignoredImages =
-						/(^Backgrounds\/(?!Sheet(White)?|grey|White\.)|\b(Kneel|Arousal|Activity|Asylum|Cage|Cell|ChangeLayersMouth|Diaper|Kidnap|Logo|Player|Remote|Restriction|SpitOutPacifier|Struggle|Therapy|Orgasm\d|Poses|HouseVincula|Seducer\w+)\b|^data:|^Assets\/(?!Female3DCG\/Emoticon\/(Afk|Sleep|Read|Gaming|Hearing|Thumbs(Up|Down))\/))/u;
+						/(^Backgrounds\/(?!Sheet(White)?|grey|White\.|BrickWall\.)|\b(Kneel|Arousal|Activity|Asylum|Cage|Cell|ChangeLayersMouth|Diaper|Kidnap|Logo|Player|Remote|Restriction|SpitOutPacifier|Struggle|Therapy|Orgasm\d|Poses|HouseVincula|Seducer\w+)\b|^data:|^Assets\/(?!Female3DCG\/Emoticon\/(Afk|Sleep|Read|Gaming|Hearing|Thumbs(Up|Down))\/))/u;
 					if (isString(args[0]) && ignoredImages.test(args[0])) {
+						if (isBackground) {
+							args[0] = "Backgrounds/BrickWall.jpg";
+							return next(args);
+						}
 						return false;
 					}
 					// @ts-ignore
