@@ -6,7 +6,11 @@ This addon to [Bondage Club](https://www.bondageprojects.com/club_game/) offers 
 
 ## How to install and use
 
-Install via [FUSAM](https://sidiousious.gitlab.io/bc-addon-loader/)
+* Install the [FUSAM](https://sidiousious.gitlab.io/bc-addon-loader/) BC Addon Manager, install the Tampermonkey browser addon and then click on [loader.user.js](https://github.com/bananarama92/FBC-fork/raw/main/loader.user.js)
+* Or install the [FUSAM](https://sidiousious.gitlab.io/bc-addon-loader/) BC Addon Manager, followed by assigning (and activating) the following link to a bookmark:
+```js
+javascript:(()=>{fetch(`https://github.com/bananarama92/FBC-fork/raw/main/loader.user.js?_=${Date.now()}`).then(r=>r.text()).then(r=>eval(r));})();
+```
 
 ## Features
 
@@ -230,10 +234,11 @@ This is for the purposes of customizing [`bce-custom-expressions-example.user.js
   Eyebrows: ["Raised", "Lowered", "OneRaised", "Harsh", "Angry", "Soft"],
 ```
 
-[View source code and contribute on GitLab](https://gitlab.com/Sidiousious/bce)
+[View source code and contribute on GitHub](https://github.com/bananarama92/FBC-fork)
 
-[Credits](https://gitlab.com/Sidiousious/bce/-/graphs/main), and:
+[Credits](https://github.com/bananarama92/FBC-fork/graphs/contributors), and:
+- Original implementation by [Sid](https://gitlab.com/Sidiousious/)
 - Chinese localization by 洛星臣
 
-[custom]: https://sidiousious.gitlab.io/bce/bce-custom-expressions-example.user.js
-[bookmarklet]: javascript:(()%3D%3E%7Bfetch('https%3A%2F%2Fsidiousious.gitlab.io%2Fbce%2Fbce.user.js').then(r%3D%3Er.text()).then(r%3D%3Eeval(r))%3B%7D)()%3B
+[custom]: https://github.com/bananarama92/FBC-fork/blob/main/bce-custom-expressions-example.user.js
+[bookmarklet]: javascript:(()%3D%3E%7Bfetch('https%3A%2F%2Fgithub.com%2Fbananarama92%2FFBC-fork%2Fraw%2Fmain%2Floader.user.js').then(r%3D%3Er.text()).then(r%3D%3Eeval(r))%3B%7D)()%3B

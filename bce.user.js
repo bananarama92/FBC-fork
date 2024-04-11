@@ -65,10 +65,10 @@ async function ForBetterClub() {
 
 	const SDK = bcModSdk.registerMod(
 		{
-			name: "FBC",
+			name: "FBC-ish",
 			version: FBC_VERSION,
-			fullName: "For Better Club",
-			repository: "https://gitlab.com/Sidiousious/bce.git",
+			fullName: "For Better-ish Club",
+			repository: "https://github.com/bananarama92/FBC-fork.git",
 		},
 		{
 			allowReplace: false,
@@ -80,10 +80,10 @@ async function ForBetterClub() {
 	w.FBC_VERSION = FBC_VERSION;
 
 	const DISCORD_INVITE_URL = "https://discord.gg/SHJMjEh9VH";
-	const WEBSITE_URL = "https://sidiousious.gitlab.io/bce/";
+	const WEBSITE_URL = "https://github.com/bananarama92/FBC-fork";
 
 	const BCE_COLOR_ADJUSTMENTS_CLASS_NAME = "bce-colors",
-		BCE_LICENSE = "https://gitlab.com/Sidiousious/bce/-/blob/main/LICENSE",
+		BCE_LICENSE = "https://github.com/bananarama92/FBC-fork/blob/main/LICENSE",
 		BCE_MAX_AROUSAL = 99.6,
 		BCE_MSG = "BCEMsg",
 		BCX_ORIGINAL_MESSAGE = "BCX_ORIGINAL_MESSAGE",

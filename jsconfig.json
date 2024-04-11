@@ -1,7 +1,7 @@
 {
 	"compilerOptions": {
 		"module": "None",
-		"target": "es2020"
+		"target": "es2021"
 	},
 	"exclude": [
 		"node_modules",

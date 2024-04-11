@@ -1,4 +1,5 @@
 {
+  "name": "for-better-ish-club",
   "devDependencies": {
     "@total-typescript/ts-reset": "^0.4.2",
     "@types/events": "^3.0.0",
