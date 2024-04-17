@@ -223,7 +223,8 @@ declare global {
     type: string;
     version: string;
     capabilities?: readonly string[];
-    blockAntiGarble?: boolean;
+    /** @deprecated */
+    blockAntiGarble?: never;
     alternateArousal?: boolean;
     replyRequested?: boolean;
     progress?: number;
@@ -291,7 +292,8 @@ declare global {
     FBCOtherAddons?: readonly import("./types/bcModSdk").ModSDKModInfo[];
     BCEArousal: boolean;
     BCECapabilities: readonly string[];
-    BCEBlockAntiGarble?: boolean;
+    /** @deprecated */
+    BCEBlockAntiGarble?: never;
     BCEArousalProgress: number;
     BCEEnjoyment: number;
     BCESeen: number;

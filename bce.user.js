@@ -41,7 +41,7 @@ async function ForBetterClub() {
 `;
 
 	const SUPPORTED_GAME_VERSIONS = ["R102"];
-	const CAPABILITIES = /** @type {const} */ (["clubslave", "antigarble"]);
+	const CAPABILITIES = /** @type {const} */ (["clubslave"]);
 
 	const w = window;
 
@@ -86,7 +86,6 @@ async function ForBetterClub() {
 		BCE_LICENSE = "https://github.com/bananarama92/FBC-fork/blob/main/LICENSE",
 		BCE_MAX_AROUSAL = 99.6,
 		BCE_MSG = "BCEMsg",
-		BCX_ORIGINAL_MESSAGE = "BCX_ORIGINAL_MESSAGE",
 		BEEP_CLICK_ACTIONS = Object.freeze({
 			/** @type {"FriendList"} */
 			FriendList: "FriendList",
@@ -95,7 +94,6 @@ async function ForBetterClub() {
 		DARK_INPUT_CLASS = "bce-dark-input",
 		DEFAULT_WARDROBE_SIZE = 24,
 		EXPANDED_WARDROBE_SIZE = 96,
-		GAGBYPASSINDICATOR = "\uf123",
 		HIDDEN = "Hidden",
 		INPUT_WARN_CLASS = "bce-input-warn",
 		MESSAGE_TYPES = Object.freeze({
@@ -464,19 +462,6 @@ async function ForBetterClub() {
 			description:
 				"Changes the online profile to support clickable links and embedded images.",
 		},
-		gagspeak: {
-			label: "Understand All Gagged and when Deafened",
-			value: false,
-			/**
-			 * @param {unknown} newValue
-			 */
-			sideEffects: (newValue) => {
-				debug("gagspeak", newValue);
-			},
-			category: "cheats",
-			description:
-				"Bypasses gagged effect on others and deafen effect on yourself. You'll still be unable to understand others if they use FBC's gag anti-cheat.",
-		},
 		lockpick: {
 			label: "Reveal Lockpicking Order Based on Skill",
 			value: false,
@@ -545,61 +530,6 @@ async function ForBetterClub() {
 			category: "buttplug",
 			description:
 				"Allows the game to control your real vibrators. For a list of supported vibrators see https://buttplug.io",
-		},
-		antiAntiGarble: {
-			label: "Limited gag anti-cheat: cloth-gag equivalent garbling",
-			value: false,
-			/**
-			 * @param {unknown} newValue
-			 */
-			sideEffects: (newValue) => {
-				if (newValue) {
-					fbcSettings.antiAntiGarbleStrong = false;
-					fbcSettings.antiAntiGarbleExtra = false;
-				}
-				debug("antiAntiGarble", newValue);
-				sendHello();
-			},
-			category: "immersion",
-			description:
-				"Slur your speech a little bit while gagged forcing others, even those cheating, to have some trouble understanding you.",
-		},
-		antiAntiGarbleStrong: {
-			label: "Full gag anti-cheat: use equipped gags to determine garbling",
-			value: true,
-			/**
-			 * @param {unknown} newValue
-			 */
-			sideEffects: (newValue) => {
-				if (newValue) {
-					fbcSettings.antiAntiGarble = false;
-					fbcSettings.antiAntiGarbleExtra = false;
-				}
-				debug("antiAntiGarbleStrong", newValue);
-				sendHello();
-			},
-			category: "immersion",
-			description:
-				"Use equipped gags' full effect to prevent others from understanding you fully, even those that are cheating.",
-		},
-		antiAntiGarbleExtra: {
-			label:
-				"Extra gag anti-cheat: even more garbling for the most extreme gags",
-			value: false,
-			/**
-			 * @param {unknown} newValue
-			 */
-			sideEffects: (newValue) => {
-				if (newValue) {
-					fbcSettings.antiAntiGarble = false;
-					fbcSettings.antiAntiGarbleStrong = false;
-				}
-				debug("antiAntiGarbleExtra", newValue);
-				sendHello();
-			},
-			category: "immersion",
-			description:
-				"Use equipped gags' full effect to prevent others from understanding you fully, even those that are cheating. This option adds another level of gagging for the most extreme predicaments, preventing you from making much sound at all.",
 		},
 		blindWithoutGlasses: {
 			label: "Require glasses to see",
@@ -708,25 +638,6 @@ async function ForBetterClub() {
 			description:
 				"Automatically re-enter your password after you disconnect from the game. For convenience or AFK. Requires the password for the current account to have been saved in the login screen. Passwords are saved in your browser's local storage in plain text.",
 		},
-		showQuickAntiGarble: {
-			label: "Show gag cheat and anti-cheat options in chat",
-			value: false,
-			/**
-			 * @param {unknown} newValue
-			 */
-			sideEffects: (newValue) => {
-				if (newValue) {
-					ChatRoomChatInputRect = [1356, 950, 700, 82];
-				} else {
-					// Default from club
-					ChatRoomChatInputRect = [1456, 950, 900, 82];
-				}
-				debug("showQuickAntiGarble", newValue);
-			},
-			category: "misc",
-			description:
-				"Adds a quick switch for the two options next to the chat input area.",
-		},
 		ghostNewUsers: {
 			label: "Automatically ghost+blocklist unnaturally new users",
 			value: false,
@@ -797,80 +708,6 @@ async function ForBetterClub() {
 			category: "misc",
 			description:
 				"Share a list of your installed addons with other FBC users in the room, visible via /versions chat command.",
-		},
-		fpsCounter: {
-			label: "Show FPS counter",
-			value: false,
-			/**
-			 * @param {unknown} newValue
-			 */
-			sideEffects: (newValue) => {
-				debug("fpsCounter", newValue);
-			},
-			category: "performance",
-			description:
-				"Shows the current FPS in the top-left corner of the screen.",
-		},
-		limitFPSInBackground: {
-			label: "Limit FPS in background",
-			value: false,
-			/**
-			 * @param {unknown} newValue
-			 */
-			sideEffects: (newValue) => {
-				debug("limitFPSInBackground", newValue);
-			},
-			category: "performance",
-			description:
-				"Limits the FPS to 10 in the background. This is useful for saving resources when you are not interacting with the game.",
-		},
-		limitFPSTo15: {
-			label: "Limit FPS to ~15",
-			value: false,
-			/**
-			 * @param {unknown} newValue
-			 */
-			sideEffects: (newValue) => {
-				debug("limitFPSTo15", newValue);
-				if (newValue) {
-					fbcSettings.limitFPSTo30 = false;
-					fbcSettings.limitFPSTo60 = false;
-				}
-			},
-			category: "performance",
-			description: "Limits the FPS to 15. This is useful for saving resources.",
-		},
-		limitFPSTo30: {
-			label: "Limit FPS to ~30",
-			value: false,
-			/**
-			 * @param {unknown} newValue
-			 */
-			sideEffects: (newValue) => {
-				debug("limitFPSTo30", newValue);
-				if (newValue) {
-					fbcSettings.limitFPSTo15 = false;
-					fbcSettings.limitFPSTo60 = false;
-				}
-			},
-			category: "performance",
-			description: "Limits the FPS to 30. This is useful for saving resources.",
-		},
-		limitFPSTo60: {
-			label: "Limit FPS to ~60",
-			value: false,
-			/**
-			 * @param {unknown} newValue
-			 */
-			sideEffects: (newValue) => {
-				debug("limitFPSTo60", newValue);
-				if (newValue) {
-					fbcSettings.limitFPSTo30 = false;
-					fbcSettings.limitFPSTo15 = false;
-				}
-			},
-			category: "performance",
-			description: "Limits the FPS to 60. This is useful for saving resources.",
 		},
 		buttplugDevices: {
 			label: "Buttplug Devices",
@@ -1055,14 +892,6 @@ async function ForBetterClub() {
 		postSettingsHasRun = true;
 	}
 
-	function blockAntiGarble() {
-		return !!(
-			fbcSettings.antiAntiGarble ||
-			fbcSettings.antiAntiGarbleStrong ||
-			fbcSettings.antiAntiGarbleExtra
-		);
-	}
-
 	// ICONS
 	const ICONS = Object.freeze({
 		BCE_USER:
@@ -1118,28 +947,15 @@ async function ForBetterClub() {
 					"加载 BCX by Jomshir98 (需要刷新 - 无自动更新)",
 				"Load BCX beta (requires refresh - auto-updates, compatibility not guaranteed)":
 					"加载 BCX beta 测试版 (需要刷新 - 自动升级, 不保证兼容性)",
-				"Limited gag anti-cheat: cloth-gag equivalent garbling":
-					"有限的堵嘴反作弊: 和布堵嘴相同的乱码",
-				"Full gag anti-cheat: use equipped gags to determine garbling":
-					"完整的堵嘴反作弊: 使用当前装备的堵嘴来确定乱码",
-				"Extra gag anti-cheat: even more garbling for the most extreme gags":
-					"扩展的堵嘴反作弊: 对于使用最极端的堵嘴更加混乱",
 				"Require glasses to see": "需要眼镜才能看清",
 				"Check for updates": "检查更新",
 				"Automatic Relogin on Disconnect": "断线后自动重连",
-				"Show gag cheat and anti-cheat options in chat":
-					"在聊天室里显示堵嘴作弊和反作弊选项",
 				"Automatically ghost+blocklist unnaturally new users":
 					"自动对不自然的用户无视并添加黑名单",
 				"Confirm leaving the game": "离开游戏前需要确认",
 				"Discreet mode (disable drawing)": "谨慎模式 (禁用绘图)",
 				"Keep tab active (requires refresh)":
 					"保持标签页处于活动状态 (需要刷新)",
-				"Show FPS counter": "显示 FPS 计数器",
-				"Limit FPS in background": "在后台时限制FPS",
-				"Limit FPS to ~15": "限制 FPS 最高为 ~15",
-				"Limit FPS to ~30": "限制 FPS 最高为 ~30",
-				"Limit FPS to ~60": "限制 FPS 最高为 ~60",
 				"Make automatic progress while struggling": "在挣扎时自动增加进度",
 				"Allow leashing without wearing a leashable item (requires leasher to have FBC too)":
 					"允许在不佩戴牵引绳的情况下也可以进行牵引（需要牵引者也安装有FBC）",
@@ -1204,10 +1020,7 @@ async function ForBetterClub() {
 				"Load without body parts": "加载时不包括身体部位",
 				"Exclude body parts": "排除身体部位",
 				Gagging: "堵嘴",
-				"Antigarble anti-cheat strength": "反堵嘴反作弊强度",
 				"Understand: Yes": "理解: 是",
-				"Understand gagspeak: No": "理解堵嘴说话: 否",
-				"Understand gagspeak: Yes": "理解堵嘴说话: 是",
 				"Having recovered your glasses you can see again!":
 					"找回了你的眼镜，你可以看见了！",
 				"Having lost your glasses your eyesight is impaired!":
@@ -1407,9 +1220,6 @@ async function ForBetterClub() {
 					ServerSend: "ABE74E75",
 					ServerSendQueueProcess: "BD4277AC",
 					SkillGetWithRatio: "3EB4BC45",
-					SpeechGarble: "9D669F73",
-					SpeechGarbleByGagLevel: "3D604B82",
-					SpeechGetTotalGagLevel: "5F4F6D45",
 					StruggleDexterityProcess: "7E19ADA9",
 					StruggleFlexibilityCheck: "727CE05B",
 					StruggleFlexibilityProcess: "278D7285",
@@ -1750,12 +1560,10 @@ async function ForBetterClub() {
 	registerFunction(commands, "commands");
 	registerFunction(chatRoomOverlay, "chatRoomOverlay");
 	registerFunction(privateWardrobe, "privateWardrobe");
-	registerFunction(antiGarbling, "antiGarbling");
 	registerFunction(autoGhostBroadcast, "autoGhostBroadcast");
 	registerFunction(blindWithoutGlasses, "blindWithoutGlasses");
 	registerFunction(friendPresenceNotifications, "friendPresenceNotifications");
 	registerFunction(forcedClubSlave, "forcedClubSlave");
-	registerFunction(fpsCounter, "fpsCounter");
 	registerFunction(instantMessenger, "instantMessenger");
 	registerFunction(autoStruggle, "autoStruggle");
 	registerFunction(nicknames, "nicknames");
@@ -1966,56 +1774,6 @@ async function ForBetterClub() {
 					return null;
 				}
 				return next(args);
-			}
-		);
-	}
-
-	function fpsCounter() {
-		let lastFrame = -1;
-
-		/** @type {(ms: number) => number} */
-		const expectedFrameTime = (ms) => (1000 / ms) | 0;
-
-		SDK.hookFunction(
-			"GameRun",
-			HOOK_PRIORITIES.Observe,
-			/**
-			 * @param {Parameters<typeof GameRun>} args
-			 */
-			(args, next) => {
-				const [time] = args;
-				if (lastFrame >= 0 && time > 0) {
-					let ftl = 0;
-					if (fbcSettings.limitFPSInBackground && !document.hasFocus()) {
-						ftl = 10;
-					} else if (fbcSettings.limitFPSTo15) {
-						ftl = 15;
-					} else if (fbcSettings.limitFPSTo30) {
-						ftl = 30;
-					} else if (fbcSettings.limitFPSTo60) {
-						ftl = 60;
-					}
-					if (lastFrame + expectedFrameTime(ftl) > time) {
-						requestAnimationFrame(GameRun);
-						return;
-					}
-				}
-				let frameTime = 10000;
-				if (time > 0) {
-					frameTime = time - lastFrame;
-					lastFrame = time;
-				}
-				next(args);
-				if (time > 0 && fbcSettings.fpsCounter) {
-					DrawTextFit(
-						(Math.round(10000 / frameTime) / 10).toString(),
-						15,
-						12,
-						30,
-						"white",
-						"black"
-					);
-				}
 			}
 		);
 	}
@@ -6653,7 +6411,6 @@ async function ForBetterClub() {
 				alternateArousal: !!fbcSettings.alternateArousal,
 				replyRequested: requestReply,
 				capabilities: CAPABILITIES,
-				blockAntiGarble: blockAntiGarble(),
 			},
 		};
 		if (target) {
@@ -6779,7 +6536,6 @@ async function ForBetterClub() {
 				message.progress || sender.ArousalSettings?.Progress || 0;
 			sender.BCEEnjoyment = message.enjoyment || 1;
 			sender.BCECapabilities = message.capabilities ?? [];
-			sender.BCEBlockAntiGarble = message.blockAntiGarble ?? false;
 			if (message.replyRequested) {
 				sendHello(sender.MemberNumber);
 			}
@@ -7077,360 +6833,6 @@ async function ForBetterClub() {
 
 		document.addEventListener("keydown", keyHandler, true);
 		document.addEventListener("keypress", keyHandler, true);
-	}
-
-	async function antiGarbling() {
-		await waitFor(() => !!SpeechGarbleByGagLevel);
-
-		/**
-		 * @param {Character} c
-		 */
-		function allowedToUngarble(c) {
-			return (
-				c.IsNpc() ||
-				(c.BCECapabilities?.includes("antigarble") &&
-					c.BCEBlockAntiGarble === false)
-			);
-		}
-
-		ChatRoomRegisterMessageHandler({
-			Priority: 1,
-			Description: "Anti-garbling by FBC",
-			Callback: (data, sender, msg) => {
-				const clientGagged = msg.endsWith(GAGBYPASSINDICATOR);
-				msg = msg.replace(/[\uf123-\uf124]/gu, "");
-				let handled = clientGagged;
-				if (
-					fbcSettings.gagspeak &&
-					!clientGagged &&
-					allowedToUngarble(sender)
-				) {
-					switch (data.Type) {
-						case "Whisper":
-							{
-								let original = msg;
-								if (
-									// @ts-ignore - BCX's custom dictionary entry, dictionary entries cannot be extended in TS
-									data.Dictionary?.some((d) => d.Tag === BCX_ORIGINAL_MESSAGE)
-								) {
-									const tag = data.Dictionary.find(
-										// @ts-ignore - BCX's custom dictionary entry, dictionary entries cannot be extended in TS
-										(d) => d.Tag === BCX_ORIGINAL_MESSAGE
-									);
-									// @ts-ignore - BCX's custom dictionary entry, dictionary entries cannot be extended in TS
-									// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-									const text = /** @type {string} */ (tag.Text);
-									original = ChatRoomHTMLEntities(text);
-								}
-								if (
-									original.toLowerCase().trim() !== msg.toLowerCase().trim()
-								) {
-									msg += ` (${original})`;
-									handled = true;
-								}
-							}
-							break;
-						case "Chat":
-							{
-								const original = msg;
-								msg = SpeechGarble(sender, msg);
-								if (
-									original.toLowerCase().trim() !== msg.toLowerCase().trim() &&
-									SpeechGetTotalGagLevel(sender) > 0
-								) {
-									msg += ` (${original})`;
-									handled = true;
-								}
-							}
-							break;
-						default:
-							break;
-					}
-				}
-
-				const skip = (
-					/** @type {ChatRoomMessageHandler} */
-					handler
-				) =>
-					handler.Description === "Sensory-deprivation processing" &&
-					!!fbcSettings.gagspeak &&
-					handled;
-				return { skip, msg };
-			},
-		});
-
-		// ServerSend hook for client-side gagspeak, priority lower than BCX's whisper dictionary hook
-		SDK.hookFunction(
-			"ServerSend",
-			HOOK_PRIORITIES.Observe,
-			/**
-			 * @param {Parameters<typeof ServerSend>} args
-			 */ (args, next) => {
-				if (args.length < 2) {
-					return next(args);
-				}
-				const [message, /** @type {unknown} */ data] = args;
-				if (!isString(message) || !isChatMessage(data)) {
-					return next(args);
-				}
-				if (message === "ChatRoomChat") {
-					switch (data.Type) {
-						case "Whisper":
-							{
-								const idx =
-									data.Dictionary?.findIndex(
-										// @ts-ignore - BCX's custom dictionary entry, dictionary entries cannot be extended in TS
-										(d) => d.Tag === BCX_ORIGINAL_MESSAGE
-									) ?? -1;
-								if (
-									idx >= 0 &&
-									(fbcSettings.antiAntiGarble ||
-										fbcSettings.antiAntiGarbleStrong ||
-										fbcSettings.antiAntiGarbleExtra)
-								) {
-									data.Dictionary?.splice(idx, 1);
-								}
-							}
-							break;
-						case "Chat":
-							{
-								const gagLevel = SpeechGetTotalGagLevel(Player);
-								if (gagLevel > 0) {
-									if (fbcSettings.antiAntiGarble) {
-										data.Content =
-											SpeechGarbleByGagLevel(1, data.Content) +
-											GAGBYPASSINDICATOR;
-									} else if (fbcSettings.antiAntiGarbleExtra && gagLevel > 24) {
-										const icIndicator = "\uF124";
-										let inOOC = false;
-										data.Content = `${data.Content.split("")
-											.map((c) => {
-												switch (c) {
-													case "(":
-														inOOC = true;
-														return c;
-													case ")":
-														inOOC = false;
-														return c;
-													default:
-														return inOOC ? c : icIndicator;
-												}
-											})
-											.join("")
-											.replace(
-												new RegExp(`${icIndicator}+`, "gu"),
-												"m"
-											)}${GAGBYPASSINDICATOR}`;
-									} else if (
-										fbcSettings.antiAntiGarbleStrong ||
-										fbcSettings.antiAntiGarbleExtra
-									) {
-										data.Content =
-											SpeechGarbleByGagLevel(gagLevel, data.Content) +
-											GAGBYPASSINDICATOR;
-									}
-								}
-							}
-							break;
-						default:
-							break;
-					}
-				}
-				return next([message, data]);
-			}
-		);
-
-		// X, Y, width, height. X and Y centered.
-		const gagAntiCheatMenuPosition = /** @type {const} */ ([
-				1700, 908, 200, 45,
-			]),
-			/** @type {[number, number, number, number]} */
-			gagCheatMenuPosition = [1700, 908 + 45, 200, 45],
-			tooltipPosition = { X: 1000, Y: 910, Width: 200, Height: 90 };
-
-		SDK.hookFunction(
-			"ChatRoomRun",
-			HOOK_PRIORITIES.ModifyBehaviourHigh,
-			/**
-			 * @param {Parameters<typeof ChatRoomRun>} args
-			 */
-			(args, nextFunc) => {
-				const ret = nextFunc(args);
-
-				if (w.InputChat) {
-					/** @type {() => boolean} */
-					const isWhispering = () =>
-						w.InputChat?.value.startsWith("/w ") ||
-						w.InputChat?.value.startsWith("/whisper ") ||
-						!!w.ChatRoomTargetMemberNumber;
-					if (
-						w.InputChat?.classList.contains(WHISPER_CLASS) &&
-						!isWhispering()
-					) {
-						w.InputChat.classList.remove(WHISPER_CLASS);
-					} else if (fbcSettings.whisperInput && isWhispering()) {
-						w.InputChat?.classList.add(WHISPER_CLASS);
-					}
-					if (Player.ChatSettings?.ColorTheme?.startsWith("Dark")) {
-						if (!w.InputChat.classList.contains(DARK_INPUT_CLASS)) {
-							w.InputChat.classList.add(DARK_INPUT_CLASS);
-						}
-					} else if (w.InputChat.classList.contains(DARK_INPUT_CLASS)) {
-						w.InputChat.classList.remove(DARK_INPUT_CLASS);
-					}
-				}
-
-				if (!fbcSettings.showQuickAntiGarble || fbcSettings.discreetMode) {
-					return ret;
-				}
-				const shorttip = displayText("Gagging"),
-					tooltip = displayText("Antigarble anti-cheat strength");
-
-				let color = "white",
-					label = "None";
-
-				const disableBoth = () => displayText("$tip: None", { $tip: tooltip }),
-					enableLimited = () => displayText("$tip: Limited", { $tip: tooltip }),
-					enableStrong = () => displayText("$tip: Full", { $tip: tooltip }),
-					// eslint-disable-next-line sort-vars
-					enableExtra = () => displayText("$tip: Extra", { $tip: tooltip });
-
-				let next = enableLimited,
-					previous = enableExtra;
-
-				if (fbcSettings.antiAntiGarble) {
-					color = "yellow";
-					label = "Limited";
-					next = enableStrong;
-					previous = disableBoth;
-				} else if (fbcSettings.antiAntiGarbleStrong) {
-					color = "red";
-					label = "Full";
-					next = enableExtra;
-					previous = enableLimited;
-				} else if (fbcSettings.antiAntiGarbleExtra) {
-					color = "purple";
-					label = "Extra";
-					next = disableBoth;
-					previous = enableStrong;
-				}
-				DrawBackNextButton(
-					...gagAntiCheatMenuPosition,
-					// Localization guide: ignore, covered by localizing the arrow functions above
-					displayText(`$tip: ${label}`, { $tip: shorttip }),
-					color,
-					"",
-					previous,
-					next,
-					// eslint-disable-next-line no-undefined
-					undefined,
-					// eslint-disable-next-line no-undefined
-					undefined,
-					// @ts-ignore - patched to accept extra params
-					tooltipPosition
-				);
-
-				/** @type {[string, string, string, () => string, () => string, boolean?, number?, Position?]} */
-				const gagCheatMenuParams = fbcSettings.gagspeak
-					? [
-							displayText("Understand: Yes"),
-							"green",
-							"",
-							() => displayText("Understand gagspeak: No"),
-							() => displayText("Understand gagspeak: No"),
-							// eslint-disable-next-line no-undefined
-							undefined,
-							// eslint-disable-next-line no-undefined
-							undefined,
-							tooltipPosition,
-					  ]
-					: [
-							"Understand: No",
-							"white",
-							"",
-							() => displayText("Understand gagspeak: Yes"),
-							() => displayText("Understand gagspeak: Yes"),
-							// eslint-disable-next-line no-undefined
-							undefined,
-							// eslint-disable-next-line no-undefined
-							undefined,
-							tooltipPosition,
-					  ];
-				// @ts-ignore - patched to accept extra params
-				DrawBackNextButton(...gagCheatMenuPosition, ...gagCheatMenuParams);
-
-				return ret;
-			}
-		);
-
-		SDK.hookFunction(
-			"ChatRoomClick",
-			HOOK_PRIORITIES.ModifyBehaviourHigh,
-			/**
-			 * @param {Parameters<typeof ChatRoomClick>} args
-			 */
-			(args, nextFunc) => {
-				if (fbcSettings.showQuickAntiGarble && !fbcSettings.discreetMode) {
-					if (MouseIn(...gagAntiCheatMenuPosition)) {
-						const disableAll = () => {
-								fbcSettings.antiAntiGarble = false;
-								fbcSettings.antiAntiGarbleStrong = false;
-								fbcSettings.antiAntiGarbleExtra = false;
-								defaultSettings.antiAntiGarble.sideEffects(false);
-								defaultSettings.antiAntiGarbleStrong.sideEffects(false);
-								defaultSettings.antiAntiGarbleExtra.sideEffects(false);
-							},
-							enableLimited = () => {
-								fbcSettings.antiAntiGarble = true;
-								defaultSettings.antiAntiGarble.sideEffects(true);
-							},
-							enableStrong = () => {
-								fbcSettings.antiAntiGarbleStrong = true;
-								defaultSettings.antiAntiGarbleStrong.sideEffects(true);
-							},
-							// eslint-disable-next-line sort-vars
-							enableExtra = () => {
-								fbcSettings.antiAntiGarbleExtra = true;
-								defaultSettings.antiAntiGarbleExtra.sideEffects(true);
-							};
-						let next = enableLimited,
-							previous = enableExtra;
-						if (fbcSettings.antiAntiGarble) {
-							next = enableStrong;
-							previous = disableAll;
-						} else if (fbcSettings.antiAntiGarbleStrong) {
-							next = enableExtra;
-							previous = enableLimited;
-						} else if (fbcSettings.antiAntiGarbleExtra) {
-							next = disableAll;
-							previous = enableStrong;
-						}
-						if (
-							MouseX <
-							gagAntiCheatMenuPosition[0] + gagAntiCheatMenuPosition[2] / 2
-						) {
-							previous();
-							bceSaveSettings();
-						} else {
-							next();
-							bceSaveSettings();
-						}
-					} else if (MouseIn(...gagCheatMenuPosition)) {
-						fbcSettings.gagspeak = !fbcSettings.gagspeak;
-						defaultSettings.gagspeak.sideEffects(fbcSettings.gagspeak);
-						bceSaveSettings();
-					}
-				}
-				return nextFunc(args);
-			}
-		);
-
-		if (CurrentScreen === "ChatRoom") {
-			CurrentScreenFunctions.Run = ChatRoomRun;
-			CurrentScreenFunctions.Click = ChatRoomClick;
-			CurrentScreenFunctions.Resize = ChatRoomResize;
-			ChatRoomResize(false);
-		}
 	}
 
 	async function alternateArousal() {
