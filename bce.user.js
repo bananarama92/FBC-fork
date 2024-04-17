@@ -1121,26 +1121,23 @@ async function ForBetterClub() {
 					CharacterBuildDialog: "85F79C6E",
 					CharacterCompressWardrobe: "2A05ECD1",
 					CharacterDecompressWardrobe: "327FADA4",
-					CharacterDelete: "BD2D4761",
+					CharacterDelete: "57AA5D48",
 					CharacterGetCurrent: "69F45A41",
 					CharacterLoadCanvas: "EAB81BC4",
 					CharacterLoadOnline: "B1BCD3B1",
 					CharacterNickname: "A794EFF5",
-					CharacterRefresh: "3A32BC2A",
-					CharacterReleaseTotal: "BB9C6989",
+					CharacterRefresh: "301DA9CF",
 					CharacterSetCurrent: "F46573D8",
 					CharacterSetFacialExpression: "F83CE881",
 					CharacterSetActivePose: "566A14D7",
 					ChatAdminRoomCustomizationClick: "E194A605",
-					ChatAdminRoomCustomizationProcess: "B33D6388",
+					ChatAdminRoomCustomizationProcess: "AF01C65A",
 					ChatRoomAppendChat: "998F2F98",
 					ChatRoomCharacterItemUpdate: "263DB2F0",
 					ChatRoomCharacterUpdate: "DE2DC592",
 					ChatRoomCharacterViewDrawBackground: "39EFE213",
 					ChatRoomCharacterViewIsActive: "CD8066FA",
-					ChatRoomClearAllElements: "14DAAB05",
-					ChatRoomClick: "F57069BB",
-					ChatRoomCreateElement: "78F86423",
+					ChatRoomClearAllElements: "D67A7839",
 					ChatRoomCurrentTime: "A462DD3A",
 					ChatRoomDrawCharacterStatusIcons: "198C8657",
 					ChatRoomHTMLEntities: "0A7ADB1D",
@@ -1151,33 +1148,29 @@ async function ForBetterClub() {
 					ChatRoomMapViewIsActive: "D181020D",
 					ChatRoomMessage: "BBD61334",
 					ChatRoomMessageDisplay: "37B5D4F2",
-					ChatRoomRegisterMessageHandler: "C432923A",
-					ChatRoomResize: "653445D7",
-					ChatRoomRun: "9E0D7899",
-					ChatRoomSendChat: "76A693E3",
+					ChatRoomSendChat: "C4C0688E",
 					ChatRoomStart: "9B822A9A",
 					CommandExecute: "803D6C70",
-					CommandParse: "299D1046",
+					CommandParse: "63867F54",
 					CommonClick: "1F6DF7CB",
 					CommonColorIsValid: "390A2CE4",
-					CommonSetScreen: "E0CA772F",
-					CraftingClick: "FF1A7B21",
+					CommonSetScreen: "E10E2148",
+					CraftingClick: "5A1B4ACC",
 					CraftingConvertSelectedToItem: "48270B42",
-					CraftingRun: "5BE6E125",
+					CraftingRun: "4018E748",
 					DialogClick: "A1B56CDF",
-					DialogDraw: "733FE9E1",
-					DialogDrawItemMenu: "FCE556C2",
+					DialogDraw: "118DB6E4",
 					DialogLeave: "C37553DC",
 					DrawArousalMeter: "BB0755AF",
 					DrawArousalThermometer: "7ED6D822",
 					DrawBackNextButton: "9AF4BA37",
-					DrawButton: "A7023A82",
+					DrawButton: "B747DF6E",
 					DrawCharacter: "B175AF5E",
 					DrawCheckbox: "00FD87EB",
 					DrawImageEx: "E01BE7E7",
 					DrawImageResize: "D205975A",
 					DrawItemPreview: "6A7A1E2A",
-					DrawProcess: "1E1BBA16",
+					DrawProcess: "9776CBC2",
 					DrawText: "C1BF0F50",
 					DrawTextFit: "F9A1B11E",
 					ElementCreateInput: "EB2A3EC8",
@@ -1188,9 +1181,9 @@ async function ForBetterClub() {
 					ElementScrollToEnd: "1AC45575",
 					ElementValue: "4F26C62F",
 					FriendListShowBeep: "6C0449BB",
-					GameRun: "4FDC9390",
+					GameRun: "505F7E21",
 					GLDrawResetCanvas: "81214642",
-					InformationSheetRun: "91B4FF1F",
+					InformationSheetRun: "4B2D599D",
 					InventoryGet: "E666F671",
 					LoginClick: "EE94BEC7",
 					LoginRun: "C3926C4F",
@@ -1212,8 +1205,7 @@ async function ForBetterClub() {
 					ServerAppearanceBundle: "4D069622",
 					ServerAppearanceLoadFromBundle: "946537FD",
 					ServerClickBeep: "3E6277BE",
-					ServerConnect: "845E50A6",
-					ServerDisconnect: "06C1A6B0",
+					ServerDisconnect: "198FF7E7",
 					ServerInit: "B6CEF7F1",
 					ServerOpenFriendList: "FA8D3CDE",
 					ServerPlayerExtensionSettingsSync: "1776666B",
@@ -1228,10 +1220,8 @@ async function ForBetterClub() {
 					StruggleMinigameStop: "FB05E8A9",
 					StruggleStrengthProcess: "D20CF698",
 					TextGet: "4DDE5794",
-					TextLoad: "0D535190",
 					TimerInventoryRemove: "1FA771FB",
-					TimerProcess: "52458C63",
-					TitleExit: "F13F533C",
+					TimerProcess: "BFB7FFE2",
 					ValidationSanitizeProperties: "659F5965",
 					WardrobeClick: "33405B1D",
 					WardrobeExit: "12D14AE4",
@@ -1715,36 +1705,6 @@ async function ForBetterClub() {
 				return next(args);
 			}
 		);
-
-		// GameVersion R102 - no longer required on R103
-		if (typeof RelogChatLog !== "undefined") {
-			/*
-			 * Chat scroll after relog
-			 * delay is the number of frames to delay the scroll
-			 */
-			let delay = 0;
-			SDK.hookFunction(
-				"ChatRoomCreateElement",
-				HOOK_PRIORITIES.AddBehaviour,
-				/**
-				 * @param {Parameters<typeof ChatRoomCreateElement>} args
-				 */
-				(args, next) => {
-					const isRelog = !!RelogChatLog;
-					const ret = next(args);
-					if (isRelog) {
-						delay = 3;
-					}
-					if (delay > 0) {
-						delay--;
-						if (delay === 0) {
-							ElementScrollToEnd("TextAreaChatLog");
-						}
-					}
-					return ret;
-				}
-			);
-		}
 
 		// Prevent friendlist results from attempting to load into the HTML outside of the appropriate view
 		SDK.hookFunction(
