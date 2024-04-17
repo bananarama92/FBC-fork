@@ -41,7 +41,7 @@ async function ForBetterClub() {
 - Changed modals to use FUSAM's modal system
 `;
 
-	const SUPPORTED_GAME_VERSIONS = ["R102"];
+	const SUPPORTED_GAME_VERSIONS = ["R103"];
 	const CAPABILITIES = /** @type {const} */ (["clubslave"]);
 
 	const w = window;
@@ -1780,7 +1780,7 @@ async function ForBetterClub() {
 
 	async function hookBCXAPI() {
 		await waitFor(() => !!w.bcx);
-		BCX = w.bcx?.getModApi("FBC") ?? null;
+		BCX = w.bcx?.getModApi("FBC-ish") ?? null;
 	}
 
 	async function commands() {
