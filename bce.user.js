@@ -1633,17 +1633,6 @@ async function ForBetterClub() {
 	}
 
 	function commonPatches() {
-		// DrawBackNextButton patch to allow overriding hover text position
-		patchFunction(
-			"DrawBackNextButton",
-			{
-				"Disabled, ArrowWidth": "Disabled, ArrowWidth, tooltipPosition",
-				"DrawButtonHover(Left, Top, Width, Height,":
-					"DrawButtonHover(tooltipPosition?.X || Left, tooltipPosition?.Y || Top, tooltipPosition?.Width || Width, tooltipPosition?.Height || Height,",
-			},
-			"Tooltip positions may be incorrect."
-		);
-
 		// CommandExecute patch to fix /whitelistadd and /whitelistremove
 		patchFunction(
 			"CommandExecute",
@@ -6795,6 +6784,43 @@ async function ForBetterClub() {
 		document.addEventListener("keydown", keyHandler, true);
 		document.addEventListener("keypress", keyHandler, true);
 	}
+
+	waitFor(() => typeof MainCanvas !== "undefined").then(() => {
+		SDK.hookFunction(
+			"ChatRoomRun",
+			HOOK_PRIORITIES.ModifyBehaviourHigh,
+			/**
+			 * @param {Parameters<typeof ChatRoomRun>} args
+			 */
+			(args, nextFunc) => {
+				const ret = nextFunc(args);
+
+				if (w.InputChat) {
+					/** @type {() => boolean} */
+					const isWhispering = () =>
+						w.InputChat?.value.startsWith("/w ") ||
+						w.InputChat?.value.startsWith("/whisper ") ||
+						!!w.ChatRoomTargetMemberNumber;
+					if (
+						w.InputChat?.classList.contains(WHISPER_CLASS) &&
+						!isWhispering()
+					) {
+						w.InputChat.classList.remove(WHISPER_CLASS);
+					} else if (fbcSettings.whisperInput && isWhispering()) {
+						w.InputChat?.classList.add(WHISPER_CLASS);
+					}
+					if (Player.ChatSettings?.ColorTheme?.startsWith("Dark")) {
+						if (!w.InputChat.classList.contains(DARK_INPUT_CLASS)) {
+							w.InputChat.classList.add(DARK_INPUT_CLASS);
+						}
+					} else if (w.InputChat.classList.contains(DARK_INPUT_CLASS)) {
+						w.InputChat.classList.remove(DARK_INPUT_CLASS);
+					}
+				}
+				return ret;
+			}
+		);
+	});
 
 	async function alternateArousal() {
 		await waitFor(() => !!ServerSocket && ServerIsConnected);
