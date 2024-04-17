@@ -21,7 +21,9 @@ async function waitFor(predicate) {
 
 waitFor(() => (typeof FUSAM === "object" && FUSAM?.present)).then(() => {
     const n = document.createElement("script");
+    // @ts-ignore
     n.language = "JavaScript";
+    // @ts-ignore
     n.crossorigin = "anonymous";
     n.src = `https://bananarama92.github.io/FBC-fork/bce.user.js?_=${Date.now()}`;
     document.head.appendChild(n);

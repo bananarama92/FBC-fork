@@ -312,6 +312,4 @@ declare global {
     FBC: string;
     FBCWardrobe: string;
   }
-
-  var GameRun: typeof GameRunNormal;
 }

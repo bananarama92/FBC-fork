@@ -22,10 +22,14 @@
 async function ForBetterClub() {
 	"use strict";
 
-	const FBC_VERSION = "5.8";
-	const settingsVersion = 58;
+	const FBC_VERSION = "6.0";
+	const settingsVersion = 60;
 
 	const fbcChangelog = `${FBC_VERSION}
+- Remove FPS-limiter and garbling-related functionalities
+- Remove R102 leftovers
+
+5.8
 - Changed discreet mode to allow friend list and main hall backgrounds
 - Changed /beep to respect BCX beep restrictions
 
@@ -35,9 +39,6 @@ async function ForBetterClub() {
 
 5.6
 - Changed modals to use FUSAM's modal system
-
-5.5
-- Fixed a bug where local settings would get priority over online settings, which could cause issues when using multiple devices
 `;
 
 	const SUPPORTED_GAME_VERSIONS = ["R102"];
@@ -8866,30 +8867,21 @@ async function ForBetterClub() {
 				}
 
 				try {
-					// @ts-ignore - the function's types are garbage
 					const [{ ImageURL, MusicURL }] = args;
-
-					// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-argument
 					const imageOrigin = ImageURL && new URL(ImageURL).origin;
-					// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-argument
 					const musicOrigin = MusicURL && new URL(MusicURL).origin;
 
-					// eslint-disable-next-line @typescript-eslint/no-unsafe-argument
 					if (imageOrigin && !sessionCustomOrigins.has(imageOrigin)) {
-						// eslint-disable-next-line @typescript-eslint/no-unsafe-argument
 						showCustomContentDomainCheckWarning(imageOrigin, "image");
-						// eslint-disable-next-line @typescript-eslint/no-unsafe-argument
 					} else if (musicOrigin && !sessionCustomOrigins.has(musicOrigin)) {
-						// eslint-disable-next-line @typescript-eslint/no-unsafe-argument
 						showCustomContentDomainCheckWarning(musicOrigin, "music");
 					}
 
 					if (
-						(!ImageURL ||
-							// eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-							sessionCustomOrigins.get(imageOrigin) === "allowed") &&
-						// eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-						(!MusicURL || sessionCustomOrigins.get(musicOrigin) === "allowed")
+						imageOrigin
+						&& musicOrigin
+						&& (!ImageURL || sessionCustomOrigins.get(imageOrigin) === "allowed")
+						&& (!MusicURL || sessionCustomOrigins.get(musicOrigin) === "allowed")
 					) {
 						return next(args);
 					}

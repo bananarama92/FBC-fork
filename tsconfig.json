@@ -1,4 +1,7 @@
 {
+	"scripts": {
+		"typecheck": "tsc --noEmit -p ."
+    },
 	"include": [
 		"node_modules/bc-stubs/bc/**/*.d.ts",
 		"**/*.js",
