@@ -1107,131 +1107,167 @@ async function ForBetterClub() {
 	 * @param {string} gameVersion
 	 */
 	const expectedHashes = (gameVersion) => {
+		/** @satisfies {Record<string, string>} */
+		const defaults = /** @type {const} */ ({
+			ActivityChatRoomArousalSync: "BFF3DED7",
+			ActivitySetArousal: "3AE28123",
+			ActivitySetArousalTimer: "1342AFE2",
+			ActivityTimerProgress: "6CD388A7",
+			AppearanceClick: "4C04C15E",
+			AppearanceExit: "AA300341",
+			AppearanceLoad: "4360C485",
+			AppearanceRun: "6EC75705",
+			CharacterAppearanceWardrobeLoad: "A5B63A03",
+			CharacterBuildDialog: "85F79C6E",
+			CharacterCompressWardrobe: "2A05ECD1",
+			CharacterDecompressWardrobe: "327FADA4",
+			CharacterDelete: "57AA5D48",
+			CharacterGetCurrent: "69F45A41",
+			CharacterLoadCanvas: "EAB81BC4",
+			CharacterLoadOnline: "B1BCD3B1",
+			CharacterNickname: "A794EFF5",
+			CharacterRefresh: "301DA9CF",
+			CharacterSetCurrent: "F46573D8",
+			CharacterSetFacialExpression: "F83CE881",
+			CharacterSetActivePose: "566A14D7",
+			ChatAdminRoomCustomizationClick: "E194A605",
+			ChatAdminRoomCustomizationProcess: "AF01C65A",
+			ChatRoomAppendChat: "998F2F98",
+			ChatRoomCharacterItemUpdate: "263DB2F0",
+			ChatRoomCharacterUpdate: "DE2DC592",
+			ChatRoomCharacterViewIsActive: "CD8066FA",
+			ChatRoomClearAllElements: "D67A7839",
+			ChatRoomCurrentTime: "A462DD3A",
+			ChatRoomDrawCharacterStatusIcons: "198C8657",
+			ChatRoomHTMLEntities: "0A7ADB1D",
+			ChatRoomKeyDown: "CBE6830E",
+			ChatRoomListManipulation: "75D28A8B",
+			ChatRoomMapViewCharacterIsVisible: "286C447D",
+			ChatRoomMapViewCharacterOnWhisperRange: "B0D08E96",
+			ChatRoomMapViewIsActive: "D181020D",
+			ChatRoomMessage: "BBD61334",
+			ChatRoomMessageDisplay: "37B5D4F2",
+			ChatRoomSendChat: "C4C0688E",
+			ChatRoomStart: "9B822A9A",
+			CommandExecute: "803D6C70",
+			CommandParse: "63867F54",
+			CommonClick: "1F6DF7CB",
+			CommonColorIsValid: "390A2CE4",
+			CommonSetScreen: "E10E2148",
+			CraftingClick: "5A1B4ACC",
+			CraftingConvertSelectedToItem: "48270B42",
+			CraftingRun: "4018E748",
+			DialogClick: "A1B56CDF",
+			DialogDraw: "118DB6E4",
+			DialogLeave: "C37553DC",
+			DrawArousalMeter: "BB0755AF",
+			DrawArousalThermometer: "7ED6D822",
+			DrawRoomBackground: "5B829E54",
+			DrawBackNextButton: "9AF4BA37",
+			DrawButton: "B747DF6E",
+			DrawCharacter: "B175AF5E",
+			DrawCheckbox: "00FD87EB",
+			DrawImageEx: "E01BE7E7",
+			DrawImageResize: "D205975A",
+			DrawItemPreview: "6A7A1E2A",
+			DrawProcess: "9776CBC2",
+			DrawText: "C1BF0F50",
+			DrawTextFit: "F9A1B11E",
+			ElementCreateInput: "EB2A3EC8",
+			ElementCreateTextArea: "AA4AEDE7",
+			ElementIsScrolledToEnd: "1CC4FE11",
+			ElementPosition: "CC4E3C82",
+			ElementRemove: "60809E60",
+			ElementScrollToEnd: "1AC45575",
+			ElementValue: "4F26C62F",
+			FriendListShowBeep: "6C0449BB",
+			GameRun: "505F7E21",
+			GLDrawResetCanvas: "81214642",
+			InformationSheetRun: "4B2D599D",
+			InventoryGet: "E666F671",
+			LoginClick: "EE94BEC7",
+			LoginRun: "C3926C4F",
+			LoginSetSubmitted: "C88F4A8E",
+			LoginStatusReset: "18619F02",
+			MouseIn: "CA8B839E",
+			NotificationDrawFavicon: "AB88656B",
+			NotificationRaise: "E8F29646",
+			NotificationTitleUpdate: "0E92F3ED",
+			OnlineGameAllowChange: "3779F42C",
+			OnlineProfileClick: "521146DF",
+			OnlineProfileExit: "1C673DC8",
+			OnlineProfileLoad: "BE8B009B",
+			OnlineProfileRun: "7F57EF9A",
+			PoseSetActive: "22C02050",
+			RelogRun: "10AF5A60",
+			RelogExit: "2DFB2DAD",
+			ServerAccountBeep: "F16771D4",
+			ServerAppearanceBundle: "4D069622",
+			ServerAppearanceLoadFromBundle: "946537FD",
+			ServerClickBeep: "3E6277BE",
+			ServerDisconnect: "198FF7E7",
+			ServerInit: "B6CEF7F1",
+			ServerOpenFriendList: "FA8D3CDE",
+			ServerPlayerExtensionSettingsSync: "1776666B",
+			ServerSend: "ABE74E75",
+			ServerSendQueueProcess: "BD4277AC",
+			SkillGetWithRatio: "3EB4BC45",
+			StruggleDexterityProcess: "7E19ADA9",
+			StruggleFlexibilityCheck: "727CE05B",
+			StruggleFlexibilityProcess: "278D7285",
+			StruggleLockPickDraw: "2F1F603B",
+			StruggleMinigameHandleExpression: "1B3ABF55",
+			StruggleMinigameStop: "FB05E8A9",
+			StruggleStrengthProcess: "D20CF698",
+			TextGet: "4DDE5794",
+			TimerInventoryRemove: "1FA771FB",
+			TimerProcess: "BFB7FFE2",
+			ValidationSanitizeProperties: "659F5965",
+			WardrobeClick: "33405B1D",
+			WardrobeExit: "12D14AE4",
+			WardrobeFastLoad: "AAB9F25B",
+			WardrobeFastSave: "D1E906FD",
+			WardrobeFixLength: "CA3334C6",
+			WardrobeLoad: "C343A4C7",
+			WardrobeRun: "633B3570",
+		});
 		switch (gameVersion.toLowerCase()) {
-			default:
-				return /** @type {const} */ ({
-					ActivityChatRoomArousalSync: "BFF3DED7",
-					ActivitySetArousal: "3AE28123",
-					ActivitySetArousalTimer: "1342AFE2",
-					ActivityTimerProgress: "6CD388A7",
-					AppearanceClick: "4C04C15E",
-					AppearanceExit: "AA300341",
-					AppearanceLoad: "4360C485",
-					AppearanceRun: "6EC75705",
-					CharacterAppearanceWardrobeLoad: "A5B63A03",
-					CharacterBuildDialog: "85F79C6E",
-					CharacterCompressWardrobe: "2A05ECD1",
-					CharacterDecompressWardrobe: "327FADA4",
-					CharacterDelete: "57AA5D48",
-					CharacterGetCurrent: "69F45A41",
-					CharacterLoadCanvas: "EAB81BC4",
-					CharacterLoadOnline: "B1BCD3B1",
-					CharacterNickname: "A794EFF5",
-					CharacterRefresh: "301DA9CF",
-					CharacterSetCurrent: "F46573D8",
-					CharacterSetFacialExpression: "F83CE881",
-					CharacterSetActivePose: "566A14D7",
-					ChatAdminRoomCustomizationClick: "E194A605",
-					ChatAdminRoomCustomizationProcess: "AF01C65A",
-					ChatRoomAppendChat: "998F2F98",
-					ChatRoomCharacterItemUpdate: "263DB2F0",
-					ChatRoomCharacterUpdate: "DE2DC592",
-					ChatRoomCharacterViewDrawBackground: "39EFE213",
-					ChatRoomCharacterViewIsActive: "CD8066FA",
-					ChatRoomClearAllElements: "D67A7839",
-					ChatRoomCurrentTime: "A462DD3A",
-					ChatRoomDrawCharacterStatusIcons: "198C8657",
-					ChatRoomHTMLEntities: "0A7ADB1D",
-					ChatRoomKeyDown: "CBE6830E",
-					ChatRoomListManipulation: "75D28A8B",
-					ChatRoomMapViewCharacterIsVisible: "286C447D",
-					ChatRoomMapViewCharacterOnWhisperRange: "B0D08E96",
-					ChatRoomMapViewIsActive: "D181020D",
-					ChatRoomMessage: "BBD61334",
-					ChatRoomMessageDisplay: "37B5D4F2",
-					ChatRoomSendChat: "C4C0688E",
-					ChatRoomStart: "9B822A9A",
-					CommandExecute: "803D6C70",
-					CommandParse: "63867F54",
-					CommonClick: "1F6DF7CB",
-					CommonColorIsValid: "390A2CE4",
-					CommonSetScreen: "E10E2148",
-					CraftingClick: "5A1B4ACC",
-					CraftingConvertSelectedToItem: "48270B42",
-					CraftingRun: "4018E748",
-					DialogClick: "A1B56CDF",
-					DialogDraw: "118DB6E4",
-					DialogLeave: "C37553DC",
-					DrawArousalMeter: "BB0755AF",
-					DrawArousalThermometer: "7ED6D822",
-					DrawBackNextButton: "9AF4BA37",
-					DrawButton: "B747DF6E",
-					DrawCharacter: "B175AF5E",
-					DrawCheckbox: "00FD87EB",
-					DrawImageEx: "E01BE7E7",
-					DrawImageResize: "D205975A",
-					DrawItemPreview: "6A7A1E2A",
-					DrawProcess: "9776CBC2",
-					DrawText: "C1BF0F50",
-					DrawTextFit: "F9A1B11E",
-					ElementCreateInput: "EB2A3EC8",
-					ElementCreateTextArea: "AA4AEDE7",
-					ElementIsScrolledToEnd: "1CC4FE11",
-					ElementPosition: "CC4E3C82",
-					ElementRemove: "60809E60",
-					ElementScrollToEnd: "1AC45575",
-					ElementValue: "4F26C62F",
-					FriendListShowBeep: "6C0449BB",
-					GameRun: "505F7E21",
-					GLDrawResetCanvas: "81214642",
-					InformationSheetRun: "4B2D599D",
-					InventoryGet: "E666F671",
+			case "r104beta1":
+			case "r104beta2":
+			case "r104beta3":
+			case "r104beta4":
+			case "r104":
+				return {
+					...defaults,
+					AppearanceClick: "B6E6C8CE",
+					AppearanceExit: "0409F1E4 ",
+					AppearanceRun: "BDC2AC93",
+					CharacterSetFacialExpression: "EC032BEE",
+					ChatAdminRoomCustomizationClick: "9D859B28",
+					ChatRoomMessage: "EA9F35DE",
+					ChatRoomMessageDisplay: "7B98A629",
+					ChatRoomSendChat: "21606D2F",
+					CommandExecute: "C5477FA1",
+					CommandParse: "5CE27223",
+					CraftingClick: "9169F897",
+					CraftingRun: "51577F65",
+					DialogClick: "1A5FE5F6",
+					DialogDraw: "A0A0B33E",
+					DrawBackNextButton: "7263249E",
+					ElementCreateInput: "A2E9BEDC",
+					ElementPosition: "3D9F7B72",
+					GameRun: "337CB358",
+					InformationSheetRun: "060A6DBA",
 					LoginClick: "EE94BEC7",
-					LoginRun: "C3926C4F",
-					LoginSetSubmitted: "C88F4A8E",
-					LoginStatusReset: "18619F02",
-					MouseIn: "CA8B839E",
-					NotificationDrawFavicon: "AB88656B",
-					NotificationRaise: "E8F29646",
-					NotificationTitleUpdate: "0E92F3ED",
-					OnlineGameAllowChange: "3779F42C",
-					OnlineProfileClick: "521146DF",
-					OnlineProfileExit: "1C673DC8",
-					OnlineProfileLoad: "BE8B009B",
-					OnlineProfileRun: "7F57EF9A",
-					PoseSetActive: "22C02050",
-					RelogRun: "10AF5A60",
-					RelogExit: "2DFB2DAD",
-					ServerAccountBeep: "F16771D4",
-					ServerAppearanceBundle: "4D069622",
-					ServerAppearanceLoadFromBundle: "946537FD",
-					ServerClickBeep: "3E6277BE",
-					ServerDisconnect: "198FF7E7",
-					ServerInit: "B6CEF7F1",
-					ServerOpenFriendList: "FA8D3CDE",
-					ServerPlayerExtensionSettingsSync: "1776666B",
-					ServerSend: "ABE74E75",
-					ServerSendQueueProcess: "BD4277AC",
-					SkillGetWithRatio: "3EB4BC45",
-					StruggleDexterityProcess: "7E19ADA9",
-					StruggleFlexibilityCheck: "727CE05B",
-					StruggleFlexibilityProcess: "278D7285",
-					StruggleLockPickDraw: "2F1F603B",
-					StruggleMinigameHandleExpression: "1B3ABF55",
-					StruggleMinigameStop: "FB05E8A9",
-					StruggleStrengthProcess: "D20CF698",
-					TextGet: "4DDE5794",
-					TimerInventoryRemove: "1FA771FB",
-					TimerProcess: "BFB7FFE2",
-					ValidationSanitizeProperties: "659F5965",
-					WardrobeClick: "33405B1D",
-					WardrobeExit: "12D14AE4",
-					WardrobeFastLoad: "AAB9F25B",
-					WardrobeFastSave: "D1E906FD",
-					WardrobeFixLength: "CA3334C6",
-					WardrobeLoad: "C343A4C7",
-					WardrobeRun: "633B3570",
-				});
+					LoginRun: "D1DB7A8A",
+					ServerAccountBeep: "48D0BA71",
+					StruggleDexterityProcess: "D185D348",
+					StruggleFlexibilityProcess: "1A0B96EF",
+					StruggleLockPickDraw: "C04E2FBB",
+					StruggleStrengthProcess: "B1A1457D",
+				};
+			default:
+				return defaults;
 		}
 	};
 
@@ -1640,36 +1676,6 @@ async function ForBetterClub() {
 				"key.indexOf(CommandsKey + cmd.Tag) == 0)": `key.substring(1) === cmd.Tag)`,
 			},
 			"Whitelist commands will not work."
-		);
-
-		SDK.hookFunction(
-			"InformationSheetRun",
-			HOOK_PRIORITIES.AddBehaviour,
-			/**
-			 * @param {Parameters<typeof InformationSheetRun>} args
-			 */
-			(args, next) => {
-				if (
-					!InformationSheetSelection ||
-					!InformationSheetSelection.MemberNumber
-				) {
-					return next(args);
-				}
-
-				const ret = next(args);
-
-				if (DEVS.includes(InformationSheetSelection.MemberNumber)) {
-					const ctx = w.MainCanvas.getContext("2d");
-					if (!ctx) {
-						throw new Error("could not get canvas 2d context");
-					}
-					ctx.textAlign = "left";
-					DrawText(displayText("FBC Developer"), 550, 75, "hotpink", "black");
-					ctx.textAlign = "center";
-				}
-
-				return ret;
-			}
 		);
 
 		// Looking for settings erasure by client
@@ -2143,7 +2149,7 @@ async function ForBetterClub() {
 					} else {
 						const targetMemberNumber = targetMembers[0].MemberNumber;
 						const originalTarget = ChatRoomTargetMemberNumber;
-						ChatRoomTargetMemberNumber = targetMemberNumber ?? null;
+						ChatRoomTargetMemberNumber = targetMemberNumber ?? -1;
 						ElementValue(
 							"InputChat",
 							`${
@@ -2765,7 +2771,7 @@ async function ForBetterClub() {
 							"Black"
 						);
 					}
-					DrawButton(1250, 385, 180, 60, displayText("Save (FBC)"), "White");
+					DrawButton(1260, 380, 180, 60, displayText("Save (FBC)"), "White");
 
 					let y = 60;
 					for (const user in loginData.passwords) {
@@ -2790,7 +2796,7 @@ async function ForBetterClub() {
 				 * @param {Parameters<typeof LoginClick>} args
 				 */ (args, next) => {
 					const ret = next(args);
-					if (MouseIn(1250, 385, 180, 60)) {
+					if (MouseIn(1260, 380, 180, 60)) {
 						bceUpdatePasswordForReconnect();
 						loginData.posMaps = {};
 						loginData.passwords = loadPasswords() || {};
@@ -8955,18 +8961,9 @@ async function ForBetterClub() {
 			return next(args);
 		};
 
-		SDK.hookFunction(
-			"ChatRoomCharacterViewDrawBackground",
-			HOOK_PRIORITIES.Top,
-			discreetModeHook
-		);
-
+		SDK.hookFunction("DrawRoomBackground", HOOK_PRIORITIES.Top, discreetModeHook);
 		SDK.hookFunction("DrawCharacter", HOOK_PRIORITIES.Top, discreetModeHook);
-		SDK.hookFunction(
-			"NotificationDrawFavicon",
-			HOOK_PRIORITIES.Top,
-			discreetModeHook
-		);
+		SDK.hookFunction("NotificationDrawFavicon", HOOK_PRIORITIES.Top, discreetModeHook);
 
 		SDK.hookFunction(
 			"DrawImageEx",
