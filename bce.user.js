@@ -83,8 +83,7 @@ async function ForBetterClub() {
 	const DISCORD_INVITE_URL = "https://discord.gg/SHJMjEh9VH";
 	const WEBSITE_URL = "https://github.com/bananarama92/FBC-fork";
 
-	const BCE_COLOR_ADJUSTMENTS_CLASS_NAME = "bce-colors",
-		BCE_LICENSE = "https://github.com/bananarama92/FBC-fork/blob/main/LICENSE",
+	const BCE_LICENSE = "https://github.com/bananarama92/FBC-fork/blob/main/LICENSE",
 		BCE_MAX_AROUSAL = 99.6,
 		BCE_MSG = "BCEMsg",
 		BEEP_CLICK_ACTIONS = Object.freeze({
@@ -340,24 +339,6 @@ async function ForBetterClub() {
 			category: "chat",
 			description:
 				"Changes the input field to italics when you're in whisper mode to make it more obvious.",
-		},
-		chatColors: {
-			label: "Improve colors for readability",
-			value: true,
-			/**
-			 * @param {unknown} newValue
-			 */
-			sideEffects: (newValue) => {
-				if (newValue) {
-					document.body.classList.add(BCE_COLOR_ADJUSTMENTS_CLASS_NAME);
-				} else {
-					document.body.classList.remove(BCE_COLOR_ADJUSTMENTS_CLASS_NAME);
-				}
-				debug("chatColors", newValue);
-			},
-			category: "chat",
-			description:
-				"Improves contrast between the colors used for chat messages to comply with web accessibility standards.",
 		},
 		friendPresenceNotifications: {
 			label: "Show friend presence notifications",
@@ -903,7 +884,6 @@ async function ForBetterClub() {
 				"Chat Links and Embeds": "聊天链接和嵌入",
 				"Use Ctrl+Enter to OOC": "使用Ctrl+Enter进行OOC发言",
 				"Use italics for input when whispering": "悄悄话使用斜体字",
-				"Improve colors for readability": "改善颜色以提高可读性",
 				"Show friend presence notifications": "显示好友在线通知",
 				"Show friends going offline too (requires friend presence)":
 					"显示朋友离线通知 (需要启用好友在线通知)",
@@ -2949,9 +2929,6 @@ async function ForBetterClub() {
 			border: 0.1em solid black;
 			margin-right: 0.1em;
 		}
-		.${BCE_COLOR_ADJUSTMENTS_CLASS_NAME} .${DARK_INPUT_CLASS}.${INPUT_WARN_CLASS} {
-			background-color: #400000 !important;
-		}
 		.${INPUT_WARN_CLASS} {
 			background-color: yellow !important;
 		}
@@ -2963,14 +2940,6 @@ async function ForBetterClub() {
 		#TextAreaChatLog a:visited,
 		.bce-message a {
 			color: #380091;
-		}
-		.${BCE_COLOR_ADJUSTMENTS_CLASS_NAME} div.ChatMessageWhisper,
-		.${BCE_COLOR_ADJUSTMENTS_CLASS_NAME} div.ChatMessageWhisper {
-			color: #646464;
-		}
-		.${BCE_COLOR_ADJUSTMENTS_CLASS_NAME} #TextAreaChatLog[data-colortheme="dark"] div.ChatMessageWhisper,
-		.${BCE_COLOR_ADJUSTMENTS_CLASS_NAME} #TextAreaChatLog[data-colortheme="dark2"] div.ChatMessageWhisper {
-			color: #828282;
 		}
 		#TextAreaChatLog[data-colortheme="dark"] a,
 		#TextAreaChatLog[data-colortheme="dark2"] a,
@@ -2984,11 +2953,6 @@ async function ForBetterClub() {
 		}
 		.${WHISPER_CLASS} {
 			font-style: italic;
-		}
-		.${BCE_COLOR_ADJUSTMENTS_CLASS_NAME} .${DARK_INPUT_CLASS} {
-			background-color: #111;
-			color: #eee;
-			border-color: #333;
 		}
 		a.bce-button {
 			text-decoration: none;
