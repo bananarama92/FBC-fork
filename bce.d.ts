@@ -139,7 +139,6 @@ declare global {
     Effect?: string[];
     BlinkState?: unknown;
   };
-  type ItemLayer = Item & { Name: string | null; Priority?: number };
   type ArousalExpressionStage = {
     Expression: ExpressionName | null;
     Limit: number;
