@@ -22,10 +22,16 @@
 async function ForBetterClub() {
 	"use strict";
 
-	const FBC_VERSION = "6.0";
+	const FBC_VERSION = "6.1";
 	const settingsVersion = 60;
 
 	const fbcChangelog = `${FBC_VERSION}
+6.1
+- Update for R104
+- Remove layering
+- Remove improve colors for readability
+
+6.0
 - Remove FPS-limiter and garbling-related functionalities
 - Remove R102 leftovers
 
@@ -37,8 +43,6 @@ async function ForBetterClub() {
 - Added support for R102
 - Changed characters with notes to have cyan FBC version number
 
-5.6
-- Changed modals to use FUSAM's modal system
 `;
 
 	const SUPPORTED_GAME_VERSIONS = ["R103"];
