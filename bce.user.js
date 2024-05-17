@@ -6130,10 +6130,14 @@ async function ForBetterClub() {
 
 				if (w.InputChat) {
 					/** @type {() => boolean} */
-					const isWhispering = () =>
-						w.InputChat?.value.startsWith("/w ") ||
-						w.InputChat?.value.startsWith("/whisper ") ||
-						!!w.ChatRoomTargetMemberNumber;
+					const isWhispering = () => {
+						return (
+							window.InputChat?.value.startsWith("/w ")
+							|| window.InputChat?.value.startsWith("/whisper ")
+							|| window.ChatRoomTargetMemberNumber !== -1
+						);
+					}
+
 					if (
 						w.InputChat?.classList.contains(WHISPER_CLASS) &&
 						!isWhispering()
