@@ -31,7 +31,6 @@ At a glance, **everything is entirely optional, enable in settings** (profile ->
 - Ctrl+Enter to OOC
 - Club slave as an option for owners under forced labor
 - Extended Wardrobe (more slots)
-- Modify outfit layering
 - Importing and exporting outfits
 - Save and review profiles of, and add notes to, players you have seen before (incompatible with incognito/private browsing due to saving in browser storage) - /profiles to search them
 - Basic anti-cheat
@@ -111,18 +110,6 @@ FBC allows owners to send their submissives to work as club slaves, when both ar
 ![](static/bceExtendedWardrobe.png)
 
 FBC allows expanding your wardrobe to 96 slots. Note that this will make the wardrobe open a bit slower.
-
-### Layer-priority editor and ability to loosen/tighten restraints
-
-![](static/bceLayering1.png)
-![](static/bceLayering2.png)
-
-FBC allows manual editing of an asset's priority — the value the game uses to decide what item shows over others. When you select an item, you should see either:
-
-- a number field and a validate button at the top-right for clothing,
-- two white boxes at bottom-left for restraints: one will open the option to modify layer priority while the other allows loosening/tightening restraints.
-
-This allow manually overriding the assets' relative positioning, giving better flexibility when doing outfits, or slapping restraints. Note that there's no way to reset the priority to its default value, so you have to take note of it or take it off and put it on again.
 
 ### Anti-cheat
 
