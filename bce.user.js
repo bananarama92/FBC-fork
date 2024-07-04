@@ -22,26 +22,12 @@
 async function ForBetterClub() {
 	"use strict";
 
-	const FBC_VERSION = "6.1";
+	const FBC_VERSION = "6.2";
 	const settingsVersion = 60;
 
 	const fbcChangelog = `${FBC_VERSION}
-6.1
-- Update for R104
-- Remove layering
-- Remove improve colors for readability
-
-6.0
-- Remove FPS-limiter and garbling-related functionalities
-- Remove R102 leftovers
-
-5.8
-- Changed discreet mode to allow friend list and main hall backgrounds
-- Changed /beep to respect BCX beep restrictions
-
-5.7
-- Added support for R102
-- Changed characters with notes to have cyan FBC version number
+- Update for R105
+- This FBC fork has been deprecated; switching to <a target="_blank" href="https://wce-docs.vercel.app/docs/intro">Wholesome Club Extensions (WCE)</a> is adviced
 
 `;
 
@@ -794,12 +780,7 @@ async function ForBetterClub() {
 					settings[setting] = defaultSettings[setting].value;
 				}
 			}
-			if (
-				typeof settings.version === "undefined" ||
-				settings.version < settingsVersion
-			) {
-				beepChangelog();
-			}
+			beepChangelog();
 			settings.version = settingsVersion;
 			fbcSettings = settings;
 			return settings;
@@ -1251,7 +1232,7 @@ async function ForBetterClub() {
 	};
 
 	/**
-	 * @type {(node: HTMLElement | HTMLElement[] | string) => void}
+	 * @type {(node: HTMLElement | (string | Node)[] | string) => void}
 	 */
 	const fbcChatNotify = (node) => {
 		const div = document.createElement("div");
@@ -1751,7 +1732,9 @@ async function ForBetterClub() {
 				Tag: "fbcchangelog",
 				Description: displayText("Show recent FBC changelog"),
 				Action: () => {
-					fbcChatNotify(fbcChangelog);
+					const elem = document.createElement("span");
+					elem.innerHTML = fbcChangelog;
+					fbcChatNotify(elem);
 				},
 			},
 			{
@@ -7972,7 +7955,9 @@ async function ForBetterClub() {
 			)
 		);
 		await waitFor(() => !!document.getElementById("TextAreaChatLog"));
-		fbcChatNotify(`For Better Club (FBC) changelog:\n${fbcChangelog}`);
+		const elem = document.createElement("span");
+		elem.innerHTML = fbcChangelog;
+		fbcChatNotify([`For Better Club (FBC) changelog:`, document.createElement("br"), elem]);
 	}
 
 	/** @type {(word: string) => URL | false} */

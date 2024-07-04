@@ -1,5 +1,8 @@
 # For Better-ish Club
 
+| :exclamation:  FBC-ish has been deprecated in favor of [Wholesome Club Extensions (WCE)](https://wce-docs.vercel.app/docs/intro) |
+|----------------------------------------------------------------------------------------------------------------------------------|
+
 ## Unofficial fork of Sid's For Better Club v5.8.
 
 This is a userscript meant for enhancing the Bondage Club game.

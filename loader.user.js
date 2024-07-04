@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         FBC-ish - For Better-ish Club
 // @namespace    FBC-ish
-// @version      6.1
+// @version      6.2
 // @include      /^https:\/\/(www\.)?bondageprojects\.elementfx\.com\/R\d+\/(BondageClub|\d+)(\/((index|\d+)\.html)?)?$/
 // @include      /^https:\/\/(www\.)?bondage-europe\.com\/R\d+\/(BondageClub|\d+)(\/((index|\d+)\.html)?)?$/
 // @run-at       document-end
