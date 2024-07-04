@@ -9,7 +9,7 @@
     "@types/events": "^3.0.0",
     "@typescript-eslint/eslint-plugin": "^7.7.0",
     "@typescript-eslint/parser": "^7.7.0",
-    "bc-stubs": "104.0.0-Beta.1",
+    "bc-stubs": "105.0.3",
     "dexie": "^3.2.3",
     "eslint": "^8.40.0",
     "eslint-config-prettier": "^8.8.0",
